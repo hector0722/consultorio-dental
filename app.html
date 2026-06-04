@@ -9932,13 +9932,10 @@ function checkPass() {
 }
 
 function initPassGate() {
-  var stored = localStorage.getItem(PASS_KEY);
-  if (stored && atob(stored) === CORRECT_PASS) {
-    // Ya ingresó antes — saltarse la pantalla
-    document.getElementById('pass-screen').style.display = 'none';
-    GD.start();
-  }
-  // Si no, la pantalla ya está visible por defecto
+  // Contraseña desactivada temporalmente
+  localStorage.setItem(PASS_KEY, btoa(CORRECT_PASS));
+  document.getElementById('pass-screen').style.display = 'none';
+  GD.start();
 }
 
 window.addEventListener('load', function() {
