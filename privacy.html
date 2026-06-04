@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Política de Privacidad — Consultorio Dental</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b2a;
+      --gold: #c9a84c;
+      --cream: #f5f0e8;
+      --white: #ffffff;
+      --text: #2c2c2c;
+      --muted: #6b6b6b;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+
+    header {
+      background: var(--navy);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.3rem; }
+    .logo span { color: white; font-weight: 300; }
+    nav a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem; margin-left: 1.5rem; }
+    nav a:hover { color: var(--gold); }
+
+    .hero {
+      background: var(--navy);
+      color: white;
+      padding: 3rem 2rem 4rem;
+      text-align: center;
+    }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
+
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+    .content h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--navy);
+      margin: 2rem 0 0.7rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--gold);
+      display: inline-block;
+    }
+    .content p, .content li {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: #3a3a3a;
+      margin-bottom: 0.6rem;
+    }
+    .content ul { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+    .content ul li { list-style: disc; }
+    .content a { color: var(--navy); }
+
+    .highlight {
+      background: white;
+      border-left: 4px solid var(--gold);
+      padding: 1rem 1.2rem;
+      border-radius: 4px;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    footer {
+      background: #080f18;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+    }
+    footer a { color: var(--gold); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Consultorio <span>Dental</span></div>
+  <nav>
+    <a href="index.html">Inicio</a>
+    <a href="privacy.html">Privacidad</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <h1>Política de Privacidad</h1>
+  <p>Última actualización: junio de 2026</p>
+</div>
+
+<div class="content">
+
+  <div class="highlight">
+    Esta política describe cómo la aplicación <strong>Consultorio Dental</strong> accede, usa y protege la información obtenida a través de los servicios de Google. Lea este documento antes de utilizar la aplicación.
+  </div>
+
+  <h2>1. Descripción de la aplicación</h2>
+  <p>Consultorio Dental es una aplicación web de archivo único (.html) desarrollada por el Dr. Héctor Acosta Jiménez para el uso exclusivo de dentistas en la gestión de su consultorio privado. La aplicación permite administrar pacientes, agenda, expedientes clínicos, presupuestos, recetas y consentimientos informados.</p>
+
+  <h2>2. Uso de los servicios de Google</h2>
+  <p>La aplicación solicita acceso a los siguientes servicios de Google con el único propósito de habilitar las funciones de sincronización:</p>
+  <ul>
+    <li><strong>Google Calendar:</strong> para leer, crear y actualizar citas del consultorio en el calendario del usuario.</li>
+    <li><strong>Google Drive:</strong> para guardar y leer el archivo de respaldo de la base de datos del consultorio en la cuenta del propio usuario.</li>
+  </ul>
+  <p>El acceso se realiza exclusivamente en nombre del usuario autenticado y los datos se almacenan únicamente en la cuenta de Google del propio dentista.</p>
+
+  <h2>3. Datos que se acceden</h2>
+  <ul>
+    <li>Eventos de Google Calendar del usuario (creación, lectura y actualización de citas).</li>
+    <li>Archivos de Google Drive creados por la propia aplicación (respaldo en formato JSON).</li>
+  </ul>
+  <p>La aplicación <strong>no accede</strong> a correos electrónicos, contactos, fotos, ni a ningún otro dato de la cuenta de Google fuera de los mencionados.</p>
+
+  <h2>4. Almacenamiento y seguridad de datos</h2>
+  <p>Todos los datos clínicos se almacenan localmente en el dispositivo del usuario (localStorage del navegador) y/o en su propia cuenta de Google Drive. El desarrollador no tiene acceso, no almacena ni procesa ningún dato clínico de los pacientes en servidores externos.</p>
+
+  <h2>5. Compartición de datos con terceros</h2>
+  <p>La aplicación no comparte, vende ni transfiere datos de los usuarios ni de sus pacientes a terceros bajo ninguna circunstancia. El único flujo de datos es entre el dispositivo del usuario y su propia cuenta de Google.</p>
+
+  <h2>6. Uso de tokens de acceso</h2>
+  <p>Los tokens de acceso OAuth proporcionados por Google se utilizan únicamente durante la sesión activa para realizar las operaciones autorizadas por el usuario. No se almacenan en servidores externos.</p>
+
+  <h2>7. Cumplimiento normativo</h2>
+  <p>La aplicación fue desarrollada con base en los lineamientos de la <strong>NOM-004-SSA3-2012</strong> (expediente clínico) y las disposiciones de la <strong>Ley Federal de Protección de Datos Personales en Posesión de los Particulares</strong> aplicables en México.</p>
+
+  <h2>8. Derechos del usuario</h2>
+  <p>El usuario puede en cualquier momento:</p>
+  <ul>
+    <li>Revocar el acceso de la aplicación a su cuenta de Google desde <a href="https://myaccount.google.com/permissions" target="_blank">myaccount.google.com/permissions</a>.</li>
+    <li>Eliminar manualmente los archivos de respaldo creados en su Google Drive.</li>
+    <li>Borrar los datos locales desde la configuración de su navegador.</li>
+  </ul>
+
+  <h2>9. Contacto</h2>
+  <p>Para cualquier duda o solicitud relacionada con esta política de privacidad, puede contactar al desarrollador:</p>
+  <ul>
+    <li><strong>Nombre:</strong> Dr. Héctor Acosta Jiménez</li>
+    <li><strong>Correo:</strong> <a href="mailto:hector@hectoracosta.mx">hector@hectoracosta.mx</a></li>
+    <li><strong>Redes sociales:</strong> @SoyHectorAcostaMx</li>
+  </ul>
+
+  <h2>10. Cambios a esta política</h2>
+  <p>Esta política puede actualizarse cuando se realicen cambios significativos en la aplicación. La fecha de última actualización siempre estará indicada al inicio de este documento.</p>
+
+</div>
+
+<footer>
+  © 2026 Dr. Héctor Acosta Jiménez — Consultorio Dental App &nbsp;|&nbsp;
+  <a href="index.html">Inicio</a>
+</footer>
+
+</body>
+</html>
