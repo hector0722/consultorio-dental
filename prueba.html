@@ -789,6 +789,23 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .settings-row input[type=text],.settings-row input[type=url]{flex:1;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);}
 .settings-row input[type=text]:focus,.settings-row input[type=url]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
 .settings-row input[type=color]{width:42px;height:34px;border:1px solid var(--border-med);border-radius:var(--r-sm);cursor:pointer;padding:2px;background:var(--card);}
+.doctor-config-card{width:100%;max-width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-med);border-radius:18px;padding:15px;margin-bottom:10px;overflow:hidden;}
+.doctor-config-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0;}
+.doctor-config-avatar{width:38px!important;height:38px!important;font-size:.82rem!important;flex:0 0 38px;}
+.doctor-config-title{display:flex;flex:1;min-width:0;flex-direction:column;gap:1px;}
+.doctor-config-title strong{font-size:.86rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doctor-config-title span{font-size:.65rem;color:var(--ink-4);}
+.doctor-config-delete{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex:0 0 36px;border:0;border-radius:50%;background:rgba(255,59,48,.09);color:var(--red);cursor:pointer;}
+.doctor-config-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;min-width:0;}
+.doctor-config-field{display:flex!important;min-width:0!important;flex-direction:column;gap:5px;}
+.doctor-config-field>span{font-size:.65rem;font-weight:700;color:var(--ink-3);letter-spacing:.02em;}
+.doctor-config-field>input{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:10px 11px;border:1px solid var(--border-med);border-radius:11px;font-family:inherit;font-size:.8rem;background:var(--card);color:var(--ink);}
+.doctor-config-field>input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.12);}
+.doctor-config-color{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
+.doctor-config-color>div{display:flex;min-width:0;flex-direction:column;gap:2px;}
+.doctor-config-color strong{font-size:.72rem;color:var(--ink-2);}
+.doctor-config-color span{font-size:.64rem;color:var(--ink-4);}
+.doctor-config-color input[type=color]{width:48px;height:36px;flex:0 0 48px;padding:2px;border:1px solid var(--border-med);border-radius:10px;background:var(--card);}
 .color-presets{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
 .color-preset{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;}
 .color-preset:hover{transform:scale(1.15);}
@@ -3460,19 +3477,16 @@ html.dark .topbar h2 {
     border-radius: 24px 24px 0 0 !important;
     padding-bottom: env(safe-area-inset-bottom);
   }
-  .settings-header { padding: 16px 18px; }
-  .settings-body { padding: 16px 18px 24px; }
+  .settings-header { position:sticky;top:0;z-index:3;padding:16px 18px;background:var(--card); }
+  .settings-body { width:100%;max-width:100%;box-sizing:border-box;padding:16px 16px 24px;overflow-x:hidden; }
+  .settings-section, #doctors-cfg-list { width:100%;max-width:100%;min-width:0;box-sizing:border-box; }
   .settings-row { align-items: stretch; flex-direction: column; gap: 5px; }
   .settings-row label { min-width: 0; }
   .settings-box { overflow-x: hidden !important; }
-  #doctors-cfg-list > div { overflow: hidden; }
-  #doctors-cfg-list [style*="grid-template-columns"] {
-    grid-template-columns: minmax(0,1fr) !important;
-  }
-  #doctors-cfg-list input[type="text"] {
-    display:block;width:100% !important;min-width:0 !important;max-width:100%;box-sizing:border-box;
-  }
-  #doctors-cfg-list > div > div:last-child { flex-wrap:wrap; }
+  .doctor-config-card { padding:14px 13px;border-radius:16px; }
+  .doctor-config-fields { display:flex!important;flex-direction:column!important;gap:11px; }
+  .doctor-config-field { width:100%;max-width:100%; }
+  .doctor-config-field>input { min-height:46px;font-size:16px!important; }
 
   .photo-grid { grid-template-columns: repeat(2,1fr); }
   body > .no-print[style*="position:fixed"] { display: none !important; }
@@ -11925,6 +11939,34 @@ var GD = (function() {
 
   // ── Start ─────────────────────────────────────────────────
   function start() {
+    // Recuperar primero la copia guardada en este navegador. Antes solo se
+    // descargaba Drive y, al elegir modo offline, la app iniciaba con una base
+    // vacía aunque dental_v4 sí existiera en localStorage.
+    loadDB();
+    if (!db || typeof db !== 'object') db = { patients: [], appointments: [] };
+    if (!Array.isArray(db.patients)) db.patients = [];
+    if (!Array.isArray(db.appointments)) db.appointments = [];
+    // La versión anterior podía iniciar vacía y sobrescribir dental_v4 al
+    // recargar. En modo local, recuperar la copia inmediatamente anterior si
+    // contiene registros y la principal quedó completamente vacía.
+    if (_mode === 'local' && db.patients.length === 0 && db.appointments.length === 0) {
+      try {
+        var previousLocal = JSON.parse(localStorage.getItem('dental_autobackup_previous') || 'null');
+        var previousCount = previousLocal
+          ? ((Array.isArray(previousLocal.patients) ? previousLocal.patients.length : 0)
+            + (Array.isArray(previousLocal.appointments) ? previousLocal.appointments.length : 0))
+          : 0;
+        if (previousCount > 0) {
+          db = previousLocal;
+          if (!Array.isArray(db.patients)) db.patients = [];
+          if (!Array.isArray(db.appointments)) db.appointments = [];
+          localStorage.setItem('dental_v4', JSON.stringify(db));
+          localStorage.setItem('dental_autobackup_latest', JSON.stringify(db));
+          setTimeout(function(){ showToast('✅ Se recuperaron tus datos offline', 'green'); }, 700);
+        }
+      } catch(recoverOfflineError) {}
+    }
+
     document.getElementById('sidebar').style.display = 'none';
     document.getElementById('main').style.display    = 'none';
 
@@ -13503,33 +13545,32 @@ function renderDoctorsCfg() {
   var doctors = loadDoctors();
 
   list.innerHTML = doctors.map(function(doc, i) {
-    return '<div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;border:1px solid var(--border-med)">'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-      + '<div class="doctor-avatar-sm" style="width:32px;height:32px;font-size:.85rem;background:linear-gradient(135deg,' + (doc.color||'#0071e3') + ',#5e5ce6)">'
+    return '<div class="doctor-config-card">'
+      + '<div class="doctor-config-head">'
+      + '<div class="doctor-avatar-sm doctor-config-avatar" style="background:linear-gradient(135deg,' + (doc.color||'#0071e3') + ',#5e5ce6)">'
       + doc.name.split(' ').map(function(w){ return w[0]; }).slice(0,2).join('') + '</div>'
-      + '<span style="font-size:.85rem;font-weight:700;color:var(--ink);flex:1">' + doc.name + '</span>'
-      + (doctors.length > 1 ? '<button onclick="deleteDoctorCfg(' + i + ')" style="background:none;border:none;color:var(--ink-4);cursor:pointer;font-size:.85rem" title="Eliminar">🗑️</button>' : '')
+      + '<div class="doctor-config-title"><strong>' + doc.name + '</strong><span>Perfil profesional</span></div>'
+      + (doctors.length > 1 ? '<button type="button" class="doctor-config-delete" onclick="deleteDoctorCfg(' + i + ')" aria-label="Eliminar doctor" title="Eliminar">🗑️</button>' : '')
       + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
-      + '<input type="text" placeholder="Nombre completo" value="' + (doc.name||'').replace(/"/g,'&quot;') + '" '
+      + '<div class="doctor-config-fields">'
+      + '<label class="doctor-config-field"><span>Nombre completo</span><input type="text" placeholder="Dr. Nombre Apellido" value="' + (doc.name||'').replace(/"/g,'&quot;') + '" '
       + 'data-idx="' + i + '" data-field="name" onchange="updateDoctorCfgFromEl(this)" '
-      + 'style="padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.78rem;background:var(--card);color:var(--ink)">'
-      + '<input type="text" placeholder="Especialidad" value="' + (doc.specialty||'').replace(/"/g,'&quot;') + '" '
+      + '></label>'
+      + '<label class="doctor-config-field"><span>Especialidad</span><input type="text" placeholder="Ej. Ortodoncia" value="' + (doc.specialty||'').replace(/"/g,'&quot;') + '" '
       + 'data-idx="' + i + '" data-field="specialty" onchange="updateDoctorCfgFromEl(this)" '
-      + 'style="padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.78rem;background:var(--card);color:var(--ink)">'
-      + '<input type="text" placeholder="Cédula profesional" value="' + (doc.cedula||'') + '" '
+      + '></label>'
+      + '<label class="doctor-config-field"><span>Cédula profesional</span><input type="text" inputmode="numeric" placeholder="Ej. 14322359" value="' + (doc.cedula||'') + '" '
       + 'data-idx="' + i + '" data-field="cedula" onchange="updateDoctorCfgFromEl(this)" '
-      + 'style="padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.78rem;background:var(--card);color:var(--ink)">'
-      + '<input type="text" placeholder="Cédula especialidad" value="' + (doc.cedula2||'') + '" '
+      + '></label>'
+      + '<label class="doctor-config-field"><span>Cédula de especialidad</span><input type="text" inputmode="numeric" placeholder="Opcional" value="' + (doc.cedula2||'') + '" '
       + 'data-idx="' + i + '" data-field="cedula2" onchange="updateDoctorCfgFromEl(this)" '
-      + 'style="padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.78rem;background:var(--card);color:var(--ink)">'
+      + '></label>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'
-      + '<label style="font-size:.72rem;color:var(--ink-3)">Color en agenda:</label>'
+      + '<div class="doctor-config-color">'
+      + '<div><strong>Color en agenda</strong><span>Identifica sus citas</span></div>'
       + '<input type="color" value="' + (doc.color||'#0071e3') + '" '
       + 'data-idx="' + i + '" data-field="color" onchange="updateDoctorCfgFromEl(this);renderCal();populateDoctorFilter()" '
-      + 'style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;background:none">'
-      + '<span style="font-size:.7rem;color:var(--ink-3)">Se aplica en la agenda</span>'
+      + 'aria-label="Color en agenda">'
       + '</div>'
       + '</div>';
   }).join('');
