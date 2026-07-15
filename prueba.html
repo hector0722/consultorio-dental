@@ -8807,18 +8807,58 @@ function importData(input) {
   reader.onload = function(e) {
     try {
       var backup = JSON.parse(e.target.result);
-      if (!backup.db || !backup.db.patients) {
-        showToast('❌ Archivo inválido o dañado', 'red');
+      var importedDb = null;
+
+      // Formato actual de respaldo: { db:{patients:[]} }
+      if (backup && backup.db && Array.isArray(backup.db.patients)) {
+        importedDb = backup.db;
+      // Formato directo descargado desde Drive: { patients:[], appointments:[] }
+      } else if (backup && Array.isArray(backup.patients)) {
+        importedDb = backup;
+      // Formatos experimentales/antiguos que usaban "data"
+      } else if (backup && backup.data && Array.isArray(backup.data.patients)) {
+        importedDb = backup.data;
+      // Respaldo muy antiguo: arreglo directo de pacientes
+      } else if (Array.isArray(backup)) {
+        importedDb = { patients: backup, appointments: [] };
+      }
+
+      if (!importedDb || !Array.isArray(importedDb.patients)) {
+        input.value = '';
+        showToast('❌ El archivo no contiene una lista de pacientes reconocible', 'red');
         return;
       }
-      if (!confirm('¿Importar los datos del respaldo?\n\nEsto reemplazará TODOS tus pacientes, citas y presupuestos actuales con los del archivo.\n\n¿Continuar?')) {
+
+      var patientCount = importedDb.patients.length;
+      var appointmentCount = Array.isArray(importedDb.appointments) ? importedDb.appointments.length : 0;
+      if (!confirm('Respaldo reconocido correctamente:\n\n• ' + patientCount + ' pacientes\n• ' + appointmentCount + ' eventos o citas\n\nEsto reemplazará los datos actuales. Antes se conservará una copia interna de seguridad.\n\n¿Importar ahora?')) {
         input.value = '';
         return;
       }
+
+      // Conservar el estado que había antes de importar para poder recuperarlo.
+      try {
+        localStorage.setItem('dental_preimport_backup', JSON.stringify(buildCompleteBackup()));
+      } catch(preImportBackupError) {}
+
+      // Los archivos directos de Drive guardan datos complementarios dentro
+      // del mismo objeto. Extraerlos antes de limpiar la base principal.
+      var importedCatalog = backup.catalog || importedDb._catalog || null;
+      var importedCaja = backup.caja || importedDb._caja || null;
+      var importedDoctors = backup.doctors || importedDb._doctors || null;
+      var importedWa = backup.waTemplates || importedDb._waTpls || null;
+      var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
+
       // Restaurar DB
-      db = backup.db;
-      if (!db.appointments) db.appointments = [];
-      localStorage.setItem('dental_v4', JSON.stringify(db));
+      db = Object.assign({}, importedDb);
+      if (!Array.isArray(db.appointments)) db.appointments = [];
+      delete db._savedAt;
+      delete db._catalog;
+      delete db._caja;
+      delete db._doctors;
+      delete db._waTpls;
+      delete db._quickNotes;
+      saveLocalWithAutoBackup();
 
       // Restaurar config si existe
       if (backup.cfg) {
@@ -8828,26 +8868,28 @@ function importData(input) {
       }
 
       // Restaurar catálogo si existe
-      if (backup.catalog) {
-        localStorage.setItem('dental_catalog_v1', backup.catalog);
+      if (importedCatalog) {
+        localStorage.setItem('dental_catalog_v1', typeof importedCatalog === 'string' ? importedCatalog : JSON.stringify(importedCatalog));
         loadCatalogOverrides();
       }
 
       // Restaurar Caja si existe
-      if (backup.caja) {
-        localStorage.setItem('dental_caja_v1', backup.caja);
+      if (importedCaja) {
+        localStorage.setItem('dental_caja_v1', typeof importedCaja === 'string' ? importedCaja : JSON.stringify(importedCaja));
       }
       // Restaurar doctores si existe
-      if (backup.doctors) {
-        localStorage.setItem('dental_doctors_v1', typeof backup.doctors === 'string' ? backup.doctors : JSON.stringify(backup.doctors));
+      if (importedDoctors) {
+        localStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
       }
-      if (backup.waTemplates) localStorage.setItem('dental_wa_custom_tpls_v1', backup.waTemplates);
-      if (backup.quickNotes)  localStorage.setItem('dental_quick_notes_v1', backup.quickNotes);
+      if (importedWa) localStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
+      if (importedNotes) localStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
       // Reset migration flag
       localStorage.removeItem('dental_caja_migrated_v1');
 
-      // Subir TODO a Drive inmediatamente
-      if (typeof GD !== 'undefined' && GD.saveNow) {
+      // Subir a Drive solo si realmente hay una sesión conectada. En modo
+      // offline se conserva localmente hasta que el usuario reconecte Google.
+      var googleConnected = typeof GD !== 'undefined' && GD._token && GD._token();
+      if (googleConnected && GD.saveNow) {
         // Pequeño delay para que localStorage se actualice primero
         setTimeout(function() {
           GD.saveNow();
@@ -8856,12 +8898,13 @@ function importData(input) {
       }
 
       // Refrescar UI
+      if (typeof assignHCNumbers === 'function') assignHCNumbers();
       populateCityFilter();
       updateTopStats();
       renderList(db.patients);
       renderDashboard();
       closeSettings();
-      showToast('✅ ' + db.patients.length + ' pacientes importados — subiendo a Drive…', 'green');
+      showToast('✅ ' + db.patients.length + ' pacientes importados' + (googleConnected ? ' — subiendo a Drive…' : ' — guardados offline'), 'green');
     } catch(err) {
       showToast('❌ Error al leer el archivo: ' + err.message, 'red');
     }
