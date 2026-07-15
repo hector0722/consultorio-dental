@@ -11688,6 +11688,9 @@ var GD = (function() {
   var _dbFileId  = null;
   var _cfgFileId = null;
   var _syncTimer = null;
+  var _cfgSaveTimer = null;
+  var _cfgSaving = false;
+  var _cfgDirty = false;
   var _dirty     = false;
   var _saving    = false; // bloquear guardado mientras se carga
   var _preferLocalAfterReconnect = false;
@@ -11855,11 +11858,25 @@ var GD = (function() {
 
   // ── Leer Config desde Drive ──────────────────────────────
   function _loadCfg() {
-    if (_preferLocalAfterReconnect) return Promise.resolve();
-    return _findFile(CFG_FILENAME).then(function(file) {
-      if (!file) return;
-      _cfgFileId = file.id;
-      return _readFile(file.id).then(function(data) {
+    return _findFiles(CFG_FILENAME).then(function(files) {
+      if (!files.length) return;
+      // Usar siempre el archivo modificado más recientemente.
+      _cfgFileId = files[0].id;
+
+      // Versiones anteriores podían crear uno nuevo en cada reconexión.
+      // Mover los duplicados viejos a la papelera sin tocar el más reciente.
+      if (files.length > 1) {
+        Promise.all(files.slice(1).map(function(file) {
+          return _driveReq('PATCH', '/drive/v3/files/' + file.id, { trashed: true }).catch(function(){});
+        })).then(function() {
+          showToast('🧹 Se limpiaron ' + (files.length - 1) + ' configuraciones duplicadas de Drive', 'green');
+        });
+      }
+
+      // Si hay cambios offline, solo identificar el archivo; no reemplazar la
+      // configuración local antes de subirla.
+      if (_preferLocalAfterReconnect) return;
+      return _readFile(_cfgFileId).then(function(data) {
         if (data && data.name) {
           cfg = Object.assign(cfg, data);
           localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
@@ -11883,9 +11900,16 @@ var GD = (function() {
   }
 
   function _findFile(name) {
+    return _findFiles(name).then(function(files) {
+      return files.length ? files[0] : null;
+    });
+  }
+
+  function _findFiles(name) {
     var q = "name='" + name + "' and trashed=false" + (_folderId ? " and '" + _folderId + "' in parents" : '');
-    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id,name)').then(function(r) {
-      return (r.files && r.files.length > 0) ? r.files[0] : null;
+    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(q)
+      + '&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,name,modifiedTime)').then(function(r) {
+      return (r.files && r.files.length) ? r.files : [];
     });
   }
 
@@ -12088,12 +12112,35 @@ var GD = (function() {
     localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
     if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
     if (_mode === 'google' && _token && !_saving) {
-      if (typeof _writeFile === 'function') {
-        _writeFile(_cfgFileId, CFG_FILENAME, cfg).then(function(f) {
-          if (!_cfgFileId && f && f.id) _cfgFileId = f.id;
-        }).catch(function(){});
-      }
+      _cfgDirty = true;
+      if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
+      _cfgSaveTimer = setTimeout(_doSaveCfg, 500);
     }
+  }
+
+  function _doSaveCfg() {
+    if (!_token || _saving || !_cfgDirty) return;
+    if (_cfgSaving) return;
+    _cfgSaving = true;
+    _cfgDirty = false;
+
+    // Si todavía no conocemos el id, buscarlo antes de escribir. Así nunca se
+    // crea un archivo nuevo solo porque la sesión acaba de reconectarse.
+    var locate = _cfgFileId ? Promise.resolve({ id: _cfgFileId }) : _findFile(CFG_FILENAME);
+    locate.then(function(file) {
+      if (file && file.id) _cfgFileId = file.id;
+      return _writeFile(_cfgFileId, CFG_FILENAME, cfg);
+    }).then(function(f) {
+      if (!_cfgFileId && f && f.id) _cfgFileId = f.id;
+      _cfgSaving = false;
+      if (_cfgDirty) {
+        if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
+        _cfgSaveTimer = setTimeout(_doSaveCfg, 300);
+      }
+    }).catch(function() {
+      _cfgSaving = false;
+      _cfgDirty = true;
+    });
   }
 
   function showStatus() {
