@@ -2943,6 +2943,7 @@ body {
 .content { max-width: 1460px; padding-top: 28px; }
 
 .dashboard-hero {
+  position:relative;overflow:hidden;
   display: grid; grid-template-columns: minmax(0,.95fr) minmax(430px,1.05fr);
   grid-template-rows: 1fr auto; min-height: 500px;
   padding: clamp(42px,5vw,76px); border-radius: 30px;
@@ -2952,6 +2953,12 @@ body {
     linear-gradient(135deg,#07080a,#1b1f27 70%,#0d0f13);
   box-shadow: 0 28px 70px rgba(0,0,0,.15);
 }
+.dashboard-hero-photo{display:none;position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;}
+.dashboard-hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,11,.94) 0%,rgba(5,7,11,.78) 38%,rgba(5,7,11,.28) 72%,rgba(5,7,11,.18) 100%);}
+.dashboard-hero.has-photo .dashboard-hero-photo{display:block;}
+.dashboard-hero.has-photo .hero-reference-art{display:none;}
+.dashboard-hero > div:first-child,.dashboard-quick-actions{position:relative;z-index:2;}
+.dashboard-hero .hero-reference-art{z-index:1;}
 .dashboard-hero::before {
   display: block; width: 440px; height: 440px; left: auto; right: -150px; top: -190px;
   transform: none; background: transparent; border: 72px solid rgba(255,255,255,.035);
@@ -3510,6 +3517,36 @@ html.dark .topbar h2 {
   }
 }
 
+/* ━━━ Editor visual personalizable ━━━ */
+body.user-custom-theme{background:var(--user-bg)!important;color:var(--user-text)!important;font-size:calc(14px * var(--user-scale));}
+body.user-custom-theme #main,body.user-custom-theme .content{background:var(--user-bg)!important;}
+body.user-custom-theme #sidebar,body.user-custom-theme header{background:var(--user-sidebar)!important;}
+body.user-custom-theme .topbar{background:color-mix(in srgb,var(--user-card) 86%,transparent)!important;}
+body.user-custom-theme .card,body.user-custom-theme .table-wrap,body.user-custom-theme .appt-form-card,
+body.user-custom-theme .settings-box,body.user-custom-theme .settings-panel,body.user-custom-theme .modal-box,
+body.user-custom-theme .cal-main,body.user-custom-theme .patient-header,body.user-custom-theme .budget-panel{
+  background:var(--user-card)!important;border-radius:var(--user-radius-lg)!important;
+}
+html.dark body.user-custom-theme .card,html.dark body.user-custom-theme .table-wrap,
+html.dark body.user-custom-theme .settings-box,html.dark body.user-custom-theme .settings-panel,
+html.dark body.user-custom-theme .cal-main{background:var(--user-card)!important;}
+body.user-custom-theme .dashboard-hero{background:linear-gradient(135deg,var(--user-hero-a),var(--user-hero-b))!important;border-radius:var(--user-radius-xl)!important;}
+body.user-custom-theme .dashboard-hero-photo::after{opacity:var(--user-overlay-opacity);}
+body.user-custom-theme .btn,body.user-custom-theme input,body.user-custom-theme select,body.user-custom-theme textarea{border-radius:var(--user-radius-sm)!important;}
+body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;}
+.appearance-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:14px;}
+.appearance-preset{min-width:0;padding:10px 4px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--ink);font-size:.66rem;font-weight:700;cursor:pointer;text-align:center;}
+.appearance-preset span{display:block;width:28px;height:28px;margin:0 auto 5px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);}
+.appearance-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.appearance-control{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid var(--border);border-radius:12px;background:var(--bg);}
+.appearance-control label{font-size:.69rem;font-weight:700;color:var(--ink-2);}
+.appearance-control input[type=color]{width:38px;height:32px;border:0;padding:0;background:none;}
+.appearance-range{display:grid;grid-template-columns:130px 1fr 40px;align-items:center;gap:8px;margin-top:10px;}
+.appearance-range label{font-size:.7rem;font-weight:700;color:var(--ink-2);}
+.appearance-range input{width:100%;}
+.appearance-range output{font-size:.68rem;color:var(--ink-3);text-align:right;}
+@media(max-width:760px){.appearance-presets{grid-template-columns:repeat(3,1fr)}.appearance-color-grid{grid-template-columns:1fr}.appearance-range{grid-template-columns:105px 1fr 36px}}
+
 </style>
 </head>
 <body>
@@ -3705,6 +3742,7 @@ html.dark .topbar h2 {
           <h3 id="dash-greeting">Buenos días, Dr. Acosta</h3>
           <p id="dash-date-lbl"></p>
         </div>
+        <div class="dashboard-hero-photo" id="dashboard-hero-photo" aria-hidden="true"></div>
         <div class="hero-reference-art" aria-hidden="true">
           <span class="organic-shape shape-a"></span>
           <span class="organic-shape shape-b"></span>
@@ -7079,6 +7117,90 @@ var cfg = {
   ssa:         '',        // No. de registro SSA/COFEPRIS (si aplica)
 };
 
+var APPEARANCE_DEFAULTS = {
+  appearanceBg:'#f5f5f7', appearanceCard:'#ffffff', appearanceSidebar:'#202124',
+  appearanceText:'#1d1d1f', appearanceHeroA:'#07080a', appearanceHeroB:'#17233a',
+  appearanceOverlay:78, appearanceRadius:22, appearanceScale:100
+};
+
+var APPEARANCE_PRESETS = {
+  apple:    {color:'#0071e3',appearanceBg:'#f5f5f7',appearanceCard:'#ffffff',appearanceSidebar:'#202124',appearanceText:'#1d1d1f',appearanceHeroA:'#07080a',appearanceHeroB:'#17233a'},
+  midnight: {color:'#0a84ff',appearanceBg:'#000000',appearanceCard:'#1c1c1e',appearanceSidebar:'#111113',appearanceText:'#f5f5f7',appearanceHeroA:'#02040a',appearanceHeroB:'#0b2f55'},
+  rose:     {color:'#d92d73',appearanceBg:'#fff5f8',appearanceCard:'#ffffff',appearanceSidebar:'#30131f',appearanceText:'#29151d',appearanceHeroA:'#280b18',appearanceHeroB:'#8b2950'},
+  emerald:  {color:'#059669',appearanceBg:'#f1faf6',appearanceCard:'#ffffff',appearanceSidebar:'#123127',appearanceText:'#153329',appearanceHeroA:'#061b15',appearanceHeroB:'#116149'},
+  warm:     {color:'#c96a28',appearanceBg:'#f7f1e8',appearanceCard:'#fffaf3',appearanceSidebar:'#33251b',appearanceText:'#30251d',appearanceHeroA:'#1e120a',appearanceHeroB:'#75411e'}
+};
+
+function appearanceValue(key) {
+  return cfg[key] !== undefined && cfg[key] !== '' ? cfg[key] : APPEARANCE_DEFAULTS[key];
+}
+
+function isDarkAppearance(hex) {
+  var c=hexToRgb(hex); return ((c.r*299+c.g*587+c.b*114)/1000) < 128;
+}
+
+function applyAppearance() {
+  if (!document.body) return;
+  var root = document.documentElement;
+  var radius = parseInt(appearanceValue('appearanceRadius'),10) || 22;
+  var scale = (parseInt(appearanceValue('appearanceScale'),10) || 100) / 100;
+  var overlay = (parseInt(appearanceValue('appearanceOverlay'),10) || 78) / 100;
+  root.style.setProperty('--user-bg', appearanceValue('appearanceBg'));
+  root.style.setProperty('--user-card', appearanceValue('appearanceCard'));
+  root.style.setProperty('--user-sidebar', appearanceValue('appearanceSidebar'));
+  root.style.setProperty('--user-text', appearanceValue('appearanceText'));
+  root.style.setProperty('--user-hero-a', appearanceValue('appearanceHeroA'));
+  root.style.setProperty('--user-hero-b', appearanceValue('appearanceHeroB'));
+  root.style.setProperty('--user-overlay-opacity', overlay);
+  root.style.setProperty('--user-scale', scale);
+  root.style.setProperty('--user-radius-sm', Math.max(6,Math.round(radius*.55))+'px');
+  root.style.setProperty('--user-radius-lg', radius+'px');
+  root.style.setProperty('--user-radius-xl', Math.round(radius*1.35)+'px');
+  root.style.setProperty('--bg', appearanceValue('appearanceBg'));
+  root.style.setProperty('--card', appearanceValue('appearanceCard'));
+  root.style.setProperty('--ink', appearanceValue('appearanceText'));
+  var darkCard=isDarkAppearance(appearanceValue('appearanceCard'));
+  root.style.setProperty('--ink-2', darkCard?'#e5e5ea':'#3a3a3c');
+  root.style.setProperty('--ink-3', darkCard?'#aeaeb2':'#6e6e73');
+  root.style.setProperty('--ink-4', darkCard?'#74747a':'#aeaeb2');
+  root.style.setProperty('--border', darkCard?'rgba(255,255,255,.10)':'rgba(0,0,0,.08)');
+  root.style.setProperty('--border-med', darkCard?'rgba(255,255,255,.16)':'rgba(0,0,0,.12)');
+  document.body.classList.add('user-custom-theme');
+}
+
+function fillAppearanceControls() {
+  var fields = ['appearanceBg','appearanceCard','appearanceSidebar','appearanceText','appearanceHeroA','appearanceHeroB'];
+  fields.forEach(function(key){ var el=document.getElementById('cfg-'+key); if(el) el.value=appearanceValue(key); });
+  ['appearanceOverlay','appearanceRadius','appearanceScale'].forEach(function(key){
+    var el=document.getElementById('cfg-'+key); if(el) el.value=appearanceValue(key);
+  });
+  updateAppearanceOutputs();
+}
+
+function updateAppearanceOutputs() {
+  var pairs=[['appearanceOverlay','%'],['appearanceRadius',' px'],['appearanceScale','%']];
+  pairs.forEach(function(p){var el=document.getElementById('cfg-'+p[0]),out=document.getElementById('out-'+p[0]);if(el&&out)out.textContent=el.value+p[1];});
+}
+
+function previewAdvancedAppearance() {
+  ['appearanceBg','appearanceCard','appearanceSidebar','appearanceText','appearanceHeroA','appearanceHeroB','appearanceOverlay','appearanceRadius','appearanceScale'].forEach(function(key){
+    var el=document.getElementById('cfg-'+key); if(el) cfg[key]=el.value;
+  });
+  updateAppearanceOutputs();
+  applyAppearance();
+}
+
+function applyAppearancePreset(name) {
+  var preset=APPEARANCE_PRESETS[name]; if(!preset)return;
+  Object.keys(preset).forEach(function(key){cfg[key]=preset[key];});
+  cfg.appearanceOverlay=78;cfg.appearanceRadius=22;cfg.appearanceScale=100;
+  var accent=document.getElementById('cfg-color');if(accent)accent.value=cfg.color;
+  var hex=document.getElementById('cfg-color-hex');if(hex)hex.textContent=cfg.color;
+  fillAppearanceControls();applyColor(cfg.color);applyAppearance();
+}
+
+function resetAppearanceApple() { applyAppearancePreset('apple'); showToast('Estilo Apple restaurado', 'green'); }
+
 function loadSettings() {
   var raw = localStorage.getItem('dental_cfg_v1');
   if (!raw) return;
@@ -7145,6 +7267,77 @@ function applyBranding() {
     }
   }
   applyColor(cfg.color);
+  applyAppearance();
+  applyHeroImage();
+}
+
+function applyHeroImage() {
+  var hero = document.querySelector('.dashboard-hero');
+  var photo = document.getElementById('dashboard-hero-photo');
+  if (!hero || !photo) return;
+  var hasPhoto = !!cfg.heroImageUrl;
+  hero.classList.toggle('has-photo', hasPhoto);
+  photo.style.backgroundImage = hasPhoto ? 'url("' + cfg.heroImageUrl + '")' : '';
+}
+
+function refreshHeroImagePreview() {
+  var preview = document.getElementById('cfg-hero-img-preview');
+  var remove = document.getElementById('cfg-hero-img-remove');
+  if (preview) {
+    preview.src = cfg.heroImageUrl || '';
+    preview.style.display = cfg.heroImageUrl ? 'block' : 'none';
+  }
+  if (remove) remove.style.display = cfg.heroImageUrl ? 'inline-flex' : 'none';
+}
+
+function uploadHeroImage(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    showToast('Selecciona una imagen válida', 'red');
+    input.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      // Recorte horizontal 16:9 y compresión para no llenar el navegador ni Drive.
+      var outW = 1600, outH = 900;
+      var sourceRatio = img.width / img.height;
+      var targetRatio = outW / outH;
+      var sx = 0, sy = 0, sw = img.width, sh = img.height;
+      if (sourceRatio > targetRatio) {
+        sw = img.height * targetRatio;
+        sx = (img.width - sw) / 2;
+      } else {
+        sh = img.width / targetRatio;
+        sy = (img.height - sh) / 2;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = outW; canvas.height = outH;
+      canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+      cfg.heroImageUrl = canvas.toDataURL('image/jpeg', .82);
+      localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+      applyHeroImage();
+      refreshHeroImagePreview();
+      if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+      showToast('✅ Foto de portada actualizada', 'green');
+      input.value = '';
+    };
+    img.onerror = function() { showToast('No se pudo leer esa imagen', 'red'); input.value = ''; };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeHeroImage() {
+  cfg.heroImageUrl = '';
+  localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+  applyHeroImage();
+  refreshHeroImagePreview();
+  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+  showToast('Diseño abstracto restaurado', 'green');
 }
 
 function openSettings() {
@@ -7177,6 +7370,8 @@ function openSettings() {
     return '<div class="color-preset' + active + '" style="background:' + p.color + '" title="' + p.name + '" onclick="pickPresetColor(\'' + p.color + '\')"></div>';
   }).join('');
   document.getElementById('settings-overlay').classList.add('open');
+  fillAppearanceControls();
+  refreshHeroImagePreview();
   if (typeof refreshAutoFileBackupUI === 'function') refreshAutoFileBackupUI();
 }
 
@@ -7236,6 +7431,7 @@ function saveSettings() {
   cfg.doctors  = loadDoctors();
   cfg.logo     = document.getElementById('cfg-logo').value  || cfg.logo;
   cfg.color    = document.getElementById('cfg-color').value || cfg.color;
+  previewAdvancedAppearance();
   var currSel  = document.getElementById('cfg-currency');
   if (currSel) cfg.currency = currSel.value || 'MXN';
   var ccEl = document.getElementById('cfg-country-code');
@@ -14919,6 +15115,22 @@ window.addEventListener('resize', function() {
         </div>
       </div>
 
+      <!-- Foto de portada -->
+      <div class="settings-section">
+        <div class="settings-section-title">🖼️ Imagen de portada del inicio</div>
+        <p style="font-size:.73rem;color:var(--ink-3);line-height:1.5;margin-bottom:10px">
+          Sube una foto tuya o de tu consultorio. Se recorta y comprime automáticamente para conservar el diseño premium.
+        </p>
+        <img id="cfg-hero-img-preview" alt="Vista previa de la portada" style="display:none;width:100%;height:150px;object-fit:cover;border-radius:16px;border:1px solid var(--border);margin-bottom:10px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="btn btn-primary" style="flex:1;min-width:190px;cursor:pointer;justify-content:center">
+            📷 Elegir foto de portada
+            <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadHeroImage(this)">
+          </label>
+          <button id="cfg-hero-img-remove" type="button" class="btn btn-ghost" onclick="removeHeroImage()" style="display:none;color:var(--red)">Volver al diseño abstracto</button>
+        </div>
+      </div>
+
       <!-- Logo emoji -->
       <div class="settings-section">
         <div class="settings-section-title">Ícono / Logo</div>
@@ -14943,13 +15155,32 @@ window.addEventListener('resize', function() {
 
       <!-- Color de acento -->
       <div class="settings-section">
-        <div class="settings-section-title">Color principal</div>
+        <div class="settings-section-title">🎨 Editor visual completo</div>
+        <div class="appearance-presets">
+          <button type="button" class="appearance-preset" onclick="applyAppearancePreset('apple')"><span style="background:linear-gradient(135deg,#f5f5f7,#0071e3)"></span>Apple</button>
+          <button type="button" class="appearance-preset" onclick="applyAppearancePreset('midnight')"><span style="background:linear-gradient(135deg,#000,#0a84ff)"></span>Medianoche</button>
+          <button type="button" class="appearance-preset" onclick="applyAppearancePreset('rose')"><span style="background:linear-gradient(135deg,#fff5f8,#d92d73)"></span>Rosa</button>
+          <button type="button" class="appearance-preset" onclick="applyAppearancePreset('emerald')"><span style="background:linear-gradient(135deg,#f1faf6,#059669)"></span>Esmeralda</button>
+          <button type="button" class="appearance-preset" onclick="applyAppearancePreset('warm')"><span style="background:linear-gradient(135deg,#f7f1e8,#c96a28)"></span>Cálido</button>
+        </div>
         <div class="settings-row">
-          <label>Color personalizado</label>
+          <label>Color principal y botones</label>
           <input type="color" id="cfg-color" value="#0071e3" oninput="previewColor(this.value)">
           <span id="cfg-color-hex" style="font-size:.78rem;color:var(--ink-3);font-family:monospace">#0071e3</span>
         </div>
         <div class="color-presets" id="color-presets"></div>
+        <div class="appearance-color-grid" style="margin-top:14px">
+          <div class="appearance-control"><label>Fondo general</label><input type="color" id="cfg-appearanceBg" oninput="previewAdvancedAppearance()"></div>
+          <div class="appearance-control"><label>Tarjetas y paneles</label><input type="color" id="cfg-appearanceCard" oninput="previewAdvancedAppearance()"></div>
+          <div class="appearance-control"><label>Barra de navegación</label><input type="color" id="cfg-appearanceSidebar" oninput="previewAdvancedAppearance()"></div>
+          <div class="appearance-control"><label>Texto principal</label><input type="color" id="cfg-appearanceText" oninput="previewAdvancedAppearance()"></div>
+          <div class="appearance-control"><label>Portada: inicio</label><input type="color" id="cfg-appearanceHeroA" oninput="previewAdvancedAppearance()"></div>
+          <div class="appearance-control"><label>Portada: final</label><input type="color" id="cfg-appearanceHeroB" oninput="previewAdvancedAppearance()"></div>
+        </div>
+        <div class="appearance-range"><label>Oscurecer foto</label><input type="range" min="20" max="95" id="cfg-appearanceOverlay" oninput="previewAdvancedAppearance()"><output id="out-appearanceOverlay"></output></div>
+        <div class="appearance-range"><label>Redondez</label><input type="range" min="8" max="30" id="cfg-appearanceRadius" oninput="previewAdvancedAppearance()"><output id="out-appearanceRadius"></output></div>
+        <div class="appearance-range"><label>Tamaño interfaz</label><input type="range" min="90" max="115" id="cfg-appearanceScale" oninput="previewAdvancedAppearance()"><output id="out-appearanceScale"></output></div>
+        <button type="button" class="btn btn-ghost" onclick="resetAppearanceApple()" style="width:100%;justify-content:center;margin-top:12px">↩ Restaurar estilo Apple</button>
       </div>
 
       <!-- ══ DOCTORES DE LA CLÍNICA ══ -->
