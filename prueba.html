@@ -688,7 +688,10 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .month-cell:hover{background:rgba(0,113,227,.03);}
 .month-cell.today-cell{background:rgba(0,113,227,.04);}
 .month-cell.other-month{background:var(--bg);opacity:.55;}
-.month-cell.selected-cell{background:var(--blue-pale);}
+.month-cell.selected-cell{
+  background:var(--blue-pale);box-shadow:inset 0 0 0 2px var(--blue);z-index:1;
+}
+.month-cell.selected-cell .mc-num{background:var(--blue);color:#fff;}
 .mc-num{font-size:.85rem;font-weight:700;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px;}
 .month-cell.today-cell .mc-num{background:var(--blue);color:#fff;}
 .mc-appt{background:var(--blue-pale);border-left:2px solid var(--blue);border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:.65rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:background .1s;max-width:100%;display:block;}
@@ -3113,6 +3116,11 @@ html.dark .caja-item {
 html.dark .month-cell { background: #1c1c1e; border-color: rgba(255,255,255,.08); }
 html.dark .month-cell.other-month { background: #151517 !important; }
 html.dark .month-cell.today-cell { background: rgba(0,113,227,.12) !important; }
+html.dark .month-cell.selected-cell {
+  background: rgba(10,132,255,.25) !important;
+  box-shadow: inset 0 0 0 2px #0a84ff, 0 0 18px rgba(10,132,255,.16) !important;
+}
+html.dark .month-cell.selected-cell .mc-num { background:#0a84ff !important;color:#fff !important; }
 html.dark .wc-slot,
 html.dark .wc-time-label { border-color: rgba(255,255,255,.08) !important; }
 
@@ -3456,6 +3464,15 @@ html.dark .topbar h2 {
   .settings-body { padding: 16px 18px 24px; }
   .settings-row { align-items: stretch; flex-direction: column; gap: 5px; }
   .settings-row label { min-width: 0; }
+  .settings-box { overflow-x: hidden !important; }
+  #doctors-cfg-list > div { overflow: hidden; }
+  #doctors-cfg-list [style*="grid-template-columns"] {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  #doctors-cfg-list input[type="text"] {
+    display:block;width:100% !important;min-width:0 !important;max-width:100%;box-sizing:border-box;
+  }
+  #doctors-cfg-list > div > div:last-child { flex-wrap:wrap; }
 
   .photo-grid { grid-template-columns: repeat(2,1fr); }
   body > .no-print[style*="position:fixed"] { display: none !important; }
@@ -4655,7 +4672,9 @@ function saveLocalWithAutoBackup() {
     if (changed || !localStorage.getItem('dental_local_updated_at')) {
       localStorage.setItem('dental_local_updated_at', Date.now().toString());
     }
+    localStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
     if (changed && typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
+    return true;
   } catch(e) {
     // Si el navegador está casi lleno, priorizar siempre el archivo principal.
     try {
@@ -4663,8 +4682,11 @@ function saveLocalWithAutoBackup() {
       localStorage.removeItem('dental_autobackup_latest');
       localStorage.setItem('dental_v4', next);
       localStorage.setItem('dental_local_updated_at', Date.now().toString());
+      localStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
+      return true;
     } catch(finalError) {
       showToast('⚠️ No hay espacio para guardar. Exporta un respaldo.', 'red');
+      return false;
     }
   }
 }
@@ -5892,9 +5914,24 @@ function cellClick(ds) {
   var di = document.getElementById('appt-date');
   if (di) di.value = ds;
   showApptDayPanel(ds);
-  document.querySelectorAll('.month-cell').forEach(function(el){ el.classList.remove('selected-cell'); });
-  document.querySelectorAll('[data-ds="'+ds+'"]').forEach(function(el){ el.classList.add('selected-cell'); });
+  // Volver a pintar para que la selección sea consistente en modo claro,
+  // oscuro y después de navegar entre meses.
+  renderMonthView();
 }
+
+// Mantener sincronizados el campo de fecha, el mes visible y la selección.
+document.addEventListener('change', function(e) {
+  if (!e.target || e.target.id !== 'appt-date' || !e.target.value) return;
+  var ds = e.target.value;
+  var picked = new Date(ds + 'T12:00');
+  if (isNaN(picked.getTime())) return;
+  _selectedCalDay = ds;
+  calDayOf = ds;
+  calYear = picked.getFullYear();
+  calMonth = picked.getMonth();
+  showApptDayPanel(ds);
+  if (calView === 'month') renderCal();
+}, true);
 
 
 // ── DAY VIEW ──
@@ -6139,10 +6176,11 @@ function showApptDayPanel(dateStr) {
   var dObj = new Date(dateStr+'T12:00');
   title.textContent = dObj.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   panel.style.display = 'block';
-  // Pre-llenar fecha y actualizar horas bloqueadas
+  // Pre-llenar fecha, recordar selección y actualizar horas bloqueadas
+  _selectedCalDay = dateStr;
   var dateEl = document.getElementById('appt-date');
-  if (dateEl && !dateEl.value) dateEl.value = dateStr;
-  if (dateEl && dateEl.value === dateStr) updateBlockedTimes();
+  if (dateEl) dateEl.value = dateStr;
+  if (dateEl) updateBlockedTimes();
   // Recalcular hora fin desde hora inicio actual
   var timeEl = document.getElementById('appt-time');
   if (timeEl && timeEl.value) _autoSetTimeEnd(timeEl.value);
@@ -11633,6 +11671,7 @@ var GD = (function() {
         _token = resp.access_token;
         _mode  = 'google';
         localStorage.setItem(GD_MODE_KEY, 'google');
+        localStorage.removeItem('dental_offline_enabled');
         localStorage.setItem('dental_gd_token_hint', '1');
         // Guardar email como hint para auto-reconexión
         fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -11924,12 +11963,15 @@ var GD = (function() {
 
   function reconnect() {
     var modal = document.getElementById('gd-reconnect-modal');
-    if (modal) modal.classList.remove('open');
+    if (modal) { modal.classList.remove('open'); modal.style.display = ''; }
     signIn();
   }
 
   function save() {
-    saveLocalWithAutoBackup();
+    var savedLocal = saveLocalWithAutoBackup();
+    if (_mode === 'local') {
+      setBadge(savedLocal === false ? 'error' : 'offline', savedLocal === false ? 'No se pudo guardar' : 'Guardado local ✓');
+    }
     if (_mode === 'google' && _token && !_saving) {
       _scheduleSave();
     }
@@ -11973,7 +12015,11 @@ var GD = (function() {
     if (_mode === 'local' || !_token) {
       // Abrir modal de reconexión a Google
       var reconModal = document.getElementById('gd-reconnect-modal');
-      if (reconModal) { reconModal.style.display = 'flex'; return; }
+      if (reconModal) {
+        reconModal.style.display = '';
+        reconModal.classList.add('open');
+        return;
+      }
       // Si no hay modal, abrir el login screen
       var loginScreen = document.getElementById('gd-login-screen');
       if (loginScreen) { loginScreen.style.display = 'flex'; return; }
@@ -12033,6 +12079,7 @@ function gdSignIn()     { GD.signIn(); }
 function gdSkip()       { GD.skip(); }
 function gdUseOffline() { GD.skip(); }
 function gdShowStatus() { GD.showStatus(); }
+function gdReconnectNow() { GD.reconnect(); }
 function gcalSync() {
   if (typeof GCal === 'undefined') { showToast('Conecta Google primero', 'red'); return; }
   showToast('⏳ Sincronizando con Google Calendar…', 'green');
@@ -14715,6 +14762,12 @@ window.addEventListener('resize', function() {
       <!-- Google Drive / Sesión -->
       <div class="settings-section">
         <div class="settings-section-title">☁️ Google Drive</div>
+        <button onclick="gdReconnectNow();closeSettings();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:12px">
+          ☁️ Conectar o reconectar Google
+        </button>
+        <div style="font-size:.7rem;color:var(--ink-3);line-height:1.45;margin:-4px 0 12px">
+          También puedes tocar el indicador 💾 de la barra superior cuando estés en modo offline.
+        </div>
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:4px">
           <label style="font-size:.78rem;font-weight:600;color:var(--ink-2)">Almacenamiento utilizado</label>
           <div id="drive-storage-info" style="font-size:.76rem;color:var(--ink-3)">Conecta Drive para ver</div>
