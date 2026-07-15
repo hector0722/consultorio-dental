@@ -4670,6 +4670,17 @@ function saveLocalWithAutoBackup() {
 }
 
 // ═══ NAV ═══
+// Cada apartado debe abrir desde su inicio. Algunos navegadores restauran la
+// posición anterior incluso cuando solo cambiamos de vista dentro de la app.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+function resetPageScroll() {
+  var main = document.getElementById('main');
+  if (main) main.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
 function goPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -4679,6 +4690,16 @@ function goPage(id, el) {
   document.getElementById('topbar-title').textContent = map[id] || '';
   document.getElementById('btn-add').style.display = id === 'list-page' ? '' : 'none';
   closeMobileNav();
+  resetPageScroll();
+  requestAnimationFrame(resetPageScroll);
+  if (id === 'list-page') {
+    // Drive puede terminar de cargar mientras el usuario está en otro apartado.
+    // Reconstruir siempre la lista con la base actual evita mostrar una tabla vacía.
+    if (typeof populateCityFilter === 'function') populateCityFilter();
+    if (typeof updateTopStats === 'function') updateTopStats();
+    if (typeof filterList === 'function') filterList();
+    else if (typeof renderList === 'function') renderList(db.patients || []);
+  }
   if (id === 'stats-page') buildStats();
   if (id === 'budget-page') { populateBudgetSelect(); setTimeout(function(){ renderCombo('budget-patient-search','budget-patient-dropdown','budget-patient-sel',null); _restoreBudgetUI(); },150); }
   if (id === 'agenda-page') {
@@ -4694,7 +4715,12 @@ function goPage(id, el) {
     if (di && !di.value) di.value = _selectedCalDay;
     setTimeout(function(){ renderCombo('appt-patient-search','appt-patient-dropdown','appt-patient',null); },50);
   }
-  if (id === 'dash-page') renderDashboard();
+  if (id === 'dash-page') {
+    renderDashboard();
+    // Un segundo ajuste después del dibujo impide que el navegador recupere
+    // una posición antigua y corte el encabezado principal.
+    setTimeout(resetPageScroll, 0);
+  }
 }
 function showList() {
   goPage('dash-page', document.querySelector('[onclick*="dash-page"]'));
