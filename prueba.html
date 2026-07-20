@@ -1131,6 +1131,8 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .caja-balance{display:flex;align-items:baseline;justify-content:space-between;padding:14px 18px;border-radius:var(--r-lg);margin-bottom:14px;}
 .caja-bal-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
 .caja-bal-amount{font-size:2rem;font-weight:800;letter-spacing:-.05em;}
+.prod-form{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;align-items:end}.prod-help{padding:10px 13px;background:var(--blue-pale);color:var(--blue);border-radius:12px;font-size:.76rem;line-height:1.55;margin-bottom:14px}.prod-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.prod-doctor-card{padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--sh-sm)}.prod-doctor-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}.prod-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}.prod-metric{display:flex;justify-content:space-between;gap:10px;font-size:.76rem;padding:4px 0;color:var(--ink-3)}.prod-metric strong{color:var(--ink);font-size:.8rem}.prod-pay{margin-top:9px;padding-top:9px;border-top:1px solid var(--border);display:flex;justify-content:space-between;color:var(--blue);font-weight:800}.prod-table{width:100%;border-collapse:collapse;font-size:.78rem}.prod-table th{text-align:left;padding:9px;color:var(--ink-3);font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}.prod-table td{padding:9px;border-bottom:1px solid var(--border);vertical-align:middle}.prod-rate-row{display:grid;grid-template-columns:minmax(160px,1fr) 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+@media(max-width:900px){.prod-form{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.prod-form{grid-template-columns:1fr}.prod-table{min-width:760px}}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DARK MODE
@@ -4352,6 +4354,28 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
 
     <!-- REPORTE PAGE -->
     <div id="reporte-page" class="page">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div><div class="card-title" style="margin-bottom:3px">🧑‍⚕️ Producción por doctor</div><div style="font-size:.75rem;color:var(--ink-3)">Registra tratamientos realizados. El sistema calcula la producción y el pago correspondiente.</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="toggleProdRates()">⚙️ Porcentajes por doctor</button>
+        </div>
+        <div class="prod-help"><strong>Ejemplo:</strong> Dr. Héctor · Resina · 2 unidades · $800 cada una = $1,600 de producción. Si su porcentaje es 40 %, corresponde pagar $640.</div>
+        <div id="prod-rate-editor" style="display:none;margin-bottom:14px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:var(--bg)"></div>
+        <div class="prod-form">
+          <div class="fg"><label>Doctor *</label><select id="prod-doctor" onchange="prodDoctorChanged()"></select></div>
+          <div class="fg"><label>Tratamiento *</label><input id="prod-treatment" list="prod-treatment-list" placeholder="Ej. Resina" onchange="prodTreatmentChanged()"><datalist id="prod-treatment-list"></datalist></div>
+          <div class="fg"><label>Cantidad</label><input id="prod-qty" type="number" min="1" step="1" value="1" oninput="prodPreview()"></div>
+          <div class="fg"><label>Precio por unidad</label><input id="prod-price" type="number" min="0" step="0.01" placeholder="800" oninput="prodPreview()"></div>
+          <div class="fg"><label>Porcentaje del doctor</label><input id="prod-percent" type="number" min="0" max="100" step="0.5" oninput="prodPreview()"></div>
+          <div class="fg"><label>Fecha</label><input id="prod-date" type="date"></div>
+          <div class="fg"><label>Paciente (opcional)</label><input id="prod-patient" type="text" placeholder="Nombre del paciente"></div>
+          <div class="fg"><label>Notas (opcional)</label><input id="prod-notes" type="text" placeholder="Pieza, material, observaciones…"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <div id="prod-preview" style="font-size:.8rem;color:var(--ink-3)">Completa cantidad y precio para ver el cálculo.</div>
+          <button class="btn btn-primary" onclick="prodAdd()">＋ Registrar producción</button>
+        </div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
         <div style="display:flex;background:var(--bg);border-radius:980px;padding:3px;gap:2px">
           <button class="cvt-btn active" id="rep-tab-week"   onclick="repSetTab('week',this)">Semana</button>
@@ -4371,6 +4395,11 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
         </div>
       </div>
       <div class="stats-row" id="rep-kpis" style="margin-bottom:16px"></div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><div class="card-title">Corte de producción por doctor</div><div id="prod-period-note" style="font-size:.72rem;color:var(--ink-3)"></div></div><button class="btn btn-ghost btn-sm" onclick="prodPrintAll()">🖨️ Imprimir corte</button></div>
+        <div id="prod-summary" class="prod-summary"></div>
+        <div id="prod-ledger" style="overflow-x:auto;margin-top:14px"></div>
+      </div>
       <div id="rep-compare" style="margin-bottom:16px"></div>
       <div class="card" style="margin-bottom:16px">
         <div class="card-title" id="rep-chart-title">Ingresos por dia</div>
@@ -4390,6 +4419,10 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
 
     <!-- CAJA PAGE -->
     <div id="caja-page" class="page">
+
+      <div class="prod-help" style="margin-bottom:16px">
+        <strong>¿Qué se registra aquí?</strong> Caja sirve únicamente para el dinero que realmente entró o salió del consultorio: cobros, abonos, renta, materiales y otros gastos. Los tratamientos realizados y el cálculo de comisiones se registran en <strong>Reportes → Producción por doctor</strong>.
+      </div>
 
       <!-- Formulario de registro -->
       <div class="card" style="margin-bottom:16px">
@@ -9141,6 +9174,8 @@ function buildCompleteBackup() {
     cfg: cfg,
     catalog: localStorage.getItem('dental_catalog_v1') || null,
     caja: localStorage.getItem('dental_caja_v1') || null,
+    production: localStorage.getItem('dental_production_v1') || null,
+    doctorRates: localStorage.getItem('dental_doctor_rates_v1') || null,
     doctors: localStorage.getItem('dental_doctors_v1') || null,
     waTemplates: localStorage.getItem('dental_wa_custom_tpls_v1') || null,
     quickNotes: localStorage.getItem('dental_quick_notes_v1') || null
@@ -9368,6 +9403,8 @@ function importData(input) {
       // del mismo objeto. Extraerlos antes de limpiar la base principal.
       var importedCatalog = backup.catalog || importedDb._catalog || null;
       var importedCaja = backup.caja || importedDb._caja || null;
+      var importedProduction = backup.production || importedDb._production || null;
+      var importedDoctorRates = backup.doctorRates || importedDb._doctorRates || null;
       var importedDoctors = backup.doctors || importedDb._doctors || null;
       var importedWa = backup.waTemplates || importedDb._waTpls || null;
       var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
@@ -9379,6 +9416,8 @@ function importData(input) {
       delete db._savedAt;
       delete db._catalog;
       delete db._caja;
+      delete db._production;
+      delete db._doctorRates;
       delete db._doctors;
       delete db._waTpls;
       delete db._quickNotes;
@@ -9401,6 +9440,8 @@ function importData(input) {
       if (importedCaja) {
         localStorage.setItem('dental_caja_v1', typeof importedCaja === 'string' ? importedCaja : JSON.stringify(importedCaja));
       }
+      if (importedProduction) localStorage.setItem('dental_production_v1', typeof importedProduction === 'string' ? importedProduction : JSON.stringify(importedProduction));
+      if (importedDoctorRates) localStorage.setItem('dental_doctor_rates_v1', typeof importedDoctorRates === 'string' ? importedDoctorRates : JSON.stringify(importedDoctorRates));
       // Restaurar doctores si existe
       if (importedDoctors) {
         localStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
@@ -9456,7 +9497,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar todo el localStorage relacionado
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_doctor_rates_v1','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup'].forEach(function(k){
     localStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -10390,6 +10431,47 @@ goPage = function(id, el) {
 // =====================================================
 // REPORTES DE INGRESOS
 // =====================================================
+var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1';
+function prodLoad(){try{return JSON.parse(localStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
+function prodRates(){try{return JSON.parse(localStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
+function prodSave(data){localStorage.setItem(PROD_KEY,JSON.stringify(data));if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
+function prodInitForm(){
+  var ds=prodDoctors(),sel=document.getElementById('prod-doctor');if(!sel)return;
+  var old=sel.value;sel.innerHTML=ds.map(function(d){return '<option value="'+escapeHTML(d.id)+'">'+escapeHTML(d.name)+'</option>';}).join('');
+  if(old&&ds.some(function(d){return String(d.id)===String(old);}))sel.value=old;else if(_activeDoctor)sel.value=_activeDoctor.id;
+  var dl=document.getElementById('prod-treatment-list');if(dl&&typeof CATALOG!=='undefined')dl.innerHTML=CATALOG.reduce(function(a,c){return a.concat(c.items||[]);},[]).map(function(i){return '<option value="'+escapeHTML(i.name)+'" data-price="'+Number(i.price||0)+'">';}).join('');
+  var date=document.getElementById('prod-date');if(date&&!date.value)date.value=fmtDate(new Date());prodDoctorChanged();
+}
+function prodDoctorChanged(){var id=document.getElementById('prod-doctor').value,r=prodRates(),pct=document.getElementById('prod-percent');if(pct)pct.value=r[id]!==undefined?r[id]:40;prodPreview();}
+function prodTreatmentChanged(){
+  var input=document.getElementById('prod-treatment'),price=document.getElementById('prod-price');if(!input||!price)return;
+  var name=(input.value||'').trim().toLowerCase(),items=typeof CATALOG!=='undefined'?CATALOG.reduce(function(a,c){return a.concat(c.items||[]);},[]):[],found=items.find(function(i){return String(i.name||'').trim().toLowerCase()===name;});
+  if(found&&Number(found.price)>0)price.value=Number(found.price);prodPreview();
+}
+function prodPreview(){var q=Math.max(0,Number(document.getElementById('prod-qty').value)||0),p=Math.max(0,Number(document.getElementById('prod-price').value)||0),pc=Math.max(0,Math.min(100,Number(document.getElementById('prod-percent').value)||0)),gross=q*p,pay=gross*pc/100,el=document.getElementById('prod-preview');if(el)el.innerHTML=gross?'<strong>Producción: '+fmt$(gross)+'</strong> · '+pc+' % para doctor = <strong style="color:var(--blue)">'+fmt$(pay)+'</strong>':'Completa cantidad y precio para ver el cálculo.';}
+function prodAdd(){
+  var docId=document.getElementById('prod-doctor').value,doc=prodDoctors().find(function(d){return String(d.id)===String(docId);}),t=(document.getElementById('prod-treatment').value||'').trim(),q=Math.max(1,parseInt(document.getElementById('prod-qty').value)||1),price=Number(document.getElementById('prod-price').value),pct=Number(document.getElementById('prod-percent').value),date=document.getElementById('prod-date').value||fmtDate(new Date());
+  if(!t){showToast('Escribe el tratamiento realizado','red');document.getElementById('prod-treatment').focus();return;}if(!(price>0)){showToast('Ingresa el precio por unidad','red');document.getElementById('prod-price').focus();return;}if(pct<0||pct>100||isNaN(pct)){showToast('El porcentaje debe estar entre 0 y 100','red');return;}
+  var arr=prodLoad();arr.push({id:Date.now(),date:date,doctorId:docId,doctorName:doc?doc.name:'Doctor',treatment:t,qty:q,unitPrice:price,gross:q*price,percent:pct,pay:q*price*pct/100,patient:(document.getElementById('prod-patient').value||'').trim(),notes:(document.getElementById('prod-notes').value||'').trim()});prodSave(arr);
+  document.getElementById('prod-treatment').value='';document.getElementById('prod-price').value='';document.getElementById('prod-patient').value='';document.getElementById('prod-notes').value='';document.getElementById('prod-qty').value='1';prodPreview();renderReportePage();showToast('✅ Producción registrada','green');
+}
+function prodDelete(id){if(!confirm('¿Eliminar este registro de producción?'))return;prodSave(prodLoad().filter(function(x){return x.id!==id;}));renderReportePage();}
+function toggleProdRates(){var box=document.getElementById('prod-rate-editor');if(!box)return;box.style.display=box.style.display==='none'?'block':'none';if(box.style.display==='block')renderProdRates();}
+function renderProdRates(){var box=document.getElementById('prod-rate-editor'),r=prodRates();box.innerHTML='<div style="font-size:.76rem;color:var(--ink-3);margin-bottom:8px">Define el porcentaje predeterminado de cada doctor. Se puede cambiar individualmente al registrar un tratamiento.</div>'+prodDoctors().map(function(d){return '<div class="prod-rate-row"><div><strong>'+escapeHTML(d.name)+'</strong><div style="font-size:.68rem;color:var(--ink-3)">'+escapeHTML(d.specialty||'Doctor')+'</div></div><div class="fg"><input type="number" min="0" max="100" step="0.5" value="'+(r[d.id]!==undefined?r[d.id]:40)+'" onchange="prodSetRate(\''+String(d.id).replace(/'/g,'')+'\',this.value)" style="width:100%"><span style="position:absolute;margin-left:-24px;margin-top:9px">%</span></div></div>';}).join('');}
+function prodSetRate(id,value){var v=Math.max(0,Math.min(100,Number(value)||0)),r=prodRates();r[id]=v;prodSaveRates(r);if(document.getElementById('prod-doctor').value==id)document.getElementById('prod-percent').value=v;prodPreview();showToast('Porcentaje actualizado','green');}
+function prodFiltered(range){return prodLoad().filter(function(x){return x.date>=range.from&&x.date<=range.to;}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id;});}
+function prodRender(range){
+  var rows=prodFiltered(range),groups={};rows.forEach(function(x){var k=String(x.doctorId);if(!groups[k])groups[k]={id:k,name:x.doctorName||'Doctor',gross:0,pay:0,count:0,units:0};groups[k].gross+=Number(x.gross)||Number(x.qty)*Number(x.unitPrice);groups[k].pay+=Number(x.pay)||Number(x.gross)*Number(x.percent)/100;groups[k].count++;groups[k].units+=Number(x.qty)||1;});
+  var ds=prodDoctors(),summary=document.getElementById('prod-summary');document.getElementById('prod-period-note').textContent=range.label+' · '+rows.length+' registro'+(rows.length===1?'':'s');
+  var vals=Object.values(groups);summary.innerHTML=vals.length?vals.map(function(g){var d=ds.find(function(x){return String(x.id)===g.id;})||{},effective=g.gross?g.pay/g.gross*100:0;return '<div class="prod-doctor-card"><div class="prod-doctor-head"><div class="prod-avatar" style="background:'+(d.color||'var(--blue)')+'">'+escapeHTML(g.name.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join(''))+'</div><div><strong>'+escapeHTML(g.name)+'</strong><div style="font-size:.68rem;color:var(--ink-3)">'+g.count+' tratamiento'+(g.count===1?'':'s')+' · '+g.units+' unidad'+(g.units===1?'':'es')+'</div></div></div><div class="prod-metric"><span>Producción</span><strong>'+fmt$(g.gross)+'</strong></div><div class="prod-metric"><span>Porcentaje efectivo</span><strong>'+effective.toFixed(1)+' %</strong></div><div class="prod-pay"><span>Pago calculado</span><span>'+fmt$(g.pay)+'</span></div><button class="btn btn-ghost btn-xs" onclick="prodPrintDoctor(\''+g.id+'\')" style="width:100%;justify-content:center;margin-top:10px">🖨️ Imprimir desglose</button></div>';}).join(''):'<div class="hc-custom-empty" style="grid-column:1/-1">No hay producción registrada en este periodo.</div>';
+  var ledger=document.getElementById('prod-ledger');ledger.innerHTML=rows.length?'<table class="prod-table"><thead><tr><th>Fecha</th><th>Doctor</th><th>Tratamiento</th><th>Cant.</th><th>Precio</th><th>Producción</th><th>%</th><th>Pago</th><th></th></tr></thead><tbody>'+rows.map(function(x){return '<tr><td>'+escapeHTML(x.date)+'</td><td>'+escapeHTML(x.doctorName)+'</td><td><strong>'+escapeHTML(x.treatment)+'</strong>'+(x.patient?'<div style="font-size:.68rem;color:var(--ink-3)">👤 '+escapeHTML(x.patient)+'</div>':'')+'</td><td>'+x.qty+'</td><td>'+fmt$(x.unitPrice)+'</td><td><strong>'+fmt$(x.gross)+'</strong></td><td>'+x.percent+' %</td><td style="color:var(--blue);font-weight:800">'+fmt$(x.pay)+'</td><td><button class="caja-del" onclick="prodDelete('+x.id+')">✕</button></td></tr>';}).join('')+'</tbody></table>':'';
+}
+function prodPrintDoc(title,rows,range){var totalG=rows.reduce(function(s,x){return s+Number(x.gross||0);},0),totalP=rows.reduce(function(s,x){return s+Number(x.pay||0);},0),html='<!doctype html><html><head><meta charset="utf-8"><title>'+escapeHTML(title)+'</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:11px}h1{font-size:18px;margin:0}h2{font-size:12px;color:#555;margin:5px 0 20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ccc;text-align:left}th{background:#f3f3f3;font-size:9px;text-transform:uppercase}.tot{font-size:13px;font-weight:bold}.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:50px;text-align:center}.line{border-top:1px solid #111;padding-top:5px}@media print{@page{margin:12mm}}</style></head><body><h1>'+escapeHTML(title)+'</h1><h2>'+escapeHTML(cfg.name||'Consultorio Dental')+' · '+escapeHTML(range.label)+'</h2><table><tr><th>Fecha</th><th>Doctor</th><th>Tratamiento / paciente</th><th>Cant.</th><th>Producción</th><th>%</th><th>Pago</th></tr>'+rows.map(function(x){return '<tr><td>'+x.date+'</td><td>'+escapeHTML(x.doctorName)+'</td><td>'+escapeHTML(x.treatment)+(x.patient?'<br><small>'+escapeHTML(x.patient)+'</small>':'')+'</td><td>'+x.qty+'</td><td>'+fmt$(x.gross)+'</td><td>'+x.percent+'%</td><td>'+fmt$(x.pay)+'</td></tr>';}).join('')+'<tr class="tot"><td colspan="4">Totales</td><td>'+fmt$(totalG)+'</td><td></td><td>'+fmt$(totalP)+'</td></tr></table><div class="sign"><div class="line">Firma del doctor</div><div class="line">Autorizó / Pagó</div></div></body></html>';var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();setTimeout(function(){w.print();},300);}
+function prodPrintDoctor(id){var r=repGetRange();prodPrintDoc('Desglose de producción',prodFiltered(r).filter(function(x){return String(x.doctorId)===String(id);}),r);}
+function prodPrintAll(){var r=repGetRange();prodPrintDoc('Corte de producción por doctores',prodFiltered(r),r);}
+
 var _repTab    = 'week';
 var _repOffset = 0;
 
@@ -10493,13 +10575,14 @@ function renderReportePage() {
   var pays   = repGetPayments(range.from, range.to);
   var totals = repCalcTotals(pays);
   document.getElementById('rep-period-label').textContent = range.label;
+  prodRender(range);
 
   // KPIs
   var kpis = [
     {icon:'💰',label:'Ingresos',     value:fmt$(totals.ingresos), color:'#248a3d'},
-    {icon:'📋',label:'Cargos',       value:fmt$(totals.cargos),   color:'var(--ink-3)'},
+    {icon:'📤',label:'Egresos',      value:fmt$(totals.cargos),   color:'var(--red)'},
     {icon:'✅',label:'Balance neto', value:fmt$(totals.neto),     color:totals.neto>=0?'#248a3d':'var(--red)'},
-    {icon:'🔢',label:'Pagos recib.', value:totals.count,          color:'var(--blue)'},
+    {icon:'🔢',label:'Movimientos de ingreso', value:totals.count, color:'var(--blue)'},
   ];
   document.getElementById('rep-kpis').innerHTML = kpis.map(function(k){
     return '<div class="stat-card"><div class="stat-icon">'+k.icon+'</div>'
@@ -10732,7 +10815,7 @@ var _repInited = false;
 var _goPageRep = goPage;
 goPage = function(id, el) {
   _goPageRep(id, el);
-  if (id === 'reporte-page') { _repInited = true; renderReportePage(); }
+  if (id === 'reporte-page') { _repInited = true; prodInitForm(); renderReportePage(); }
 };
 
 (function(){
@@ -12364,6 +12447,8 @@ var GD = (function() {
 
         // ── Extraer datos complementarios ANTES de asignar db ──
         if (data._caja)       { localStorage.setItem('dental_caja_v1', data._caja); delete data._caja; }
+        if (data._production) { localStorage.setItem('dental_production_v1', data._production); delete data._production; }
+        if (data._doctorRates){ localStorage.setItem('dental_doctor_rates_v1', data._doctorRates); delete data._doctorRates; }
         if (data._catalog)    { localStorage.setItem('dental_catalog_v1', data._catalog); delete data._catalog; }
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
@@ -12733,6 +12818,8 @@ var GD = (function() {
     return Object.assign({}, db, {
       _savedAt:     Date.now(),
       _caja:       localStorage.getItem('dental_caja_v1')        || '[]',
+      _production: localStorage.getItem('dental_production_v1')  || '[]',
+      _doctorRates:localStorage.getItem('dental_doctor_rates_v1')|| '{}',
       _catalog:    localStorage.getItem('dental_catalog_v1')     || null,
       _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
       _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
@@ -15324,6 +15411,8 @@ function forceReloadFromDrive() {
   // Limpiar caché local de datos (NO de sesión)
   localStorage.removeItem('dental_v4');
   localStorage.removeItem('dental_caja_v1');
+  localStorage.removeItem('dental_production_v1');
+  localStorage.removeItem('dental_doctor_rates_v1');
   localStorage.removeItem('dental_catalog_v1');
   localStorage.removeItem('dental_wa_custom_tpls_v1');
   localStorage.removeItem('dental_quick_notes_v1');
