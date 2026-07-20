@@ -12762,12 +12762,12 @@ var GCal = (function() {
     });
 
     var imported = 0;
+    var updated  = 0;
     var changed  = false;
 
     // Procesar una página de eventos
     function _processEvents(events) {
       events.forEach(function(ev) {
-        if (knownCalIds[ev.id]) return;
         var src = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.source;
         if (!ev.summary || !ev.start) return;
         var dateStr = _extractDate(ev.start.dateTime, ev.start.date);
@@ -12781,11 +12781,37 @@ var GCal = (function() {
 
         var patient = _findPatient(titleClean);
         var taggedByApp = src === DENTAL_TAG || (ev.description || '').indexOf('[Consultorio Dental]') !== -1;
+        var evTime = ev.start.dateTime ? _extractTime(ev.start.dateTime) : '09:00';
+        var evTimeEnd = _extractTime(ev.end && ev.end.dateTime);
+        if (!evTimeEnd || evTimeEnd === evTime) evTimeEnd = _addHour(evTime);
+        var cleanNotes = (ev.description || '').replace('[Consultorio Dental]', '').trim();
+
+        // Si ya conocemos el evento, no hay que ignorarlo: Google Calendar
+        // pudo haber cambiado su fecha, hora, duración, paciente o notas.
+        var knownAppt = apptByCalId[ev.id];
+        if (knownAppt) {
+          var knownChanged = false;
+          if (dateStr && knownAppt.date !== dateStr) { knownAppt.date = dateStr; knownChanged = true; }
+          if (evTime && knownAppt.time !== evTime) { knownAppt.time = evTime; knownChanged = true; }
+          if (evTimeEnd && knownAppt.timeEnd !== evTimeEnd) { knownAppt.timeEnd = evTimeEnd; knownChanged = true; }
+          if (patient && String(knownAppt.patientId || '') !== String(patient.id)) {
+            knownAppt.patientId = patient.id;
+            knownAppt.calendarName = null;
+            knownChanged = true;
+          } else if (!patient && titleClean && knownAppt.calendarName !== titleClean) {
+            knownAppt.patientId = null;
+            knownAppt.calendarName = titleClean;
+            knownChanged = true;
+          }
+          if (cleanNotes !== (knownAppt.notes || '')) { knownAppt.notes = cleanNotes; knownChanged = true; }
+          if (knownChanged) { changed = true; updated++; }
+          return;
+        }
+
         // No convertir cumpleaños, festivos, reuniones u otros eventos
         // personales en citas. Solo aceptar eventos de la app o eventos
         // cronometrados que se puedan asociar con un paciente/teléfono.
         if (!taggedByApp && (!ev.start.dateTime || (!patient && !calPhone))) return;
-        var evTime = ev.start.dateTime ? _extractTime(ev.start.dateTime) : '09:00';
         // Vincular solo si coinciden fecha, hora y paciente; fecha+hora por sí
         // solas pueden pertenecer a otra persona.
         var existing = (db.appointments || []).find(function(a) {
@@ -12804,9 +12830,8 @@ var GCal = (function() {
           proc = titleClean.replace(new RegExp(patient.name, 'i'), '').replace(/^[-\s\u2014]+/, '').trim() || 'Cita';
         }
         var timeStr = evTime;
-        var timeEnd = _extractTime(ev.end && ev.end.dateTime);
-        if (timeEnd === timeStr) timeEnd = _addHour(timeStr);
-        var notes = (ev.description || '').replace('[Consultorio Dental]', '').trim();
+        var timeEnd = evTimeEnd;
+        var notes = cleanNotes;
 
         if (!db.appointments) db.appointments = [];
         db.appointments.push({
@@ -12855,6 +12880,10 @@ var GCal = (function() {
           saveDB();
           renderCal();
           renderDashboard();
+          if (typeof showApptDayPanel === 'function') {
+            showApptDayPanel(_selectedCalDay || new Date().toISOString().slice(0,10));
+          }
+          if (updated) showToast('✏️ ' + updated + ' cita(s) actualizadas desde Google Calendar', 'green');
         }
         return imported;
       });
@@ -12862,7 +12891,10 @@ var GCal = (function() {
 
     return _fetchPage(null).catch(function(e) {
       console.warn('GCal importFromCalendar:', e.message);
-      if (changed) { saveDB(); renderCal(); renderDashboard(); }
+      if (changed) {
+        saveDB(); renderCal(); renderDashboard();
+        if (typeof showApptDayPanel === 'function') showApptDayPanel(_selectedCalDay || new Date().toISOString().slice(0,10));
+      }
       return imported;
     });
   }
@@ -13036,8 +13068,8 @@ function checkCalendarDeletions() {
 
 
 // ── Indicador de sincronización con cuenta regresiva ────
-var _calSyncInterval   = 120; // evita consumir cuota de Calendar innecesariamente
-var _calCheckInterval  = 300; // los borrados no requieren consultar cada minuto
+var _calSyncInterval   = 30; // cambios de fecha/hora visibles rápidamente
+var _calCheckInterval  = 60; // borrados confirmados una vez por minuto
 var _calSyncCountdown  = _calSyncInterval;
 var _calCheckCountdown = _calCheckInterval;
 var _calLastSync       = null;
