@@ -14469,6 +14469,25 @@ function populateDoctorFilter() {
 // ── Editar cita ──────────────────────────────────────────
 var _editApptId = null;
 
+function oneHourAfter(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(timeValue || '')) return '';
+  var parts = timeValue.split(':');
+  var total = (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10) + 60;
+  // La cita usa una sola fecha; evitar generar 00:xx del día siguiente.
+  if (total >= 1440) return '23:59';
+  var hour = Math.floor(total / 60).toString().padStart(2, '0');
+  var minute = (total % 60).toString().padStart(2, '0');
+  return hour + ':' + minute;
+}
+
+function updateEditApptEndTime() {
+  var startInput = document.getElementById('edit-appt-time');
+  var endInput = document.getElementById('edit-appt-time-end');
+  if (startInput && endInput && startInput.value) {
+    endInput.value = oneHourAfter(startInput.value);
+  }
+}
+
 function openEditAppt(sid) {
   var a = (db.appointments||[]).find(function(x){ return String(x.id) === String(sid); });
   if (!a) return;
@@ -14503,9 +14522,13 @@ function closeEditAppt() {
 function saveEditAppt() {
   var a = (db.appointments||[]).find(function(x){ return String(x.id) === String(_editApptId); });
   if (!a) return;
+  var editStart = document.getElementById('edit-appt-time').value || a.time;
+  var editEnd = document.getElementById('edit-appt-time-end').value || a.timeEnd;
+  // Nunca guardar una hora final anterior o igual a la inicial.
+  if (!editEnd || editEnd <= editStart) editEnd = oneHourAfter(editStart);
   a.date    = document.getElementById('edit-appt-date').value     || a.date;
-  a.time    = document.getElementById('edit-appt-time').value     || a.time;
-  a.timeEnd = document.getElementById('edit-appt-time-end').value || a.timeEnd;
+  a.time    = editStart;
+  a.timeEnd = editEnd;
   a.proc    = document.getElementById('edit-appt-proc').value;
   a.notes   = document.getElementById('edit-appt-notes').value;
   var editDocSel = document.getElementById('edit-appt-doctor');
@@ -15935,7 +15958,7 @@ window.addEventListener('resize', function() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div>
           <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Hora inicio</label>
-          <input type="time" id="edit-appt-time" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
+          <input type="time" id="edit-appt-time" oninput="updateEditApptEndTime()" onchange="updateEditApptEndTime()" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
         </div>
         <div>
           <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Hora fin</label>
