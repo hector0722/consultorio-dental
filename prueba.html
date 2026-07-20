@@ -4375,7 +4375,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
           <div class="fg"><label>Tratamiento *</label><input id="prod-treatment" list="prod-treatment-list" placeholder="Ej. Resina" onchange="prodTreatmentChanged()"><datalist id="prod-treatment-list"></datalist></div>
           <div class="fg"><label>Cantidad</label><input id="prod-qty" type="number" min="1" step="1" value="1" oninput="prodPreview()"></div>
           <div class="fg"><label>Precio por unidad</label><input id="prod-price" type="number" min="0" step="0.01" placeholder="800" oninput="prodPreview()"></div>
-          <div class="fg"><label>Porcentaje del doctor</label><input id="prod-percent" type="number" min="0" max="100" step="0.5" oninput="prodPreview()"></div>
+          <div class="fg"><label>Porcentaje del doctor <span style="font-weight:500;color:var(--ink-3)">(se guarda automáticamente)</span></label><input id="prod-percent" type="number" min="0" max="100" step="0.5" oninput="prodCurrentRateChanged(true)" onchange="prodCurrentRateChanged(false)"></div>
           <div class="fg"><label>Fecha</label><input id="prod-date" type="date"></div>
           <div class="fg"><label>Paciente (opcional)</label><input id="prod-patient" type="text" placeholder="Nombre del paciente"></div>
           <div class="fg"><label>Notas (opcional)</label><input id="prod-notes" type="text" placeholder="Pieza, material, observaciones…"></div>
@@ -10535,6 +10535,13 @@ function prodInitForm(){
   var date=document.getElementById('prod-date');if(date&&!date.value)date.value=fmtDate(new Date());prodDoctorChanged();
 }
 function prodDoctorChanged(){var id=document.getElementById('prod-doctor').value,r=prodRates(),pct=document.getElementById('prod-percent');if(pct)pct.value=r[id]!==undefined?r[id]:40;prodPreview();}
+function prodCurrentRateChanged(silent){
+  var doctor=document.getElementById('prod-doctor'),pct=document.getElementById('prod-percent');
+  if(!doctor||!pct||pct.value==='')return;
+  // El porcentaje visible en el formulario es también el porcentaje
+  // predeterminado del doctor. Así no existen dos valores diferentes.
+  prodSetRate(doctor.value,pct.value,silent);
+}
 function prodTreatmentChanged(){
   var input=document.getElementById('prod-treatment'),price=document.getElementById('prod-price');if(!input||!price)return;
   var name=(input.value||'').trim().toLowerCase(),items=typeof CATALOG!=='undefined'?CATALOG.reduce(function(a,c){return a.concat(c.items||[]);},[]):[],found=items.find(function(i){return String(i.name||'').trim().toLowerCase()===name;});
@@ -13082,6 +13089,50 @@ document.addEventListener('visibilitychange', function() {
 window.addEventListener('online', function() {
   if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
 });
+
+// ── Red de seguridad después de la última interacción ────
+// Solo sincroniza si el contenido realmente cambió; los clics de navegación
+// no generan escrituras innecesarias en Drive.
+var _lastInteractionSaveTimer = null;
+var _lastInteractionFingerprint = '';
+function _interactionStateFingerprint() {
+  var raw = '';
+  try {
+    raw = JSON.stringify(typeof db !== 'undefined' ? db : {})
+      + '|' + JSON.stringify(typeof cfg !== 'undefined' ? cfg : {})
+      + '|' + [
+        'dental_catalog_v1','dental_caja_v1','dental_production_v1',
+        'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
+        'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
+      ].map(function(k){ return localStorage.getItem(k) || ''; }).join('|');
+  } catch(e) { return ''; }
+  // Huella corta para no conservar otra copia completa de los datos en memoria.
+  var hash = 2166136261;
+  for (var i=0;i<raw.length;i++) { hash ^= raw.charCodeAt(i); hash = Math.imul(hash,16777619); }
+  return raw.length + ':' + (hash >>> 0);
+}
+function _saveAfterLastInteraction() {
+  var current = _interactionStateFingerprint();
+  if (!current || current === _lastInteractionFingerprint) return;
+  _lastInteractionFingerprint = current;
+  localStorage.setItem('dental_local_updated_at', Date.now().toString());
+  if (typeof saveLocalWithAutoBackup === 'function') saveLocalWithAutoBackup();
+  if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
+  if (typeof GD !== 'undefined') {
+    if (GD.saveNow) GD.saveNow();
+    if (GD.saveCfg) GD.saveCfg();
+  }
+}
+function _scheduleSaveAfterInteraction() {
+  if (_lastInteractionSaveTimer) clearTimeout(_lastInteractionSaveTimer);
+  _lastInteractionSaveTimer = setTimeout(_saveAfterLastInteraction, 1200);
+}
+window.addEventListener('load', function(){
+  setTimeout(function(){ _lastInteractionFingerprint = _interactionStateFingerprint(); }, 0);
+});
+document.addEventListener('click', _scheduleSaveAfterInteraction, true);
+document.addEventListener('change', _scheduleSaveAfterInteraction, true);
+document.addEventListener('input', _scheduleSaveAfterInteraction, true);
 
 
 // ══════════════════════════════════════════════════════════
