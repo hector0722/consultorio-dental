@@ -3704,10 +3704,6 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
     </div>
   </div>
   <div class="sb-footer">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span id="sb-city-lbl">Chihuahua, Chih. · v5.1</span>
-      <button onclick="openSettings()" style="background:rgba(0,0,0,.06);border:none;cursor:pointer;border-radius:6px;padding:4px 7px;font-size:.85rem;color:var(--ink-3);transition:all .15s" title="Configuración">⚙️</button>
-    </div>
     <div id="active-doctor-badge" onclick="openDoctorSelect()" style="margin-top:6px;display:none">
       <div class="doctor-active-badge">
         <span>👨‍⚕️</span>
@@ -3715,6 +3711,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
         <span style="opacity:.6;font-size:.65rem">▼</span>
       </div>
     </div>
+    <button class="sb-settings-btn" onclick="openSettings()" title="Configuración" aria-label="Abrir configuración">⚙️</button>
     <button onclick="openHelp()" style="margin-top:8px;width:100%;background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:6px 10px;font-family:inherit;font-size:.76rem;color:var(--ink-3);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
       ❓ Ayuda y tutorial
     </button>
@@ -6438,7 +6435,12 @@ function renderDashboard() {
   const hour  = new Date().getHours();
   const greet = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
   const glEl  = document.getElementById('dash-greeting');
-  var doctorLabel = (typeof cfg !== 'undefined' && cfg.name) ? cfg.name : 'Dr. Acosta';
+  var activeDoctorForGreeting = (typeof _activeDoctor !== 'undefined' && _activeDoctor)
+    ? _activeDoctor
+    : (typeof loadActiveDoctor === 'function' ? loadActiveDoctor() : null);
+  var doctorLabel = activeDoctorForGreeting && activeDoctorForGreeting.name
+    ? activeDoctorForGreeting.name
+    : ((typeof cfg !== 'undefined' && cfg.name) ? cfg.name : 'Dr. Acosta');
   if (glEl) glEl.textContent = greet + ', ' + doctorLabel + ' 👋';
   const dlEl  = document.getElementById('dash-date-lbl');
   if (dlEl) dlEl.textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -13796,6 +13798,8 @@ function setActiveDoctor(doc) {
   var nameEl = document.getElementById('active-doctor-name');
   if (badge) badge.style.display = doc ? 'block' : 'none';
   if (nameEl && doc) nameEl.textContent = doc.name.split(' ').slice(0,2).join(' ');
+  // Reflejar inmediatamente el perfil seleccionado en el saludo del inicio.
+  if (typeof renderDashboard === 'function' && typeof db !== 'undefined') renderDashboard();
 }
 
 function initDoctorSystem() {
