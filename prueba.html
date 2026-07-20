@@ -12808,15 +12808,18 @@ var GCal = (function() {
           return;
         }
 
-        // No convertir cumpleaños, festivos, reuniones u otros eventos
-        // personales en citas. Solo aceptar eventos de la app o eventos
-        // cronometrados que se puedan asociar con un paciente/teléfono.
-        if (!taggedByApp && (!ev.start.dateTime || (!patient && !calPhone))) return;
+        // Los eventos con horario del calendario principal también pueden ser
+        // citas nuevas aunque todavía no coincidan con un paciente registrado.
+        // Los eventos de día completo (cumpleaños, festivos, recordatorios)
+        // continúan fuera de la agenda clínica.
+        if (!taggedByApp && !ev.start.dateTime) return;
         // Vincular solo si coinciden fecha, hora y paciente; fecha+hora por sí
         // solas pueden pertenecer a otra persona.
         var existing = (db.appointments || []).find(function(a) {
           if (a.calendarEventId || a.date !== dateStr || a.time !== evTime) return false;
-          return !patient || String(a.patientId || '') === String(patient.id);
+          // Nunca unir dos eventos distintos solo porque tienen la misma hora.
+          // Solo vincular una cita antigua sin ID cuando el paciente coincide.
+          return !!patient && String(a.patientId || '') === String(patient.id);
         });
         if (existing) {
           existing.calendarEventId = ev.id;
