@@ -4688,6 +4688,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
             Plan de tratamiento
             <span id="txp-progress" style="font-size:.72rem;font-weight:600;color:var(--ink-3)"></span>
           </div>
+          <div style="font-size:.7rem;color:var(--ink-3);margin:-5px 0 10px;line-height:1.45">Al completar un tratamiento se registra automáticamente en la producción del doctor activo.</div>
           <div id="txp-list" style="margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
           <div style="display:flex;gap:6px;margin-bottom:6px">
             <select id="txp-sel" style="flex:1;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg);-webkit-appearance:none"><option value="">Del catálogo…</option></select>
@@ -4704,6 +4705,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
             Pagos y abonos
             <span id="pay-badge"></span>
           </div>
+          <div style="font-size:.7rem;color:var(--ink-3);margin:-5px 0 10px;line-height:1.45">Los abonos reducen el saldo del paciente y también se registran en Caja.</div>
           <div id="pay-list" style="max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
           <div id="pay-summary-box"></div>
           <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">
@@ -5818,14 +5820,12 @@ function generateBudgetDoc() {
   document.getElementById('budget-doc-body').innerHTML = html;
   document.getElementById('budget-overlay').classList.add('open');
 
-  // Save budget to patient record
-  if (p) {
-  }
-  // Guardar datos del presupuesto actual para el botón de guardar
+  // Guardar datos del presupuesto actual y conservarlo automáticamente
+  // en el historial del expediente cuando existe un paciente seleccionado.
   window._lastBudget = { patId, entries, total, notes, today, folio };
-  // Mostrar/ocultar botón guardar según si hay paciente
   var saveBtn = document.getElementById('btn-save-budget');
-  if (saveBtn) saveBtn.style.display = patId ? 'flex' : 'none';
+  if (saveBtn) { saveBtn.style.display = patId ? 'flex' : 'none'; saveBtn.disabled=false; saveBtn.textContent='💾 Guardar en paciente'; }
+  if (p) saveBudgetToPatient();
 }
 function closeBudgetDoc() { document.getElementById('budget-overlay').classList.remove('open'); }
 
@@ -6090,15 +6090,17 @@ function migratePaymentsToCaja() {
   var added = 0;
   db.patients.forEach(function(p) {
     (p.payments || []).forEach(function(pay) {
+      // Los cargos son deuda del paciente, no dinero que salió de Caja.
+      if (!(pay.type === 'in' || pay.type === 'ing')) return;
       // Assign id if missing (legacy payments)
       if (!pay.id) pay.id = Date.now() + Math.random();
       if (existingPayIds[pay.id]) return; // skip already synced
       cajaData.push({
         id:         pay.id,
-        tipo:       (pay.type === 'in' || pay.type === 'ing') ? 'ing' : 'egr',
+        tipo:       'ing',
         desc:       pay.desc || 'Pago',
         monto:      pay.amount,
-        cat:        (pay.type === 'in' || pay.type === 'ing') ? 'abono' : 'otro-egr',
+        cat:        'abono',
         fecha:      pay.date || fmtDate(new Date()),
         notas:      p.name,
         _patientId: p.id,
@@ -6733,6 +6735,18 @@ function renderWeek() { renderCal(); }
 // ══════════════════════════════════════════════════════════
 // ★ DASHBOARD
 // ══════════════════════════════════════════════════════════
+function patientFinancialSummary(p) {
+  p=p||{};
+  var payments=(p.payments||[]),paid=payments.reduce(function(s,x){var amt=Number(x.amount)||0;return s+((x.type==='out'||x.type==='egr')?-amt:amt);},0);
+  var budgets=p.budgets||[],plan=p.treatmentPlan||[],cost=0,source='none';
+  if(budgets.length){
+    cost=budgets.reduce(function(s,b){var bt=Number(b.total);if(bt>0)return s+bt;return s+(b.items||[]).reduce(function(ss,it){return ss+Math.max(1,Number(it.qty)||1)*(Number(it.price)||0);},0);},0);source='budget';
+  }else if(plan.length){
+    cost=plan.reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
+  }
+  return {paid:paid,cost:cost,balance:paid-cost,source:source};
+}
+
 function renderDashboard() {
   const today = todayStr();
   const hour  = new Date().getHours();
@@ -6756,9 +6770,7 @@ function renderDashboard() {
 
   // Saldo pendiente
   const owers = db.patients.filter(p => {
-    const pays = (p.payments||[]);
-    const bal  = pays.reduce((s,x) => x.type==='out'?s-x.amount:s+x.amount, 0);
-    return bal < 0;
+    return patientFinancialSummary(p).balance < 0;
   });
   if (document.getElementById('dash-owe')) document.getElementById('dash-owe').textContent = owers.length;
 
@@ -6787,9 +6799,7 @@ function renderDashboard() {
     if (!owers.length) { ol.innerHTML = '<div class="empty" style="padding:20px 10px"><div class="empty-icon">✅</div><p>Todo al corriente</p></div>'; }
     else {
       ol.innerHTML = owers.slice(0,6).map(p=>{
-        const totalPaid2 = (p.payments||[]).reduce((s,x)=>x.type==='out'?s-x.amount:s+x.amount,0);
-          const totalCost2 = (p.budgets||[]).reduce((s,b)=>s+(b.items||[]).reduce((ss,it)=>ss+(it.qty||1)*(it.price||0),0),0);
-          const bal = totalCost2 > 0 ? totalPaid2 - totalCost2 : totalPaid2;
+        const bal = patientFinancialSummary(p).balance;
         return `<div class="today-appt" onclick="showDetail(${p.id})">
           <span class="ta-name">${p.name}</span>
           <span style="font-size:.85rem;font-weight:800;color:var(--red)">$${Math.abs(bal).toLocaleString('es-MX')}</span>
@@ -6825,17 +6835,12 @@ function renderPayments(p) {
       </div>`;
     }).join('');
   }
-  // Total pagado (abonos - devoluciones)
-  const totalPaid = pays.reduce((s,x)=>x.type==='out'?s-x.amount:s+x.amount, 0);
-  // Costo total del tratamiento (suma de todos los presupuestos)
-  const totalCost = (p.budgets||[]).reduce((s,b)=>{
-    return s + (b.items||[]).reduce((ss,it)=>ss+(it.qty||1)*(it.price||0),0);
-  }, 0);
-  const balance = totalCost > 0 ? totalPaid - totalCost : totalPaid;
+  const financial = patientFinancialSummary(p);
+  const balance = financial.balance;
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}</span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Calculado con presupuestos':financial.source==='plan'?'Calculado con el plan de tratamiento':'Sin presupuesto ni plan'}</small></span>
     <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${balance<0?'-':''}${fmt$(Math.abs(balance))}</span>
   </div>`;
   if (badge) {
@@ -6856,25 +6861,18 @@ function addPayment() {
   const today = todayStr();
   p.payments.push({ id: payId, date: today, desc, amount: amt, type });
   saveDB();
-  // Mirror to Caja as unified source
-  var cajaData = cajaLoad();
-  cajaData.push({
-    id: payId,
-    tipo: (type === 'in' || type === 'ing') ? 'ing' : 'egr',
-    desc: desc,
-    monto: amt,
-    cat: (type === 'in' || type === 'ing') ? 'abono' : 'otro-egr',
-    fecha: today,
-    notas: p.name,
-    _patientId: p.id,
-    _payId: payId
-  });
-  cajaSave(cajaData);
+  // Solo un abono representa dinero real que entró al consultorio.
+  // Un cargo aumenta el adeudo del paciente, pero NO es un egreso de Caja.
+  if (type === 'in' || type === 'ing') {
+    var cajaData = cajaLoad();
+    cajaData.push({id:payId,tipo:'ing',desc:desc,monto:amt,cat:'abono',fecha:today,notas:p.name,_patientId:p.id,_payId:payId});
+    cajaSave(cajaData);
+  }
   document.getElementById('pay-desc').value = '';
   document.getElementById('pay-amt').value = '';
   renderPayments(p);
   renderDashboard();
-  showToast((type === 'in' ? '+ Pago' : '- Cargo') + ' registrado y enviado a Caja', 'green');
+  showToast(type === 'in' ? '+ Abono registrado y enviado a Caja' : 'Cargo adicional registrado en el saldo del paciente', 'green');
 }
 
 function delPayment(idx) {
@@ -6913,8 +6911,8 @@ function renderTxp(p) {
   list.innerHTML = plan.map((t,i) => `
     <div class="txp-item ${t.done?'done':''}">
       <div class="txp-check" onclick="toggleTxp(${i})">✓</div>
-      <span class="txp-name">${t.name}</span>
-      <span class="txp-price">${fmt$(t.price)}</span>
+      <span class="txp-name">${escapeHTML(t.name)}${Number(t.qty||1)>1?' ×'+Number(t.qty):''}${t.done&&t.completedBy?'<small style="display:block;color:var(--ink-3);font-weight:500;margin-top:2px">Realizado por '+escapeHTML(t.completedBy)+'</small>':''}</span>
+      <span class="txp-price">${fmt$(Number(t.price||0)*Number(t.qty||1))}</span>
       <button class="txp-del" onclick="delTxp(${i})">✕</button>
     </div>`).join('');
 }
@@ -6924,8 +6922,8 @@ function addTxpFromCatalog() {
   const [id, name, price] = sel.value.split('|');
   const p = db.patients.find(x => x.id == curId); if (!p) return;
   if (!p.treatmentPlan) p.treatmentPlan = [];
-  p.treatmentPlan.push({ name, price: parseFloat(price), done: false });
-  saveDB(); renderTxp(p); sel.value = '';
+  p.treatmentPlan.push({ id:'txp-'+Date.now(), name, price: parseFloat(price), qty:1, done: false, source:'manual' });
+  saveDB(); renderTxp(p); renderPayments(p); renderDashboard(); sel.value = '';
 }
 
 function addTxpCustom() {
@@ -6934,21 +6932,34 @@ function addTxpCustom() {
   if (!name) return;
   const p = db.patients.find(x => x.id == curId); if (!p) return;
   if (!p.treatmentPlan) p.treatmentPlan = [];
-  p.treatmentPlan.push({ name, price, done: false });
-  saveDB(); renderTxp(p);
+  p.treatmentPlan.push({ id:'txp-'+Date.now(), name, price, qty:1, done: false, source:'manual' });
+  saveDB(); renderTxp(p); renderPayments(p); renderDashboard();
   document.getElementById('txp-name').value = '';
   document.getElementById('txp-price').value = '';
 }
 
 function toggleTxp(i) {
   const p = db.patients.find(x => x.id == curId); if (!p) return;
-  p.treatmentPlan[i].done = !p.treatmentPlan[i].done;
-  saveDB(); renderTxp(p);
+  var tx=p.treatmentPlan[i];if(!tx)return;
+  if(!tx.done){
+    var doctor=(typeof _activeDoctor!=='undefined'&&_activeDoctor)||((typeof loadActiveDoctor==='function')?loadActiveDoctor():null)||prodDoctors()[0];
+    var rates=prodRates(),pct=rates[doctor.id]!==undefined?Number(rates[doctor.id]):40,qty=Math.max(1,Number(tx.qty)||1),unit=Number(tx.price)||0,prodId=Date.now()+Math.floor(Math.random()*1000);
+    var production=prodLoad();production.push({id:prodId,date:todayStr(),doctorId:doctor.id,doctorName:doctor.name||'Doctor',treatment:tx.name,qty:qty,unitPrice:unit,gross:qty*unit,percent:pct,pay:qty*unit*pct/100,patient:p.name,patientId:p.id,source:'treatment-plan',treatmentPlanId:tx.id||'',budgetFolio:tx.budgetFolio||'',notes:'Registrado al completar el plan de tratamiento'});prodSave(production);
+    tx.done=true;tx.completedAt=todayStr();tx.completedBy=doctor.name||'Doctor';tx.doctorId=doctor.id;tx.productionId=prodId;
+    showToast('✅ Tratamiento completado y agregado a producción de '+(doctor.name||'doctor'),'green');
+  }else{
+    if(tx.productionId)prodSave(prodLoad().filter(function(x){return String(x.id)!==String(tx.productionId);}));
+    tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;
+    showToast('Tratamiento regresado a pendiente; se retiró de producción','green');
+  }
+  saveDB(); renderTxp(p);renderDashboard();
 }
 
 function delTxp(i) {
   const p = db.patients.find(x => x.id == curId); if (!p) return;
-  p.treatmentPlan.splice(i, 1); saveDB(); renderTxp(p);
+  var tx=p.treatmentPlan[i];
+  if(tx&&tx.productionId){if(!confirm('Este tratamiento ya generó producción. ¿Eliminarlo también del corte del doctor?'))return;prodSave(prodLoad().filter(function(x){return String(x.id)!==String(tx.productionId);}));}
+  p.treatmentPlan.splice(i, 1); saveDB(); renderTxp(p); renderPayments(p); renderDashboard();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -8557,7 +8568,7 @@ function printHistoriaClinica() {
 
   // Payments summary
   var pays = p.payments || [];
-  var balance = pays.reduce(function(s,x){ return x.type==='out'?s-x.amount:s+x.amount; }, 0);
+  var balance = patientFinancialSummary(p).balance;
   var payRows = pays.slice(-5).map(function(py){
     return '<tr><td>'+py.date+'</td><td>'+(py.type==='in'?'Abono':'Cargo')+'</td><td>'+py.desc+'</td><td style="text-align:right">'+fmt$(py.amount)+'</td></tr>';
   }).join('');
@@ -14637,6 +14648,8 @@ function renderPatientBudgetInDetail(patientId) {
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       + '<span style="font-size:.72rem;color:var(--ink-3)">' + b.date + ' · Folio #' + b.folio + '</span>'
       + '<div style="display:flex;align-items:center;gap:6px">'
+      + '<button onclick="budgetToPlan('+patientId+','+realIdx+')" '
+      + 'style="background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:2px 8px;cursor:pointer;color:var(--blue);font-size:.72rem;font-family:inherit" title="Agregar tratamientos al plan">＋ Plan</button>'
       + '<button onclick="reprintBudget('+patientId+','+realIdx+')" '
       + 'style="background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:2px 8px;cursor:pointer;color:var(--ink-3);font-size:.72rem;font-family:inherit" title="Reimprimir">🖨️ Imprimir</button>'
       + '<button onclick="deleteBudgetFromDetail('+patientId+','+realIdx+')" '
@@ -14649,6 +14662,23 @@ function renderPatientBudgetInDetail(patientId) {
       + (b.notes ? '<div style="font-size:.71rem;color:var(--ink-3);margin-top:4px">' + b.notes + '</div>' : '')
       + '</div>';
   }).join('');
+}
+
+function syncBudgetToTreatmentPlan(p,b) {
+  if(!p||!b)return 0;if(!p.treatmentPlan)p.treatmentPlan=[];var added=0;
+  (b.items||[]).forEach(function(it,index){
+    var exists=p.treatmentPlan.some(function(t){return String(t.budgetFolio||'')===String(b.folio||'')&&Number(t.budgetItemIndex)===index;});
+    if(exists)return;
+    p.treatmentPlan.push({id:'txp-'+Date.now()+'-'+index,name:it.name,price:Number(it.price)||0,qty:Math.max(1,Number(it.qty)||1),done:false,source:'budget',budgetFolio:b.folio||'',budgetItemIndex:index});added++;
+  });
+  return added;
+}
+
+function budgetToPlan(patientId,idx){
+  var p=db.patients.find(function(x){return x.id==patientId;});if(!p||!p.budgets||!p.budgets[idx])return;
+  var added=syncBudgetToTreatmentPlan(p,p.budgets[idx]);saveDB();
+  if(curId==patientId){renderTxp(p);renderPayments(p);}renderDashboard();
+  showToast(added?'✅ '+added+' tratamiento'+(added===1?'':'s')+' agregado'+(added===1?'':'s')+' al plan':'Este presupuesto ya está incluido en el plan',added?'green':'red');
 }
 
 function deleteBudgetFromDetail(patientId, idx) {
@@ -14678,7 +14708,7 @@ function saveBudgetToPatient() {
     return;
   }
 
-  p.budgets.push({
+  var savedBudget = {
     date:  lb.today,
     folio: lb.folio,
     total: lb.total,
@@ -14692,10 +14722,12 @@ function saveBudgetToPatient() {
         mensualidad: tx.mensualidad || null
       };
     })
-  });
+  };
+  p.budgets.push(savedBudget);
+  var planAdded=syncBudgetToTreatmentPlan(p,savedBudget);
 
   saveDB();
-  showToast('✅ Presupuesto guardado en ' + p.name, 'green');
+  showToast('✅ Presupuesto guardado en ' + p.name + (planAdded?' y agregado al plan':''), 'green');
 
   // Actualizar el botón
   var btn = document.getElementById('btn-save-budget');
@@ -14705,6 +14737,8 @@ function saveBudgetToPatient() {
   if (typeof renderPatientBudgetInDetail === 'function') {
     renderPatientBudgetInDetail(lb.patId);
   }
+  if(curId==lb.patId&&typeof renderTxp==='function'){renderTxp(p);renderPayments(p);}renderDashboard();
+  if(typeof renderPatientBudgetHistory==='function')renderPatientBudgetHistory(lb.patId);
 }
 
 
@@ -16353,7 +16387,7 @@ window.addEventListener('resize', function() {
       <div style="font-size:.8rem;opacity:.85">Todo lo que necesitas saber para usar el programa</div>
       <div style="margin-top:16px;position:relative">
         <span style="position:absolute;left:13px;top:10px;color:rgba(255,255,255,.8)">⌕</span>
-        <input id="help-search" type="search" oninput="filterHelp(this.value)" placeholder="Buscar: respaldo, receta, cita, imprimir…" style="width:100%;padding:10px 14px 10px 36px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:.8rem;outline:none" />
+        <input id="help-search" type="search" oninput="filterHelp(this.value)" placeholder="Buscar: presupuesto, producción, saldo, respaldo…" style="width:100%;padding:10px 14px 10px 36px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:.8rem;outline:none" />
       </div>
     </div>
 
@@ -16365,7 +16399,7 @@ window.addEventListener('resize', function() {
       <a href="#h-presupuestos" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💰 Presupuestos</a>
       <a href="#h-recetas" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💊 Recetas</a>
       <a href="#h-documentos" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">📄 Documentos</a>
-      <a href="#h-caja" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💵 Caja</a>
+      <a href="#h-caja" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💵 Caja y producción</a>
       <a href="#h-seguimiento" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🔔 Seguimiento</a>
       <a href="#h-drive" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">☁️ Drive</a>
       <a href="#h-personalizar" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🎨 Personalizar</a>
@@ -16459,9 +16493,21 @@ window.addEventListener('resize', function() {
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Crear presupuesto</div>
             <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Selecciona un paciente, elige los tratamientos del catálogo (o crea uno personalizado), agrega el número de diente en FDI si aplica. Para ortodoncia puedes editar la mensualidad directamente. Toca <strong>"Generar presupuesto"</strong>.</div>
           </div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Guardado y plan de tratamiento automáticos</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al tocar <strong>“Generar presupuesto”</strong>, el documento se guarda automáticamente en el historial del paciente y sus conceptos se agregan a su plan de tratamiento. Puedes imprimirlo o guardarlo como PDF, y reimprimirlo después desde el expediente.</div>
+          </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
-            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Guardar e imprimir</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al generar el presupuesto aparece el PDF. Toca <strong>"💾 Guardar en paciente"</strong> para adjuntarlo al expediente, o <strong>"🖨️ Imprimir / PDF"</strong> para imprimirlo. Desde el expediente puedes reimprimir cualquier presupuesto guardado.</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Presupuestos anteriores</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Los presupuestos que ya existían permanecen en el historial. Si uno antiguo todavía no aparece en el plan, toca <strong>“＋ Plan”</strong>. El programa evita volver a agregar los mismos tratamientos.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">¿Y si no genero presupuesto?</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. Si no hay presupuesto, el saldo se calcula con el costo del plan. Si sí hay presupuestos, estos tienen prioridad y el plan no se suma otra vez, por lo que no se duplica la deuda.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Completar un tratamiento</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al marcar un tratamiento como realizado, se registra automáticamente como <strong>producción del doctor activo</strong>. Si desmarcas el tratamiento, también se elimina ese registro automático.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Catálogo de tratamientos</div>
@@ -16499,13 +16545,17 @@ window.addEventListener('resize', function() {
         </div>
       </div>
 
-      <!-- CAJA Y REPORTES -->
+      <!-- CAJA, PRODUCCIÓN Y REPORTES -->
       <div id="h-caja" style="margin-bottom:28px">
-        <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">💵 Pagos, caja y reportes</div>
+        <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">💵 Pagos, caja, producción y reportes</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En su expediente registra <strong>abonos</strong> y <strong>cargos</strong> con fecha, cantidad y concepto. El saldo pendiente aparece en Inicio. Antes de borrar un movimiento verifica el monto porque afecta el saldo y los reportes.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">La sección Caja registra ingresos y egresos generales del consultorio. Selecciona tipo, fecha, concepto y monto. Úsala para gastos que no pertenecen directamente al expediente de un paciente.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Estadísticas y reportes</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Estadísticas resume pacientes, alertas y actividad clínica. Reportes permite revisar ingresos por periodo. Los resultados dependen de que citas, pagos y movimientos estén registrados con fechas correctas.</div></div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Registra el abono cuando el paciente pague.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
+          <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción por doctor</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Reportes → Producción por doctor</strong> consulta tratamientos realizados, cantidades, precios y pago calculado. El porcentaje es personalizable por doctor y también puede ajustarse en cada registro. Puedes registrar trabajo manualmente si no nació desde el plan.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cortes y pago del doctor</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Filtra por semana, mes, año o rango personalizado. El reporte muestra producción total y el porcentaje correspondiente al doctor; después puedes imprimir el corte o guardarlo como PDF.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Registros anteriores</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Los pagos, presupuestos y movimientos antiguos se conservan. Los abonos anteriores siguen formando parte de la cuenta y de Caja; los presupuestos anteriores siguen en el historial. No necesitas volver a capturarlos.</div></div>
         </div>
       </div>
 
