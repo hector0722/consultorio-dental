@@ -6085,9 +6085,19 @@ function renderDayView() {
       var min    = parseInt((a.time.split(':')[1])||0);
       var topPct = Math.round(min/60*100);
       var cls    = a.status==='done' ? 'dv-done' : a.status==='cancelled' ? 'dv-cancelled' : '';
-      var nameStr= p ? p.name : 'Paciente';
+      var nameStr= p ? p.name : (a.calendarName || 'Paciente');
       var procStr= a.proc ? '<div class="dv-appt-proc">' + a.proc + '</div>' : '';
-      return '<div class="dv-appt ' + cls + '" style="top:' + topPct + '%" '
+      // Las citas que empiezan exactamente a la misma hora se reparten en
+      // columnas, en vez de dibujarse una encima de la otra.
+      var sameStart = hourAppts.filter(function(x){ return x.time === a.time; });
+      var laneCount = sameStart.length;
+      var laneIndex = sameStart.indexOf(a);
+      var laneStyle = '';
+      if (laneCount > 1) {
+        var lanePct = 100 / laneCount;
+        laneStyle = ';right:auto;left:calc(' + (laneIndex * lanePct) + '% + 6px);width:calc(' + lanePct + '% - 10px)';
+      }
+      return '<div class="dv-appt ' + cls + '" style="top:' + topPct + '%' + laneStyle + '" '
         + 'onclick="dvClick(this)" data-ds="' + ds + '">'
         + '<div class="dv-appt-time">' + a.time + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
@@ -7257,6 +7267,12 @@ function previewAdvancedAppearance() {
   });
   updateAppearanceOutputs();
   applyAppearance();
+  // Los controles ya funcionan como vista previa en vivo; persistirlos también
+  // evita que el tema vuelva al anterior al recargar o cerrar el panel.
+  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+  else {
+    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+  }
 }
 
 function applyAppearancePreset(name) {
@@ -7266,6 +7282,12 @@ function applyAppearancePreset(name) {
   var accent=document.getElementById('cfg-color');if(accent)accent.value=cfg.color;
   var hex=document.getElementById('cfg-color-hex');if(hex)hex.textContent=cfg.color;
   fillAppearanceControls();applyColor(cfg.color);applyAppearance();
+  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+  else {
+    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+  }
+  var presetLabels={apple:'Apple',midnight:'Medianoche',rose:'Rosa',emerald:'Esmeralda',warm:'Cálido'};
+  showToast('🎨 Tema ' + (presetLabels[name] || name) + ' guardado', 'green');
 }
 
 function resetAppearanceApple() { applyAppearancePreset('apple'); showToast('Estilo Apple restaurado', 'green'); }
