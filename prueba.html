@@ -5334,7 +5334,37 @@ function saveHCTemplate(){
   applyHCTemplate();closeHCEditor();showToast('✅ Plantilla de historia clínica guardada','green');
 }
 function resetHCTemplate(){if(!confirm('¿Mostrar todos los campos originales y quitar los personalizados?'))return;_hcDraft={hiddenCore:[],fields:[]};renderHCEditorFields();document.querySelectorAll('#hc-core-list [data-core]').forEach(function(x){x.checked=true;});}
-function printPatientForm(){window.print();}
+function printPatientForm(){
+  var w=window.open('','_blank');
+  if(!w){showToast('⚠️ Permite ventanas emergentes para imprimir','red');return;}
+  var name=(document.getElementById('fp-name').value||'Paciente sin nombre').trim();
+  var hidden=hcTemplate().hiddenCore||[];
+  var sections=[];
+  document.querySelectorAll('#form-page .form-sec').forEach(function(sec){
+    var titleEl=sec.querySelector('.form-sec-title');
+    var fields=[];
+    sec.querySelectorAll('.fg').forEach(function(box){
+      var input=box.querySelector('input,textarea,select');
+      if(!input||hidden.indexOf(input.id)>=0||box.style.display==='none')return;
+      var label=box.querySelector('label');
+      var value=input.value;
+      if(input.type==='date'&&value){var d=value.split('-');if(d.length===3)value=d[2]+'/'+d[1]+'/'+d[0];}
+      fields.push({label:label?label.textContent.replace('*','').trim():'Campo',value:value||'—',wide:box.classList.contains('full')||input.tagName==='TEXTAREA'});
+    });
+    if(fields.length)sections.push({title:titleEl?titleEl.textContent.trim():'Historia clínica',fields:fields});
+  });
+  var clinic=escapeHTML(cfg.name||'Consultorio Dental'), sub=escapeHTML(cfg.sub||'');
+  var folio=escapeHTML(document.getElementById('fp-expediente').value||((curId&&db.patients.find(function(p){return p.id==curId;} )||{}).hcNumber)||'Pendiente');
+  var body=sections.map(function(s){return '<section><h2>'+escapeHTML(s.title)+'</h2><div class="fields">'+s.fields.map(function(f){return '<div class="field '+(f.wide?'wide':'')+'"><div class="label">'+escapeHTML(f.label)+'</div><div class="value">'+escapeHTML(f.value).replace(/\n/g,'<br>')+'</div></div>';}).join('')+'</div></section>';}).join('');
+  var html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Historia clínica — '+escapeHTML(name)+'</title><style>'
+    +'@page{size:auto;margin:12mm}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#111;margin:0;font-size:10.5px;line-height:1.45}.header{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px}.logo{font-size:28px;text-align:center}.clinic{font-size:15px;font-weight:800}.sub{font-size:10px;color:#555;margin-top:2px}.meta{text-align:right;font-size:9px;color:#444}.title{text-align:center;font-size:15px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;margin:12px 0 4px}.patient{text-align:center;font-size:12px;font-weight:700;margin-bottom:14px}section{break-inside:avoid;margin:0 0 11px}h2{font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #333;padding:0 0 4px;margin:0 0 6px}.fields{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #bbb;border-left:1px solid #bbb}.field{min-height:39px;padding:5px 7px;border-right:1px solid #bbb;border-bottom:1px solid #bbb;break-inside:avoid}.field.wide{grid-column:1/-1;min-height:48px}.label{font-size:8px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}.value{font-size:10.5px;white-space:normal;overflow-wrap:anywhere}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:45px;margin-top:30px;text-align:center;font-size:9px}.line{border-top:1px solid #111;padding-top:4px}.foot{margin-top:15px;border-top:1px solid #777;padding-top:5px;font-size:8px;color:#555;display:flex;justify-content:space-between}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'
+    +'<div class="header"><div class="logo">'+escapeHTML(cfg.logo||'🦷')+'</div><div><div class="clinic">'+clinic+'</div><div class="sub">'+sub+(cfg.cedula?' · Cédula: '+escapeHTML(cfg.cedula):'')+'</div><div class="sub">'+escapeHTML(cfg.direccion||'')+(cfg.telefono?' · '+escapeHTML(cfg.telefono):'')+'</div></div><div class="meta">'+new Date().toLocaleDateString('es-MX')+'<br>Expediente: '+folio+'</div></div>'
+    +'<div class="title">Historia clínica odontológica</div><div class="patient">'+escapeHTML(name)+'</div>'+body
+    +'<div class="signatures"><div class="line">Paciente / Representante legal<br>Nombre y firma</div><div class="line">'+clinic+'<br>Firma y sello</div></div>'
+    +'<div class="foot"><span>NOM-004-SSA3-2012 · Expediente clínico</span><span>'+folio+'</span></div></body></html>';
+  w.document.open();w.document.write(html);w.document.close();
+  setTimeout(function(){w.focus();w.print();},350);
+}
 
 function openAddForm() { curId = null; clearForm(); document.getElementById('form-title').textContent = 'Nuevo paciente'; document.getElementById('fp-id').value = ''; showForm(); applyHCTemplate(); }
 function editCurrent() { const p = db.patients.find(x => x.id == curId); if (!p) return; fillForm(p); document.getElementById('form-title').textContent = 'Editar paciente'; showForm(); }
