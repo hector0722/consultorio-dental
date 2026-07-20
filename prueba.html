@@ -6797,14 +6797,42 @@ function patientBudgets(p) {
 function patientFinancialSummary(p) {
   p=p||{};
   var payments=(p.payments||[]),paid=payments.reduce(function(s,x){var amt=Number(x.amount)||0;return s+((x.type==='out'||x.type==='egr')?-amt:amt);},0);
-  var budgets=patientBudgets(p),plan=p.treatmentPlan||[],cost=0,source='none';
+  var budgets=patientBudgets(p),plan=p.treatmentPlan||[],cost=0,completed=0,source='none';
   if(budgets.length){
     cost=budgets.reduce(function(s,b){var bt=Number(b.total);if(bt>0)return s+bt;return s+(b.items||[]).reduce(function(ss,it){return ss+Math.max(1,Number(it.qty)||1)*(Number(it.price)||0);},0);},0);source='budget';
+    // Descontar únicamente tratamientos realizados que pertenecen a algún
+    // presupuesto (por folio o por coincidencia de nombre/precio).
+    var budgetFolios={};var budgetConcepts=[];
+    budgets.forEach(function(b){
+      budgetFolios[String(b.folio||'')]=true;
+      (b.items||[]).forEach(function(it,index){budgetConcepts.push({folio:String(b.folio||''),index:index,name:String(it.name||'').trim().toLowerCase(),price:Number(it.price)||0,remaining:Math.max(1,Number(it.qty)||1)});});
+    });
+    plan.filter(function(t){return !!t.done;}).forEach(function(t){
+      var qty=Math.max(1,Number(t.qty)||1),unit=Number(t.price)||0,matched=0;
+      var nm=String(t.name||'').trim().toLowerCase();
+      if(t.budgetFolio&&budgetFolios[String(t.budgetFolio)]){
+        for(var li=0;li<budgetConcepts.length&&matched<qty;li++){
+          var linked=budgetConcepts[li];
+          if(linked.remaining>0&&linked.folio===String(t.budgetFolio)&&(t.budgetItemIndex===undefined||Number(t.budgetItemIndex)===linked.index)){
+            var linkedTake=Math.min(qty-matched,linked.remaining);matched+=linkedTake;linked.remaining-=linkedTake;
+          }
+        }
+      } else {
+        for(var ci=0;ci<budgetConcepts.length&&matched<qty;ci++){
+          var concept=budgetConcepts[ci];
+          if(concept.remaining>0&&concept.name===nm&&(!unit||!concept.price||concept.price===unit)){
+            var take=Math.min(qty-matched,concept.remaining);matched+=take;concept.remaining-=take;
+          }
+        }
+      }
+      completed+=matched*unit;
+    });
   }else if(plan.length){
-    // Sin presupuesto solo se convierte en adeudo lo que realmente se realizó.
-    cost=plan.filter(function(t){return !!t.done;}).reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
+    cost=plan.reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);
+    completed=plan.filter(function(t){return !!t.done;}).reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
   }
-  return {paid:paid,cost:cost,balance:paid-cost,source:source};
+  completed=Math.min(cost,Math.max(0,completed));
+  return {paid:paid,cost:cost,completed:completed,balance:paid+completed-cost,source:source};
 }
 
 function renderDashboard() {
@@ -6900,7 +6928,7 @@ function renderPayments(p) {
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Calculado con presupuestos':financial.source==='plan'?'Calculado con tratamientos realizados':'Sin presupuesto ni tratamientos realizados'}</small></span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos tratamientos realizados y abonos':financial.source==='plan'?'Plan menos tratamientos realizados y abonos':'Sin presupuesto ni plan'}</small></span>
     <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${fmt$(Math.abs(balance))}</span>
   </div>`;
   if (badge) {
@@ -16564,7 +16592,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">¿Y si no genero presupuesto?</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. Si no hay presupuesto, el saldo se calcula con el costo del plan. Si sí hay presupuestos, estos tienen prioridad y el plan no se suma otra vez, por lo que no se duplica la deuda.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. El saldo muestra lo que falta: total presupuestado o planificado, menos tratamientos realizados y menos abonos. Si existen presupuestos, tienen prioridad y el plan no se suma otra vez.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Completar un tratamiento</div>
