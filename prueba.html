@@ -10522,9 +10522,10 @@ var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PR
 function prodLoad(){try{return JSON.parse(localStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
 function prodRates(){try{return JSON.parse(localStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
 function prodTrashLoad(){try{return JSON.parse(localStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
-function prodSave(data){localStorage.setItem(PROD_KEY,JSON.stringify(data));if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodTrashSave(data){localStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodMarkLocalChange(){localStorage.setItem('dental_local_updated_at',Date.now().toString());localStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
+function prodSave(data){localStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodTrashSave(data){localStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
 function prodInitForm(){
   var ds=prodDoctors(),sel=document.getElementById('prod-doctor');if(!sel)return;
@@ -10579,9 +10580,10 @@ function prodRecoverLinkedTreatments(){
   return recovered;
 }
 function toggleProdRates(){var box=document.getElementById('prod-rate-editor');if(!box)return;box.style.display=box.style.display==='none'?'block':'none';if(box.style.display==='block')renderProdRates();}
-function renderProdRates(){var box=document.getElementById('prod-rate-editor'),r=prodRates();box.innerHTML='<div style="font-size:.76rem;color:var(--ink-3);margin-bottom:8px">Define el porcentaje predeterminado de cada doctor. Se puede cambiar individualmente al registrar un tratamiento.</div>'+prodDoctors().map(function(d){return '<div class="prod-rate-row"><div><strong>'+escapeHTML(d.name)+'</strong><div style="font-size:.68rem;color:var(--ink-3)">'+escapeHTML(d.specialty||'Doctor')+'</div></div><div class="fg"><input type="number" min="0" max="100" step="0.5" value="'+(r[d.id]!==undefined?r[d.id]:40)+'" onchange="prodSetRate(\''+String(d.id).replace(/'/g,'')+'\',this.value)" style="width:100%"><span style="position:absolute;margin-left:-24px;margin-top:9px">%</span></div></div>';}).join('');}
-function prodSetRate(id,value){
-  var v=Math.max(0,Math.min(100,Number(value)||0)),r=prodRates();r[id]=v;prodSaveRates(r);
+function renderProdRates(){var box=document.getElementById('prod-rate-editor'),r=prodRates();box.innerHTML='<div style="font-size:.76rem;color:var(--ink-3);margin-bottom:8px">Define el porcentaje predeterminado de cada doctor. Se guarda automáticamente mientras escribes.</div>'+prodDoctors().map(function(d){return '<div class="prod-rate-row"><div><strong>'+escapeHTML(d.name)+'</strong><div style="font-size:.68rem;color:var(--ink-3)">'+escapeHTML(d.specialty||'Doctor')+'</div></div><div class="fg"><input type="number" min="0" max="100" step="0.5" value="'+(r[d.id]!==undefined?r[d.id]:40)+'" oninput="prodSetRate(\''+String(d.id).replace(/'/g,'')+'\',this.value,true)" onchange="prodSetRate(\''+String(d.id).replace(/'/g,'')+'\',this.value,false)" style="width:100%"><span style="position:absolute;margin-left:-24px;margin-top:9px">%</span></div></div>';}).join('');}
+function prodSetRate(id,value,silent){
+  if(value===''||value===null)return;
+  var v=Math.max(0,Math.min(100,Number(value)||0)),r=prodRates();r[id]=v;
   var records=prodLoad(),updated=0;
   records.forEach(function(x){
     if(String(x.doctorId)===String(id)){
@@ -10589,11 +10591,16 @@ function prodSetRate(id,value){
       x.gross=Number(x.gross)||qty*unit;x.percent=v;x.pay=x.gross*v/100;updated++;
     }
   });
-  if(updated)prodSave(records);
+  // Guardar porcentaje y reportes juntos antes de programar una sola subida.
+  localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
+  if(updated)localStorage.setItem(PROD_KEY,JSON.stringify(records));
+  prodMarkLocalChange();
+  if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();
+  if(typeof GD!=='undefined'&&GD.save)GD.save();
   var doctorInput=document.getElementById('prod-doctor'),percentInput=document.getElementById('prod-percent');
   if(doctorInput&&percentInput&&String(doctorInput.value)===String(id))percentInput.value=v;
-  prodPreview();renderReportePage();
-  showToast('Porcentaje actualizado a '+v+' %'+(updated?' en '+updated+' registro'+(updated===1?'':'s'):'') ,'green');
+  prodPreview();
+  if(!silent){renderReportePage();showToast('Porcentaje guardado en '+v+' %'+(updated?' y aplicado a '+updated+' registro'+(updated===1?'':'s'):'') ,'green');}
 }
 function prodFiltered(range){prodRecoverLinkedTreatments();return prodLoad().filter(function(x){return x.date>=range.from&&x.date<=range.to;}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id;});}
 function prodRender(range){
