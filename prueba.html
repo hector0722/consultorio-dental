@@ -2095,8 +2095,22 @@ body { padding: 0; background: #f2f3f7; }
   text-overflow: ellipsis;
 }
 .sb-footer button[title="Configuración"] {
-  display: block !important; width: 34px; height: 34px; padding: 0 !important;
-  border-radius: 50% !important; background: rgba(255,255,255,.09) !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  width: 46px; height: 46px; min-width: 46px; min-height: 46px;
+  flex: 0 0 46px; padding: 0 !important; font-size: 1.12rem !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 14px !important; color: #fff !important;
+  background: rgba(255,255,255,.11) !important;
+  cursor: pointer; transition: background .18s, transform .18s, border-color .18s;
+}
+.sb-footer button[title="Configuración"]:hover {
+  background: rgba(255,255,255,.19) !important;
+  border-color: rgba(255,255,255,.24) !important;
+  transform: translateY(-1px);
+}
+.sb-footer button[title="Configuración"]:focus-visible {
+  outline: 3px solid rgba(41,151,255,.55);
+  outline-offset: 2px;
 }
 
 #main {
@@ -2912,7 +2926,7 @@ body {
 }
 
 #sidebar {
-  height: 72px; grid-template-columns: 245px minmax(0,1fr) 215px;
+  height: 72px; grid-template-columns: 245px minmax(0,1fr) 235px;
   background: rgba(22,22,23,.94); animation: none;
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
