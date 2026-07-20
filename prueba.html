@@ -330,7 +330,7 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .patient-header {
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--r-xl); padding: 20px 24px;
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   box-shadow: var(--sh-sm); margin-bottom: 14px;
 }
 .avatar {
@@ -341,9 +341,14 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
   flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,113,227,0.3);
   letter-spacing: -.02em;
 }
-.ph-info h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.03em; }
+.ph-info { flex: 1 1 260px; min-width: 0; }
+.ph-info h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.03em; overflow-wrap:anywhere; }
 .ph-info p  { font-size: .8rem; color: var(--ink-3); margin-top: 2px; }
-.ph-actions { margin-left: auto; display: flex; gap: 8px; }
+.ph-actions {
+  width: 100%; margin-left: 68px; display: flex; gap: 8px;
+  flex-wrap: wrap; align-items: center;
+}
+.ph-actions .btn { white-space: nowrap; }
 
 .alerts-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .alert-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 980px; font-size: .76rem; font-weight: 600; }
@@ -3532,7 +3537,8 @@ html.dark .topbar h2 {
   #catalog-editor > div:last-child { flex-wrap: wrap; }
 
   .patient-header { padding: 18px; border-radius: 18px; }
-  .ph-actions { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .ph-info { flex-basis:calc(100% - 72px); }
+  .ph-actions { width: 100%; margin-left:0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
   .detail-grid { display: block; }
   .detail-grid > .card { margin-bottom: 10px; }
   .detail-row { align-items: flex-start; }
@@ -6735,14 +6741,68 @@ function renderWeek() { renderCal(); }
 // ══════════════════════════════════════════════════════════
 // ★ DASHBOARD
 // ══════════════════════════════════════════════════════════
+function normalizePatientBudget(raw) {
+  raw=raw||{};
+  var sourceItems=raw.items||raw.treatments||raw.tratamientos||raw.entries||raw.concepts||raw.conceptos||[];
+  var items=(Array.isArray(sourceItems)?sourceItems:[]).map(function(entry){
+    var it=Array.isArray(entry)?(entry[1]||{}):(entry||{});
+    return {
+      name:it.name||it.nombre||it.treatment||it.tratamiento||it.concept||it.concepto||'Tratamiento',
+      price:Number(it.price!==undefined?it.price:(it.precio!==undefined?it.precio:(it.unitPrice!==undefined?it.unitPrice:it.monto)))||0,
+      qty:Math.max(1,Number(it.qty!==undefined?it.qty:(it.cantidad!==undefined?it.cantidad:1))||1),
+      mensualidad:it.mensualidad||it.monthly||null
+    };
+  });
+  var total=Number(raw.total!==undefined?raw.total:(raw.totalAmount!==undefined?raw.totalAmount:(raw.montoTotal!==undefined?raw.montoTotal:raw.amount)))||0;
+  if(!total)total=items.reduce(function(s,it){return s+it.price*it.qty;},0);
+  return {
+    date:raw.date||raw.fecha||raw.createdAt||raw.today||'',
+    folio:raw.folio||raw.id||raw.number||raw.numero||('LEG-'+String(raw.date||raw.fecha||Date.now()).replace(/\D/g,'').slice(-10)),
+    total:total,
+    notes:raw.notes||raw.notas||raw.note||'',
+    items:items
+  };
+}
+
+// Reúne formatos usados por versiones anteriores sin borrar ni reemplazar datos.
+function patientBudgets(p) {
+  if(!p)return [];
+  if(!Array.isArray(p.budgets))p.budgets=[];
+  var legacy=[];
+  ['presupuestos','budgetHistory','presupuestoHistory','savedBudgets'].forEach(function(k){
+    if(Array.isArray(p[k]))legacy=legacy.concat(p[k]);
+  });
+  if(typeof db!=='undefined'){
+    ['budgets','presupuestos','budgetHistory','savedBudgets'].forEach(function(k){
+      if(!Array.isArray(db[k]))return;
+      legacy=legacy.concat(db[k].filter(function(b){
+        var linkedId=b.patientId||b.patId||b.patient_id||b.pacienteId||'';
+        var linkedName=b.patientName||b.patient||b.paciente||'';
+        return String(linkedId)===String(p.id)||(!linkedId&&linkedName&&String(linkedName).trim().toLowerCase()===String(p.name||'').trim().toLowerCase());
+      }));
+    });
+  }
+  legacy.forEach(function(raw){
+    var b=normalizePatientBudget(raw);
+    var key=String(b.folio||'')+'|'+String(b.date||'')+'|'+String(b.total||0);
+    var exists=p.budgets.some(function(old){
+      var n=normalizePatientBudget(old);
+      return String(n.folio||'')+'|'+String(n.date||'')+'|'+String(n.total||0)===key;
+    });
+    if(!exists)p.budgets.push(b);
+  });
+  return p.budgets;
+}
+
 function patientFinancialSummary(p) {
   p=p||{};
   var payments=(p.payments||[]),paid=payments.reduce(function(s,x){var amt=Number(x.amount)||0;return s+((x.type==='out'||x.type==='egr')?-amt:amt);},0);
-  var budgets=p.budgets||[],plan=p.treatmentPlan||[],cost=0,source='none';
+  var budgets=patientBudgets(p),plan=p.treatmentPlan||[],cost=0,source='none';
   if(budgets.length){
     cost=budgets.reduce(function(s,b){var bt=Number(b.total);if(bt>0)return s+bt;return s+(b.items||[]).reduce(function(ss,it){return ss+Math.max(1,Number(it.qty)||1)*(Number(it.price)||0);},0);},0);source='budget';
   }else if(plan.length){
-    cost=plan.reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
+    // Sin presupuesto solo se convierte en adeudo lo que realmente se realizó.
+    cost=plan.filter(function(t){return !!t.done;}).reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
   }
   return {paid:paid,cost:cost,balance:paid-cost,source:source};
 }
@@ -6840,8 +6900,8 @@ function renderPayments(p) {
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Calculado con presupuestos':financial.source==='plan'?'Calculado con el plan de tratamiento':'Sin presupuesto ni plan'}</small></span>
-    <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${balance<0?'-':''}${fmt$(Math.abs(balance))}</span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Calculado con presupuestos':financial.source==='plan'?'Calculado con tratamientos realizados':'Sin presupuesto ni tratamientos realizados'}</small></span>
+    <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${fmt$(Math.abs(balance))}</span>
   </div>`;
   if (badge) {
     if (balance < 0) badge.innerHTML = `<span class="badge b-red">Debe ${fmt$(Math.abs(balance))}</span>`;
@@ -6952,7 +7012,7 @@ function toggleTxp(i) {
     tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;
     showToast('Tratamiento regresado a pendiente; se retiró de producción','green');
   }
-  saveDB(); renderTxp(p);renderDashboard();
+  saveDB(); renderTxp(p); renderPayments(p); renderDashboard();
 }
 
 function delTxp(i) {
@@ -7051,6 +7111,7 @@ function renderDetail(id) {
   const p = db.patients.find(x => x.id == id); if (!p) return;
   renderPayments(p);
   renderTxp(p);
+  renderPatientBudgetInDetail(p.id);
   populateTxpSelect();
 }
 
@@ -7850,7 +7911,7 @@ function renderPatientBudgetHistory(patientId) {
   if (!histEl) return;
   var p = db.patients.find(function(x){ return x.id == patientId; });
   if (!p) { histEl.innerHTML = '<p style="font-size:.79rem;color:var(--ink-3)">Selecciona un paciente.</p>'; return; }
-  var budgets = p.budgets || [];
+  var budgets = patientBudgets(p);
   if (!budgets.length) {
     histEl.innerHTML = '<p style="font-size:.79rem;color:var(--ink-3)">Sin presupuestos previos para este paciente.</p>';
     return;
@@ -14628,7 +14689,7 @@ function renderPatientBudgetInDetail(patientId) {
   if (!el) return;
   var p = db.patients.find(function(x){ return x.id == patientId; });
   if (!p) return;
-  var budgets = p.budgets || [];
+  var budgets = patientBudgets(p);
   if (!budgets.length) {
     el.innerHTML = '<p style="color:var(--ink-3);font-size:.79rem">Sin presupuestos generados aún.</p>';
     return;
