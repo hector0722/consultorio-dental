@@ -6182,15 +6182,15 @@ function renderWeekView() {
         const cls = a.status==='done'?'wca-done':a.status==='cancelled'?'wca-cancelled':'';
         var docColorWc = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
         var wcBg = docColorWc ? 'background:'+docColorWc+';border-color:'+docColorWc+';' : '';
-        // Igual que en la vista diaria: eventos con la misma hora ocupan
-        // columnas independientes dentro del día.
-        var sameStart = ha.filter(function(x){ return x.time === a.time; });
-        var laneCount = sameStart.length;
-        var laneIndex = sameStart.indexOf(a);
+        // En Semana cada evento de la misma franja horaria recibe una columna.
+        // Calendar puede entregar "15:00" o "15:00:00"; usar toda la franja
+        // evita que formatos distintos terminen dibujados uno encima de otro.
+        var laneCount = ha.length;
+        var laneIndex = ha.indexOf(a);
         var laneStyle = '';
         if (laneCount > 1) {
           var lanePct = 100 / laneCount;
-          laneStyle = 'right:auto;left:calc(' + (laneIndex * lanePct) + '% + 2px);width:calc(' + lanePct + '% - 4px);';
+          laneStyle = 'right:auto;left:' + (laneIndex * lanePct) + '%;width:' + lanePct + '%;box-sizing:border-box;border:2px solid var(--card);';
         }
       return `<div class="wc-appt ${cls}" style="top:${top}%;height:90%;${wcBg}${laneStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:(a.calendarName||'Cita')} - ${a.proc||''}">
           <div class="wc-appt-name">${a.time} ${p?p.name.split(' ')[0]:a.calendarName||a.proc||'Cita'}${a.doctorName?' · '+a.doctorName.split(' ')[1]||'':''}</div>
