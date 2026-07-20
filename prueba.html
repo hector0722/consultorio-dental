@@ -385,6 +385,15 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 }
 .full { grid-column: 1 / -1; }
 
+/* Editor de plantilla de historia clínica */
+.hc-template-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;margin-right:10px}
+.hc-custom-empty{padding:22px;text-align:center;color:var(--ink-3);border:1px dashed var(--border-med);border-radius:var(--r-sm);font-size:.8rem}
+.hc-editor-row{display:grid;grid-template-columns:42px minmax(150px,1fr) 150px 42px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.hc-editor-row input[type="text"],.hc-editor-row select{width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.8rem}
+.hc-drag{cursor:grab;color:var(--ink-4);font-size:1.1rem;text-align:center}.hc-remove{border:0;background:var(--red-bg);color:var(--red);border-radius:10px;width:36px;height:36px;cursor:pointer}
+.hc-core-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}.hc-core-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--bg);font-size:.78rem}.hc-core-item input{accent-color:var(--blue)}
+@media(max-width:700px){.hc-template-actions{width:100%;margin:8px 0 0}.form-header{flex-wrap:wrap}.hc-editor-row{grid-template-columns:34px 1fr 38px}.hc-editor-row select{grid-column:2}.hc-core-list{grid-template-columns:1fr}}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    TAGS / NOTES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -4705,6 +4714,10 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
     <div id="form-page" class="page">
       <div class="form-header">
         <h2 id="form-title">Nuevo paciente</h2>
+        <div class="hc-template-actions no-print">
+          <button class="btn btn-ghost btn-sm" onclick="openHCEditor()">⚙️ Personalizar historia</button>
+          <button class="btn btn-ghost btn-sm" onclick="printPatientForm()">🖨️ Imprimir</button>
+        </div>
         <button class="btn btn-ghost btn-sm" onclick="cancelForm()">✕ Cancelar</button>
       </div>
       <input type="hidden" id="fp-id">
@@ -4760,12 +4773,36 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
           <div class="fg full"><label>Historial dental previo</label><textarea id="fp-dental" rows="3"></textarea></div>
         </div>
       </div>
+      <div id="hc-custom-sections"></div>
       <div style="display:flex;gap:9px;margin-top:4px">
         <button class="btn btn-primary" onclick="savePatient()">💾 Guardar paciente</button>
         <button class="btn btn-ghost" onclick="cancelForm()">Cancelar</button>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- EDITOR DE PLANTILLA DE HISTORIA CLÍNICA -->
+<div class="overlay" id="hc-editor-overlay">
+  <div class="overlay-box" style="max-width:760px">
+    <div class="ob-header">
+      <div><h2>⚙️ Personalizar historia clínica</h2><p style="font-size:.76rem;color:var(--ink-3);margin-top:3px">Oculta campos originales y crea los que necesite tu clínica.</p></div>
+      <button class="ob-close" onclick="closeHCEditor()">✕</button>
+    </div>
+    <div class="ob-body">
+      <div class="form-sec-title">Campos originales visibles</div>
+      <div class="hc-core-list" id="hc-core-list"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:22px">
+        <div class="form-sec-title" style="margin:0;flex:1">Campos personalizados</div>
+        <button class="btn btn-primary btn-sm" onclick="addHCField()">＋ Agregar campo</button>
+      </div>
+      <div id="hc-fields-editor" style="margin-top:8px"></div>
+    </div>
+    <div class="ob-footer">
+      <button class="btn btn-ghost btn-sm" onclick="resetHCTemplate()">Restablecer</button>
+      <button class="btn btn-primary btn-sm" onclick="saveHCTemplate()">💾 Guardar plantilla</button>
+    </div>
   </div>
 </div>
 
@@ -5231,7 +5268,65 @@ function delOrtho(i) {
 }
 
 // ═══ FORM ═══
-function openAddForm() { curId = null; clearForm(); document.getElementById('form-title').textContent = 'Nuevo paciente'; document.getElementById('fp-id').value = ''; showForm(); }
+var HC_CORE_FIELDS = [
+  ['fp-expediente','No. Expediente'],['fp-phone','Teléfono'],['fp-dob','Fecha de nacimiento'],['fp-sex','Sexo'],['fp-curp','CURP'],['fp-city','Ciudad / Residencia'],['fp-email','Correo electrónico'],['fp-rep-legal','Representante legal'],['fp-rep-parentesco','Parentesco representante'],['fp-civil','Estado civil'],['fp-occ','Ocupación'],['fp-social','Red social contacto'],['fp-height','Estatura'],['fp-weight','Peso'],['fp-wnote','Nota peso'],['fp-kids','Hijos'],['fp-preg','Embarazo / AC'],['fp-meds','Condición médica / Medicamentos'],['fp-allergy','Alergias'],['fp-supps','Suplementos / Vitaminas'],['fp-smoke','Fuma / Vapea'],['fp-subst','Sustancias'],['fp-alc','Alcohol'],['fp-soda','Refresco / Café'],['fp-diet','Dieta'],['fp-snacks','Snacks'],['fp-other','Otros problemas de salud'],['fp-brush','Cepillado'],['fp-paste','Pasta dental'],['fp-floss','Hilo dental'],['fp-mouth','Enjuague bucal'],['fp-cie10','Diagnóstico principal (CIE-10)'],['fp-pronostico','Pronóstico'],['fp-aviso-priv','Aviso de privacidad'],['fp-dental','Historial dental previo']
+];
+var _hcDraft = null;
+function escapeHTML(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function hcTemplate(){
+  if (!cfg.hcTemplate || typeof cfg.hcTemplate !== 'object') cfg.hcTemplate = {hiddenCore:[],fields:[]};
+  if (!Array.isArray(cfg.hcTemplate.hiddenCore)) cfg.hcTemplate.hiddenCore=[];
+  if (!Array.isArray(cfg.hcTemplate.fields)) cfg.hcTemplate.fields=[];
+  return cfg.hcTemplate;
+}
+function applyHCTemplate(){
+  var t=hcTemplate();
+  HC_CORE_FIELDS.forEach(function(meta){
+    var el=document.getElementById(meta[0]); if(!el)return;
+    var box=el.closest('.fg'); if(box) box.style.display=t.hiddenCore.indexOf(meta[0])>=0?'none':'';
+  });
+  renderHCCustomFields();
+}
+function hcFieldControl(f,value){
+  var id='hc-custom-'+f.id, val=value==null?'':String(value);
+  if(f.type==='textarea') return '<textarea id="'+id+'" rows="3">'+escapeHTML(val)+'</textarea>';
+  if(f.type==='yesno') return '<select id="'+id+'"><option value="">—</option><option value="Sí"'+(val==='Sí'?' selected':'')+'>Sí</option><option value="No"'+(val==='No'?' selected':'')+'>No</option></select>';
+  return '<input id="'+id+'" type="'+(['number','date'].indexOf(f.type)>=0?f.type:'text')+'" value="'+escapeHTML(val)+'">';
+}
+function renderHCCustomFields(){
+  var root=document.getElementById('hc-custom-sections'); if(!root)return;
+  var fields=hcTemplate().fields, p=curId?db.patients.find(function(x){return x.id==curId;}):null, vals=p&&p.customClinical||{};
+  if(!fields.length){root.innerHTML='';return;}
+  var groups={}; fields.forEach(function(f){var s=(f.section||'Campos personalizados').trim();(groups[s]||(groups[s]=[])).push(f);});
+  root.innerHTML=Object.keys(groups).map(function(section){return '<div class="form-sec hc-custom-section"><div class="form-sec-title">'+escapeHTML(section)+'</div><div class="fgrid">'+groups[section].map(function(f){return '<div class="fg '+(f.type==='textarea'?'full':'')+'"><label>'+escapeHTML(f.label)+'</label>'+hcFieldControl(f,vals[f.id])+'</div>';}).join('')+'</div></div>';}).join('');
+}
+function collectHCCustomValues(){
+  var out={}; hcTemplate().fields.forEach(function(f){var el=document.getElementById('hc-custom-'+f.id);if(el)out[f.id]=el.value;}); return out;
+}
+function openHCEditor(){
+  _hcDraft=JSON.parse(JSON.stringify(hcTemplate()));
+  document.getElementById('hc-core-list').innerHTML=HC_CORE_FIELDS.map(function(m){return '<label class="hc-core-item"><input type="checkbox" data-core="'+m[0]+'" '+(_hcDraft.hiddenCore.indexOf(m[0])<0?'checked':'')+'> <span>'+escapeHTML(m[1])+'</span></label>';}).join('');
+  renderHCEditorFields(); document.getElementById('hc-editor-overlay').classList.add('open');
+}
+function closeHCEditor(){document.getElementById('hc-editor-overlay').classList.remove('open');_hcDraft=null;}
+function renderHCEditorFields(){
+  var root=document.getElementById('hc-fields-editor');
+  if(!_hcDraft.fields.length){root.innerHTML='<div class="hc-custom-empty">Todavía no hay campos personalizados.</div>';return;}
+  root.innerHTML=_hcDraft.fields.map(function(f,i){return '<div class="hc-editor-row"><div class="hc-drag"><button class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',-1)" title="Subir">↑</button><button class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',1)" title="Bajar">↓</button></div><input type="text" value="'+escapeHTML(f.label)+'" placeholder="Nombre del campo" oninput="_hcDraft.fields['+i+'].label=this.value"><select onchange="_hcDraft.fields['+i+'].type=this.value"><option value="text" '+(f.type==='text'?'selected':'')+'>Texto corto</option><option value="textarea" '+(f.type==='textarea'?'selected':'')+'>Texto largo</option><option value="number" '+(f.type==='number'?'selected':'')+'>Número</option><option value="date" '+(f.type==='date'?'selected':'')+'>Fecha</option><option value="yesno" '+(f.type==='yesno'?'selected':'')+'>Sí / No</option></select><button class="hc-remove" onclick="removeHCField('+i+')" title="Eliminar">🗑</button><input type="text" value="'+escapeHTML(f.section||'Campos personalizados')+'" placeholder="Sección" style="grid-column:2 / 4" oninput="_hcDraft.fields['+i+'].section=this.value"></div>';}).join('');
+}
+function addHCField(){_hcDraft.fields.push({id:'cf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),label:'Nuevo campo',type:'text',section:'Campos personalizados'});renderHCEditorFields();}
+function removeHCField(i){if(confirm('¿Quitar este campo de la plantilla? Los valores anteriores se conservarán en el respaldo.')){_hcDraft.fields.splice(i,1);renderHCEditorFields();}}
+function moveHCField(i,d){var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var x=_hcDraft.fields.splice(i,1)[0];_hcDraft.fields.splice(j,0,x);renderHCEditorFields();}
+function saveHCTemplate(){
+  _hcDraft.hiddenCore=[];document.querySelectorAll('#hc-core-list [data-core]').forEach(function(ch){if(!ch.checked)_hcDraft.hiddenCore.push(ch.dataset.core);});
+  _hcDraft.fields=_hcDraft.fields.filter(function(f){return f.label&&f.label.trim();}); cfg.hcTemplate=_hcDraft;
+  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else localStorage.setItem('dental_cfg_v1',JSON.stringify(cfg));
+  applyHCTemplate();closeHCEditor();showToast('✅ Plantilla de historia clínica guardada','green');
+}
+function resetHCTemplate(){if(!confirm('¿Mostrar todos los campos originales y quitar los personalizados?'))return;_hcDraft={hiddenCore:[],fields:[]};renderHCEditorFields();document.querySelectorAll('#hc-core-list [data-core]').forEach(function(x){x.checked=true;});}
+function printPatientForm(){window.print();}
+
+function openAddForm() { curId = null; clearForm(); document.getElementById('form-title').textContent = 'Nuevo paciente'; document.getElementById('fp-id').value = ''; showForm(); applyHCTemplate(); }
 function editCurrent() { const p = db.patients.find(x => x.id == curId); if (!p) return; fillForm(p); document.getElementById('form-title').textContent = 'Editar paciente'; showForm(); }
 function cancelForm() { curId ? showDetail(curId) : showList(); }
 const fv = id => document.getElementById(id).value;
@@ -5251,11 +5346,12 @@ function fillForm(p) {
   s('fp-other',p.otherHealth);s('fp-brush',p.hygieneBrushCount);s('fp-paste',p.hygienePaste);
   s('fp-floss',p.hygieneFloss);s('fp-mouth',p.hygieneMouthwash);s('fp-dental',p.dentalHistory);
   s('fp-cie10',p.cie10);s('fp-pronostico',p.pronostico);s('fp-aviso-priv',p.avisoPrv);
+  applyHCTemplate();
 }
 function savePatient() {
   const name = fv('fp-name').trim(); if (!name) { alert('El nombre es obligatorio.'); return; }
   const id = fv('fp-id');
-  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv') };
+  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
   if (id) { const idx = db.patients.findIndex(x => x.id == id); db.patients[idx] = { ...db.patients[idx], ...data }; curId = parseInt(id); }
   else { data.id = Date.now(); data.orthoControls = []; data.tags = []; data.clinicalNotes = ''; db.patients.push(data); curId = data.id; assignHCNumbers(); }
   saveDB(); updateTopStats(); populateCityFilter(); renderList(db.patients); showDetail(curId);
@@ -8396,6 +8492,13 @@ function printHistoriaClinica() {
   // Clinical notes
   var notes = p.clinicalNotes || '';
 
+  // Campos creados por la clínica. Se imprimen con la misma plantilla y
+  // permanecen asociados al paciente aunque después se oculten del formulario.
+  var customPrintFields = (cfg.hcTemplate && cfg.hcTemplate.fields || []);
+  var customPrintValues = p.customClinical || {};
+  var customPrintHTML = customPrintFields.length ? '<h2>Campos personalizados de la clínica</h2><table>'
+    + customPrintFields.map(function(f){ return row(f.label, customPrintValues[f.id] || '—'); }).join('') + '</table>' : '';
+
   // Ortho controls
   var orthoControls = (p.orthoData && p.orthoData.controls || []).slice(-3).map(function(c){
     return '<tr><td>'+c.fecha+'</td><td>'+(c.arcSup||'—')+'</td><td>'+(c.arcInf||'—')+'</td><td>'+(c.notas||'—')+'</td></tr>';
@@ -8534,6 +8637,9 @@ function printHistoriaClinica() {
     + (payRows ? '<table><tr><th style="background:#f0f0f0">Fecha</th><th style="background:#f0f0f0">Tipo</th><th style="background:#f0f0f0">Concepto</th><th style="background:#f0f0f0;text-align:right">Monto</th></tr>'+payRows
         + '<tr><td colspan="3" style="font-weight:bold;text-align:right">Saldo:</td><td style="font-weight:bold;text-align:right">'+fmt$(Math.abs(balance))+(balance<0?' (pendiente)':' (a favor)')+'</td></tr></table>'
         : '<div class="section">Sin movimientos registrados.</div>')
+
+    // CAMPOS PERSONALIZADOS
+    + customPrintHTML
 
     // FIRMAS
     + '<div class="sign-grid">'
