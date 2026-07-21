@@ -3276,6 +3276,65 @@ html.dark .topbar h2 {
   .sb-logo h1 { font-size: .76rem; }
 }
 
+/* Keep the navigation, settings and doctor selector in separate columns.
+   On narrower laptops the navigation can scroll, but it must never sit
+   underneath the controls on the right. */
+@media (min-width: 761px) {
+  #sidebar {
+    grid-template-columns: minmax(180px,224px) minmax(0,1fr) minmax(178px,205px);
+  }
+  .sb-nav {
+    min-width: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .sb-nav::-webkit-scrollbar { display: none; }
+  .sb-footer {
+    position: relative;
+    z-index: 3;
+    min-width: 0;
+    padding: 0 10px;
+    gap: 6px;
+    overflow: hidden;
+    background: rgba(22,22,23,.98);
+  }
+  .sb-footer #active-doctor-badge {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 145px;
+    margin-right: 0 !important;
+  }
+  .sb-footer #active-doctor-badge .doctor-active-badge {
+    width: 100%;
+    min-width: 0;
+  }
+  .sb-footer #active-doctor-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sb-footer button[title="Configuración"] {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 46px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  #sidebar {
+    grid-template-columns: 180px minmax(0,1fr) 178px;
+  }
+  .sb-nav { padding-left: 8px; padding-right: 8px; gap: 2px; }
+  .nav-item { padding-left: 7px; padding-right: 7px; font-size: .65rem; }
+  .sb-footer #active-doctor-badge { max-width: 118px; }
+}
+
 /* ━━━━ ACCESSIBILITY + RESPONSIVE NAVIGATION ━━━━ */
 #mobile-menu-btn {
   display: none;
