@@ -3808,7 +3808,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
   opacity:1!important;
 }
 #reporte-page #rep-kpis .stat-card:nth-child(4) .stat-value{
-  color:var(--ink)!important;
+  color:#1d1d1f!important;
   opacity:1!important;
 }
 /* Clase semántica: mantiene legible el contador aunque cambie el orden de los
@@ -3818,9 +3818,12 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
   opacity:1!important;
 }
 #reporte-page #rep-kpis .rep-kpi-count .stat-value{
-  color:var(--ink)!important;
+  color:#1d1d1f!important;
   opacity:1!important;
   text-shadow:none!important;
+}
+html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
+  color:#f5f5f7!important;
 }
 .stats-row .stat-card:hover{
   transform:translateY(-2px)!important;
@@ -11129,12 +11132,12 @@ function renderReportePage() {
     {icon:'💰',label:'Ingresos',     value:fmt$(totals.ingresos), color:'#248a3d'},
     {icon:'📤',label:'Egresos',      value:fmt$(totals.cargos),   color:'var(--red)'},
     {icon:'✅',label:'Balance neto', value:fmt$(totals.neto),     color:totals.neto>=0?'#248a3d':'var(--red)'},
-    {icon:'🔢',label:'Movimientos de ingreso', value:totals.count, color:'var(--ink)', kind:'count'},
+    {icon:'🔢',label:'Movimientos de ingreso', value:totals.count, color:'#1d1d1f', kind:'count'},
   ];
   document.getElementById('rep-kpis').innerHTML = kpis.map(function(k){
     return '<div class="stat-card'+(k.kind==='count'?' rep-kpi-count':'')+'"><div class="stat-icon">'+k.icon+'</div>'
       +'<div class="stat-label">'+k.label+'</div>'
-      +'<div class="stat-value" style="color:'+k.color+';font-size:1.4rem">'+k.value+'</div></div>';
+      +'<div class="stat-value" style="color:'+k.color+(k.kind==='count'?' !important':'')+';font-size:1.4rem">'+k.value+'</div></div>';
   }).join('');
 
   // Comparativa
