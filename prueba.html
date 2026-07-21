@@ -4959,6 +4959,53 @@ function saveLocalWithAutoBackup() {
   }
 }
 
+// Recuperación conservadora para sincronización entre computadoras.
+// Revisa las copias automáticas conocidas y conserva expedientes que hayan
+// desaparecido de la base principal. Nunca reemplaza un paciente actual.
+function recoverMissingPatientsFromLocalSnapshots() {
+  var keys = [
+    'dental_autobackup_latest',
+    'dental_autobackup_previous',
+    'dental_pre_drive_merge_backup',
+    'dental_preimport_backup'
+  ];
+  var candidates = [];
+  keys.forEach(function(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      var candidate = parsed && parsed.db && Array.isArray(parsed.db.patients) ? parsed.db : parsed;
+      if (candidate && Array.isArray(candidate.patients)) candidates.push({ key:key, db:candidate });
+    } catch(e) {}
+  });
+  if (!db || !Array.isArray(db.patients)) return 0;
+  candidates.sort(function(a,b){ return b.db.patients.length - a.db.patients.length; });
+  var best = candidates[0];
+  if (!best || best.db.patients.length <= db.patients.length) return 0;
+
+  var currentIds = {};
+  db.patients.forEach(function(patient){ currentIds[String(patient.id)] = true; });
+  var missing = best.db.patients.filter(function(patient){ return !currentIds[String(patient.id)]; });
+  if (!missing.length) return 0;
+  db.patients = db.patients.concat(missing);
+
+  if (!Array.isArray(db.appointments)) db.appointments = [];
+  var appointmentIds = {};
+  db.appointments.forEach(function(appt){ appointmentIds[String(appt.id)] = true; });
+  (Array.isArray(best.db.appointments) ? best.db.appointments : []).forEach(function(appt) {
+    if (!appointmentIds[String(appt.id)]) {
+      db.appointments.push(appt);
+      appointmentIds[String(appt.id)] = true;
+    }
+  });
+  localStorage.setItem('dental_v4', JSON.stringify(db));
+  localStorage.setItem('dental_autobackup_latest', JSON.stringify(db));
+  localStorage.setItem('dental_local_updated_at', Date.now().toString());
+  localStorage.setItem('dental_recovered_snapshot_source', best.key);
+  return missing.length;
+}
+
 // ═══ NAV ═══
 // Cada apartado debe abrir desde su inicio. Algunos navegadores restauran la
 // posición anterior incluso cuando solo cambiamos de vista dentro de la app.
@@ -9588,7 +9635,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar todo el localStorage relacionado
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     localStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -12876,6 +12923,17 @@ var GD = (function() {
     if (!db || typeof db !== 'object') db = { patients: [], appointments: [] };
     if (!Array.isArray(db.patients)) db.patients = [];
     if (!Array.isArray(db.appointments)) db.appointments = [];
+    // Si una sincronización anterior dejó en Drive una copia incompleta,
+    // rescatar los expedientes que todavía existan en copias locales antes
+    // de volver a conectar con Google.
+    var recoveredLocalPatients = (typeof recoverMissingPatientsFromLocalSnapshots === 'function')
+      ? recoverMissingPatientsFromLocalSnapshots()
+      : 0;
+    if (recoveredLocalPatients > 0) {
+      setTimeout(function(){
+        showToast('✅ Se recuperaron ' + recoveredLocalPatients + ' pacientes de una copia local', 'green');
+      }, 900);
+    }
     // La versión anterior podía iniciar vacía y sobrescribir dental_v4 al
     // recargar. En modo local, recuperar la copia inmediatamente anterior si
     // contiene registros y la principal quedó completamente vacía.
