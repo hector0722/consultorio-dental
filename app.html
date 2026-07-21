@@ -12596,6 +12596,14 @@ var GD = (function() {
               showToast('☁️ Subiendo a Drive los cambios guardados offline…', 'green');
               _preferLocalAfterReconnect = false;
             }
+            // _loadCfg puede descubrir una foto o logotipo local que falta en
+            // Drive. Durante la carga los guardados están bloqueados; al
+            // terminar hay que reintentar explícitamente para que otros
+            // dispositivos (incluido el móvil) reciban esas imágenes.
+            if (_cfgDirty && !_cfgSaving) {
+              if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
+              _cfgSaveTimer = setTimeout(_doSaveCfg, 100);
+            }
           })
           .catch(function(e) {
             _saving = false;
@@ -12830,6 +12838,10 @@ var GD = (function() {
           // Drive no tiene, preservarla y volver a subirla.
           if (cfg.heroImageUrl && !data.heroImageUrl) {
             data.heroImageUrl = cfg.heroImageUrl;
+            _cfgDirty = true;
+          }
+          if (cfg.logoImageUrl && !data.logoImageUrl) {
+            data.logoImageUrl = cfg.logoImageUrl;
             _cfgDirty = true;
           }
           if (localCfgUpdatedAt > remoteCfgUpdatedAt) {
