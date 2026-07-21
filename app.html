@@ -3808,6 +3808,105 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
 }
 @media(max-width:760px){.appearance-presets{grid-template-columns:repeat(3,1fr)}.appearance-color-grid{grid-template-columns:1fr}.appearance-range{grid-template-columns:105px 1fr 36px}}
 
+/* Compact-window navigation.
+   A narrow desktop window cannot hold every module plus the doctor controls.
+   Use the existing accessible drawer while preserving the desktop content. */
+@media (min-width: 761px) and (max-width: 1380px) {
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0; right: auto; bottom: 0;
+    width: min(88vw, 330px);
+    max-width: 330px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    box-shadow: var(--sh-xl);
+    z-index: 200;
+  }
+  body.mobile-nav-open #sidebar { transform: translateX(0); }
+  body.mobile-nav-open #sidebar-scrim { display: block; }
+  body.mobile-nav-open { overflow: hidden; }
+  .sb-logo {
+    display: grid;
+    min-height: 82px; height: 82px;
+    grid-template-columns: 42px 1fr;
+    padding: 14px 18px;
+  }
+  .sb-logo-icon { width: 40px; height: 40px; font-size: 1.15rem !important; }
+  .sb-logo h1 { font-size: .92rem; }
+  .sb-logo p { display: block !important; font-size: .64rem; }
+  .sb-nav {
+    display: block;
+    flex: 1;
+    width: auto;
+    max-width: none;
+    height: auto;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    clip-path: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .sb-section { display: block; padding: 14px 10px 6px; }
+  .sb-nav .nav-item {
+    display: flex;
+    justify-content: flex-start;
+    min-height: 48px;
+    margin-bottom: 4px;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: .82rem;
+  }
+  .sb-nav .nav-item .nav-icon { display: flex; width: 30px; height: 30px; }
+  .sb-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    padding: 13px 16px 14px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    border-left: 0;
+    box-shadow: none;
+  }
+  .sb-footer #active-doctor-badge {
+    display: block !important;
+    order: -1;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 4px !important;
+  }
+  .sb-footer #active-doctor-badge .doctor-active-badge {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 44px;
+  }
+  .sb-footer #active-doctor-name { flex: 1; }
+  #main { margin-left: 0; padding-top: 0; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  #mobile-menu-btn { display: inline-flex; flex: 0 0 auto; }
+  .topbar h2 {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 </style>
 </head>
 <body>
