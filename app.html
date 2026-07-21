@@ -3801,6 +3801,16 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
 .stats-row #dash-owe,.stats-row #st-allergy{color:#ff3b30!important;}
 .stats-row #st-smoke{color:#ff9500!important;}
 .stats-row #dash-done{color:#248a3d!important;}
+/* Los temas antiguos pintaban la cuarta tarjeta con texto blanco. En Reportes
+   esa tarjeta puede tener fondo claro, así que fijamos un contraste legible. */
+#reporte-page #rep-kpis .stat-card:nth-child(4) .stat-label{
+  color:var(--ink-3)!important;
+  opacity:1!important;
+}
+#reporte-page #rep-kpis .stat-card:nth-child(4) .stat-value{
+  color:var(--blue)!important;
+  opacity:1!important;
+}
 .stats-row .stat-card:hover{
   transform:translateY(-2px)!important;
   border-color:color-mix(in srgb,var(--blue) 28%,var(--border))!important;
