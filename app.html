@@ -12659,17 +12659,66 @@ var GD = (function() {
         var hasLocalData  = db && ((db.patients && db.patients.length) || (db.appointments && db.appointments.length));
         delete data._savedAt;
 
-        // Nunca reemplazar cambios offline recientes con una copia antigua de Drive.
-        if (hasLocalData && localSavedAt > remoteSavedAt) {
+        // Nunca reemplazar cambios offline recientes con una copia antigua de
+        // Drive. Aun así continuamos leyendo Caja, producción y configuración:
+        // antes este return provocaba que una computadora nueva mostrara cero
+        // reportes aunque sí existieran en Drive.
+        var preferLocalMain = hasLocalData && localSavedAt > remoteSavedAt;
+        if (preferLocalMain) {
           _preferLocalAfterReconnect = true;
           _dirty = true;
-          return;
         }
 
         // ── Extraer datos complementarios ANTES de asignar db ──
-        if (data._caja)       { localStorage.setItem('dental_caja_v1', data._caja); delete data._caja; }
-        if (data._production) { localStorage.setItem('dental_production_v1', data._production); delete data._production; }
-        if (data._productionTrash) { localStorage.setItem('dental_production_trash_v1', data._productionTrash); delete data._productionTrash; }
+        function parseStoredArray(value) {
+          if (Array.isArray(value)) return value;
+          try { var parsed = JSON.parse(value || '[]'); return Array.isArray(parsed) ? parsed : []; }
+          catch(e) { return []; }
+        }
+        function mergeStoredRows(remoteRows, localRows) {
+          var merged = [], seen = {};
+          remoteRows.concat(localRows).forEach(function(row) {
+            if (!row || row.id === undefined || row.id === null) return;
+            var id = String(row.id);
+            if (seen[id]) return;
+            seen[id] = true;
+            merged.push(row);
+          });
+          return merged;
+        }
+        if (data._caja) {
+          var remoteCaja = parseStoredArray(data._caja);
+          var localCaja = parseStoredArray(localStorage.getItem('dental_caja_v1'));
+          var mergedCaja = mergeStoredRows(remoteCaja, localCaja);
+          localStorage.setItem('dental_caja_v1', JSON.stringify(mergedCaja));
+          if (mergedCaja.length > remoteCaja.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+          delete data._caja;
+        }
+        var remoteTrash = parseStoredArray(data._productionTrash);
+        var localTrash = parseStoredArray(localStorage.getItem('dental_production_trash_v1'));
+        var mergedTrash = mergeStoredRows(remoteTrash, localTrash);
+        if (data._productionTrash || localTrash.length) {
+          localStorage.setItem('dental_production_trash_v1', JSON.stringify(mergedTrash));
+          if (mergedTrash.length > remoteTrash.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+        }
+        delete data._productionTrash;
+        if (data._production) {
+          var remoteProduction = parseStoredArray(data._production);
+          var localProduction = parseStoredArray(localStorage.getItem('dental_production_v1'));
+          var deletedProductionIds = {};
+          mergedTrash.forEach(function(row){ deletedProductionIds[String(row.id)] = true; });
+          var mergedProduction = mergeStoredRows(remoteProduction, localProduction).filter(function(row) {
+            return !deletedProductionIds[String(row.id)];
+          });
+          if (localProduction.length) {
+            try {
+              localStorage.setItem('dental_pre_drive_production_backup', JSON.stringify(localProduction));
+            } catch(productionBackupError) {}
+          }
+          localStorage.setItem('dental_production_v1', JSON.stringify(mergedProduction));
+          if (mergedProduction.length > remoteProduction.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+          delete data._production;
+        }
         if (data._doctorRates) {
           // Los porcentajes tienen su propio control de versión. Una copia
           // antigua de Drive nunca debe devolverlos al valor inicial (40%).
@@ -12716,12 +12765,12 @@ var GD = (function() {
         }
 
         // Validar que Drive tiene datos reales
-        if (Array.isArray(data.patients) && data.patients.length > 0) {
+        if (!preferLocalMain && Array.isArray(data.patients) && data.patients.length > 0) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
           localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
-        } else if (data.patients !== undefined) {
+        } else if (!preferLocalMain && data.patients !== undefined) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
