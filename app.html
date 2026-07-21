@@ -12614,7 +12614,13 @@ var GD = (function() {
               if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
               _cfgSaveTimer = setTimeout(_doSaveCfg, 100);
             }
-            if (_heroDirty && !_heroSaving) setTimeout(_doSaveHero, 120);
+            if (_heroDirty && !_heroSaving) {
+              // La Mac puede ser el único equipo que aún conserva la foto.
+              // Subirla tanto al archivo independiente como a la base común.
+              _dirty = true;
+              _scheduleSave();
+              setTimeout(_doSaveHero, 120);
+            }
           })
           .catch(function(e) {
             _saving = false;
@@ -12697,6 +12703,21 @@ var GD = (function() {
         var remoteSavedAt = parseInt(data._savedAt || '0', 10) || 0;
         var localSavedAt  = parseInt(localStorage.getItem('dental_local_updated_at') || '0', 10) || 0;
         var hasLocalData  = db && ((db.patients && db.patients.length) || (db.appointments && db.appointments.length));
+        // Copia de rescate de la portada dentro de la base principal. Este es
+        // el archivo que todos los dispositivos ya descargan para pacientes,
+        // por lo que también garantiza que el móvil reciba la imagen aunque
+        // aún no exista el archivo independiente de portada.
+        if (typeof data._heroImageDataUrl === 'string') {
+          var dbHeroUpdatedAt = parseInt(data._heroImageUpdatedAt || '0', 10) || 0;
+          var localHeroUpdatedAt = parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0;
+          if (!cfg.heroImageUrl || dbHeroUpdatedAt >= localHeroUpdatedAt) {
+            cfg.heroImageUrl = data._heroImageDataUrl;
+            cfg.heroImageUpdatedAt = dbHeroUpdatedAt;
+            try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+          }
+          delete data._heroImageDataUrl;
+          delete data._heroImageUpdatedAt;
+        }
         delete data._savedAt;
 
         // Nunca reemplazar cambios offline recientes con una copia antigua de
@@ -13209,6 +13230,10 @@ var GD = (function() {
     var localSaved = saveCfg();
     if (_mode === 'google' && _token) {
       _heroDirty = true;
+      // Guardar además una copia en la base principal para que versiones y
+      // dispositivos que todavía no ven el archivo separado puedan cargarla.
+      _dirty = true;
+      if (!_saving) _scheduleSave();
       if (!_saving) setTimeout(_doSaveHero, 80);
     }
     return localSaved;
@@ -13270,6 +13295,8 @@ var GD = (function() {
   function _buildSavePayload() {
     return Object.assign({}, db, {
       _savedAt:     Date.now(),
+      _heroImageDataUrl: cfg.heroImageUrl || '',
+      _heroImageUpdatedAt: parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0,
       _caja:       localStorage.getItem('dental_caja_v1')        || '[]',
       _production: localStorage.getItem('dental_production_v1')  || '[]',
       _productionTrash:localStorage.getItem('dental_production_trash_v1')|| '[]',
