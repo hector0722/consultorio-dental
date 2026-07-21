@@ -12556,17 +12556,38 @@ var GD = (function() {
 
   // ── Carpeta ──────────────────────────────────────────────
   function _ensureFolder() {
-    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(
-      "name='" + FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    ) + '&fields=files(id)').then(function(r) {
-      if (r.files && r.files.length > 0) {
-        _folderId = r.files[0].id;
-      } else {
+    var folderQuery = "name='" + FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(folderQuery)
+      + '&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,name,modifiedTime)').then(function(r) {
+      var folders = (r.files || []);
+      if (!folders.length) {
         return _driveReq('POST', '/drive/v3/files', {
           name: FOLDER_NAME,
           mimeType: 'application/vnd.google-apps.folder'
         }).then(function(f) { _folderId = f.id; });
       }
+      if (folders.length === 1) {
+        _folderId = folders[0].id;
+        return;
+      }
+
+      // Versiones anteriores podían crear carpetas duplicadas. Elegir la que
+      // contiene la base de datos modificada más recientemente evita que otro
+      // equipo abra pacientes o personalización antiguos al azar.
+      var folderIds = {};
+      folders.forEach(function(folder){ folderIds[String(folder.id)] = true; });
+      var dbQuery = "name='" + DB_FILENAME + "' and trashed=false";
+      return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(dbQuery)
+        + '&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,parents,modifiedTime)').then(function(dbResult) {
+        var matching = (dbResult.files || []).find(function(file) {
+          return (file.parents || []).some(function(parent){ return folderIds[String(parent)]; });
+        });
+        _folderId = matching && matching.parents && matching.parents[0]
+          ? matching.parents[0]
+          : folders[0].id;
+        localStorage.setItem('dental_gd_folder_id', _folderId);
+        console.warn('Se encontraron ' + folders.length + ' carpetas de Consultorio Dental; se usó la base más reciente.');
+      });
     });
   }
 
@@ -12623,17 +12644,41 @@ var GD = (function() {
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors)    { localStorage.setItem('dental_doctors_v1', data._doctors); delete data._doctors; }
 
+        // Protección entre computadoras: si este navegador conserva pacientes
+        // que no aparecen en Drive, unirlos en vez de borrarlos silenciosamente.
+        // En expedientes clínicos es preferible conservar un registro adicional
+        // antes que perderlo por una sincronización incompleta.
+        var localPatients = (db && Array.isArray(db.patients)) ? db.patients : [];
+        var remotePatients = Array.isArray(data.patients) ? data.patients : [];
+        if (localPatients.length && remotePatients.length) {
+          var remotePatientIds = {};
+          remotePatients.forEach(function(patient){ remotePatientIds[String(patient.id)] = true; });
+          var missingLocalPatients = localPatients.filter(function(patient){ return !remotePatientIds[String(patient.id)]; });
+          if (missingLocalPatients.length) {
+            try { localStorage.setItem('dental_pre_drive_merge_backup', JSON.stringify(db)); } catch(mergeBackupError) {}
+            data.patients = remotePatients.concat(missingLocalPatients);
+            var remoteAppointmentIds = {};
+            (Array.isArray(data.appointments) ? data.appointments : []).forEach(function(appt){ remoteAppointmentIds[String(appt.id)] = true; });
+            data.appointments = (Array.isArray(data.appointments) ? data.appointments : []).concat(
+              ((db && Array.isArray(db.appointments)) ? db.appointments : []).filter(function(appt){ return !remoteAppointmentIds[String(appt.id)]; })
+            );
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+            setTimeout(function(){ showToast('🛡️ Se conservaron ' + missingLocalPatients.length + ' paciente(s) que faltaban en Drive', 'green'); }, 500);
+          }
+        }
+
         // Validar que Drive tiene datos reales
         if (Array.isArray(data.patients) && data.patients.length > 0) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
-          localStorage.setItem('dental_local_updated_at', (remoteSavedAt || Date.now()).toString());
+          localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
         } else if (data.patients !== undefined) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
-          localStorage.setItem('dental_local_updated_at', (remoteSavedAt || Date.now()).toString());
+          localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
         }
       });
     });
@@ -12662,9 +12707,25 @@ var GD = (function() {
       return _readFile(_cfgFileId).then(function(data) {
         if (data && data.name) {
           neutralizeUnsafeText(data);
-          cfg = Object.assign(cfg, data);
+          var localCfgUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
+          var remoteCfgUpdatedAt = parseInt(data._savedAt || '0', 10) || 0;
+          // Si la Mac conserva una portada que una configuración antigua de
+          // Drive no tiene, preservarla y volver a subirla.
+          if (cfg.heroImageUrl && !data.heroImageUrl) {
+            data.heroImageUrl = cfg.heroImageUrl;
+            _cfgDirty = true;
+          }
+          if (localCfgUpdatedAt > remoteCfgUpdatedAt) {
+            _cfgDirty = true;
+          } else {
+            cfg = Object.assign(cfg, data);
+          }
           localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
           if (typeof applyBranding === 'function') applyBranding();
+          if (_cfgDirty) {
+            if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
+            _cfgSaveTimer = setTimeout(_doSaveCfg, 350);
+          }
         }
       });
     });
@@ -12912,6 +12973,7 @@ var GD = (function() {
 
   function saveCfg() {
     neutralizeUnsafeText(cfg);
+    cfg._savedAt = Date.now();
     var localCfgSaved = true;
     try {
       localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
@@ -13116,6 +13178,7 @@ window.addEventListener('online', function() {
 // no generan escrituras innecesarias en Drive.
 var _lastInteractionSaveTimer = null;
 var _lastInteractionFingerprint = '';
+var _lastInteractionCfgSnapshot = '';
 function _interactionStateFingerprint() {
   var raw = '';
   try {
@@ -13135,13 +13198,19 @@ function _interactionStateFingerprint() {
 function _saveAfterLastInteraction() {
   var current = _interactionStateFingerprint();
   if (!current || current === _lastInteractionFingerprint) return;
+  var cfgSnapshot = '';
+  try { cfgSnapshot = JSON.stringify(typeof cfg !== 'undefined' ? cfg : {}); } catch(e) {}
+  var cfgChanged = !!cfgSnapshot && cfgSnapshot !== _lastInteractionCfgSnapshot;
   _lastInteractionFingerprint = current;
+  _lastInteractionCfgSnapshot = cfgSnapshot;
   localStorage.setItem('dental_local_updated_at', Date.now().toString());
   if (typeof saveLocalWithAutoBackup === 'function') saveLocalWithAutoBackup();
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined') {
     if (GD.saveNow) GD.saveNow();
-    if (GD.saveCfg) GD.saveCfg();
+    // No subir la configuración predeterminada de una computadora nueva
+    // cuando únicamente cambiaron pacientes, caja o agenda.
+    if (cfgChanged && GD.saveCfg) GD.saveCfg();
   }
 }
 function _scheduleSaveAfterInteraction() {
@@ -13149,7 +13218,10 @@ function _scheduleSaveAfterInteraction() {
   _lastInteractionSaveTimer = setTimeout(_saveAfterLastInteraction, 1200);
 }
 window.addEventListener('load', function(){
-  setTimeout(function(){ _lastInteractionFingerprint = _interactionStateFingerprint(); }, 0);
+  setTimeout(function(){
+    _lastInteractionFingerprint = _interactionStateFingerprint();
+    try { _lastInteractionCfgSnapshot = JSON.stringify(typeof cfg !== 'undefined' ? cfg : {}); } catch(e) {}
+  }, 0);
 });
 document.addEventListener('click', _scheduleSaveAfterInteraction, true);
 document.addEventListener('change', _scheduleSaveAfterInteraction, true);
