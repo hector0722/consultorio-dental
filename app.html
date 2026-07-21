@@ -5245,6 +5245,25 @@ function saveLocalWithAutoBackup() {
   }
 }
 
+// Registro de eliminaciones. Sin esta lista, la recuperación conservadora y
+// la mezcla con Drive no distinguen entre un expediente perdido y uno borrado
+// intencionalmente, por lo que podían "resucitarlo" al volver a abrir la app.
+const PATIENT_TOMBSTONES_KEY = 'dental_patient_tombstones_v1';
+function loadPatientTombstones() {
+  try {
+    var parsed = JSON.parse(localStorage.getItem(PATIENT_TOMBSTONES_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch(e) { return {}; }
+}
+function savePatientTombstones(value) {
+  localStorage.setItem(PATIENT_TOMBSTONES_KEY, JSON.stringify(value || {}));
+}
+function markPatientDeleted(id) {
+  var deleted = loadPatientTombstones();
+  deleted[String(id)] = Date.now();
+  savePatientTombstones(deleted);
+}
+
 // Recuperación conservadora para sincronización entre computadoras.
 // Revisa las copias automáticas conocidas y conserva expedientes que hayan
 // desaparecido de la base principal. Nunca reemplaza un paciente actual.
@@ -5272,7 +5291,10 @@ function recoverMissingPatientsFromLocalSnapshots() {
 
   var currentIds = {};
   db.patients.forEach(function(patient){ currentIds[String(patient.id)] = true; });
-  var missing = best.db.patients.filter(function(patient){ return !currentIds[String(patient.id)]; });
+  var deletedPatientIds = loadPatientTombstones();
+  var missing = best.db.patients.filter(function(patient){
+    return !currentIds[String(patient.id)] && !deletedPatientIds[String(patient.id)];
+  });
   if (!missing.length) return 0;
   db.patients = db.patients.concat(missing);
 
@@ -5777,7 +5799,7 @@ function savePatient() {
 // ═══ DELETE ═══
 function openDelModal(id) { delId = id; const p = db.patients.find(x => x.id == id); document.getElementById('del-msg').textContent = `¿Eliminar a ${p ? p.name : 'este paciente'}? Esta acción no se puede deshacer.`; document.getElementById('del-modal').classList.add('open'); }
 function closeDelModal() { delId = null; document.getElementById('del-modal').classList.remove('open'); }
-function confirmDel() { if (!delId) return; db.patients = db.patients.filter(x => x.id != delId); saveDB(); updateTopStats(); populateCityFilter(); closeDelModal(); showList(); }
+function confirmDel() { if (!delId) return; markPatientDeleted(delId); db.patients = db.patients.filter(x => x.id != delId); saveDB(); updateTopStats(); populateCityFilter(); closeDelModal(); showList(); }
 
 // ═════════════════════════════════════════════════════
 // ★ PRESUPUESTO — Catálogo actualizado con tus precios
@@ -8030,8 +8052,10 @@ function applyColor(hex) {
 }
 
 function applyBranding() {
-  // Si hay doctores en cfg (de Drive), sincronizarlos localmente
-  if (cfg.doctors && cfg.doctors.length) {
+  // Compatibilidad con respaldos antiguos: usar cfg.doctors solo cuando no
+  // existe ya una lista dedicada. Una configuración vieja no debe reemplazar
+  // doctores recién agregados o descargados desde la base principal.
+  if (!localStorage.getItem(DOCTORS_KEY) && cfg.doctors && cfg.doctors.length) {
     localStorage.setItem(DOCTORS_KEY, JSON.stringify(cfg.doctors));
   }
   var h1      = document.querySelector('.sb-logo h1');
@@ -13086,6 +13110,25 @@ var GD = (function() {
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors)    { localStorage.setItem('dental_doctors_v1', data._doctors); delete data._doctors; }
+        var remotePatientTombstones = data._patientTombstones && typeof data._patientTombstones === 'object'
+          ? data._patientTombstones : {};
+        var localPatientTombstones = loadPatientTombstones();
+        Object.keys(remotePatientTombstones).forEach(function(id) {
+          localPatientTombstones[id] = Math.max(
+            parseInt(localPatientTombstones[id] || '0', 10) || 0,
+            parseInt(remotePatientTombstones[id] || '0', 10) || 0
+          );
+        });
+        savePatientTombstones(localPatientTombstones);
+        delete data._patientTombstones;
+
+        // Aplicar eliminaciones conocidas antes de comparar y mezclar copias.
+        if (Array.isArray(data.patients)) data.patients = data.patients.filter(function(patient) {
+          return !localPatientTombstones[String(patient.id)];
+        });
+        if (db && Array.isArray(db.patients)) db.patients = db.patients.filter(function(patient) {
+          return !localPatientTombstones[String(patient.id)];
+        });
 
         // Protección entre computadoras: si este navegador conserva pacientes
         // que no aparecen en Drive, unirlos en vez de borrarlos silenciosamente.
@@ -13615,7 +13658,8 @@ var GD = (function() {
       _catalog:    localStorage.getItem('dental_catalog_v1')     || null,
       _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
       _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
-      _doctors:    localStorage.getItem('dental_doctors_v1')     || '[]'
+      _doctors:    localStorage.getItem('dental_doctors_v1')     || '[]',
+      _patientTombstones: loadPatientTombstones()
     });
   }
 
@@ -15141,7 +15185,13 @@ function loadDoctors() {
 function saveDoctors(doctors) {
   neutralizeUnsafeText(doctors);
   localStorage.setItem(DOCTORS_KEY, JSON.stringify(doctors));
+  // Mantener también la configuración compatible actualizada. Así ningún
+  // archivo de configuración antiguo puede devolver la clínica a un solo Dr.
+  cfg.doctors = doctors;
+  cfg._savedAt = Date.now();
+  localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
   if (typeof GD !== 'undefined' && GD.save) GD.save();
+  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   setTimeout(function() {
     if (typeof populateDoctorFilter === 'function') populateDoctorFilter();
   }, 200);
