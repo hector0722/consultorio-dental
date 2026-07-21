@@ -12913,13 +12913,31 @@ var GD = (function() {
       return _readFile(file.id).then(function(data) {
         if (!data || typeof data.dataUrl !== 'string') return;
         var remoteUpdatedAt = parseInt(data.updatedAt || data._savedAt || '0', 10) || 0;
+        var remoteDataUrl = data.dataUrl.trim();
+
+        // Una versión anterior podía crear el archivo de portada vacío al
+        // quitar la imagen o durante una sincronización incompleta. Si la DB
+        // principal o este dispositivo ya tienen una foto válida, un archivo
+        // vacío nunca debe reemplazarla aunque su fecha sea más reciente.
+        if (!remoteDataUrl && localDataUrl) {
+          _heroDirty = true;
+          if (typeof applyHeroImage === 'function') applyHeroImage();
+          return;
+        }
+
+        // Ignorar valores corruptos en lugar de ocultar la portada actual.
+        if (remoteDataUrl && !/^data:image\/(?:jpeg|jpg|png|webp);base64,/i.test(remoteDataUrl)) {
+          console.warn('La portada de Drive no contiene una imagen válida; se conserva la copia local.');
+          if (localDataUrl) _heroDirty = true;
+          return;
+        }
         // La copia más reciente gana. En instalaciones antiguas, si solo la
         // computadora tiene foto y todavía no existe fecha, conservarla.
         if (localDataUrl && (!remoteUpdatedAt || localUpdatedAt > remoteUpdatedAt)) {
           _heroDirty = true;
           return;
         }
-        cfg.heroImageUrl = data.dataUrl;
+        cfg.heroImageUrl = remoteDataUrl;
         cfg.heroImageUpdatedAt = remoteUpdatedAt;
         try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
         if (typeof applyHeroImage === 'function') applyHeroImage();
