@@ -3335,6 +3335,54 @@ html.dark .topbar h2 {
   .sb-footer #active-doctor-badge { max-width: 118px; }
 }
 
+/* Laptop header: every navigation item must remain inside the center column.
+   Using flexible compact tabs avoids the last items drawing underneath the
+   settings and doctor controls on 11–14 inch screens or with browser zoom. */
+@media (min-width: 761px) and (max-width: 1500px) {
+  #sidebar {
+    grid-template-columns: clamp(168px, 15vw, 210px) minmax(0, 1fr) 196px;
+  }
+  .sb-nav {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 8px;
+    gap: 1px;
+    overflow: hidden;
+    clip-path: inset(0);
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .sb-nav .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    padding: 6px 4px;
+    gap: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    justify-content: center;
+    font-size: clamp(.54rem, .67vw, .66rem);
+  }
+  .sb-footer {
+    width: 196px;
+    max-width: 196px;
+    box-sizing: border-box;
+    border-left: 1px solid rgba(255,255,255,.09);
+    box-shadow: -10px 0 18px rgba(22,22,23,.96);
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1050px) {
+  #sidebar { grid-template-columns: 160px minmax(0,1fr) 178px; }
+  .sb-logo { padding-left: 9px; padding-right: 8px; }
+  .sb-logo h1 { font-size: .7rem; }
+  .sb-logo p { font-size: .5rem; }
+  .sb-nav { padding-left: 3px; padding-right: 3px; }
+  .sb-nav .nav-item { padding-left: 2px; padding-right: 2px; font-size: .5rem; }
+  .sb-footer { width: 178px; max-width: 178px; padding-left: 6px; padding-right: 6px; }
+}
+
 /* ━━━━ ACCESSIBILITY + RESPONSIVE NAVIGATION ━━━━ */
 #mobile-menu-btn {
   display: none;
