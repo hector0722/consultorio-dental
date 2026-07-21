@@ -9260,6 +9260,7 @@ function buildCompleteBackup() {
     production: localStorage.getItem('dental_production_v1') || null,
     productionTrash: localStorage.getItem('dental_production_trash_v1') || null,
     doctorRates: localStorage.getItem('dental_doctor_rates_v1') || null,
+    doctorRatesUpdatedAt: localStorage.getItem('dental_doctor_rates_updated_at') || null,
     doctors: localStorage.getItem('dental_doctors_v1') || null,
     waTemplates: localStorage.getItem('dental_wa_custom_tpls_v1') || null,
     quickNotes: localStorage.getItem('dental_quick_notes_v1') || null
@@ -9528,7 +9529,10 @@ function importData(input) {
       }
       if (importedProduction) localStorage.setItem('dental_production_v1', typeof importedProduction === 'string' ? importedProduction : JSON.stringify(importedProduction));
       if (importedProductionTrash) localStorage.setItem('dental_production_trash_v1', typeof importedProductionTrash === 'string' ? importedProductionTrash : JSON.stringify(importedProductionTrash));
-      if (importedDoctorRates) localStorage.setItem('dental_doctor_rates_v1', typeof importedDoctorRates === 'string' ? importedDoctorRates : JSON.stringify(importedDoctorRates));
+      if (importedDoctorRates) {
+        localStorage.setItem('dental_doctor_rates_v1', typeof importedDoctorRates === 'string' ? importedDoctorRates : JSON.stringify(importedDoctorRates));
+        localStorage.setItem('dental_doctor_rates_updated_at', String(backup.doctorRatesUpdatedAt || Date.now()));
+      }
       // Restaurar doctores si existe
       if (importedDoctors) {
         localStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
@@ -9584,7 +9588,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar todo el localStorage relacionado
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup'].forEach(function(k){
     localStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -10518,13 +10522,14 @@ goPage = function(id, el) {
 // =====================================================
 // REPORTES DE INGRESOS
 // =====================================================
-var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_TRASH_KEY='dental_production_trash_v1';
+var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_TRASH_KEY='dental_production_trash_v1';
 function prodLoad(){try{return JSON.parse(localStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
 function prodRates(){try{return JSON.parse(localStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
 function prodTrashLoad(){try{return JSON.parse(localStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
 function prodMarkLocalChange(){localStorage.setItem('dental_local_updated_at',Date.now().toString());localStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
+function prodMarkRatesChange(){var now=Date.now().toString();localStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();}
 function prodSave(data){localStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodTrashSave(data){localStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
 function prodInitForm(){
@@ -10601,7 +10606,7 @@ function prodSetRate(id,value,silent){
   // Guardar porcentaje y reportes juntos antes de programar una sola subida.
   localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
   if(updated)localStorage.setItem(PROD_KEY,JSON.stringify(records));
-  prodMarkLocalChange();
+  prodMarkRatesChange();
   if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();
   if(typeof GD!=='undefined'&&GD.save)GD.save();
   var doctorInput=document.getElementById('prod-doctor'),percentInput=document.getElementById('prod-percent');
@@ -12597,7 +12602,22 @@ var GD = (function() {
         if (data._caja)       { localStorage.setItem('dental_caja_v1', data._caja); delete data._caja; }
         if (data._production) { localStorage.setItem('dental_production_v1', data._production); delete data._production; }
         if (data._productionTrash) { localStorage.setItem('dental_production_trash_v1', data._productionTrash); delete data._productionTrash; }
-        if (data._doctorRates){ localStorage.setItem('dental_doctor_rates_v1', data._doctorRates); delete data._doctorRates; }
+        if (data._doctorRates) {
+          // Los porcentajes tienen su propio control de versión. Una copia
+          // antigua de Drive nunca debe devolverlos al valor inicial (40%).
+          var localRatesUpdatedAt = parseInt(localStorage.getItem('dental_doctor_rates_updated_at') || '0', 10) || 0;
+          var remoteRatesUpdatedAt = parseInt(data._doctorRatesUpdatedAt || '0', 10) || 0;
+          var hasLocalRates = !!localStorage.getItem('dental_doctor_rates_v1');
+          if (hasLocalRates && localRatesUpdatedAt > remoteRatesUpdatedAt) {
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+          } else {
+            localStorage.setItem('dental_doctor_rates_v1', data._doctorRates);
+            if (remoteRatesUpdatedAt) localStorage.setItem('dental_doctor_rates_updated_at', String(remoteRatesUpdatedAt));
+          }
+          delete data._doctorRates;
+        }
+        delete data._doctorRatesUpdatedAt;
         if (data._catalog)    { localStorage.setItem('dental_catalog_v1', data._catalog); delete data._catalog; }
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
@@ -12970,6 +12990,7 @@ var GD = (function() {
       _production: localStorage.getItem('dental_production_v1')  || '[]',
       _productionTrash:localStorage.getItem('dental_production_trash_v1')|| '[]',
       _doctorRates:localStorage.getItem('dental_doctor_rates_v1')|| '{}',
+      _doctorRatesUpdatedAt:parseInt(localStorage.getItem('dental_doctor_rates_updated_at')||'0',10)||0,
       _catalog:    localStorage.getItem('dental_catalog_v1')     || null,
       _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
       _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
@@ -15637,6 +15658,7 @@ function forceReloadFromDrive() {
   localStorage.removeItem('dental_caja_v1');
   localStorage.removeItem('dental_production_v1');
   localStorage.removeItem('dental_doctor_rates_v1');
+  localStorage.removeItem('dental_doctor_rates_updated_at');
   localStorage.removeItem('dental_catalog_v1');
   localStorage.removeItem('dental_wa_custom_tpls_v1');
   localStorage.removeItem('dental_quick_notes_v1');
