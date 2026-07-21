@@ -3907,6 +3907,76 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
     white-space: nowrap;
   }
 }
+
+/* Móvil: contraste estable y componentes adaptados a pantallas estrechas. */
+@media (max-width:760px) {
+  body.user-custom-theme {
+    --ink:#1d1d1f !important; --ink-2:#3a3a3c !important;
+    --ink-3:#6e6e73 !important; --ink-4:#8e8e93 !important;
+    --card:#fff !important; --bg:#f5f5f7 !important;
+    --border:#e5e5ea !important; --border-med:#d1d1d6 !important;
+    color:var(--ink) !important; font-size:15px !important;
+  }
+  .topbar h2 { color:var(--ink) !important; font-size:.78rem !important; }
+  #list-page tr.patient-mobile-card { background:var(--card) !important; color:var(--ink) !important; }
+  #list-page tr.patient-mobile-card td { background:transparent !important; color:var(--ink-2) !important; }
+  #list-page tr.patient-mobile-card td::before { color:var(--ink-3) !important; }
+  #list-page tr.patient-mobile-card td:nth-child(2),
+  #list-page tr.patient-mobile-card td:nth-child(2) strong { color:var(--ink) !important; font-weight:800 !important; opacity:1 !important; visibility:visible !important; }
+  #dash-owe-list .today-appt { display:flex !important; align-items:center !important; background:var(--bg) !important; color:var(--ink) !important; gap:10px; }
+  #dash-owe-list .ta-name { display:block !important; flex:1; min-width:0; color:var(--ink) !important; font-size:.82rem !important; opacity:1 !important; visibility:visible !important; white-space:normal !important; overflow:visible !important; }
+  #dash-owe-list .today-appt > span:last-child { flex:0 0 auto; }
+
+  #agenda-page .cal-main, #agenda-page .cal-header, #agenda-page .month-grid { background:var(--card) !important; color:var(--ink) !important; }
+  #agenda-page .month-dh { background:var(--bg) !important; color:var(--ink-3) !important; }
+  #agenda-page .month-cell { background:var(--card) !important; color:var(--ink) !important; height:64px !important; min-height:64px !important; }
+  #agenda-page .month-cell.other-month { background:var(--bg) !important; opacity:.62; }
+  #agenda-page .mc-num { color:var(--ink) !important; }
+  #agenda-page .month-cell.selected-cell .mc-num, #agenda-page .month-cell.today-cell .mc-num { color:#fff !important; }
+  #agenda-page .month-grid { border-color:var(--border) !important; }
+
+  #reporte-page .rep-period-toolbar { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto auto !important; gap:8px !important; }
+  #reporte-page .rep-period-toolbar > div:first-child { grid-column:1/-1; display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)); width:100%; }
+  #reporte-page #rep-period-label { min-width:0 !important; text-align:center !important; font-size:.8rem !important; }
+  #reporte-page .stats-row { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; }
+  #reporte-page .stat-card { min-height:108px !important; padding:12px !important; grid-template-columns:38px minmax(0,1fr) !important; column-gap:9px !important; }
+  #reporte-page .stat-icon { width:38px !important; height:38px !important; }
+  #reporte-page .stat-label { color:var(--ink-3) !important; font-size:.56rem !important; letter-spacing:.04em !important; overflow-wrap:anywhere; }
+  #reporte-page .stat-value { color:var(--ink) !important; font-size:1.12rem !important; line-height:1.06 !important; letter-spacing:-.025em !important; overflow-wrap:anywhere; }
+  #reporte-page .prod-summary { grid-template-columns:1fr !important; }
+  #reporte-page #prod-ledger { overflow:visible !important; }
+  #reporte-page .prod-table { display:block !important; min-width:0 !important; width:100% !important; }
+  #reporte-page .prod-table thead { display:none !important; }
+  #reporte-page .prod-table tbody, #reporte-page .prod-table tr { display:block !important; }
+  #reporte-page .prod-table tr { margin:0 0 10px; padding:10px; border:1px solid var(--border); border-radius:14px; background:var(--card); }
+  #reporte-page .prod-table td { display:grid !important; grid-template-columns:92px minmax(0,1fr); gap:8px; padding:6px 0 !important; border:0 !important; color:var(--ink-2) !important; text-align:right; }
+  #reporte-page .prod-table td::before { color:var(--ink-3); font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; text-align:left; }
+  #reporte-page .prod-table td:nth-child(1)::before{content:'Fecha'}
+  #reporte-page .prod-table td:nth-child(2)::before{content:'Doctor'}
+  #reporte-page .prod-table td:nth-child(3)::before{content:'Tratamiento'}
+  #reporte-page .prod-table td:nth-child(4)::before{content:'Cantidad'}
+  #reporte-page .prod-table td:nth-child(5)::before{content:'Precio'}
+  #reporte-page .prod-table td:nth-child(6)::before{content:'Producción'}
+  #reporte-page .prod-table td:nth-child(7)::before{content:'Porcentaje'}
+  #reporte-page .prod-table td:nth-child(8)::before{content:'Pago'}
+  #reporte-page .prod-table td:nth-child(9)::before{content:'Eliminar'}
+
+  html.dark body.user-custom-theme {
+    --ink:#f5f5f7 !important; --ink-2:#d1d1d6 !important;
+    --ink-3:#a1a1a6 !important; --ink-4:#8e8e93 !important;
+    --card:#1c1c1e !important; --bg:#000 !important;
+    --border:rgba(255,255,255,.10) !important;
+    --border-med:rgba(255,255,255,.18) !important;
+  }
+  html.dark #list-page tr.patient-mobile-card,
+  html.dark #agenda-page .cal-main,
+  html.dark #agenda-page .cal-header,
+  html.dark #agenda-page .month-grid,
+  html.dark #reporte-page .prod-table tr { background:#1c1c1e !important; }
+  html.dark #agenda-page .month-dh { background:#242426 !important; }
+  html.dark #agenda-page .month-cell { background:#1c1c1e !important; }
+  html.dark #agenda-page .month-cell.other-month { background:#151517 !important; }
+}
 </style>
 </head>
 <body>
@@ -4591,7 +4661,7 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
           <button class="btn btn-primary" onclick="prodAdd()">＋ Registrar producción</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
+      <div class="rep-period-toolbar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
         <div style="display:flex;background:var(--bg);border-radius:980px;padding:3px;gap:2px">
           <button class="cvt-btn active" id="rep-tab-week"   onclick="repSetTab('week',this)">Semana</button>
           <button class="cvt-btn"        id="rep-tab-month"  onclick="repSetTab('month',this)">Mes</button>
@@ -13276,6 +13346,12 @@ var GD = (function() {
     var activePage = document.querySelector('.page.active');
     var activeId = activePage ? activePage.id : '';
     if (activeId === 'list-page' && typeof renderList === 'function') renderList(db.patients);
+    if (activeId === 'agenda-page' && typeof renderCal === 'function') renderCal();
+    if (activeId === 'reporte-page') {
+      if (typeof prodInitForm === 'function') prodInitForm();
+      if (typeof renderReportePage === 'function') renderReportePage();
+    }
+    if (activeId === 'caja-page' && typeof cajaRender === 'function') cajaRender();
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof updateBackupBadge === 'function') updateBackupBadge();
     // Mostrar botón de Calendar si hay sesión Google
