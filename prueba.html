@@ -3276,6 +3276,113 @@ html.dark .topbar h2 {
   .sb-logo h1 { font-size: .76rem; }
 }
 
+/* Keep the navigation, settings and doctor selector in separate columns.
+   On narrower laptops the navigation can scroll, but it must never sit
+   underneath the controls on the right. */
+@media (min-width: 761px) {
+  #sidebar {
+    grid-template-columns: minmax(180px,224px) minmax(0,1fr) minmax(178px,205px);
+  }
+  .sb-nav {
+    min-width: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .sb-nav::-webkit-scrollbar { display: none; }
+  .sb-footer {
+    position: relative;
+    z-index: 3;
+    min-width: 0;
+    padding: 0 10px;
+    gap: 6px;
+    overflow: hidden;
+    background: rgba(22,22,23,.98);
+  }
+  .sb-footer #active-doctor-badge {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 145px;
+    margin-right: 0 !important;
+  }
+  .sb-footer #active-doctor-badge .doctor-active-badge {
+    width: 100%;
+    min-width: 0;
+  }
+  .sb-footer #active-doctor-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sb-footer button[title="Configuración"] {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 46px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  #sidebar {
+    grid-template-columns: 180px minmax(0,1fr) 178px;
+  }
+  .sb-nav { padding-left: 8px; padding-right: 8px; gap: 2px; }
+  .nav-item { padding-left: 7px; padding-right: 7px; font-size: .65rem; }
+  .sb-footer #active-doctor-badge { max-width: 118px; }
+}
+
+/* Laptop header: every navigation item must remain inside the center column.
+   Using flexible compact tabs avoids the last items drawing underneath the
+   settings and doctor controls on 11–14 inch screens or with browser zoom. */
+@media (min-width: 761px) and (max-width: 1500px) {
+  #sidebar {
+    grid-template-columns: clamp(168px, 15vw, 210px) minmax(0, 1fr) 196px;
+  }
+  .sb-nav {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 8px;
+    gap: 1px;
+    overflow: hidden;
+    clip-path: inset(0);
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .sb-nav .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    padding: 6px 4px;
+    gap: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    justify-content: center;
+    font-size: clamp(.54rem, .67vw, .66rem);
+  }
+  .sb-footer {
+    width: 196px;
+    max-width: 196px;
+    box-sizing: border-box;
+    border-left: 1px solid rgba(255,255,255,.09);
+    box-shadow: -10px 0 18px rgba(22,22,23,.96);
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1050px) {
+  #sidebar { grid-template-columns: 160px minmax(0,1fr) 178px; }
+  .sb-logo { padding-left: 9px; padding-right: 8px; }
+  .sb-logo h1 { font-size: .7rem; }
+  .sb-logo p { font-size: .5rem; }
+  .sb-nav { padding-left: 3px; padding-right: 3px; }
+  .sb-nav .nav-item { padding-left: 2px; padding-right: 2px; font-size: .5rem; }
+  .sb-footer { width: 178px; max-width: 178px; padding-left: 6px; padding-right: 6px; }
+}
+
 /* ━━━━ ACCESSIBILITY + RESPONSIVE NAVIGATION ━━━━ */
 #mobile-menu-btn {
   display: none;
@@ -3701,6 +3808,105 @@ body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;
 }
 @media(max-width:760px){.appearance-presets{grid-template-columns:repeat(3,1fr)}.appearance-color-grid{grid-template-columns:1fr}.appearance-range{grid-template-columns:105px 1fr 36px}}
 
+/* Compact-window navigation.
+   A narrow desktop window cannot hold every module plus the doctor controls.
+   Use the existing accessible drawer while preserving the desktop content. */
+@media (min-width: 761px) and (max-width: 1380px) {
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0; right: auto; bottom: 0;
+    width: min(88vw, 330px);
+    max-width: 330px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    box-shadow: var(--sh-xl);
+    z-index: 200;
+  }
+  body.mobile-nav-open #sidebar { transform: translateX(0); }
+  body.mobile-nav-open #sidebar-scrim { display: block; }
+  body.mobile-nav-open { overflow: hidden; }
+  .sb-logo {
+    display: grid;
+    min-height: 82px; height: 82px;
+    grid-template-columns: 42px 1fr;
+    padding: 14px 18px;
+  }
+  .sb-logo-icon { width: 40px; height: 40px; font-size: 1.15rem !important; }
+  .sb-logo h1 { font-size: .92rem; }
+  .sb-logo p { display: block !important; font-size: .64rem; }
+  .sb-nav {
+    display: block;
+    flex: 1;
+    width: auto;
+    max-width: none;
+    height: auto;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    clip-path: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .sb-section { display: block; padding: 14px 10px 6px; }
+  .sb-nav .nav-item {
+    display: flex;
+    justify-content: flex-start;
+    min-height: 48px;
+    margin-bottom: 4px;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: .82rem;
+  }
+  .sb-nav .nav-item .nav-icon { display: flex; width: 30px; height: 30px; }
+  .sb-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    padding: 13px 16px 14px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    border-left: 0;
+    box-shadow: none;
+  }
+  .sb-footer #active-doctor-badge {
+    display: block !important;
+    order: -1;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 4px !important;
+  }
+  .sb-footer #active-doctor-badge .doctor-active-badge {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 44px;
+  }
+  .sb-footer #active-doctor-name { flex: 1; }
+  #main { margin-left: 0; padding-top: 0; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  #mobile-menu-btn { display: inline-flex; flex: 0 0 auto; }
+  .topbar h2 {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 </style>
 </head>
 <body>
@@ -6860,7 +7066,9 @@ function patientFinancialSummary(p) {
     completed=plan.filter(function(t){return !!t.done;}).reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
   }
   completed=Math.min(cost,Math.max(0,completed));
-  return {paid:paid,cost:cost,completed:completed,balance:paid+completed-cost,source:source};
+  // Un tratamiento realizado genera producción, pero no significa que el
+  // dinero ya entró. El saldo solo disminuye con pagos/abonos reales.
+  return {paid:paid,cost:cost,completed:completed,balance:paid-cost,source:source};
 }
 
 function renderDashboard() {
@@ -6956,7 +7164,7 @@ function renderPayments(p) {
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos tratamientos realizados y abonos':financial.source==='plan'?'Plan menos tratamientos realizados y abonos':'Sin presupuesto ni plan'}</small></span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos pagos y abonos':financial.source==='plan'?'Plan menos pagos y abonos':'Sin presupuesto ni plan'}</small></span>
     <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${fmt$(Math.abs(balance))}</span>
   </div>`;
   if (badge) {
@@ -7062,11 +7270,30 @@ function toggleTxp(i) {
     var rates=prodRates(),pct=rates[doctor.id]!==undefined?Number(rates[doctor.id]):40,qty=Math.max(1,Number(tx.qty)||1),unit=Number(tx.price)||0,prodId=Date.now()+Math.floor(Math.random()*1000);
     var production=prodLoad();production.push({id:prodId,date:todayStr(),doctorId:doctor.id,doctorName:doctor.name||'Doctor',treatment:tx.name,qty:qty,unitPrice:unit,gross:qty*unit,percent:pct,pay:qty*unit*pct/100,patient:p.name,patientId:p.id,source:'treatment-plan',treatmentPlanId:tx.id||'',budgetFolio:tx.budgetFolio||'',notes:'Registrado al completar el plan de tratamiento'});prodSave(production);
     tx.done=true;tx.completedAt=todayStr();tx.completedBy=doctor.name||'Doctor';tx.doctorId=doctor.id;tx.productionId=prodId;
-    showToast('✅ Tratamiento completado y agregado a producción de '+(doctor.name||'doctor'),'green');
+    var total=qty*unit;
+    var paidNow=total>0&&confirm('¿El paciente también pagó '+fmt$(total)+' por este tratamiento?\n\nAceptar = realizado y pagado (se registra el abono y entra a Caja).\nCancelar = solo realizado (queda pendiente de pago).');
+    if(paidNow){
+      if(!p.payments)p.payments=[];
+      var payId=Date.now()+Math.floor(Math.random()*1000);
+      var payDesc='Pago automático · '+tx.name;
+      p.payments.push({id:payId,date:todayStr(),desc:payDesc,amount:total,type:'in',source:'treatment-plan',treatmentPlanId:tx.id||''});
+      var cajaData=cajaLoad();
+      cajaData.push({id:payId,tipo:'ing',desc:payDesc,monto:total,cat:'abono',fecha:todayStr(),notas:p.name,_patientId:p.id,_payId:payId,source:'treatment-plan',treatmentPlanId:tx.id||''});
+      cajaSave(cajaData);
+      tx.autoPaymentId=payId;
+      showToast('✅ Realizado, pagado y registrado en Caja','green');
+    }else{
+      showToast('✅ Tratamiento realizado; el pago sigue pendiente','green');
+    }
   }else{
     if(tx.productionId)prodSave(prodLoad().filter(function(x){return String(x.id)!==String(tx.productionId);}));
-    tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;
-    showToast('Tratamiento regresado a pendiente; se retiró de producción','green');
+    if(tx.autoPaymentId){
+      var autoPayId=tx.autoPaymentId;
+      p.payments=(p.payments||[]).filter(function(x){return String(x.id)!==String(autoPayId);});
+      cajaSave(cajaLoad().filter(function(x){return String(x._payId)!==String(autoPayId)&&String(x.id)!==String(autoPayId);}));
+    }
+    tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;delete tx.autoPaymentId;
+    showToast('Tratamiento regresado a pendiente; se retiraron su producción y pago automático','green');
   }
   saveDB(); renderTxp(p); renderPayments(p); renderDashboard();
 }
@@ -7798,9 +8025,12 @@ function uploadHeroImage(input) {
       canvas.width = outW; canvas.height = outH;
       canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
       cfg.heroImageUrl = canvas.toDataURL('image/jpeg', .72);
+      cfg.heroImageUpdatedAt = Date.now();
       applyHeroImage();
       refreshHeroImagePreview();
-      var heroSaved = typeof GD !== 'undefined' && GD.saveCfg ? GD.saveCfg() : true;
+      var heroSaved = typeof GD !== 'undefined' && GD.saveHeroImage
+        ? GD.saveHeroImage()
+        : (typeof GD !== 'undefined' && GD.saveCfg ? GD.saveCfg() : true);
       if (heroSaved !== false) showToast('✅ Foto de portada actualizada', 'green');
       input.value = '';
     };
@@ -7812,9 +8042,11 @@ function uploadHeroImage(input) {
 
 function removeHeroImage() {
   cfg.heroImageUrl = '';
+  cfg.heroImageUpdatedAt = Date.now();
   applyHeroImage();
   refreshHeroImagePreview();
-  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+  if (typeof GD !== 'undefined' && GD.saveHeroImage) GD.saveHeroImage();
+  else if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   showToast('Diseño abstracto restaurado', 'green');
 }
 
@@ -12490,6 +12722,7 @@ var GD = (function() {
   var SCOPES      = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events';
   var DB_FILENAME = 'consultorio_dental_db.json';
   var CFG_FILENAME= 'consultorio_dental_cfg.json';
+  var HERO_FILENAME='consultorio_dental_portada.json';
   var FOLDER_NAME = 'Consultorio Dental';
   var GD_MODE_KEY = 'dental_gd_mode';
 
@@ -12497,10 +12730,13 @@ var GD = (function() {
   var _folderId  = null;
   var _dbFileId  = null;
   var _cfgFileId = null;
+  var _heroFileId = null;
   var _syncTimer = null;
   var _cfgSaveTimer = null;
   var _cfgSaving = false;
   var _cfgDirty = false;
+  var _heroDirty = false;
+  var _heroSaving = false;
   var _dirty     = false;
   var _dbSaving  = false;
   var _saving    = false; // bloquear guardado mientras se carga
@@ -12565,6 +12801,7 @@ var GD = (function() {
         _ensureFolder()
           .then(function() { return _loadDB(); })
           .then(function() { return _loadCfg(); })
+          .then(function() { return _loadHero(); })
           .then(function() {
             _saving = false;
             setBadge('synced', 'Sincronizado');
@@ -12574,6 +12811,21 @@ var GD = (function() {
               saveCfg();
               showToast('☁️ Subiendo a Drive los cambios guardados offline…', 'green');
               _preferLocalAfterReconnect = false;
+            }
+            // _loadCfg puede descubrir una foto o logotipo local que falta en
+            // Drive. Durante la carga los guardados están bloqueados; al
+            // terminar hay que reintentar explícitamente para que otros
+            // dispositivos (incluido el móvil) reciban esas imágenes.
+            if (_cfgDirty && !_cfgSaving) {
+              if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
+              _cfgSaveTimer = setTimeout(_doSaveCfg, 100);
+            }
+            if (_heroDirty && !_heroSaving) {
+              // La Mac puede ser el único equipo que aún conserva la foto.
+              // Subirla tanto al archivo independiente como a la base común.
+              _dirty = true;
+              _scheduleSave();
+              setTimeout(_doSaveHero, 120);
             }
           })
           .catch(function(e) {
@@ -12657,19 +12909,83 @@ var GD = (function() {
         var remoteSavedAt = parseInt(data._savedAt || '0', 10) || 0;
         var localSavedAt  = parseInt(localStorage.getItem('dental_local_updated_at') || '0', 10) || 0;
         var hasLocalData  = db && ((db.patients && db.patients.length) || (db.appointments && db.appointments.length));
+        // Copia de rescate de la portada dentro de la base principal. Este es
+        // el archivo que todos los dispositivos ya descargan para pacientes,
+        // por lo que también garantiza que el móvil reciba la imagen aunque
+        // aún no exista el archivo independiente de portada.
+        if (typeof data._heroImageDataUrl === 'string') {
+          var dbHeroUpdatedAt = parseInt(data._heroImageUpdatedAt || '0', 10) || 0;
+          var localHeroUpdatedAt = parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0;
+          if (!cfg.heroImageUrl || dbHeroUpdatedAt >= localHeroUpdatedAt) {
+            cfg.heroImageUrl = data._heroImageDataUrl;
+            cfg.heroImageUpdatedAt = dbHeroUpdatedAt;
+            try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+          }
+          delete data._heroImageDataUrl;
+          delete data._heroImageUpdatedAt;
+        }
         delete data._savedAt;
 
-        // Nunca reemplazar cambios offline recientes con una copia antigua de Drive.
-        if (hasLocalData && localSavedAt > remoteSavedAt) {
+        // Nunca reemplazar cambios offline recientes con una copia antigua de
+        // Drive. Aun así continuamos leyendo Caja, producción y configuración:
+        // antes este return provocaba que una computadora nueva mostrara cero
+        // reportes aunque sí existieran en Drive.
+        var preferLocalMain = hasLocalData && localSavedAt > remoteSavedAt;
+        if (preferLocalMain) {
           _preferLocalAfterReconnect = true;
           _dirty = true;
-          return;
         }
 
         // ── Extraer datos complementarios ANTES de asignar db ──
-        if (data._caja)       { localStorage.setItem('dental_caja_v1', data._caja); delete data._caja; }
-        if (data._production) { localStorage.setItem('dental_production_v1', data._production); delete data._production; }
-        if (data._productionTrash) { localStorage.setItem('dental_production_trash_v1', data._productionTrash); delete data._productionTrash; }
+        function parseStoredArray(value) {
+          if (Array.isArray(value)) return value;
+          try { var parsed = JSON.parse(value || '[]'); return Array.isArray(parsed) ? parsed : []; }
+          catch(e) { return []; }
+        }
+        function mergeStoredRows(remoteRows, localRows) {
+          var merged = [], seen = {};
+          remoteRows.concat(localRows).forEach(function(row) {
+            if (!row || row.id === undefined || row.id === null) return;
+            var id = String(row.id);
+            if (seen[id]) return;
+            seen[id] = true;
+            merged.push(row);
+          });
+          return merged;
+        }
+        if (data._caja) {
+          var remoteCaja = parseStoredArray(data._caja);
+          var localCaja = parseStoredArray(localStorage.getItem('dental_caja_v1'));
+          var mergedCaja = mergeStoredRows(remoteCaja, localCaja);
+          localStorage.setItem('dental_caja_v1', JSON.stringify(mergedCaja));
+          if (mergedCaja.length > remoteCaja.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+          delete data._caja;
+        }
+        var remoteTrash = parseStoredArray(data._productionTrash);
+        var localTrash = parseStoredArray(localStorage.getItem('dental_production_trash_v1'));
+        var mergedTrash = mergeStoredRows(remoteTrash, localTrash);
+        if (data._productionTrash || localTrash.length) {
+          localStorage.setItem('dental_production_trash_v1', JSON.stringify(mergedTrash));
+          if (mergedTrash.length > remoteTrash.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+        }
+        delete data._productionTrash;
+        if (data._production) {
+          var remoteProduction = parseStoredArray(data._production);
+          var localProduction = parseStoredArray(localStorage.getItem('dental_production_v1'));
+          var deletedProductionIds = {};
+          mergedTrash.forEach(function(row){ deletedProductionIds[String(row.id)] = true; });
+          var mergedProduction = mergeStoredRows(remoteProduction, localProduction).filter(function(row) {
+            return !deletedProductionIds[String(row.id)];
+          });
+          if (localProduction.length) {
+            try {
+              localStorage.setItem('dental_pre_drive_production_backup', JSON.stringify(localProduction));
+            } catch(productionBackupError) {}
+          }
+          localStorage.setItem('dental_production_v1', JSON.stringify(mergedProduction));
+          if (mergedProduction.length > remoteProduction.length) { _preferLocalAfterReconnect = true; _dirty = true; }
+          delete data._production;
+        }
         if (data._doctorRates) {
           // Los porcentajes tienen su propio control de versión. Una copia
           // antigua de Drive nunca debe devolverlos al valor inicial (40%).
@@ -12716,12 +13032,12 @@ var GD = (function() {
         }
 
         // Validar que Drive tiene datos reales
-        if (Array.isArray(data.patients) && data.patients.length > 0) {
+        if (!preferLocalMain && Array.isArray(data.patients) && data.patients.length > 0) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
           localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
-        } else if (data.patients !== undefined) {
+        } else if (!preferLocalMain && data.patients !== undefined) {
           db = data;
           if (!db.appointments) db.appointments = [];
           localStorage.setItem('dental_v4', JSON.stringify(db));
@@ -12760,6 +13076,11 @@ var GD = (function() {
           // Drive no tiene, preservarla y volver a subirla.
           if (cfg.heroImageUrl && !data.heroImageUrl) {
             data.heroImageUrl = cfg.heroImageUrl;
+            data.heroImageUpdatedAt = cfg.heroImageUpdatedAt || 0;
+            _cfgDirty = true;
+          }
+          if (cfg.logoImageUrl && !data.logoImageUrl) {
+            data.logoImageUrl = cfg.logoImageUrl;
             _cfgDirty = true;
           }
           if (localCfgUpdatedAt > remoteCfgUpdatedAt) {
@@ -12774,6 +13095,59 @@ var GD = (function() {
             _cfgSaveTimer = setTimeout(_doSaveCfg, 350);
           }
         }
+      });
+    });
+  }
+
+  // ── Portada independiente ───────────────────────────────
+  // Las imágenes base64 son mucho más grandes que el resto de la
+  // configuración. Guardarlas también en un archivo propio evita que un
+  // teléfono reciba una configuración antigua o incompleta sin la portada.
+  function _loadHero() {
+    return _findFile(HERO_FILENAME).then(function(file) {
+      var localDataUrl = cfg.heroImageUrl || '';
+      var localUpdatedAt = parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0;
+      if (!file) {
+        if (localDataUrl || localUpdatedAt) _heroDirty = true;
+        return;
+      }
+      _heroFileId = file.id;
+      if (_preferLocalAfterReconnect) {
+        _heroDirty = true;
+        return;
+      }
+      return _readFile(file.id).then(function(data) {
+        if (!data || typeof data.dataUrl !== 'string') return;
+        var remoteUpdatedAt = parseInt(data.updatedAt || data._savedAt || '0', 10) || 0;
+        var remoteDataUrl = data.dataUrl.trim();
+
+        // Una versión anterior podía crear el archivo de portada vacío al
+        // quitar la imagen o durante una sincronización incompleta. Si la DB
+        // principal o este dispositivo ya tienen una foto válida, un archivo
+        // vacío nunca debe reemplazarla aunque su fecha sea más reciente.
+        if (!remoteDataUrl && localDataUrl) {
+          _heroDirty = true;
+          if (typeof applyHeroImage === 'function') applyHeroImage();
+          return;
+        }
+
+        // Ignorar valores corruptos en lugar de ocultar la portada actual.
+        if (remoteDataUrl && !/^data:image\/(?:jpeg|jpg|png|webp);base64,/i.test(remoteDataUrl)) {
+          console.warn('La portada de Drive no contiene una imagen válida; se conserva la copia local.');
+          if (localDataUrl) _heroDirty = true;
+          return;
+        }
+        // La copia más reciente gana. En instalaciones antiguas, si solo la
+        // computadora tiene foto y todavía no existe fecha, conservarla.
+        if (localDataUrl && (!remoteUpdatedAt || localUpdatedAt > remoteUpdatedAt)) {
+          _heroDirty = true;
+          return;
+        }
+        cfg.heroImageUrl = remoteDataUrl;
+        cfg.heroImageUpdatedAt = remoteUpdatedAt;
+        try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+        if (typeof applyHeroImage === 'function') applyHeroImage();
+        if (typeof refreshHeroImagePreview === 'function') refreshHeroImagePreview();
       });
     });
   }
@@ -13074,6 +13448,45 @@ var GD = (function() {
     });
   }
 
+  function saveHeroImage() {
+    // Mantener además una copia en configuración para compatibilidad con las
+    // versiones anteriores de la aplicación.
+    var localSaved = saveCfg();
+    if (_mode === 'google' && _token) {
+      _heroDirty = true;
+      // Guardar además una copia en la base principal para que versiones y
+      // dispositivos que todavía no ven el archivo separado puedan cargarla.
+      _dirty = true;
+      if (!_saving) _scheduleSave();
+      if (!_saving) setTimeout(_doSaveHero, 80);
+    }
+    return localSaved;
+  }
+
+  function _doSaveHero() {
+    if (!_token || _saving || !_heroDirty || _heroSaving) return;
+    _heroSaving = true;
+    _heroDirty = false;
+    var payload = {
+      dataUrl: cfg.heroImageUrl || '',
+      updatedAt: parseInt(cfg.heroImageUpdatedAt || Date.now(), 10) || Date.now()
+    };
+    var locate = _heroFileId ? Promise.resolve({ id: _heroFileId }) : _findFile(HERO_FILENAME);
+    locate.then(function(file) {
+      if (file && file.id) _heroFileId = file.id;
+      return _writeFile(_heroFileId, HERO_FILENAME, payload);
+    }).then(function(file) {
+      if (!_heroFileId && file && file.id) _heroFileId = file.id;
+      _heroSaving = false;
+      if (_heroDirty) setTimeout(_doSaveHero, 150);
+    }).catch(function(error) {
+      console.error('No se pudo guardar la portada en Drive:', error);
+      _heroSaving = false;
+      _heroDirty = true;
+      setBadge('error', 'Error al guardar portada');
+    });
+  }
+
   function showStatus() {
     if (_mode === 'local' || !_token) {
       // Abrir modal de reconexión a Google
@@ -13094,7 +13507,7 @@ var GD = (function() {
 
   function signOut() {
     if (!confirm('¿Cerrar sesión? Los datos quedan en tu Drive.')) return;
-    _token = null; _folderId = null; _dbFileId = null; _cfgFileId = null;
+    _token = null; _folderId = null; _dbFileId = null; _cfgFileId = null; _heroFileId = null;
     _mode = 'local';
     localStorage.setItem(GD_MODE_KEY, 'local');
     localStorage.removeItem('dental_gd_token_hint');
@@ -13106,6 +13519,8 @@ var GD = (function() {
   function _buildSavePayload() {
     return Object.assign({}, db, {
       _savedAt:     Date.now(),
+      _heroImageDataUrl: cfg.heroImageUrl || '',
+      _heroImageUpdatedAt: parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0,
       _caja:       localStorage.getItem('dental_caja_v1')        || '[]',
       _production: localStorage.getItem('dental_production_v1')  || '[]',
       _productionTrash:localStorage.getItem('dental_production_trash_v1')|| '[]',
@@ -13129,9 +13544,9 @@ var GD = (function() {
     _doSave();
   }
 
-  function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving)); }
+  function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _heroDirty || _heroSaving)); }
   function getToken() { return _token; }
-  return { signIn, skip, save, saveNow, saveCfg, showStatus, signOut, start, reconnect, _hasPending, _token: getToken };
+  return { signIn, skip, save, saveNow, saveCfg, saveHeroImage, showStatus, signOut, start, reconnect, _hasPending, _token: getToken };
 })();
 
 // ── Funciones globales para el HTML ──────────────────────
@@ -16845,7 +17260,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">¿Y si no genero presupuesto?</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. El saldo muestra lo que falta: total presupuestado o planificado, menos tratamientos realizados y menos abonos. Si existen presupuestos, tienen prioridad y el plan no se suma otra vez.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. El saldo muestra lo que falta: total presupuestado o planificado menos pagos y abonos reales. Al marcar un tratamiento como realizado puedes indicar si también fue pagado; solo entonces entrará automáticamente a Caja. Si existen presupuestos, tienen prioridad y el plan no se suma otra vez.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Completar un tratamiento</div>
@@ -16891,7 +17306,7 @@ window.addEventListener('resize', function() {
       <div id="h-caja" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">💵 Pagos, caja, producción y reportes</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Registra el abono cuando el paciente pague.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Indica si fue pagado: el sistema registra automáticamente el abono y el ingreso en Caja; si no, conserva la deuda.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
