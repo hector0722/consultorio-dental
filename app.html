@@ -6860,7 +6860,9 @@ function patientFinancialSummary(p) {
     completed=plan.filter(function(t){return !!t.done;}).reduce(function(s,t){return s+Math.max(1,Number(t.qty)||1)*(Number(t.price)||0);},0);source='plan';
   }
   completed=Math.min(cost,Math.max(0,completed));
-  return {paid:paid,cost:cost,completed:completed,balance:paid+completed-cost,source:source};
+  // Un tratamiento realizado genera producción, pero no significa que el
+  // dinero ya entró. El saldo solo disminuye con pagos/abonos reales.
+  return {paid:paid,cost:cost,completed:completed,balance:paid-cost,source:source};
 }
 
 function renderDashboard() {
@@ -6956,7 +6958,7 @@ function renderPayments(p) {
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos tratamientos realizados y abonos':financial.source==='plan'?'Plan menos tratamientos realizados y abonos':'Sin presupuesto ni plan'}</small></span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos pagos y abonos':financial.source==='plan'?'Plan menos pagos y abonos':'Sin presupuesto ni plan'}</small></span>
     <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${fmt$(Math.abs(balance))}</span>
   </div>`;
   if (badge) {
@@ -7062,11 +7064,30 @@ function toggleTxp(i) {
     var rates=prodRates(),pct=rates[doctor.id]!==undefined?Number(rates[doctor.id]):40,qty=Math.max(1,Number(tx.qty)||1),unit=Number(tx.price)||0,prodId=Date.now()+Math.floor(Math.random()*1000);
     var production=prodLoad();production.push({id:prodId,date:todayStr(),doctorId:doctor.id,doctorName:doctor.name||'Doctor',treatment:tx.name,qty:qty,unitPrice:unit,gross:qty*unit,percent:pct,pay:qty*unit*pct/100,patient:p.name,patientId:p.id,source:'treatment-plan',treatmentPlanId:tx.id||'',budgetFolio:tx.budgetFolio||'',notes:'Registrado al completar el plan de tratamiento'});prodSave(production);
     tx.done=true;tx.completedAt=todayStr();tx.completedBy=doctor.name||'Doctor';tx.doctorId=doctor.id;tx.productionId=prodId;
-    showToast('✅ Tratamiento completado y agregado a producción de '+(doctor.name||'doctor'),'green');
+    var total=qty*unit;
+    var paidNow=total>0&&confirm('¿El paciente también pagó '+fmt$(total)+' por este tratamiento?\n\nAceptar = realizado y pagado (se registra el abono y entra a Caja).\nCancelar = solo realizado (queda pendiente de pago).');
+    if(paidNow){
+      if(!p.payments)p.payments=[];
+      var payId=Date.now()+Math.floor(Math.random()*1000);
+      var payDesc='Pago automático · '+tx.name;
+      p.payments.push({id:payId,date:todayStr(),desc:payDesc,amount:total,type:'in',source:'treatment-plan',treatmentPlanId:tx.id||''});
+      var cajaData=cajaLoad();
+      cajaData.push({id:payId,tipo:'ing',desc:payDesc,monto:total,cat:'abono',fecha:todayStr(),notas:p.name,_patientId:p.id,_payId:payId,source:'treatment-plan',treatmentPlanId:tx.id||''});
+      cajaSave(cajaData);
+      tx.autoPaymentId=payId;
+      showToast('✅ Realizado, pagado y registrado en Caja','green');
+    }else{
+      showToast('✅ Tratamiento realizado; el pago sigue pendiente','green');
+    }
   }else{
     if(tx.productionId)prodSave(prodLoad().filter(function(x){return String(x.id)!==String(tx.productionId);}));
-    tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;
-    showToast('Tratamiento regresado a pendiente; se retiró de producción','green');
+    if(tx.autoPaymentId){
+      var autoPayId=tx.autoPaymentId;
+      p.payments=(p.payments||[]).filter(function(x){return String(x.id)!==String(autoPayId);});
+      cajaSave(cajaLoad().filter(function(x){return String(x._payId)!==String(autoPayId)&&String(x.id)!==String(autoPayId);}));
+    }
+    tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;delete tx.autoPaymentId;
+    showToast('Tratamiento regresado a pendiente; se retiraron su producción y pago automático','green');
   }
   saveDB(); renderTxp(p); renderPayments(p); renderDashboard();
 }
@@ -16894,7 +16915,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">¿Y si no genero presupuesto?</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. El saldo muestra lo que falta: total presupuestado o planificado, menos tratamientos realizados y menos abonos. Si existen presupuestos, tienen prioridad y el plan no se suma otra vez.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Puedes agregar tratamientos directamente al plan. El saldo muestra lo que falta: total presupuestado o planificado menos pagos y abonos reales. Al marcar un tratamiento como realizado puedes indicar si también fue pagado; solo entonces entrará automáticamente a Caja. Si existen presupuestos, tienen prioridad y el plan no se suma otra vez.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Completar un tratamiento</div>
@@ -16940,7 +16961,7 @@ window.addEventListener('resize', function() {
       <div id="h-caja" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">💵 Pagos, caja, producción y reportes</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Registra el abono cuando el paciente pague.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Indica si fue pagado: el sistema registra automáticamente el abono y el ingreso en Caja; si no, conserva la deuda.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
