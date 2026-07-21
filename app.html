@@ -3716,6 +3716,14 @@ body.user-custom-theme .dashboard-hero{background:linear-gradient(135deg,var(--u
 body.user-custom-theme .dashboard-hero-photo::after{opacity:var(--user-overlay-opacity);}
 body.user-custom-theme .btn,body.user-custom-theme input,body.user-custom-theme select,body.user-custom-theme textarea{border-radius:var(--user-radius-sm)!important;}
 body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;}
+/* Los presets claros siempre deben usar etiquetas oscuras en los KPIs. Los
+   estilos históricos de las tarjetas 1 y 4 forzaban blanco y en Rosa se
+   perdían sobre el panel claro. */
+body.user-custom-theme #dash-page .stats-row .stat-card .stat-label,
+body.user-custom-theme #reporte-page .stats-row .stat-card .stat-label{
+  color:var(--ink-3)!important;
+  opacity:1!important;
+}
 .appearance-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:14px;}
 .appearance-preset{min-width:0;padding:10px 4px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--ink);font-size:.66rem;font-weight:700;cursor:pointer;text-align:center;}
 .appearance-preset span{display:block;width:28px;height:28px;margin:0 auto 5px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);}
@@ -7934,7 +7942,7 @@ var APPEARANCE_DEFAULTS = {
 var APPEARANCE_PRESETS = {
   apple:    {color:'#0071e3',appearanceBg:'#f5f5f7',appearanceCard:'#ffffff',appearanceSidebar:'#202124',appearanceText:'#1d1d1f',appearanceHeroA:'#07080a',appearanceHeroB:'#17233a'},
   midnight: {color:'#0a84ff',appearanceBg:'#000000',appearanceCard:'#1c1c1e',appearanceSidebar:'#111113',appearanceText:'#f5f5f7',appearanceHeroA:'#02040a',appearanceHeroB:'#0b2f55'},
-  rose:     {color:'#d92d73',appearanceBg:'#fff5f8',appearanceCard:'#ffffff',appearanceSidebar:'#30131f',appearanceText:'#29151d',appearanceHeroA:'#280b18',appearanceHeroB:'#8b2950'},
+  rose:     {color:'#d92d73',appearanceBg:'#fff5f8',appearanceCard:'#fbe3ec',appearanceSidebar:'#30131f',appearanceText:'#29151d',appearanceHeroA:'#280b18',appearanceHeroB:'#8b2950'},
   emerald:  {color:'#059669',appearanceBg:'#f1faf6',appearanceCard:'#ffffff',appearanceSidebar:'#123127',appearanceText:'#153329',appearanceHeroA:'#061b15',appearanceHeroB:'#116149'},
   warm:     {color:'#c96a28',appearanceBg:'#f7f1e8',appearanceCard:'#fffaf3',appearanceSidebar:'#33251b',appearanceText:'#30251d',appearanceHeroA:'#1e120a',appearanceHeroB:'#75411e'}
 };
@@ -8025,6 +8033,16 @@ function loadSettings() {
   var raw = localStorage.getItem('dental_cfg_v1');
   if (!raw) return;
   try { var s = JSON.parse(raw); neutralizeUnsafeText(s); Object.assign(cfg, s); } catch(e) {}
+  // Migrar el preset Rosa anterior: sus paneles eran blancos y algunas
+  // etiquetas claras perdían contraste. Solo cambia la combinación exacta
+  // del preset viejo; no toca colores personalizados elegidos por el usuario.
+  if (String(cfg.color || '').toLowerCase() === '#d92d73'
+      && String(cfg.appearanceBg || '').toLowerCase() === '#fff5f8'
+      && String(cfg.appearanceCard || '').toLowerCase() === '#ffffff') {
+    cfg.appearanceCard = '#fbe3ec';
+    cfg._savedAt = Date.now();
+    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+  }
   if (!cfg.currency) cfg.currency = 'MXN';
   if (!cfg.countryCode) cfg.countryCode = '52';
   // Ensure COFEPRIS fields exist
