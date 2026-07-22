@@ -7686,6 +7686,8 @@ function showBudgetDropdown() { filterBudgetPatients(); }
 // ══════════════════════════════════════════════════════════
 // EDITABLE CATALOG
 // ══════════════════════════════════════════════════════════
+var CATALOG_UPDATED_KEY = 'dental_catalog_updated_at';
+
 function loadCatalogOverrides() {
   var raw = localStorage.getItem('dental_catalog_v1');
   if (!raw) return;
@@ -7731,6 +7733,7 @@ function saveCatalogOverrides() {
   });
   ov.__extra = extra;
   localStorage.setItem('dental_catalog_v1', JSON.stringify(ov));
+  localStorage.setItem(CATALOG_UPDATED_KEY, Date.now().toString());
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -13153,7 +13156,24 @@ var GD = (function() {
           delete data._doctorRates;
         }
         delete data._doctorRatesUpdatedAt;
-        if (data._catalog)    { localStorage.setItem('dental_catalog_v1', data._catalog); delete data._catalog; }
+        if (data._catalog) {
+          // El catálogo editable también necesita control de versión. Antes,
+          // cualquier copia antigua de Drive reemplazaba los tratamientos
+          // recién agregados o modificados al volver a abrir la aplicación.
+          var localCatalogUpdatedAt = parseInt(localStorage.getItem('dental_catalog_updated_at') || '0', 10) || 0;
+          var remoteCatalogUpdatedAt = parseInt(data._catalogUpdatedAt || '0', 10) || 0;
+          var hasLocalCatalog = !!localStorage.getItem('dental_catalog_v1');
+          if (hasLocalCatalog && localCatalogUpdatedAt > remoteCatalogUpdatedAt) {
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+          } else {
+            localStorage.setItem('dental_catalog_v1', data._catalog);
+            if (remoteCatalogUpdatedAt) localStorage.setItem('dental_catalog_updated_at', String(remoteCatalogUpdatedAt));
+            if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
+          }
+          delete data._catalog;
+        }
+        delete data._catalogUpdatedAt;
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors)    { localStorage.setItem('dental_doctors_v1', data._doctors); delete data._doctors; }
@@ -13703,6 +13723,7 @@ var GD = (function() {
       _doctorRates:localStorage.getItem('dental_doctor_rates_v1')|| '{}',
       _doctorRatesUpdatedAt:parseInt(localStorage.getItem('dental_doctor_rates_updated_at')||'0',10)||0,
       _catalog:    localStorage.getItem('dental_catalog_v1')     || null,
+      _catalogUpdatedAt:parseInt(localStorage.getItem('dental_catalog_updated_at')||'0',10)||0,
       _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
       _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
       _doctors:    localStorage.getItem('dental_doctors_v1')     || '[]',
