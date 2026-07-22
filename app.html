@@ -8275,8 +8275,6 @@ function saveSettings() {
   cfg.city     = document.getElementById('cfg-city').value  || cfg.city;
   cfg.address  = (document.getElementById('cfg-address') || {}).value || cfg.address || '';
   cfg.phone    = (document.getElementById('cfg-phone')   || {}).value || cfg.phone   || '';
-  // Guardar lista de doctores en cfg para compartir con toda la clínica
-  cfg.doctors  = loadDoctors();
   cfg.logo     = document.getElementById('cfg-logo').value  || cfg.logo;
   cfg.color    = document.getElementById('cfg-color').value || cfg.color;
   previewAdvancedAppearance();
@@ -8289,6 +8287,23 @@ function saveSettings() {
     var el = document.getElementById('cfg-'+f);
     if (el) cfg[f] = el.value.trim();
   });
+  // En cuentas de un solo doctor, los datos generales y el perfil profesional
+  // representan a la misma persona. Mantenerlos sincronizados evita que al
+  // recargar el doctor activo restaure el nombre y la cédula predeterminados.
+  var settingsDoctors = loadDoctors();
+  if (settingsDoctors.length === 1) {
+    settingsDoctors[0].name = cfg.name;
+    settingsDoctors[0].specialty = cfg.sub;
+    settingsDoctors[0].cedula = cfg.cedula || '';
+    settingsDoctors[0].cedula2 = cfg.cedula2 || '';
+    saveDoctors(settingsDoctors);
+    if (_activeDoctor && String(_activeDoctor.id) === String(settingsDoctors[0].id)) {
+      setActiveDoctor(settingsDoctors[0]);
+    }
+  }
+  // Guardar la misma lista dentro de configuración para compatibilidad con
+  // respaldos antiguos y para que todos los dispositivos reciban el cambio.
+  cfg.doctors = settingsDoctors;
   if (typeof GD !== 'undefined') GD.saveCfg(); else localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
   applyBranding();
   if (document.getElementById('dash-page').classList.contains('active')) renderDashboard();
