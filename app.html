@@ -8099,7 +8099,7 @@ function applyBranding() {
   var cityLbl = document.getElementById('sb-city-lbl');
   if (h1)      h1.textContent      = cfg.name;
   if (subEl)   subEl.textContent   = cfg.sub;
-  if (cityLbl) cityLbl.textContent = cfg.city + ' · v5.1';
+  if (cityLbl) cityLbl.textContent = cfg.city + ' · v5.2';
   document.title = cfg.name + ' · Consultorio Dental';
   // Mostrar logo imagen o emoji
   if (iconEl) {
@@ -8239,7 +8239,7 @@ function previewBranding() {
   var cl  = document.getElementById('sb-city-lbl');
   if (h1 && n)  h1.textContent  = n;
   if (sub && s) sub.textContent = s;
-  if (cl && c)  cl.textContent  = c + ' · v5.0';
+  if (cl && c)  cl.textContent  = c + ' · v5.2';
 }
 
 function previewLogo(val) {
@@ -12568,7 +12568,11 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js').catch(function(e){
+    navigator.serviceWorker.register('./sw.js?v=20260722-2', { updateViaCache:'none' }).then(function(reg){
+      // Revisar inmediatamente en cada apertura; algunos navegadores esperan
+      // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
+      return reg.update();
+    }).catch(function(e){
       console.warn('PWA no disponible:', e.message);
     });
   }
@@ -17639,7 +17643,7 @@ window.addEventListener('resize', function() {
 
     <!-- Footer -->
     <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:.72rem;color:var(--ink-4)">Consultorio Dental v5.1 · @SoyHectorAcostaMx</span>
+      <span style="font-size:.72rem;color:var(--ink-4)">Consultorio Dental v5.2 · @SoyHectorAcostaMx</span>
       <button onclick="closeHelp()" class="btn btn-primary" style="border-radius:var(--r-sm);padding:7px 20px">Entendido ✓</button>
     </div>
 

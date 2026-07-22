@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v1';
+const CACHE_NAME = 'programa-consultorio-dental-v2-20260722';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
