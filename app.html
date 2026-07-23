@@ -9684,7 +9684,7 @@ setTimeout(function() { showBackupReminder(true); }, 3000);
 
 function buildCompleteBackup() {
   return {
-    version: 'dental_backup_v2',
+    version: 'dental_backup_v3',
     exportedAt: new Date().toISOString(),
     db: db,
     cfg: cfg,
@@ -9696,7 +9696,8 @@ function buildCompleteBackup() {
     doctorRatesUpdatedAt: localStorage.getItem('dental_doctor_rates_updated_at') || null,
     doctors: localStorage.getItem('dental_doctors_v1') || null,
     waTemplates: localStorage.getItem('dental_wa_custom_tpls_v1') || null,
-    quickNotes: localStorage.getItem('dental_quick_notes_v1') || null
+    quickNotes: localStorage.getItem('dental_quick_notes_v1') || null,
+    patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
   };
 }
 
@@ -9917,6 +9918,12 @@ function importData(input) {
         localStorage.setItem('dental_preimport_backup', JSON.stringify(buildCompleteBackup()));
       } catch(preImportBackupError) {}
 
+      // Invalidar cualquier lectura de Drive que haya empezado antes de elegir
+      // este archivo. Sin esta marca, una descarga lenta podía terminar después
+      // de la importación y reemplazar silenciosamente el respaldo recién leído.
+      var importRevision = (parseInt(localStorage.getItem('dental_import_revision') || '0', 10) || 0) + 1;
+      localStorage.setItem('dental_import_revision', String(importRevision));
+
       // Los archivos directos de Drive guardan datos complementarios dentro
       // del mismo objeto. Extraerlos antes de limpiar la base principal.
       var importedCatalog = backup.catalog || importedDb._catalog || null;
@@ -9927,6 +9934,7 @@ function importData(input) {
       var importedDoctors = backup.doctors || importedDb._doctors || null;
       var importedWa = backup.waTemplates || importedDb._waTpls || null;
       var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
+      var importedTombstones = backup.patientTombstones || importedDb._patientTombstones || {};
 
       // Restaurar DB
       db = Object.assign({}, importedDb);
@@ -9941,7 +9949,7 @@ function importData(input) {
       delete db._doctors;
       delete db._waTpls;
       delete db._quickNotes;
-      saveLocalWithAutoBackup();
+      delete db._patientTombstones;
 
       // Restaurar config si existe
       if (backup.cfg) {
@@ -9972,8 +9980,22 @@ function importData(input) {
       }
       if (importedWa) localStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
       if (importedNotes) localStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
+      // Las marcas de pacientes eliminados pertenecen al respaldo. Conservar
+      // las del navegador anterior podía volver a borrar pacientes importados.
+      if (typeof savePatientTombstones === 'function') {
+        savePatientTombstones(
+          importedTombstones && typeof importedTombstones === 'object'
+            ? importedTombstones : {}
+        );
+      }
       // Reset migration flag
       localStorage.removeItem('dental_caja_migrated_v1');
+
+      // Guardar una sola vez cuando toda la restauración ya está completa.
+      // Esta fecha obliga a que la copia importada tenga prioridad sobre una
+      // copia anterior de Drive durante la reconexión inmediata.
+      saveLocalWithAutoBackup();
+      localStorage.setItem('dental_local_updated_at', Date.now().toString());
 
       // El doctor de la sesión anterior puede no existir en el respaldo.
       // Elegir un perfil válido inmediatamente para no firmar con otro doctor.
@@ -13050,6 +13072,7 @@ var GD = (function() {
 
   // ── Leer DB desde Drive ──────────────────────────────────
   function _loadDB() {
+    var importRevisionAtStart = localStorage.getItem('dental_import_revision') || '0';
     return _findFile(DB_FILENAME).then(function(file) {
       if (!file) {
         // Primera conexión después de trabajar offline: subir lo que ya existe.
@@ -13062,6 +13085,13 @@ var GD = (function() {
       _dbFileId = file.id;
       return _readFile(file.id).then(function(data) {
         if (!data) return;
+        // El usuario importó un respaldo mientras esta descarga estaba en
+        // curso. No mezclar ni sobrescribir nada de esa nueva restauración.
+        if ((localStorage.getItem('dental_import_revision') || '0') !== importRevisionAtStart) {
+          _preferLocalAfterReconnect = true;
+          _dirty = true;
+          return;
+        }
         neutralizeUnsafeText(data);
 
         var remoteSavedAt = parseInt(data._savedAt || '0', 10) || 0;
