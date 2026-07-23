@@ -7176,7 +7176,29 @@ function patientBudgets(p) {
 
 function patientFinancialSummary(p) {
   p=p||{};
-  var payments=(p.payments||[]),paid=payments.reduce(function(s,x){var amt=Number(x.amount)||0;return s+((x.type==='out'||x.type==='egr')?-amt:amt);},0);
+  var payments=(p.payments||[]);
+  var ledgerCharges=payments.reduce(function(s,x){
+    var amt=Math.abs(Number(x.amount)||0);
+    return s+((x.type==='out'||x.type==='egr')?amt:0);
+  },0);
+  var ledgerCredits=payments.reduce(function(s,x){
+    var amt=Math.abs(Number(x.amount)||0);
+    return s+((x.type==='out'||x.type==='egr')?0:amt);
+  },0);
+  // Los respaldos anteriores ya registran la deuda como "out/egr" y cada
+  // abono como "in". Si existen esos cargos, el libro de movimientos es la
+  // fuente real del saldo. Sumar además el presupuesto o el plan duplicaba la
+  // deuda al importar (por ejemplo, $64,000 aparecía como $124,000).
+  if(ledgerCharges>0){
+    return {
+      paid:ledgerCredits,
+      cost:ledgerCharges,
+      completed:0,
+      balance:ledgerCredits-ledgerCharges,
+      source:'ledger'
+    };
+  }
+  var paid=ledgerCredits;
   var budgets=patientBudgets(p),plan=p.treatmentPlan||[],cost=0,completed=0,source='none';
   if(budgets.length){
     cost=budgets.reduce(function(s,b){var bt=Number(b.total);if(bt>0)return s+bt;return s+(b.items||[]).reduce(function(ss,it){return ss+Math.max(1,Number(it.qty)||1)*(Number(it.price)||0);},0);},0);source='budget';
