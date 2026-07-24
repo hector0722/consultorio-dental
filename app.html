@@ -4026,7 +4026,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
       oninput="document.getElementById('pass-input').classList.remove('error');document.getElementById('pass-err').textContent=''">
     <button class="pass-btn" onclick="checkPass()">Activar aplicación</button>
     <div class="pass-error" id="pass-err"></div>
-    <div class="pass-footer">Dr. Héctor Acosta · @SoyHectorAcostaMx</div>
+    <div class="pass-footer">Consultorio Dental · Acceso protegido</div>
   </div>
 </div>
 
@@ -4052,6 +4052,25 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 
 <!-- ══ BARRA DE RECONEXIÓN (oculta, legacy) ══ -->
 <div id="gd-reconnect-bar" style="display:none"></div>
+
+<!-- ══ AVISO DE ACTUALIZACIÓN — aparece una sola vez ══ -->
+<div id="update-notice-overlay" style="display:none;position:fixed;inset:0;z-index:9700;background:rgba(8,12,20,.72);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:18px">
+  <div style="width:min(520px,96vw);max-height:90vh;overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--border-med);border-radius:26px;box-shadow:0 28px 80px rgba(0,0,0,.38);padding:28px 26px">
+    <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#34c759,#16863a);display:flex;align-items:center;justify-content:center;color:white;font-size:1.8rem;box-shadow:0 10px 24px rgba(52,199,89,.28);margin-bottom:18px">✓</div>
+    <div style="font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#248a3d;margin-bottom:6px">Actualización instalada</div>
+    <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Todo listo: corregimos los bugs reportados</h2>
+    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Esta versión mejora la seguridad de tus datos y la sincronización entre dispositivos.</p>
+    <div style="display:grid;gap:9px;margin-bottom:22px">
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización automática:</strong> los cambios de otro dispositivo aparecen sin recargar manualmente.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔐</span><span style="font-size:.79rem;line-height:1.45"><strong>Cuentas protegidas:</strong> pacientes y saldos ya no se mezclan entre cuentas de Google.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Nombre personalizado:</strong> se conserva el nombre configurado por cada doctor.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Tratamientos y precios:</strong> las modificaciones y eliminaciones permanecen guardadas.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💰</span><span style="font-size:.79rem;line-height:1.45"><strong>Saldos correctos:</strong> importaciones y respaldos ya no duplican ni combinan información incorrecta.</span></div>
+    </div>
+    <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:750;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido, continuar</button>
+    <div style="font-size:.65rem;text-align:center;color:var(--ink-4);margin-top:10px">Este mensaje solo aparecerá una vez.</div>
+  </div>
+</div>
 
 <!-- ══ MODAL BONITO DE RECONEXIÓN ══ -->
 <div id="gd-reconnect-modal" style="z-index:500">
@@ -4086,8 +4105,8 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 <nav id="sidebar" aria-label="Navegación principal">
   <div class="sb-logo">
     <div class="sb-logo-icon" id="sb-logo-icon-wrap">🦷</div>
-    <h1>Dr. Héctor Acosta</h1>
-    <p>Ortodoncia y Estética Dental</p>
+    <h1>Consultorio Dental</h1>
+    <p>Gestión clínica</p>
   </div>
   <div class="sb-nav">
     <div class="sb-section">Principal</div>
@@ -4199,7 +4218,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
       <div class="dashboard-hero">
         <div>
           <div class="dashboard-eyebrow">Resumen de la clínica</div>
-          <h3 id="dash-greeting">Buenos días, Dr. Acosta</h3>
+          <h3 id="dash-greeting">Buenos días</h3>
           <p id="dash-date-lbl"></p>
         </div>
         <div class="dashboard-hero-photo" id="dashboard-hero-photo" aria-hidden="true"></div>
@@ -6171,9 +6190,9 @@ function generateBudgetDoc() {
     </div>`;
   }
 
-  const clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Dr. Héctor Acosta';
-  const clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : 'Ortodoncia y Estética Dental';
-  const clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : 'Chihuahua, Chih.';
+  const clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Consultorio Dental';
+  const clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : '';
+  const clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : '';
   const clinicLogo = (typeof cfg !== 'undefined') ? cfg.logo  : '🦷';
   // Mensualidad de ortodoncia
   var orthoMensual = 0;
@@ -7060,7 +7079,7 @@ function sendApptWA(apptId) {
   var dFmt = dObj.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   var proc = a.proc ? ' para ' + a.proc : '';
   var horario = a.timeEnd ? a.time + ' a las ' + a.timeEnd + ' hrs' : 'las ' + a.time + ' hrs';
-  var clinicName = (typeof cfg !== 'undefined') ? cfg.name : 'Dr. Héctor Acosta';
+  var clinicName = (typeof cfg !== 'undefined') ? cfg.name : 'Consultorio Dental';
   var nl = '\n';
 
   var msg = 'Hola ' + nombre + '! 😊 Te confirmo tu cita' + proc + ' el ' + dFmt + ' de ' + horario + '.' + nl + nl
@@ -7238,7 +7257,7 @@ function renderDashboard() {
     : (typeof loadActiveDoctor === 'function' ? loadActiveDoctor() : null);
   var doctorLabel = activeDoctorForGreeting && activeDoctorForGreeting.name
     ? activeDoctorForGreeting.name
-    : ((typeof cfg !== 'undefined' && cfg.name) ? cfg.name : 'Dr. Acosta');
+    : ((typeof cfg !== 'undefined' && cfg.name) ? cfg.name : 'Doctor');
   if (glEl) glEl.textContent = greet + ', ' + doctorLabel + ' 👋';
   const dlEl  = document.getElementById('dash-date-lbl');
   if (dlEl) dlEl.textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -7735,6 +7754,10 @@ function loadCatalogOverrides() {
         if (ov[item.id]) {
           if (ov[item.id].name  !== undefined) item.name  = ov[item.id].name;
           if (ov[item.id].price !== undefined) item.price = parseFloat(ov[item.id].price)||item.price;
+          // La edición cargada debe seguir marcada como tal. Sin esta marca,
+          // el siguiente guardado del catálogo omitía el cambio y restauraba
+          // el nombre o precio incluido originalmente en la aplicación.
+          item._edited = true;
           // Never hide custom items — they should always be visible in editor
           if (ov[item.id].hidden && !item._custom) item._hidden = true;
         }
@@ -7955,9 +7978,9 @@ var COLOR_PRESETS = [
 var LOGO_EMOJIS = ['🦷','😁','😬','🩺','💊','⚕️','🏥','🔬','✨','💎','⭐','🌟','🏆','❤️','💙','💚','🌿','🌸'];
 
 var cfg = {
-  name:        'Dr. Héctor Acosta',
-  sub:         'Ortodoncia y Estética Dental',
-  city:        'Chihuahua, Chih.',
+  name:        'Consultorio Dental',
+  sub:         'Gestión clínica',
+  city:        '',
   logo:        '🦷',
   color:       '#0071e3',
   currency:    'MXN',
@@ -8137,7 +8160,7 @@ function applyBranding() {
   var cityLbl = document.getElementById('sb-city-lbl');
   if (h1)      h1.textContent      = cfg.name;
   if (subEl)   subEl.textContent   = cfg.sub;
-  if (cityLbl) cityLbl.textContent = cfg.city + ' · v5.2';
+  if (cityLbl) cityLbl.textContent = (cfg.city ? cfg.city + ' · ' : '') + 'v5.2';
   document.title = cfg.name + ' · Consultorio Dental';
   // Mostrar logo imagen o emoji
   if (iconEl) {
@@ -8260,8 +8283,9 @@ function openSettings() {
   fillAppearanceControls();
   refreshHeroImagePreview();
   if (typeof refreshAutoFileBackupUI === 'function') refreshAutoFileBackupUI();
-  // Si ya existe un doctor activo, su identidad tiene prioridad en la cabecera.
-  if (typeof updateActiveDoctorIdentity === 'function' && typeof _activeDoctor !== 'undefined' && _activeDoctor) updateActiveDoctorIdentity(_activeDoctor);
+  // La cabecera representa al consultorio. El doctor activo se muestra en su
+  // badge y se usa en agenda, producción y firmas, sin pisar la marca.
+  applyBranding();
 }
 
 function closeSettings() {
@@ -8277,7 +8301,7 @@ function previewBranding() {
   var cl  = document.getElementById('sb-city-lbl');
   if (h1 && n)  h1.textContent  = n;
   if (sub && s) sub.textContent = s;
-  if (cl && c)  cl.textContent  = c + ' · v5.2';
+  if (cl) cl.textContent = (c ? c + ' · ' : '') + 'v5.2';
 }
 
 function previewLogo(val) {
@@ -8356,7 +8380,7 @@ function saveSettings() {
 function resetSettings() {
   if (!confirm('Restablecer configuracion por defecto?')) return;
   localStorage.removeItem('dental_cfg_v1');
-  cfg = { name:'Dr. Héctor Acosta', sub:'Ortodoncia y Estética Dental', city:'Chihuahua, Chih.', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
+  cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   applyBranding();
   closeSettings();
 }
@@ -10089,7 +10113,7 @@ function resetAllData() {
   // Reiniciar estado en memoria
   db  = { patients: [], appointments: [] };
   selectedTx = {}; customTx = []; _budgetPatId = ''; _budgetNotes = '';
-  cfg = { name:'Dr. Héctor Acosta', sub:'Ortodoncia y Estética Dental', city:'Chihuahua, Chih.', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
+  cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   _activeDoctor = null;
   var defaultDoctor = { id:1, name:cfg.name, specialty:cfg.sub, cedula:'', cedula2:'', color:cfg.color };
   localStorage.setItem('dental_doctors_v1', JSON.stringify([defaultDoctor]));
@@ -10671,9 +10695,9 @@ function renderIndGrid() {
 function indPrint(id) {
   var ind = IND_DB.find(function(x){ return x.id === id; });
   if (!ind) return;
-  var clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Dr. Héctor Acosta';
-  var clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : 'Ortodoncia y Estética Dental';
-  var clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : 'Chihuahua, Chih.';
+  var clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Consultorio Dental';
+  var clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : '';
+  var clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : '';
   var clinicLogo = (typeof cfg !== 'undefined') ? cfg.logo  : '🦷';
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
@@ -12934,6 +12958,39 @@ function renderBdayList() {
 // Google Drive como fuente de verdad en la nube.
 // Cada dentista tiene su propio archivo en su Drive.
 // ══════════════════════════════════════════════════════════
+// AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
+// ══════════════════════════════════════════════════════════
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_24_bugfixes_v1';
+var _updateNoticeScheduled = false;
+
+function showUpdateNoticeOnce() {
+  if (localStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+  if (_updateNoticeScheduled) return;
+  _updateNoticeScheduled = true;
+  setTimeout(function() {
+    _updateNoticeScheduled = false;
+    if (localStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+    var overlay = document.getElementById('update-notice-overlay');
+    var passScreen = document.getElementById('pass-screen');
+    var loginScreen = document.getElementById('gd-login-screen');
+    var waitingForGoogle = localStorage.getItem('dental_gd_mode') === 'google'
+      && (typeof GD === 'undefined' || !GD._token || !GD._token());
+    // No cubrir activación ni selección de cuenta. Se mostrará cuando la app
+    // ya esté disponible y el usuario pueda continuar normalmente.
+    if ((passScreen && passScreen.style.display !== 'none')
+        || (loginScreen && loginScreen.style.display !== 'none')
+        || waitingForGoogle) return;
+    if (overlay) overlay.style.display = 'flex';
+  }, 900);
+}
+
+function closeUpdateNotice() {
+  localStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
+  var overlay = document.getElementById('update-notice-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════
 
 var GD = (function() {
   var CLIENT_ID   = '807167671913-vqcaf34scma8qldnepkgc3l5d5ser1ur.apps.googleusercontent.com';
@@ -13722,6 +13779,7 @@ var GD = (function() {
     if (typeof applyBranding === 'function') applyBranding();
     if (typeof initDarkMode === 'function') setTimeout(initDarkMode, 50);
     if (typeof initPWA === 'function') setTimeout(initPWA, 50);
+    if (typeof showUpdateNoticeOnce === 'function') showUpdateNoticeOnce();
   }
 
   function _refreshUI() {
@@ -13748,6 +13806,7 @@ var GD = (function() {
     var gcalBtn = document.getElementById('gcal-sync-btn');
     if (gcalBtn) gcalBtn.style.display = 'flex';
     _updateSyncStatus();
+    if (typeof showUpdateNoticeOnce === 'function') showUpdateNoticeOnce();
     // Registrar primera sync
     _calLastSync = new Date();
   }
@@ -15551,9 +15610,12 @@ function loadActiveDoctor() {
 }
 
 function updateActiveDoctorIdentity(doc) {
+  // El nombre del sidebar es la marca del consultorio, no el doctor de turno.
+  // Antes seleccionar un perfil antiguo podía volver a mostrar "Héctor
+  // Acosta" aunque Configuración ya tuviera otro nombre.
   var h1=document.querySelector('.sb-logo h1'),sub=document.querySelector('.sb-logo p');
-  if(h1)h1.textContent=doc&&doc.name?doc.name:(cfg.name||'Consultorio Dental');
-  if(sub)sub.textContent=doc&&doc.specialty?doc.specialty:(cfg.sub||'');
+  if(h1)h1.textContent=cfg.name||'Consultorio Dental';
+  if(sub)sub.textContent=cfg.sub||'';
 }
 
 function setActiveDoctor(doc) {
@@ -16831,15 +16893,15 @@ window.addEventListener('resize', function() {
         <div class="settings-section-title">Identidad del consultorio</div>
         <div class="settings-row">
           <label>Nombre / Doctor</label>
-          <input type="text" id="cfg-name" placeholder="Dr. Héctor Acosta" oninput="previewBranding()">
+          <input type="text" id="cfg-name" placeholder="Nombre del consultorio" oninput="previewBranding()">
         </div>
         <div class="settings-row">
           <label>Especialidad</label>
-          <input type="text" id="cfg-sub" placeholder="Ortodoncia y Estética Dental" oninput="previewBranding()">
+          <input type="text" id="cfg-sub" placeholder="Especialidad o descripción" oninput="previewBranding()">
         </div>
         <div class="settings-row">
           <label>Ciudad</label>
-          <input type="text" id="cfg-city" placeholder="Chihuahua, Chih." oninput="previewBranding()">
+          <input type="text" id="cfg-city" placeholder="Ciudad" oninput="previewBranding()">
         </div>
         <div class="settings-row">
           <label>Dirección completa</label>
