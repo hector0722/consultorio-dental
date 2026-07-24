@@ -13042,8 +13042,8 @@ var GD = (function() {
 
   function _accountId(user) {
     // Priorizar correo mantiene compatibilidad con el hint que ya guardaban
-    // versiones anteriores; "sub" queda como respaldo si Google no lo envía.
-    return String((user && (user.email || user.sub)) || '').trim().toLowerCase();
+    // versiones anteriores; permissionId es el identificador estable de Drive.
+    return String((user && (user.emailAddress || user.email || user.permissionId || user.sub)) || '').trim().toLowerCase();
   }
   function _accountCacheKey(id) {
     // encodeURIComponent mantiene la clave estable y evita caracteres ambiguos.
@@ -13113,7 +13113,8 @@ var GD = (function() {
       showToast('🔐 Cuenta distinta: cargando únicamente sus datos de Drive', 'green');
     }
     localStorage.setItem(ACCOUNT_ID_KEY, nextId);
-    if (user.email) localStorage.setItem('dental_gd_email', user.email);
+    var accountEmail = user.emailAddress || user.email || '';
+    if (accountEmail) localStorage.setItem('dental_gd_email', accountEmail);
   }
 
   // ── Badge ────────────────────────────────────────────────
@@ -13155,13 +13156,17 @@ var GD = (function() {
         localStorage.setItem('dental_gd_token_hint', '1');
         // Resolver la identidad ANTES de leer Drive. Así nunca se mezcla el
         // caché de una cuenta anterior con la cuenta recién elegida.
-        var identifyAccount = fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        // Consultar la identidad desde Drive. El endpoint userinfo requiere
+        // scopes adicionales (openid/email) y podía mostrar un error aunque
+        // Drive sí estuviera correctamente autorizado.
+        var identifyAccount = fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress,permissionId,displayName)', {
           headers: { Authorization: 'Bearer ' + resp.access_token }
         }).then(function(r){
           if (!r.ok) throw new Error('No se pudo verificar la cuenta');
           return r.json();
-        }).then(function(u){
-          _prepareAccount(u);
+        }).then(function(info){
+          if (!info || !info.user) throw new Error('Drive no devolvió la identidad de la cuenta');
+          _prepareAccount(info.user);
         });
         // Ocultar pantallas de login/reconexión
         var ls = document.getElementById('gd-login-screen');
@@ -13174,12 +13179,22 @@ var GD = (function() {
         document.getElementById('main').style.display = '';
         // Cargar desde Drive (bloquea guardados hasta terminar)
         _saving = true;
-        setBadge('syncing', 'Cargando datos…');
-        identifyAccount
-          .then(function() { return _ensureFolder(); })
-          .then(function() { return _loadDB(); })
-          .then(function() { return _loadCfg(); })
-          .then(function() { return _loadHero(); })
+        setBadge('syncing', 'Verificando cuenta…');
+        // Identidad y carpeta son consultas independientes. Ejecutarlas al
+        // mismo tiempo reduce sensiblemente la espera al iniciar sesión.
+        Promise.all([identifyAccount, _ensureFolder()])
+          .then(function() {
+            setBadge('syncing', 'Cargando pacientes…');
+            return _loadDB();
+          })
+          .then(function() {
+            setBadge('syncing', 'Aplicando configuración…');
+            return _loadCfg();
+          })
+          .then(function() {
+            setBadge('syncing', 'Cargando portada…');
+            return _loadHero();
+          })
           .then(function() {
             _saving = false;
             setBadge('synced', 'Sincronizado');
