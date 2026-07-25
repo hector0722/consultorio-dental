@@ -4063,7 +4063,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
     <div style="display:grid;gap:9px;margin-bottom:22px">
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización automática:</strong> los cambios de otro dispositivo aparecen sin recargar manualmente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔐</span><span style="font-size:.79rem;line-height:1.45"><strong>Cuentas protegidas:</strong> pacientes y saldos ya no se mezclan entre cuentas de Google.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Nombre personalizado:</strong> se conserva el nombre configurado por cada doctor.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctores personalizados:</strong> se conservan el nombre configurado y todos los perfiles agregados en la clínica.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Tratamientos y precios:</strong> las modificaciones y eliminaciones permanecen guardadas.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💰</span><span style="font-size:.79rem;line-height:1.45"><strong>Saldos correctos:</strong> importaciones y respaldos ya no duplican ni combinan información incorrecta.</span></div>
     </div>
@@ -9757,6 +9757,7 @@ function buildCompleteBackup() {
     doctorRates: localStorage.getItem('dental_doctor_rates_v1') || null,
     doctorRatesUpdatedAt: localStorage.getItem('dental_doctor_rates_updated_at') || null,
     doctors: localStorage.getItem('dental_doctors_v1') || null,
+    doctorsUpdatedAt: localStorage.getItem('dental_doctors_updated_at') || null,
     waTemplates: localStorage.getItem('dental_wa_custom_tpls_v1') || null,
     quickNotes: localStorage.getItem('dental_quick_notes_v1') || null,
     patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
@@ -9994,6 +9995,7 @@ function importData(input) {
       var importedDoctorRates = backup.doctorRates || importedDb._doctorRates || null;
       var importedProductionTrash = backup.productionTrash || importedDb._productionTrash || null;
       var importedDoctors = backup.doctors || importedDb._doctors || null;
+      var importedDoctorsUpdatedAt = backup.doctorsUpdatedAt || importedDb._doctorsUpdatedAt || null;
       var importedWa = backup.waTemplates || importedDb._waTpls || null;
       var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
       var importedTombstones = backup.patientTombstones || importedDb._patientTombstones || {};
@@ -10009,6 +10011,7 @@ function importData(input) {
       delete db._productionTrash;
       delete db._doctorRates;
       delete db._doctors;
+      delete db._doctorsUpdatedAt;
       delete db._waTpls;
       delete db._quickNotes;
       delete db._patientTombstones;
@@ -10039,6 +10042,7 @@ function importData(input) {
       // Restaurar doctores si existe
       if (importedDoctors) {
         localStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
+        localStorage.setItem('dental_doctors_updated_at', String(importedDoctorsUpdatedAt || Date.now()));
       }
       if (importedWa) localStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
       if (importedNotes) localStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
@@ -10105,7 +10109,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar todo el localStorage relacionado
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     localStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -12960,7 +12964,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_24_bugfixes_v1';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_24_bugfixes_v2';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13036,7 +13040,7 @@ var GD = (function() {
     'dental_cfg_v1','dental_catalog_v1','dental_catalog_updated_at',
     'dental_caja_v1','dental_production_v1','dental_production_trash_v1',
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
-    'dental_doctors_v1','dental_active_doctor_v1',
+    'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
     'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
   ];
 
@@ -13427,7 +13431,35 @@ var GD = (function() {
         delete data._catalogUpdatedAt;
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
-        if (data._doctors)    { localStorage.setItem('dental_doctors_v1', data._doctors); delete data._doctors; }
+        if (data._doctors !== undefined) {
+          // La lista de doctores necesita su propio control de versión. Antes
+          // una descarga automática podía reemplazar doctores recién agregados
+          // con la lista antigua de Drive y dejar solo al usuario inicial.
+          var remoteDoctors = parseStoredArray(data._doctors);
+          var localDoctorsRaw = localStorage.getItem('dental_doctors_v1');
+          var localDoctors = parseStoredArray(localDoctorsRaw);
+          var remoteDoctorsUpdatedAt = parseInt(data._doctorsUpdatedAt || '0', 10) || 0;
+          var localDoctorsUpdatedAt = parseInt(localStorage.getItem('dental_doctors_updated_at') || '0', 10) || 0;
+          var preserveLegacyLocalDoctors = !!localDoctorsRaw
+            && !remoteDoctorsUpdatedAt
+            && localDoctors.length > remoteDoctors.length;
+          if (localDoctorsRaw
+              && (localDoctorsUpdatedAt > remoteDoctorsUpdatedAt || preserveLegacyLocalDoctors)) {
+            if (!localDoctorsUpdatedAt) {
+              localDoctorsUpdatedAt = Date.now();
+              localStorage.setItem('dental_doctors_updated_at', String(localDoctorsUpdatedAt));
+            }
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+          } else {
+            localStorage.setItem('dental_doctors_v1', JSON.stringify(remoteDoctors));
+            if (remoteDoctorsUpdatedAt) {
+              localStorage.setItem('dental_doctors_updated_at', String(remoteDoctorsUpdatedAt));
+            }
+          }
+          delete data._doctors;
+        }
+        delete data._doctorsUpdatedAt;
         var remotePatientTombstones = data._patientTombstones && typeof data._patientTombstones === 'object'
           ? data._patientTombstones : {};
         var localPatientTombstones = loadPatientTombstones();
@@ -14073,6 +14105,7 @@ var GD = (function() {
       _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
       _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
       _doctors:    localStorage.getItem('dental_doctors_v1')     || '[]',
+      _doctorsUpdatedAt:parseInt(localStorage.getItem('dental_doctors_updated_at')||'0',10)||0,
       _patientTombstones: loadPatientTombstones()
     });
   }
@@ -15572,6 +15605,7 @@ function rxPatientClear() {
 // ★ MÓDULO MÚLTIPLES DOCTORES
 // ══════════════════════════════════════════════════════════
 var DOCTORS_KEY      = 'dental_doctors_v1';
+var DOCTORS_UPDATED_KEY = 'dental_doctors_updated_at';
 var ACTIVE_DOC_KEY   = 'dental_active_doctor_v1';
 var _activeDoctor    = null; // { id, name, specialty, cedula, cedula2 }
 
@@ -15599,6 +15633,7 @@ function loadDoctors() {
 function saveDoctors(doctors) {
   neutralizeUnsafeText(doctors);
   localStorage.setItem(DOCTORS_KEY, JSON.stringify(doctors));
+  localStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
   // Mantener también la configuración compatible actualizada. Así ningún
   // archivo de configuración antiguo puede devolver la clínica a un solo Dr.
   cfg.doctors = doctors;
