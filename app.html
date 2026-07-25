@@ -8160,7 +8160,7 @@ function applyBranding() {
   var cityLbl = document.getElementById('sb-city-lbl');
   if (h1)      h1.textContent      = cfg.name;
   if (subEl)   subEl.textContent   = cfg.sub;
-  if (cityLbl) cityLbl.textContent = (cfg.city ? cfg.city + ' · ' : '') + 'v5.2';
+  if (cityLbl) cityLbl.textContent = (cfg.city ? cfg.city + ' · ' : '') + 'v5.3';
   document.title = cfg.name + ' · Consultorio Dental';
   // Mostrar logo imagen o emoji
   if (iconEl) {
@@ -8301,7 +8301,7 @@ function previewBranding() {
   var cl  = document.getElementById('sb-city-lbl');
   if (h1 && n)  h1.textContent  = n;
   if (sub && s) sub.textContent = s;
-  if (cl) cl.textContent = (c ? c + ' · ' : '') + 'v5.2';
+  if (cl) cl.textContent = (c ? c + ' · ' : '') + 'v5.3';
 }
 
 function previewLogo(val) {
@@ -12656,12 +12656,30 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260722-2', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260724-4', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
+      if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+      reg.addEventListener('updatefound', function() {
+        var worker = reg.installing;
+        if (!worker) return;
+        worker.addEventListener('statechange', function() {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            worker.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
       return reg.update();
     }).catch(function(e){
       console.warn('PWA no disponible:', e.message);
+    });
+    // Recargar una sola vez cuando una versión nueva del Service Worker toma
+    // control. Esto evita seguir ejecutando app.html desde una caché antigua.
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      var refreshKey = 'dental_sw_refreshed_20260724_4';
+      if (sessionStorage.getItem(refreshKey)) return;
+      sessionStorage.setItem(refreshKey, '1');
+      location.reload();
     });
   }
 }
@@ -15616,6 +15634,19 @@ function loadDoctors() {
     if (stored) {
       var parsedDoctors = JSON.parse(stored);
       neutralizeUnsafeText(parsedDoctors);
+      // Versiones anteriores guardaban una segunda copia dentro de cfg. Si la
+      // sincronización antigua redujo la lista principal a un solo usuario,
+      // rescatar automáticamente la copia más completa.
+      var cfgDoctors = Array.isArray(cfg.doctors) ? cfg.doctors : [];
+      if (cfgDoctors.length > parsedDoctors.length) {
+        parsedDoctors = JSON.parse(JSON.stringify(cfgDoctors));
+        neutralizeUnsafeText(parsedDoctors);
+        localStorage.setItem(DOCTORS_KEY, JSON.stringify(parsedDoctors));
+        localStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
+        setTimeout(function() {
+          if (typeof GD !== 'undefined' && GD.save) GD.save();
+        }, 100);
+      }
       return parsedDoctors;
     }
   } catch(e) {}
