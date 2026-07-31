@@ -5257,8 +5257,12 @@ const saveDB = () => {
 // Así se puede recuperar información incluso si se cierra la página durante el guardado.
 function saveLocalWithAutoBackup() {
   neutralizeUnsafeText(db);
-  var next = JSON.stringify(db);
   var current = localStorage.getItem('dental_v4');
+  // Marcar únicamente los registros que realmente cambiaron. Estas fechas
+  // permiten unir de forma segura dos dispositivos sin que uno sobrescriba
+  // pacientes, presupuestos o citas capturados por el otro.
+  prepareDentalSyncMetadata(current);
+  var next = JSON.stringify(db);
   var changed = current !== next;
   try {
     if (current && changed) localStorage.setItem('dental_autobackup_previous', current);
@@ -5303,6 +5307,246 @@ function markPatientDeleted(id) {
   var deleted = loadPatientTombstones();
   deleted[String(id)] = Date.now();
   savePatientTombstones(deleted);
+}
+
+function syncComparable(value) {
+  if (Array.isArray(value)) return value.map(syncComparable);
+  if (!value || typeof value !== 'object') return value;
+  var clean = {};
+  Object.keys(value).sort().forEach(function(key) {
+    if (key === '_updatedAt') return;
+    clean[key] = syncComparable(value[key]);
+  });
+  return clean;
+}
+
+function syncSignature(value) {
+  try { return JSON.stringify(syncComparable(value)); }
+  catch(e) { return ''; }
+}
+
+function budgetSyncKey(budget) {
+  budget = budget || {};
+  if (budget.folio !== undefined && budget.folio !== null && String(budget.folio)) {
+    return 'folio:' + String(budget.folio);
+  }
+  return 'legacy:' + [
+    budget.date || budget.fecha || '',
+    Number(budget.total || budget.montoTotal || budget.amount || 0),
+    syncSignature(budget.items || budget.treatments || budget.tratamientos || [])
+  ].join('|');
+}
+
+function markBudgetDeleted(patient, budget) {
+  if (!patient || !budget) return;
+  if (!patient._budgetTombstones || typeof patient._budgetTombstones !== 'object') {
+    patient._budgetTombstones = {};
+  }
+  patient._budgetTombstones[budgetSyncKey(budget)] = Date.now();
+  patient._updatedAt = Date.now();
+}
+
+function markAppointmentDeleted(id) {
+  if (!db._appointmentTombstones || typeof db._appointmentTombstones !== 'object') {
+    db._appointmentTombstones = {};
+  }
+  db._appointmentTombstones[String(id)] = Date.now();
+}
+
+function prepareDentalSyncMetadata(previousRaw) {
+  var previous = null;
+  try { previous = previousRaw ? JSON.parse(previousRaw) : null; } catch(e) {}
+  previous = previous && typeof previous === 'object' ? previous : {};
+  var now = Date.now();
+
+  var previousPatients = {};
+  (Array.isArray(previous.patients) ? previous.patients : []).forEach(function(patient) {
+    if (patient && patient.id !== undefined && patient.id !== null) {
+      previousPatients[String(patient.id)] = patient;
+    }
+  });
+
+  (Array.isArray(db.patients) ? db.patients : []).forEach(function(patient) {
+    if (!patient || patient.id === undefined || patient.id === null) return;
+    var oldPatient = previousPatients[String(patient.id)] || null;
+    var oldBudgets = {};
+    (oldPatient && Array.isArray(oldPatient.budgets) ? oldPatient.budgets : []).forEach(function(budget) {
+      oldBudgets[budgetSyncKey(budget)] = budget;
+    });
+    (Array.isArray(patient.budgets) ? patient.budgets : []).forEach(function(budget) {
+      var oldBudget = oldBudgets[budgetSyncKey(budget)];
+      if (!oldBudget || syncSignature(oldBudget) !== syncSignature(budget)) {
+        budget._updatedAt = now;
+      } else if (!budget._updatedAt && oldBudget._updatedAt) {
+        budget._updatedAt = oldBudget._updatedAt;
+      }
+    });
+    if (!oldPatient || syncSignature(oldPatient) !== syncSignature(patient)) {
+      patient._updatedAt = now;
+    } else if (!patient._updatedAt && oldPatient._updatedAt) {
+      patient._updatedAt = oldPatient._updatedAt;
+    }
+  });
+
+  var previousAppointments = {};
+  (Array.isArray(previous.appointments) ? previous.appointments : []).forEach(function(appt) {
+    if (appt && appt.id !== undefined && appt.id !== null) {
+      previousAppointments[String(appt.id)] = appt;
+    }
+  });
+  (Array.isArray(db.appointments) ? db.appointments : []).forEach(function(appt) {
+    if (!appt || appt.id === undefined || appt.id === null) return;
+    var oldAppt = previousAppointments[String(appt.id)] || null;
+    if (!oldAppt || syncSignature(oldAppt) !== syncSignature(appt)) {
+      appt._updatedAt = now;
+    } else if (!appt._updatedAt && oldAppt._updatedAt) {
+      appt._updatedAt = oldAppt._updatedAt;
+    }
+  });
+}
+
+function mergeTimestampMaps(remoteMap, localMap) {
+  var merged = {};
+  [remoteMap, localMap].forEach(function(source) {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return;
+    Object.keys(source).forEach(function(key) {
+      merged[key] = Math.max(
+        parseInt(merged[key] || '0', 10) || 0,
+        parseInt(source[key] || '0', 10) || 0
+      );
+    });
+  });
+  return merged;
+}
+
+function mergePatientBudgets(remotePatient, localPatient, preferLocal) {
+  var remoteBudgets = Array.isArray(remotePatient && remotePatient.budgets) ? remotePatient.budgets : [];
+  var localBudgets = Array.isArray(localPatient && localPatient.budgets) ? localPatient.budgets : [];
+  var tombstones = mergeTimestampMaps(
+    remotePatient && remotePatient._budgetTombstones,
+    localPatient && localPatient._budgetTombstones
+  );
+  var entries = {};
+  var order = [];
+
+  function include(budget, isLocal) {
+    if (!budget) return;
+    var key = budgetSyncKey(budget);
+    var existing = entries[key];
+    if (!existing) {
+      entries[key] = { value: budget, isLocal:isLocal };
+      order.push(key);
+      return;
+    }
+    var currentAt = parseInt(existing.value._updatedAt || '0', 10) || 0;
+    var nextAt = parseInt(budget._updatedAt || '0', 10) || 0;
+    if (nextAt > currentAt || (nextAt === currentAt && isLocal && preferLocal)) {
+      entries[key] = { value: budget, isLocal:isLocal };
+    }
+  }
+
+  remoteBudgets.forEach(function(budget){ include(budget, false); });
+  localBudgets.forEach(function(budget){ include(budget, true); });
+  return {
+    budgets: order.filter(function(key) {
+      var deletedAt = parseInt(tombstones[key] || '0', 10) || 0;
+      var updatedAt = parseInt(entries[key].value._updatedAt || '0', 10) || 0;
+      return !deletedAt || (updatedAt && updatedAt > deletedAt);
+    }).map(function(key) {
+      return JSON.parse(JSON.stringify(entries[key].value));
+    }),
+    tombstones: tombstones
+  };
+}
+
+function mergeDentalDatabases(remoteData, localData, preferLocal) {
+  remoteData = remoteData && typeof remoteData === 'object' ? remoteData : {};
+  localData = localData && typeof localData === 'object' ? localData : {};
+  var merged = JSON.parse(JSON.stringify(preferLocal ? localData : remoteData));
+  var remotePatients = Array.isArray(remoteData.patients) ? remoteData.patients : [];
+  var localPatients = Array.isArray(localData.patients) ? localData.patients : [];
+  var patientTombstones = loadPatientTombstones();
+  var remoteById = {};
+  var localById = {};
+  var patientOrder = [];
+
+  remotePatients.forEach(function(patient) {
+    if (!patient || patient.id === undefined || patient.id === null) return;
+    var id = String(patient.id);
+    remoteById[id] = patient;
+    if (patientOrder.indexOf(id) === -1) patientOrder.push(id);
+  });
+  localPatients.forEach(function(patient) {
+    if (!patient || patient.id === undefined || patient.id === null) return;
+    var id = String(patient.id);
+    localById[id] = patient;
+    if (patientOrder.indexOf(id) === -1) patientOrder.push(id);
+  });
+
+  merged.patients = patientOrder.filter(function(id) {
+    return !patientTombstones[id];
+  }).map(function(id) {
+    var remotePatient = remoteById[id];
+    var localPatient = localById[id];
+    if (!remotePatient) return JSON.parse(JSON.stringify(localPatient));
+    if (!localPatient) return JSON.parse(JSON.stringify(remotePatient));
+
+    var remoteAt = parseInt(remotePatient._updatedAt || '0', 10) || 0;
+    var localAt = parseInt(localPatient._updatedAt || '0', 10) || 0;
+    var useLocal = localAt > remoteAt || (localAt === remoteAt && preferLocal);
+    var selected = JSON.parse(JSON.stringify(useLocal ? localPatient : remotePatient));
+    var budgetMerge = mergePatientBudgets(remotePatient, localPatient, useLocal);
+    if (budgetMerge.budgets.length
+        || Array.isArray(remotePatient.budgets)
+        || Array.isArray(localPatient.budgets)) {
+      selected.budgets = budgetMerge.budgets;
+    }
+    if (Object.keys(budgetMerge.tombstones).length) {
+      selected._budgetTombstones = budgetMerge.tombstones;
+    }
+    if (remoteAt || localAt) selected._updatedAt = Math.max(remoteAt, localAt);
+    else delete selected._updatedAt;
+    return selected;
+  });
+
+  var appointmentTombstones = mergeTimestampMaps(
+    remoteData._appointmentTombstones,
+    localData._appointmentTombstones
+  );
+  var appointments = {};
+  var appointmentOrder = [];
+  function includeAppointment(appt, isLocal) {
+    if (!appt || appt.id === undefined || appt.id === null) return;
+    var id = String(appt.id);
+    if (appointmentOrder.indexOf(id) === -1) appointmentOrder.push(id);
+    var existing = appointments[id];
+    if (!existing) {
+      appointments[id] = { value:appt, isLocal:isLocal };
+      return;
+    }
+    var currentAt = parseInt(existing.value._updatedAt || '0', 10) || 0;
+    var nextAt = parseInt(appt._updatedAt || '0', 10) || 0;
+    if (nextAt > currentAt || (nextAt === currentAt && isLocal && preferLocal)) {
+      appointments[id] = { value:appt, isLocal:isLocal };
+    }
+  }
+  (Array.isArray(remoteData.appointments) ? remoteData.appointments : []).forEach(function(appt) {
+    includeAppointment(appt, false);
+  });
+  (Array.isArray(localData.appointments) ? localData.appointments : []).forEach(function(appt) {
+    includeAppointment(appt, true);
+  });
+  merged.appointments = appointmentOrder.filter(function(id) {
+    var deletedAt = parseInt(appointmentTombstones[id] || '0', 10) || 0;
+    var updatedAt = parseInt(appointments[id].value._updatedAt || '0', 10) || 0;
+    return !deletedAt || (updatedAt && updatedAt > deletedAt);
+  }).map(function(id) {
+    return JSON.parse(JSON.stringify(appointments[id].value));
+  });
+  if (Object.keys(appointmentTombstones).length) {
+    merged._appointmentTombstones = appointmentTombstones;
+  }
+  return merged;
 }
 
 // Recuperación conservadora para sincronización entre computadoras.
@@ -7054,6 +7298,7 @@ document.addEventListener('click', function(e) {
     var date = appt ? appt.date : null;
     // Borrar de Google Calendar primero
     if (appt && typeof GCal !== 'undefined') GCal.deleteEvent(appt).catch(function(){});
+    markAppointmentDeleted(sid);
     db.appointments = (db.appointments||[]).filter(function(x){ return String(x.id) !== sid; });
     saveDB();
     renderCal();
@@ -7138,6 +7383,7 @@ function delAppt(id) {
   var date = a ? a.date : null;
   // Eliminar de Calendar antes de quitar de la DB
   if (typeof GCal !== 'undefined' && a) GCal.deleteEvent(a).catch(function(){});
+  markAppointmentDeleted(sid);
   db.appointments = (db.appointments||[]).filter(function(x){ return String(x.id)!==sid; });
   saveDB(); renderCal(); renderDashboard();
   if (date) showApptDayPanel(date);
@@ -8443,6 +8689,7 @@ function deleteBudgetHistory(btn) {
   var idx       = parseInt(btn.getAttribute('data-idx'));
   var p = db.patients.find(function(x){ return x.id == patientId; });
   if (!p || !p.budgets) return;
+  markBudgetDeleted(p, p.budgets[idx]);
   p.budgets.splice(idx, 1);
   saveDB();
   renderPatientBudgetHistory(patientId);
@@ -12656,7 +12903,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260724-4', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260730-1', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12676,7 +12923,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260724_4';
+      var refreshKey = 'dental_sw_refreshed_20260730_1';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -12982,7 +13229,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_24_bugfixes_v2';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_sync_safe_v1';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13243,6 +13490,10 @@ var GD = (function() {
               _scheduleSave();
               setTimeout(_doSaveHero, 120);
             }
+            // Si el usuario capturó algo mientras Drive estaba descargando,
+            // save() dejó la marca pendiente. Subirla ahora que terminó la
+            // carga en vez de permitir que la descarga la silencie.
+            if (_dirty && !_dbSaving) _scheduleSave();
           })
           .catch(function(e) {
             _saving = false;
@@ -13498,41 +13749,40 @@ var GD = (function() {
           return !localPatientTombstones[String(patient.id)];
         });
 
-        // Protección entre computadoras: si este navegador conserva pacientes
-        // que no aparecen en Drive, unirlos en vez de borrarlos silenciosamente.
-        // En expedientes clínicos es preferible conservar un registro adicional
-        // antes que perderlo por una sincronización incompleta.
-        var localPatients = (db && Array.isArray(db.patients)) ? db.patients : [];
-        var remotePatients = Array.isArray(data.patients) ? data.patients : [];
-        if (localPatients.length && remotePatients.length) {
-          var remotePatientIds = {};
-          remotePatients.forEach(function(patient){ remotePatientIds[String(patient.id)] = true; });
-          var missingLocalPatients = localPatients.filter(function(patient){ return !remotePatientIds[String(patient.id)]; });
-          if (missingLocalPatients.length) {
-            try { localStorage.setItem('dental_pre_drive_merge_backup', JSON.stringify(db)); } catch(mergeBackupError) {}
-            data.patients = remotePatients.concat(missingLocalPatients);
-            var remoteAppointmentIds = {};
-            (Array.isArray(data.appointments) ? data.appointments : []).forEach(function(appt){ remoteAppointmentIds[String(appt.id)] = true; });
-            data.appointments = (Array.isArray(data.appointments) ? data.appointments : []).concat(
-              ((db && Array.isArray(db.appointments)) ? db.appointments : []).filter(function(appt){ return !remoteAppointmentIds[String(appt.id)]; })
-            );
-            _preferLocalAfterReconnect = true;
-            _dirty = true;
-            setTimeout(function(){ showToast('🛡️ Se conservaron ' + missingLocalPatients.length + ' paciente(s) que faltaban en Drive', 'green'); }, 500);
-          }
-        }
+        // Unir siempre por registro. La fecha general del archivo no basta:
+        // otro dispositivo puede haber actualizado a un paciente mientras éste
+        // agregó un presupuesto a una persona distinta. La unión conserva ambos.
+        var localPatientsBeforeMerge = (db && Array.isArray(db.patients)) ? db.patients : [];
+        var remotePatientIdsBeforeMerge = {};
+        (Array.isArray(data.patients) ? data.patients : []).forEach(function(patient) {
+          remotePatientIdsBeforeMerge[String(patient.id)] = true;
+        });
+        var preservedLocalPatients = localPatientsBeforeMerge.filter(function(patient) {
+          return !remotePatientIdsBeforeMerge[String(patient.id)]
+            && !localPatientTombstones[String(patient.id)];
+        }).length;
+        var remoteSignatureBeforeMerge = syncSignature(data);
+        var mergedData = mergeDentalDatabases(data, db, preferLocalMain);
+        var mergeAddedLocalWork = syncSignature(mergedData) !== remoteSignatureBeforeMerge;
 
-        // Validar que Drive tiene datos reales
-        if (!preferLocalMain && Array.isArray(data.patients) && data.patients.length > 0) {
-          db = data;
-          if (!db.appointments) db.appointments = [];
-          localStorage.setItem('dental_v4', JSON.stringify(db));
-          localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
-        } else if (!preferLocalMain && data.patients !== undefined) {
-          db = data;
-          if (!db.appointments) db.appointments = [];
-          localStorage.setItem('dental_v4', JSON.stringify(db));
-          localStorage.setItem('dental_local_updated_at', (_preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString());
+        if (mergeAddedLocalWork) {
+          try { localStorage.setItem('dental_pre_drive_merge_backup', JSON.stringify(db)); }
+          catch(mergeBackupError) {}
+          _preferLocalAfterReconnect = true;
+          _dirty = true;
+        }
+        db = mergedData;
+        if (!Array.isArray(db.patients)) db.patients = [];
+        if (!Array.isArray(db.appointments)) db.appointments = [];
+        localStorage.setItem('dental_v4', JSON.stringify(db));
+        localStorage.setItem(
+          'dental_local_updated_at',
+          (mergeAddedLocalWork || _preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString()
+        );
+        if (preservedLocalPatients) {
+          setTimeout(function(){
+            showToast('🛡️ Se conservaron ' + preservedLocalPatients + ' paciente(s) que faltaban en Drive', 'green');
+          }, 500);
         }
       });
     });
@@ -13725,8 +13975,13 @@ var GD = (function() {
     _dbSaving = true;
     _dirty = false;
     setBadge('syncing', 'Guardando…');
-    var payload = _buildSavePayload();
-    _writeFile(_dbFileId, DB_FILENAME, payload).then(function(f) {
+    // Volver a leer justo antes de escribir reduce la ventana de conflicto:
+    // si otro teléfono o computadora guardó desde la última comprobación,
+    // primero se unen sus registros y después se sube el resultado completo.
+    _loadDB(true).then(function() {
+      saveLocalWithAutoBackup();
+      return _writeFile(_dbFileId, DB_FILENAME, _buildSavePayload());
+    }).then(function(f) {
       if (!_dbFileId && f && f.id) _dbFileId = f.id;
       if (f && f.modifiedTime) _lastRemoteModifiedTime = f.modifiedTime;
       _dbSaving = false;
@@ -13966,8 +14221,14 @@ var GD = (function() {
     if (_mode === 'local') {
       setBadge(savedLocal === false ? 'error' : 'offline', savedLocal === false ? 'No se pudo guardar' : 'Guardado local ✓');
     }
-    if (_mode === 'google' && _token && !_saving) {
-      _scheduleSave();
+    if (_mode === 'google' && _token) {
+      if (_saving) {
+        // La edición ocurrió durante una descarga. No perder la intención de
+        // guardarla; el flujo de carga programará la subida al finalizar.
+        _dirty = true;
+      } else {
+        _scheduleSave();
+      }
     }
   }
 
@@ -14745,6 +15006,11 @@ function checkCalendarDeletions() {
 
     // Aplicar borrados
     if (deleted.length) {
+      db.appointments.forEach(function(a) {
+        if (a.calendarEventId && deleted.indexOf(a.calendarEventId) !== -1) {
+          markAppointmentDeleted(a.id);
+        }
+      });
       db.appointments = db.appointments.filter(function(a) {
         return !a.calendarEventId || deleted.indexOf(a.calendarEventId) === -1;
       });
@@ -16060,6 +16326,7 @@ function deleteBudgetFromDetail(patientId, idx) {
   var p = db.patients.find(function(x){ return x.id == patientId; });
   if (!p || !p.budgets) return;
   if (!confirm('¿Eliminar este presupuesto?')) return;
+  markBudgetDeleted(p, p.budgets[idx]);
   p.budgets.splice(idx, 1);
   saveDB();
   renderPatientBudgetInDetail(patientId);
