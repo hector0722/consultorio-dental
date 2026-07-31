@@ -12952,7 +12952,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-7', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-8', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12972,7 +12972,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_7';
+      var refreshKey = 'dental_sw_refreshed_20260731_8';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13278,7 +13278,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_upload_v7';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_batch_v8';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -15688,6 +15688,13 @@ function openPhotoModule() {
 
 var _bulkFiles   = [];
 var _bulkPreviews = [];
+var _appendPhotoSelection = false;
+
+function updatePhotoBatchStatus(message) {
+  var status = document.getElementById('photo-bulk-status');
+  if (status) status.textContent = message || (_bulkFiles.length
+    + ' foto(s) listas. Puedes agregar más antes de subir.');
+}
 
 function requestPhotoUpload() {
   var p = db.patients.find(function(x){ return x.id == curId; });
@@ -15703,7 +15710,17 @@ function requestPhotoUpload() {
     return;
   }
   var input = document.getElementById('photo-upload-input');
-  if (input) input.click();
+  if (input) {
+    _appendPhotoSelection = false;
+    input.click();
+  }
+}
+
+function addMorePhotos() {
+  var input = document.getElementById('photo-upload-input');
+  if (!input) return;
+  _appendPhotoSelection = true;
+  input.click();
 }
 
 function handlePhotoUpload(input) {
@@ -15721,23 +15738,40 @@ function handlePhotoUpload(input) {
   _photoPatientId = p.id;
   input.value = '';
 
-  _bulkFiles    = files;
-  _bulkPreviews = [];
-
-  // Generar miniaturas para el modal
+  // Algunos selectores móviles entregan solo un archivo aunque el control
+  // permita varios. La cola admite selecciones consecutivas para reunir todo
+  // el lote antes de subirlo.
   var grid = document.getElementById('photo-bulk-grid');
   if (!grid) return;
-  grid.innerHTML = '';
+  if (!_appendPhotoSelection) {
+    _bulkFiles = [];
+    _bulkPreviews = [];
+    grid.innerHTML = '';
+  }
+  var existing = {};
+  _bulkFiles.forEach(function(file) {
+    existing[[file.name, file.size, file.lastModified].join('|')] = true;
+  });
+  files = files.filter(function(file) {
+    var key = [file.name, file.size, file.lastModified].join('|');
+    if (existing[key]) return false;
+    existing[key] = true;
+    return true;
+  });
+  var baseIndex = _bulkFiles.length;
+  _bulkFiles = _bulkFiles.concat(files);
+  var modal = document.getElementById('photo-bulk-modal');
+  if (modal) modal.classList.add('open');
+  updatePhotoBatchStatus();
 
-  var loaded = 0;
-  files.forEach(function(file, i) {
+  files.forEach(function(file, offset) {
+    var i = baseIndex + offset;
     var reader = new FileReader();
     reader.onload = function(e) {
       _bulkPreviews[i] = e.target.result;
-      loaded++;
-
       var item = document.createElement('div');
       item.className = 'photo-bulk-item';
+      item.id = 'bulk-photo-' + i;
       item.innerHTML = '<img src="' + e.target.result + '" alt="foto">'
         + '<select id="bulk-type-' + i + '">'
         + '<option value="intraoral">🦷 Intraoral</option>'
@@ -15747,27 +15781,35 @@ function handlePhotoUpload(input) {
         + '<option value="rx">🔬 Rx/Estudio</option>'
         + '</select>';
       grid.appendChild(item);
-
-      if (loaded === files.length) {
-        // Todas las miniaturas listas — abrir modal
-        var modal = document.getElementById('photo-bulk-modal');
-        if (modal) modal.classList.add('open');
-      }
+    };
+    reader.onerror = function() {
+      var item = document.createElement('div');
+      item.className = 'photo-bulk-item';
+      item.id = 'bulk-photo-' + i;
+      item.innerHTML = '<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:10px;text-align:center;font-size:.7rem;color:var(--ink-3)">🖼️ ' + escapeHTML(file.name) + '</div>'
+        + '<select id="bulk-type-' + i + '">'
+        + '<option value="intraoral">🦷 Intraoral</option>'
+        + '<option value="antes">📷 Antes</option>'
+        + '<option value="despues">✨ Después</option>'
+        + '<option value="extraoral">😊 Extraoral</option>'
+        + '<option value="rx">🔬 Rx/Estudio</option>'
+        + '</select>';
+      grid.appendChild(item);
     };
     reader.readAsDataURL(file);
   });
+  _appendPhotoSelection = false;
 }
 
 function cancelBulkUpload() {
   var modal = document.getElementById('photo-bulk-modal');
   if (modal) modal.classList.remove('open');
-  _bulkFiles = []; _bulkPreviews = [];
+  _bulkFiles = []; _bulkPreviews = []; _appendPhotoSelection = false;
+  updatePhotoBatchStatus();
 }
 
 function confirmBulkUpload() {
   var modal = document.getElementById('photo-bulk-modal');
-  if (modal) modal.classList.remove('open');
-
   var files = _bulkFiles;
   if (!files.length) return;
 
@@ -15777,6 +15819,11 @@ function confirmBulkUpload() {
     return sel ? sel.value : 'intraoral';
   });
 
+  var uploadBtn = document.getElementById('btn-upload-all-photos');
+  var moreBtn = document.getElementById('btn-add-more-photos');
+  if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = '⏳ Subiendo…'; }
+  if (moreBtn) moreBtn.disabled = true;
+  updatePhotoBatchStatus('Subiendo 0 de ' + files.length + ' foto(s)…');
   showToast('📤 Subiendo ' + files.length + ' foto(s)…', 'green');
 
   // Subir una por una en secuencia
@@ -15785,19 +15832,31 @@ function confirmBulkUpload() {
     if (i >= files.length) {
       var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
       if (p) renderPhotoGrid(p);
+      if (modal) modal.classList.remove('open');
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = '✅ Subir todas'; }
+      if (moreBtn) moreBtn.disabled = false;
       if (failed) {
         showToast('⚠️ ' + uploaded + ' foto(s) guardadas y ' + failed + ' con error', 'red');
       } else {
         showToast('✅ ' + uploaded + ' foto(s) guardadas en Drive', 'green');
       }
-      _bulkFiles = []; _bulkPreviews = [];
+      _bulkFiles = []; _bulkPreviews = []; _appendPhotoSelection = false;
+      updatePhotoBatchStatus();
       return;
     }
-    _uploadPhotoToDrive(files[i], types[i], function(ok) {
-      if (ok) uploaded++; else failed++;
-      i++;
-      uploadNext();
-    });
+    updatePhotoBatchStatus('Subiendo ' + (i + 1) + ' de ' + files.length + ': ' + files[i].name);
+    function attemptUpload(attempt) {
+      _uploadPhotoToDrive(files[i], types[i], function(ok) {
+        if (!ok && attempt === 0) {
+          setTimeout(function(){ attemptUpload(1); }, 600);
+          return;
+        }
+        if (ok) uploaded++; else failed++;
+        i++;
+        uploadNext();
+      }, true);
+    }
+    attemptUpload(0);
   }
   uploadNext();
 }
@@ -15810,7 +15869,7 @@ function skipPhoto() {
 }
 
 // Subir foto a Google Drive
-function _uploadPhotoToDrive(file, type, callback) {
+function _uploadPhotoToDrive(file, type, callback, quiet) {
   var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
   var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
   if (!p) return callback && callback(false);
@@ -15827,7 +15886,7 @@ function _uploadPhotoToDrive(file, type, callback) {
 
   // Subir foto a Drive como archivo independiente
   // El JSON solo guarda el driveId (liviano)
-  showToast('📤 Subiendo foto…', 'green');
+  if (!quiet) showToast('📤 Subiendo foto…', 'green');
   var patientFolderName = 'Fotos_' + String(p.id) + '_' + (p.name||'Paciente').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+/g,'_').substring(0,25);
 
   _getDriveFolder(patientFolderName).then(function(folderId) {
@@ -15858,13 +15917,13 @@ function _uploadPhotoToDrive(file, type, callback) {
       };
       p.photos.push(photo);
       saveDB();
-      showToast('✅ Foto guardada en Drive', 'green');
+      if (!quiet) showToast('✅ Foto guardada en Drive', 'green');
       renderPhotoGrid(p);
     }
     if (callback) callback(!!(f && f.id));
   }).catch(function(e) {
     console.warn('uploadPhoto error:', e);
-    showToast('❌ Error al subir foto — verifica tu conexión', 'red');
+    if (!quiet) showToast('❌ Error al subir foto — verifica tu conexión', 'red');
     if (callback) callback(false);
   });
 }
@@ -18255,11 +18314,12 @@ window.addEventListener('resize', function() {
 <div id="photo-bulk-modal">
   <div class="photo-bulk-box">
     <div class="photo-bulk-title">📸 Clasificar fotos</div>
-    <div class="photo-bulk-sub">Elige el tipo de cada foto antes de subirlas. Puedes cambiarlas individualmente.</div>
+    <div class="photo-bulk-sub" id="photo-bulk-status">Elige el tipo de cada foto antes de subirlas.</div>
     <div class="photo-bulk-grid" id="photo-bulk-grid"></div>
     <div class="photo-bulk-actions">
       <button class="btn btn-ghost" onclick="cancelBulkUpload()" style="border-radius:var(--r-sm)">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmBulkUpload()" style="border-radius:var(--r-sm)">
+      <button class="btn btn-ghost" id="btn-add-more-photos" onclick="addMorePhotos()" style="border-radius:var(--r-sm)">+ Agregar más</button>
+      <button class="btn btn-primary" id="btn-upload-all-photos" onclick="confirmBulkUpload()" style="border-radius:var(--r-sm)">
         ✅ Subir todas
       </button>
     </div>
