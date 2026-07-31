@@ -4078,9 +4078,9 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
     <div class="gd-reconnect-icon">☁️</div>
     <button onclick="document.getElementById('gd-reconnect-modal').classList.remove('open')" 
       style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;line-height:1">✕</button>
-    <div class="gd-reconnect-title">Reconectar Google Drive</div>
+    <div class="gd-reconnect-title">Carga tus datos de Google Drive</div>
     <div class="gd-reconnect-sub">
-      Tus datos están seguros en Drive. Solo necesitas confirmar tu cuenta una vez para sincronizar.
+      Tus datos no se perdieron. Confirma la misma cuenta de Google para descargarlos en este dispositivo.
     </div>
     <div class="gd-reconnect-security">
       <span>🔒</span>
@@ -12951,7 +12951,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-4', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-5', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12971,7 +12971,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_4';
+      var refreshKey = 'dental_sw_refreshed_20260731_5';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13277,7 +13277,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_drive_discovery_v4';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_mobile_reconnect_v5';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13339,7 +13339,8 @@ var GD = (function() {
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
   var _visibilitySyncInstalled = false;
-  var _accountEmail = '';
+  var _accountEmail = localStorage.getItem('dental_gd_email') || '';
+  var _authInProgress = false;
   // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
   // da una actualización casi inmediata sin esperar la recarga de la página.
   var AUTO_PULL_MS = 3000;
@@ -13462,19 +13463,34 @@ var GD = (function() {
   }
 
   // ── Auth ─────────────────────────────────────────────────
-  function signIn() {
+  function _showReconnectRequired(message) {
+    setBadge('error', message || 'Reconecta para cargar tus datos');
+    var modal = document.getElementById('gd-reconnect-modal');
+    if (modal) modal.classList.add('open');
+  }
+
+  function signIn(silent) {
+    silent = silent === true;
+    if (_authInProgress) return;
     if (typeof google === 'undefined') {
-      showToast('Google no cargó. Revisa tu conexión.', 'red');
+      if (silent) _showReconnectRequired('Reconecta para cargar tus datos');
+      else showToast('Google no cargó. Revisa tu conexión.', 'red');
       return;
     }
+    _authInProgress = true;
     setBadge('syncing', 'Conectando…');
-    google.accounts.oauth2.initTokenClient({
+    var tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: function(resp) {
+        _authInProgress = false;
         if (resp.error) {
-          setBadge('error', 'Error de acceso');
-          showToast('Error: ' + resp.error, 'red');
+          if (silent) {
+            _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
+          } else {
+            setBadge('error', 'Error de acceso');
+            showToast('Error: ' + resp.error, 'red');
+          }
           return;
         }
         _token = resp.access_token;
@@ -13564,7 +13580,28 @@ var GD = (function() {
             showToast('⚠️ No se cargaron datos para evitar mezclar cuentas. Reintenta la conexión.', 'red');
           });
       }
-    }).requestAccessToken();
+    });
+    try {
+      tokenClient.requestAccessToken(silent ? { prompt:'' } : {});
+      if (silent) {
+        setTimeout(function() {
+          // Algunos navegadores móviles bloquean la renovación silenciosa
+          // sin devolver error. No dejar la pantalla indefinidamente en
+          // "Conectando": ofrecer el botón de Google después de cinco segundos.
+          if (_authInProgress && !_token) {
+            _authInProgress = false;
+            _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
+          }
+        }, 5000);
+      }
+    } catch(authError) {
+      _authInProgress = false;
+      if (silent) _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
+      else {
+        setBadge('error', 'No se pudo abrir Google');
+        showToast('⚠️ No se pudo abrir el acceso de Google. Intenta nuevamente.', 'red');
+      }
+    }
   }
 
   function skip() {
@@ -14339,18 +14376,32 @@ var GD = (function() {
   }
 
   function _autoReconnect() {
-    // Mostrar modal de reconexión
-    setBadge('error', 'Sin sesión');
-    setTimeout(function() {
-      var modal = document.getElementById('gd-reconnect-modal');
-      if (modal) modal.classList.add('open');
-    }, 800);
+    // En tablet y teléfono el token vive poco tiempo y desaparece al cerrar
+    // la pestaña. Intentar renovarlo sin ventanas; si el navegador móvil lo
+    // bloquea, pedir un toque antes de mostrar datos vacíos como si se hubieran
+    // perdido. Google nunca entrega acceso silencioso a otra cuenta.
+    var attempts = 0;
+    function trySilentReconnect() {
+      if (_token || _authInProgress) return;
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+        signIn(true);
+        return;
+      }
+      attempts += 1;
+      if (attempts < 20) {
+        setTimeout(trySilentReconnect, 150);
+      } else {
+        _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
+      }
+    }
+    setBadge('syncing', 'Recuperando datos de Drive…');
+    trySilentReconnect();
   }
 
   function reconnect() {
     var modal = document.getElementById('gd-reconnect-modal');
     if (modal) { modal.classList.remove('open'); modal.style.display = ''; }
-    signIn();
+    signIn(false);
   }
 
   function save() {
