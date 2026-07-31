@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260730-catalog-drive-v3';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-drive-discovery-v4';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

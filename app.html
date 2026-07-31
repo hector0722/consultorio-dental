@@ -12951,7 +12951,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260730-3', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-4', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12971,7 +12971,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260730_3';
+      var refreshKey = 'dental_sw_refreshed_20260731_4';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13277,7 +13277,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_catalog_drive_v3';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_drive_discovery_v4';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13339,6 +13339,7 @@ var GD = (function() {
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
   var _visibilitySyncInstalled = false;
+  var _accountEmail = '';
   // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
   // da una actualización casi inmediata sin esperar la recarga de la página.
   var AUTO_PULL_MS = 3000;
@@ -13433,6 +13434,7 @@ var GD = (function() {
     }
     localStorage.setItem(ACCOUNT_ID_KEY, nextId);
     var accountEmail = user.emailAddress || user.email || '';
+    _accountEmail = accountEmail || nextId;
     if (accountEmail) localStorage.setItem('dental_gd_email', accountEmail);
   }
 
@@ -13447,7 +13449,14 @@ var GD = (function() {
     b.className = state;
     var icons = { synced:'✅', syncing:'⏳', error:'⚠️', offline:'💾' };
     if (i) i.innerHTML = icons[state] || '';
-    if (t) t.textContent = text;
+    if (t) {
+      var accountSuffix = state !== 'offline' && _accountEmail
+        ? ' · ' + _accountEmail : '';
+      t.textContent = text + accountSuffix;
+      t.title = _accountEmail
+        ? ('Google Drive: ' + _accountEmail + (_dbFileId ? ' · Base ' + _dbFileId.slice(-8) : ''))
+        : text;
+    }
     // Mostrar botón guardar solo en modo Google
     if (s) s.style.display = (state !== 'offline') ? 'flex' : 'none';
   }
@@ -13517,6 +13526,9 @@ var GD = (function() {
           .then(function() {
             _saving = false;
             setBadge('synced', 'Sincronizado');
+            if (_accountEmail) {
+              showToast('☁️ Conectado a Drive como ' + _accountEmail, 'green');
+            }
             _refreshUI();
             _startAutoPull();
             if (_preferLocalAfterReconnect) {
@@ -13902,13 +13914,11 @@ var GD = (function() {
       _cfgFileId = files[0].id;
 
       // Versiones anteriores podían crear uno nuevo en cada reconexión.
-      // Mover los duplicados viejos a la papelera sin tocar el más reciente.
+      // No eliminar copias automáticamente: pueden ser el único respaldo de
+      // otro dispositivo. Se usa la más reciente y se conservan las demás.
       if (files.length > 1) {
-        Promise.all(files.slice(1).map(function(file) {
-          return _driveReq('PATCH', '/drive/v3/files/' + file.id, { trashed: true }).catch(function(){});
-        })).then(function() {
-          showToast('🧹 Se limpiaron ' + (files.length - 1) + ' configuraciones duplicadas de Drive', 'green');
-        });
+        console.warn('Se encontraron ' + files.length
+          + ' configuraciones de Drive; se usó la más reciente sin borrar ninguna.');
       }
 
       // Si hay cambios offline, solo identificar el archivo; no reemplazar la
@@ -14015,14 +14025,28 @@ var GD = (function() {
 
   function _findFile(name) {
     return _findFiles(name).then(function(files) {
-      return files.length ? files[0] : null;
+      var file = files.length ? files[0] : null;
+      // La base define la carpeta canónica. Esto corrige dispositivos que
+      // habían elegido una carpeta duplicada o vacía antes de buscarla.
+      if (file && name === DB_FILENAME && file.parents && file.parents[0]) {
+        _folderId = file.parents[0];
+        localStorage.setItem('dental_gd_folder_id', _folderId);
+      }
+      return file;
     });
   }
 
   function _findFiles(name) {
-    var q = "name='" + name + "' and trashed=false" + (_folderId ? " and '" + _folderId + "' in parents" : '');
+    // Los tres archivos centrales se buscan en toda la cuenta. Versiones
+    // anteriores podían crear otra carpeta "Consultorio Dental" y cada
+    // equipo terminaba leyendo una base distinta o ninguna. Sus nombres son
+    // exclusivos de esta app; la copia modificada más recientemente es la
+    // misma para computadora, tablet y teléfono.
+    var isCoreFile = name === DB_FILENAME || name === CFG_FILENAME || name === HERO_FILENAME;
+    var q = "name='" + name + "' and trashed=false"
+      + (!isCoreFile && _folderId ? " and '" + _folderId + "' in parents" : '');
     return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,name,modifiedTime)').then(function(r) {
+      + '&spaces=drive&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,name,parents,modifiedTime)').then(function(r) {
       return (r.files && r.files.length) ? r.files : [];
     });
   }
@@ -14475,6 +14499,7 @@ var GD = (function() {
     _stopAutoPull();
     _token = null; _folderId = null; _dbFileId = null; _cfgFileId = null; _heroFileId = null;
     _mode = 'local';
+    _accountEmail = '';
     localStorage.setItem(GD_MODE_KEY, 'local');
     localStorage.removeItem('dental_gd_token_hint');
     setBadge('offline', 'Sin cuenta');
