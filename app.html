@@ -4199,9 +4199,9 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
         <span id="gd-sync-icon">⚫</span>
         <span id="gd-sync-txt">Sin cuenta</span>
       </div>
-      <button id="gd-save-now-btn" onclick="gdSaveNow()" title="Guardar ahora en Google Drive"
+      <button id="gd-save-now-btn" onclick="gdSaveNow()" title="Enviar y recibir cambios de Google Drive"
         style="display:none;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);background:#e9faf0;border:1.5px solid rgba(52,199,89,.35);color:#1a7a3c;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">
-        💾 Guardar
+        🔄 Sincronizar
       </button>
       <button id="pwa-install-btn" onclick="installPWA()" style="display:none;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-sm);background:var(--blue-pale);border:1.5px solid var(--blue-mid);color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">
         📲 Instalar app
@@ -12903,7 +12903,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260730-1', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260730-2', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12923,7 +12923,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260730_1';
+      var refreshKey = 'dental_sw_refreshed_20260730_2';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13229,7 +13229,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_sync_safe_v1';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_sync_live_v2';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13291,7 +13291,9 @@ var GD = (function() {
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
   var _visibilitySyncInstalled = false;
-  var AUTO_PULL_MS = 25000;
+  // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
+  // da una actualización casi inmediata sin esperar la recarga de la página.
+  var AUTO_PULL_MS = 3000;
 
   // El caché del navegador debe pertenecer a una sola cuenta de Google.
   // Antes se reutilizaba dental_v4 al cambiar de cuenta y _loadDB terminaba
@@ -13985,6 +13987,7 @@ var GD = (function() {
       if (!_dbFileId && f && f.id) _dbFileId = f.id;
       if (f && f.modifiedTime) _lastRemoteModifiedTime = f.modifiedTime;
       _dbSaving = false;
+      _preferLocalAfterReconnect = false;
       setBadge('synced', '✓ Guardado');
       setTimeout(function() { setBadge('synced', 'Sincronizado'); }, 2000);
       if (_dirty) {
@@ -14003,27 +14006,27 @@ var GD = (function() {
   // Drive no ofrece eventos en tiempo real para esta app estática. Consultar
   // solo modifiedTime es liviano; el JSON completo se descarga únicamente
   // cuando Drive informa que el archivo cambió.
-  function _hasLocalWork() {
-    return _dirty || _dbSaving || _cfgDirty || _cfgSaving
-      || _heroDirty || _heroSaving || _saving;
-  }
-
-  function _pullRemoteChanges() {
-    if (!_token || _mode !== 'google' || _autoPulling || _hasLocalWork()) {
+  function _pullRemoteChanges(force) {
+    // Un guardado pendiente de configuración o portada no debe bloquear la
+    // descarga de Caja, pacientes y citas. Antes podía impedirla para siempre.
+    if (!_token || _mode !== 'google' || _autoPulling || _saving || _dbSaving) {
       return Promise.resolve(false);
     }
-    if (document.hidden) return Promise.resolve(false);
+    if (document.hidden && !force) return Promise.resolve(false);
     _autoPulling = true;
     return Promise.all([_findFile(DB_FILENAME), _findFile(CFG_FILENAME)])
       .then(function(files) {
         var dbFile = files[0];
         var cfgFile = files[1];
-        var dbChanged = !!(dbFile && dbFile.modifiedTime
+        var dbChanged = !!(dbFile && (force || (dbFile.modifiedTime
           && _lastRemoteModifiedTime
-          && dbFile.modifiedTime !== _lastRemoteModifiedTime);
-        var cfgChanged = !!(cfgFile && cfgFile.modifiedTime
+          && dbFile.modifiedTime !== _lastRemoteModifiedTime)));
+        // La configuración sí espera si hay una edición local pendiente. La
+        // base principal puede unirse sin perder movimientos ni expedientes.
+        var canPullCfg = !_cfgDirty && !_cfgSaving;
+        var cfgChanged = !!(canPullCfg && cfgFile && (force || (cfgFile.modifiedTime
           && _lastCfgModifiedTime
-          && cfgFile.modifiedTime !== _lastCfgModifiedTime);
+          && cfgFile.modifiedTime !== _lastCfgModifiedTime)));
 
         // Primera comprobación después de conectar: registrar versiones sin
         // volver a descargar lo que acaba de cargarse.
@@ -14034,7 +14037,6 @@ var GD = (function() {
           _lastCfgModifiedTime = cfgFile.modifiedTime;
         }
         if (!dbChanged && !cfgChanged) return false;
-        if (_hasLocalWork()) return false;
 
         _saving = true;
         setBadge('syncing', 'Actualizando…');
@@ -14061,7 +14063,8 @@ var GD = (function() {
         _saving = false;
         // Un fallo temporal de red no toca el caché ni interrumpe la captura.
         console.warn('Actualización automática pendiente:', error);
-        return false;
+        if (force) setBadge('error', 'No se pudo sincronizar');
+        return force ? null : false;
       })
       .finally(function() {
         _autoPulling = false;
@@ -14074,7 +14077,7 @@ var GD = (function() {
     _autoPullTimer = setInterval(_pullRemoteChanges, AUTO_PULL_MS);
     if (!_visibilitySyncInstalled) {
       document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) _pullRemoteChanges();
+        if (!document.hidden) _pullRemoteChanges(true);
       });
       _visibilitySyncInstalled = true;
     }
@@ -14400,9 +14403,34 @@ var GD = (function() {
     _doSave();
   }
 
+  function syncNow() {
+    if (!_token || _mode !== 'google') {
+      showStatus();
+      return;
+    }
+    saveNow();
+    var startedAt = Date.now();
+    function pullWhenSaveFinishes() {
+      if (_dbSaving || _saving) {
+        if (Date.now() - startedAt < 30000) {
+          setTimeout(pullWhenSaveFinishes, 250);
+        } else {
+          setBadge('error', 'La sincronización tardó demasiado');
+        }
+        return;
+      }
+      _pullRemoteChanges(true).then(function(updated) {
+        if (updated === false && !_dirty && !_dbSaving) {
+          setBadge('synced', 'Sincronizado ahora');
+        }
+      });
+    }
+    setTimeout(pullWhenSaveFinishes, 250);
+  }
+
   function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _heroDirty || _heroSaving)); }
   function getToken() { return _token; }
-  return { signIn, skip, save, saveNow, saveCfg, saveHeroImage, showStatus, signOut, start, reconnect, _hasPending, _token: getToken };
+  return { signIn, skip, save, saveNow, syncNow, saveCfg, saveHeroImage, showStatus, signOut, start, reconnect, _hasPending, _token: getToken };
 })();
 
 // ── Funciones globales para el HTML ──────────────────────
@@ -14421,9 +14449,9 @@ function gcalSync() {
   _updateSyncStatus();
 }
 function gdSaveNow()    {
-  if (typeof GD !== 'undefined' && GD.saveNow) {
-    GD.saveNow();
-    showToast('💾 Guardando en Drive…', 'green');
+  if (typeof GD !== 'undefined' && GD.syncNow) {
+    GD.syncNow();
+    showToast('🔄 Enviando y recibiendo cambios…', 'green');
   }
 }
 
