@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-mobile-reconnect-v5';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-appdata-sync-v6';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

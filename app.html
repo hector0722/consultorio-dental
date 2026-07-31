@@ -12951,7 +12951,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-5', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-6', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12971,7 +12971,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_5';
+      var refreshKey = 'dental_sw_refreshed_20260731_6';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13277,7 +13277,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_mobile_reconnect_v5';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_appdata_sync_v6';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13311,7 +13311,7 @@ function closeUpdateNotice() {
 
 var GD = (function() {
   var CLIENT_ID   = '807167671913-vqcaf34scma8qldnepkgc3l5d5ser1ur.apps.googleusercontent.com';
-  var SCOPES      = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events';
+  var SCOPES      = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/calendar.events';
   var DB_FILENAME = 'consultorio_dental_db.json';
   var CFG_FILENAME= 'consultorio_dental_cfg.json';
   var HERO_FILENAME='consultorio_dental_portada.json';
@@ -13321,6 +13321,9 @@ var GD = (function() {
   var _token     = null;
   var _folderId  = null;
   var _dbFileId  = null;
+  var _regularDbFileId = null;
+  var _dbIsAppData = false;
+  var _needsAppDataMigration = false;
   var _cfgFileId = null;
   var _heroFileId = null;
   var _syncTimer = null;
@@ -13338,6 +13341,7 @@ var GD = (function() {
   var _autoPulling = false;
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
+  var _lastRemotePatientCount = null;
   var _visibilitySyncInstalled = false;
   var _accountEmail = localStorage.getItem('dental_gd_email') || '';
   var _authInProgress = false;
@@ -13541,7 +13545,9 @@ var GD = (function() {
           })
           .then(function() {
             _saving = false;
-            setBadge('synced', 'Sincronizado');
+            setBadge('synced', _lastRemotePatientCount === null
+              ? 'Sincronizado'
+              : ('Drive: ' + _lastRemotePatientCount + ' pacientes'));
             if (_accountEmail) {
               showToast('☁️ Conectado a Drive como ' + _accountEmail, 'green');
             }
@@ -13661,18 +13667,28 @@ var GD = (function() {
   // ── Leer DB desde Drive ──────────────────────────────────
   function _loadDB(forceRemote) {
     var importRevisionAtStart = localStorage.getItem('dental_import_revision') || '0';
-    return _findFile(DB_FILENAME).then(function(file) {
+    return _findPrimaryDBFile().then(function(file) {
       if (!file) {
-        // Primera conexión después de trabajar offline: subir lo que ya existe.
-        if (db && ((db.patients && db.patients.length) || (db.appointments && db.appointments.length))) {
-          _preferLocalAfterReconnect = true;
-          _dirty = true;
-        }
+        // Primera conexión: crear la base privada de la app. Si este equipo
+        // trabajó offline, se subirá su contenido; si es nuevo, quedará lista
+        // para recibir datos sin depender de una carpeta visible de Drive.
+        _needsAppDataMigration = true;
+        _preferLocalAfterReconnect = !!(db && ((db.patients && db.patients.length)
+          || (db.appointments && db.appointments.length)));
+        _dirty = true;
         return;
       }
       _dbFileId = file.id;
+      if (!_dbIsAppData) {
+        // Mantener intacta la base visible como respaldo y crear una copia
+        // canónica en appDataFolder en el siguiente guardado verificado.
+        _regularDbFileId = file.id;
+        _needsAppDataMigration = true;
+        _dirty = true;
+      }
       return _readFile(file.id).then(function(data) {
         if (!data) return;
+        _lastRemotePatientCount = Array.isArray(data.patients) ? data.patients.length : 0;
         if (file.modifiedTime) _lastRemoteModifiedTime = file.modifiedTime;
         // El usuario importó un respaldo mientras esta descarga estaba en
         // curso. No mezclar ni sobrescribir nada de esa nueva restauración.
@@ -14088,6 +14104,37 @@ var GD = (function() {
     });
   }
 
+  // appDataFolder es el espacio privado de Google Drive destinado a datos de
+  // aplicaciones. A diferencia de una carpeta visible, todos los dispositivos
+  // autorizados con la misma cuenta y el mismo Client ID encuentran exactamente
+  // el mismo archivo sin depender de carpetas duplicadas o permisos heredados.
+  function _findAppDataFile(name) {
+    var q = "name='" + name + "' and trashed=false";
+    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(q)
+      + '&spaces=appDataFolder&orderBy=modifiedTime%20desc&pageSize=10&fields=files(id,name,modifiedTime)').then(function(r) {
+      return (r.files && r.files.length) ? r.files[0] : null;
+    });
+  }
+
+  function _findPrimaryDBFile() {
+    return _findAppDataFile(DB_FILENAME).then(function(appDataFile) {
+      if (appDataFile) {
+        _dbIsAppData = true;
+        _needsAppDataMigration = false;
+        _dbFileId = appDataFile.id;
+        return appDataFile;
+      }
+      return _findFile(DB_FILENAME).then(function(regularFile) {
+        _dbIsAppData = false;
+        if (regularFile) {
+          _regularDbFileId = regularFile.id;
+          _dbFileId = regularFile.id;
+        }
+        return regularFile;
+      });
+    });
+  }
+
   function _readFile(fileId) {
     return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
       headers: { Authorization: 'Bearer ' + _token }
@@ -14097,7 +14144,7 @@ var GD = (function() {
     });
   }
 
-  function _writeFile(fileId, name, data) {
+  function _writeFile(fileId, name, data, parentsOverride) {
     var json = JSON.stringify(data);
     var blob = new Blob([json], { type: 'application/json' });
     if (fileId) {
@@ -14110,7 +14157,9 @@ var GD = (function() {
         return r.json();
       });
     } else {
-      var meta = { name: name, parents: _folderId ? [_folderId] : [] };
+      var targetParents = Array.isArray(parentsOverride)
+        ? parentsOverride : (_folderId ? [_folderId] : []);
+      var meta = { name: name, parents: targetParents };
       var form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
       form.append('file', blob);
@@ -14142,19 +14191,46 @@ var GD = (function() {
     _dbSaving = true;
     _dirty = false;
     setBadge('syncing', 'Guardando…');
+    var expectedRevision = '';
+    var expectedPatientCount = 0;
     // Volver a leer justo antes de escribir reduce la ventana de conflicto:
     // si otro teléfono o computadora guardó desde la última comprobación,
     // primero se unen sus registros y después se sube el resultado completo.
     _loadDB(true).then(function() {
       saveLocalWithAutoBackup();
-      return _writeFile(_dbFileId, DB_FILENAME, _buildSavePayload());
+      var writeId = _dbIsAppData ? _dbFileId : null;
+      var payload = _buildSavePayload();
+      expectedRevision = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+      expectedPatientCount = Array.isArray(payload.patients) ? payload.patients.length : 0;
+      payload._syncRevision = expectedRevision;
+      payload._syncPatientCount = expectedPatientCount;
+      return _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
     }).then(function(f) {
-      if (!_dbFileId && f && f.id) _dbFileId = f.id;
+      var verifyId = (f && f.id) || _dbFileId;
+      if (!verifyId) throw new Error('Drive no devolvió el identificador de la base');
+      return _readFile(verifyId).then(function(verifiedData) {
+        if (!verifiedData || verifiedData._syncRevision !== expectedRevision) {
+          throw new Error('La verificación de Drive no coincide con el guardado');
+        }
+        var verifiedCount = Array.isArray(verifiedData.patients) ? verifiedData.patients.length : 0;
+        if (verifiedCount !== expectedPatientCount) {
+          throw new Error('Drive guardó un número de pacientes distinto');
+        }
+        return { file:f, patientCount:verifiedCount };
+      });
+    }).then(function(result) {
+      var f = result.file;
+      if (f && f.id) _dbFileId = f.id;
+      _dbIsAppData = true;
+      _needsAppDataMigration = false;
+      _lastRemotePatientCount = result.patientCount;
       if (f && f.modifiedTime) _lastRemoteModifiedTime = f.modifiedTime;
       _dbSaving = false;
       _preferLocalAfterReconnect = false;
-      setBadge('synced', '✓ Guardado');
-      setTimeout(function() { setBadge('synced', 'Sincronizado'); }, 2000);
+      setBadge('synced', '✓ Drive verificado: ' + result.patientCount + ' pacientes');
+      setTimeout(function() {
+        setBadge('synced', 'Drive: ' + result.patientCount + ' pacientes');
+      }, 2600);
       if (_dirty) {
         if (_syncTimer) clearTimeout(_syncTimer);
         _syncTimer = setTimeout(_doSave, 150);
@@ -14163,7 +14239,8 @@ var GD = (function() {
       console.error('Drive save error:', e);
       _dbSaving = false;
       _dirty = true;
-      setBadge('error', 'Error al guardar');
+      setBadge('error', 'Drive no confirmó el guardado');
+      showToast('⚠️ Google Drive no confirmó la copia. Reconecta y vuelve a sincronizar.', 'red');
     });
   }
 
@@ -14179,7 +14256,7 @@ var GD = (function() {
     }
     if (document.hidden && !force) return Promise.resolve(false);
     _autoPulling = true;
-    return Promise.all([_findFile(DB_FILENAME), _findFile(CFG_FILENAME)])
+    return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME)])
       .then(function(files) {
         var dbFile = files[0];
         var cfgFile = files[1];
@@ -14548,7 +14625,9 @@ var GD = (function() {
   function signOut() {
     if (!confirm('¿Cerrar sesión? Los datos quedan en tu Drive.')) return;
     _stopAutoPull();
-    _token = null; _folderId = null; _dbFileId = null; _cfgFileId = null; _heroFileId = null;
+    _token = null; _folderId = null; _dbFileId = null; _regularDbFileId = null;
+    _dbIsAppData = false; _needsAppDataMigration = false;
+    _cfgFileId = null; _heroFileId = null;
     _mode = 'local';
     _accountEmail = '';
     localStorage.setItem(GD_MODE_KEY, 'local');
