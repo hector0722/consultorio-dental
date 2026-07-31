@@ -4966,15 +4966,16 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
         </div>
 
         <!-- FOTOGRAFÍAS CLÍNICAS -->
-        <div class="card" style="grid-column:1/-1">
+        <div class="card" id="photo-section" style="grid-column:1/-1">
           <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
             <span>📸 Fotografías clínicas</span>
             <div style="display:flex;gap:6px">
               <button class="btn btn-ghost btn-xs" onclick="openCompareMode()" id="btn-compare" style="display:none">🔀 Comparar antes/después</button>
-              <label class="btn btn-primary btn-xs" style="cursor:pointer;margin:0">
-                + Agregar foto
-                <input type="file" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(this)">
-              </label>
+              <button type="button" class="btn btn-primary btn-xs" id="btn-add-photo"
+                onclick="requestPhotoUpload()">+ Agregar foto</button>
+              <input id="photo-upload-input" type="file" accept="image/*" multiple
+                style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"
+                onchange="handlePhotoUpload(this)">
             </div>
           </div>
           <div class="photo-filter-row" id="photo-filters">
@@ -12951,7 +12952,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-6', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-7', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12971,7 +12972,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_6';
+      var refreshKey = 'dental_sw_refreshed_20260731_7';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13277,7 +13278,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_appdata_sync_v6';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_upload_v7';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -15679,13 +15680,41 @@ function openPhotoModule() {
   if (!p) return;
   _photoPatientId = p.id;
   renderPhotoGrid(p);
+  var section = document.getElementById('photo-section');
+  if (section && section.scrollIntoView) {
+    section.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
 var _bulkFiles   = [];
 var _bulkPreviews = [];
 
+function requestPhotoUpload() {
+  var p = db.patients.find(function(x){ return x.id == curId; });
+  if (!p) {
+    showToast('⚠️ Abre primero el expediente de un paciente', 'red');
+    return;
+  }
+  _photoPatientId = p.id;
+  var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
+  if (!tok) {
+    showToast('☁️ Reconecta Google Drive para agregar fotos', 'red');
+    if (typeof GD !== 'undefined' && GD.reconnect) GD.reconnect();
+    return;
+  }
+  var input = document.getElementById('photo-upload-input');
+  if (input) input.click();
+}
+
 function handlePhotoUpload(input) {
   if (!input.files || !input.files.length) return;
+  var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
+  if (!tok) {
+    input.value = '';
+    showToast('☁️ Reconecta Google Drive y vuelve a tocar Agregar foto', 'red');
+    if (typeof GD !== 'undefined' && GD.reconnect) GD.reconnect();
+    return;
+  }
   var files = Array.from(input.files);
   var p = db.patients.find(function(x){ return x.id == _photoPatientId || x.id == curId; });
   if (!p) return;
@@ -15751,16 +15780,21 @@ function confirmBulkUpload() {
   showToast('📤 Subiendo ' + files.length + ' foto(s)…', 'green');
 
   // Subir una por una en secuencia
-  var i = 0;
+  var i = 0, uploaded = 0, failed = 0;
   function uploadNext() {
     if (i >= files.length) {
       var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
       if (p) renderPhotoGrid(p);
-      showToast('✅ ' + files.length + ' foto(s) guardadas en Drive', 'green');
+      if (failed) {
+        showToast('⚠️ ' + uploaded + ' foto(s) guardadas y ' + failed + ' con error', 'red');
+      } else {
+        showToast('✅ ' + uploaded + ' foto(s) guardadas en Drive', 'green');
+      }
       _bulkFiles = []; _bulkPreviews = [];
       return;
     }
-    _uploadPhotoToDrive(files[i], types[i], function() {
+    _uploadPhotoToDrive(files[i], types[i], function(ok) {
+      if (ok) uploaded++; else failed++;
       i++;
       uploadNext();
     });
@@ -15779,14 +15813,15 @@ function skipPhoto() {
 function _uploadPhotoToDrive(file, type, callback) {
   var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
   var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
-  if (!p) return callback && callback();
+  if (!p) return callback && callback(false);
 
   if (!p.photos) p.photos = [];
 
   // Sin Drive activo — no se pueden subir fotos
   if (!tok) {
     showToast('⚠️ Conecta Google Drive para guardar fotos', 'red');
-    if (callback) callback();
+    if (typeof GD !== 'undefined' && GD.reconnect) GD.reconnect();
+    if (callback) callback(false);
     return;
   }
 
@@ -15826,11 +15861,11 @@ function _uploadPhotoToDrive(file, type, callback) {
       showToast('✅ Foto guardada en Drive', 'green');
       renderPhotoGrid(p);
     }
-    if (callback) callback();
+    if (callback) callback(!!(f && f.id));
   }).catch(function(e) {
     console.warn('uploadPhoto error:', e);
     showToast('❌ Error al subir foto — verifica tu conexión', 'red');
-    if (callback) callback();
+    if (callback) callback(false);
   });
 }
 

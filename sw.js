@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-appdata-sync-v6';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-photo-upload-v7';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
