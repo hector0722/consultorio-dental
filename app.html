@@ -7987,11 +7987,30 @@ function showBudgetDropdown() { filterBudgetPatients(); }
 var CATALOG_UPDATED_KEY = 'dental_catalog_updated_at';
 
 function loadCatalogOverrides() {
+  // La copia principal vive dentro de la base de Google Drive. localStorage
+  // solo acelera el arranque y sirve como respaldo si todavía no hay conexión.
+  var raw = localStorage.getItem('dental_catalog_v1');
+  var localUpdatedAt = parseInt(localStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
+  var driveState = db && db.catalogState && typeof db.catalogState === 'object'
+    ? db.catalogState : null;
+  var driveStateUpdatedAt = parseInt(driveState && driveState.updatedAt || '0', 10) || 0;
+  var driveStateRaw = driveState && driveState.raw;
+  if (driveStateRaw && typeof driveStateRaw !== 'string') {
+    try { driveStateRaw = JSON.stringify(driveStateRaw); } catch(e) { driveStateRaw = ''; }
+  }
+  if (driveStateRaw && driveStateUpdatedAt > localUpdatedAt) {
+    raw = driveStateRaw;
+    localUpdatedAt = driveStateUpdatedAt;
+    localStorage.setItem('dental_catalog_v1', raw);
+    localStorage.setItem(CATALOG_UPDATED_KEY, String(localUpdatedAt));
+  } else if (raw && db && (!driveState || localUpdatedAt > driveStateUpdatedAt)) {
+    db.catalogState = { raw:raw, updatedAt:localUpdatedAt };
+  }
+
   CATALOG.splice(0, CATALOG.length);
   DEFAULT_CATALOG.forEach(function(cat) {
     CATALOG.push(JSON.parse(JSON.stringify(cat)));
   });
-  var raw = localStorage.getItem('dental_catalog_v1');
   if (!raw) return;
   try {
     var ov = JSON.parse(raw);
@@ -8038,8 +8057,13 @@ function saveCatalogOverrides() {
     });
   });
   ov.__extra = extra;
-  localStorage.setItem('dental_catalog_v1', JSON.stringify(ov));
-  localStorage.setItem(CATALOG_UPDATED_KEY, Date.now().toString());
+  var raw = JSON.stringify(ov);
+  var updatedAt = Date.now();
+  localStorage.setItem('dental_catalog_v1', raw);
+  localStorage.setItem(CATALOG_UPDATED_KEY, String(updatedAt));
+  // Fuente de verdad: esta sección viaja dentro de
+  // consultorio_dental_db.json en Google Drive.
+  db.catalogState = { raw:raw, updatedAt:updatedAt };
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -8143,8 +8167,16 @@ function editCatalogItem(ci, ii, field, val) {
   item._edited = true;
   if (field === 'price') item.price = parseFloat(val) || 0;
   else item.name = val;
+  if (item.id && selectedTx[item.id]) {
+    if (field === 'price') selectedTx[item.id].price = item.price;
+    else selectedTx[item.id].name = item.name;
+  }
   saveCatalogOverrides();
   buildCatalogUI();
+  if (item.id && selectedTx[item.id]) {
+    renderBudgetPanel();
+    _saveBudgetState();
+  }
 }
 
 function hideCatalogItem(ci, ii) {
@@ -10236,7 +10268,16 @@ function importData(input) {
 
       // Los archivos directos de Drive guardan datos complementarios dentro
       // del mismo objeto. Extraerlos antes de limpiar la base principal.
-      var importedCatalog = backup.catalog || importedDb._catalog || null;
+      var importedCatalogState = importedDb.catalogState && typeof importedDb.catalogState === 'object'
+        ? importedDb.catalogState : null;
+      var importedCatalog = backup.catalog
+        || (importedCatalogState && importedCatalogState.raw)
+        || importedDb._catalog
+        || null;
+      var importedCatalogUpdatedAt = backup.catalogUpdatedAt
+        || (importedCatalogState && importedCatalogState.updatedAt)
+        || importedDb._catalogUpdatedAt
+        || Date.now();
       var importedCaja = backup.caja || importedDb._caja || null;
       var importedProduction = backup.production || importedDb._production || null;
       var importedDoctorRates = backup.doctorRates || importedDb._doctorRates || null;
@@ -10272,7 +10313,14 @@ function importData(input) {
 
       // Restaurar catálogo si existe
       if (importedCatalog) {
-        localStorage.setItem('dental_catalog_v1', typeof importedCatalog === 'string' ? importedCatalog : JSON.stringify(importedCatalog));
+        var importedCatalogRaw = typeof importedCatalog === 'string'
+          ? importedCatalog : JSON.stringify(importedCatalog);
+        localStorage.setItem('dental_catalog_v1', importedCatalogRaw);
+        localStorage.setItem('dental_catalog_updated_at', String(importedCatalogUpdatedAt));
+        db.catalogState = {
+          raw: importedCatalogRaw,
+          updatedAt: parseInt(importedCatalogUpdatedAt || '0', 10) || Date.now()
+        };
         loadCatalogOverrides();
       }
 
@@ -12903,7 +12951,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260730-2', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260730-3', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12923,7 +12971,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260730_2';
+      var refreshKey = 'dental_sw_refreshed_20260730_3';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13229,7 +13277,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_sync_live_v2';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_30_catalog_drive_v3';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13682,23 +13730,78 @@ var GD = (function() {
           delete data._doctorRates;
         }
         delete data._doctorRatesUpdatedAt;
-        if (data._catalog) {
-          // El catálogo editable también necesita control de versión. Antes,
-          // cualquier copia antigua de Drive reemplazaba los tratamientos
-          // recién agregados o modificados al volver a abrir la aplicación.
-          var localCatalogUpdatedAt = parseInt(localStorage.getItem('dental_catalog_updated_at') || '0', 10) || 0;
-          var remoteCatalogUpdatedAt = parseInt(data._catalogUpdatedAt || '0', 10) || 0;
-          var hasLocalCatalog = !!localStorage.getItem('dental_catalog_v1');
-          if (hasLocalCatalog && localCatalogUpdatedAt > remoteCatalogUpdatedAt) {
+        // El catálogo ahora forma parte de la base principal de Drive. Durante
+        // la migración pueden existir hasta cuatro copias; elegir la más nueva
+        // evita que una sección auxiliar antigua restaure los precios iniciales.
+        function catalogCandidate(raw, updatedAt, priority) {
+          if (raw && typeof raw !== 'string') {
+            try { raw = JSON.stringify(raw); } catch(e) { return null; }
+          }
+          if (!raw) return null;
+          try {
+            var parsedCatalog = JSON.parse(raw);
+            if (!parsedCatalog || typeof parsedCatalog !== 'object' || Array.isArray(parsedCatalog)) return null;
+          } catch(e) { return null; }
+          return {
+            raw: raw,
+            updatedAt: parseInt(updatedAt || '0', 10) || 0,
+            priority: priority
+          };
+        }
+        var remoteCatalogState = data.catalogState && typeof data.catalogState === 'object'
+          ? data.catalogState : null;
+        var localCatalogState = db && db.catalogState && typeof db.catalogState === 'object'
+          ? db.catalogState : null;
+        var catalogCandidates = [
+          catalogCandidate(data._catalog, data._catalogUpdatedAt, 1),
+          catalogCandidate(
+            remoteCatalogState && remoteCatalogState.raw,
+            remoteCatalogState && remoteCatalogState.updatedAt,
+            2
+          ),
+          catalogCandidate(
+            localCatalogState && localCatalogState.raw,
+            localCatalogState && localCatalogState.updatedAt,
+            3
+          ),
+          catalogCandidate(
+            localStorage.getItem('dental_catalog_v1'),
+            localStorage.getItem('dental_catalog_updated_at'),
+            4
+          )
+        ].filter(Boolean);
+        var selectedCatalogState = catalogCandidates.reduce(function(best, candidate) {
+          if (!best
+              || candidate.updatedAt > best.updatedAt
+              || (candidate.updatedAt === best.updatedAt && candidate.priority > best.priority)) {
+            return candidate;
+          }
+          return best;
+        }, null);
+        if (selectedCatalogState) {
+          var remoteHasSelectedCatalog = !!remoteCatalogState
+            && String(remoteCatalogState.raw || '') === selectedCatalogState.raw
+            && (parseInt(remoteCatalogState.updatedAt || '0', 10) || 0) === selectedCatalogState.updatedAt;
+          data.catalogState = {
+            raw: selectedCatalogState.raw,
+            updatedAt: selectedCatalogState.updatedAt
+          };
+          // Poner la misma versión en ambos lados antes de la unión garantiza
+          // que preferLocalMain no pueda descartar el catálogo seleccionado.
+          if (db) {
+            db.catalogState = {
+              raw: selectedCatalogState.raw,
+              updatedAt: selectedCatalogState.updatedAt
+            };
+          }
+          localStorage.setItem('dental_catalog_v1', selectedCatalogState.raw);
+          localStorage.setItem('dental_catalog_updated_at', String(selectedCatalogState.updatedAt));
+          if (!remoteHasSelectedCatalog) {
             _preferLocalAfterReconnect = true;
             _dirty = true;
-          } else {
-            localStorage.setItem('dental_catalog_v1', data._catalog);
-            if (remoteCatalogUpdatedAt) localStorage.setItem('dental_catalog_updated_at', String(remoteCatalogUpdatedAt));
-            if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
           }
-          delete data._catalog;
         }
+        delete data._catalog;
         delete data._catalogUpdatedAt;
         if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
         if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
@@ -13776,6 +13879,7 @@ var GD = (function() {
         db = mergedData;
         if (!Array.isArray(db.patients)) db.patients = [];
         if (!Array.isArray(db.appointments)) db.appointments = [];
+        if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
         localStorage.setItem('dental_v4', JSON.stringify(db));
         localStorage.setItem(
           'dental_local_updated_at',
@@ -14092,6 +14196,7 @@ var GD = (function() {
   function _initApp() {
     if (!db.appointments) db.appointments = [];
     if (!db.patients) db.patients = [];
+    if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
     if (typeof _loadBudgetState === 'function') _loadBudgetState();
     if (typeof populateCityFilter === 'function') populateCityFilter();
     if (typeof updateTopStats === 'function') updateTopStats();
@@ -14109,6 +14214,7 @@ var GD = (function() {
     // Drive puede haber cargado una lista de doctores distinta a la del caché.
     // Revalidar el perfil activo antes de dibujar filtros, firmas y saludo.
     if (typeof initDoctorSystem === 'function') initDoctorSystem();
+    if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
     // Asignar HC ANTES de renderizar
     if (typeof assignHCNumbers === 'function') assignHCNumbers();
     if (typeof populateCityFilter === 'function') populateCityFilter();
@@ -14123,6 +14229,10 @@ var GD = (function() {
       if (typeof renderReportePage === 'function') renderReportePage();
     }
     if (activeId === 'caja-page' && typeof cajaRender === 'function') cajaRender();
+    if (activeId === 'budget-page') {
+      if (typeof buildCatalogUI === 'function') buildCatalogUI();
+      if (typeof renderBudgetPanel === 'function') renderBudgetPanel();
+    }
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof updateBackupBadge === 'function') updateBackupBadge();
     // Mostrar botón de Calendar si hay sesión Google

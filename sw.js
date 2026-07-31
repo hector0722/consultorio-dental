@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260730-sync-live-v2';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260730-catalog-drive-v3';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
