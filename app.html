@@ -12952,7 +12952,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-8', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260731-9', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12972,7 +12972,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_8';
+      var refreshKey = 'dental_sw_refreshed_20260731_9';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13278,7 +13278,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_batch_v8';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_metadata_v9';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -14189,6 +14189,13 @@ var GD = (function() {
   function _doSave() {
     if (!_token || !_dirty || _saving) return;
     if (_dbSaving) return;
+    // Las fotos se suben como archivos independientes. Mientras se arma el
+    // lote, no recargar la base desde Drive: eso reemplazaría el objeto del
+    // paciente y podría dejar fotos subidas sin referencia en su expediente.
+    if (typeof _photoMutationActive === 'function' && _photoMutationActive()) {
+      _dirty = true;
+      return;
+    }
     _dbSaving = true;
     _dirty = false;
     setBadge('syncing', 'Guardando…');
@@ -14252,7 +14259,8 @@ var GD = (function() {
   function _pullRemoteChanges(force) {
     // Un guardado pendiente de configuración o portada no debe bloquear la
     // descarga de Caja, pacientes y citas. Antes podía impedirla para siempre.
-    if (!_token || _mode !== 'google' || _autoPulling || _saving || _dbSaving) {
+    if (!_token || _mode !== 'google' || _autoPulling || _saving || _dbSaving
+        || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
       return Promise.resolve(false);
     }
     if (document.hidden && !force) return Promise.resolve(false);
@@ -15674,6 +15682,25 @@ function printRx(idx) {
 // ★ FOTOS CLÍNICAS EN GOOGLE DRIVE
 // ══════════════════════════════════════════════════════════
 var _photoPatientId = null;
+var _photoMutationDepth = 0;
+var _photoRecoveryInFlight = {};
+
+function _photoMutationActive() {
+  return _photoMutationDepth > 0;
+}
+
+function _beginPhotoMutation() {
+  _photoMutationDepth++;
+}
+
+function _endPhotoMutation() {
+  _photoMutationDepth = Math.max(0, _photoMutationDepth - 1);
+}
+
+function getPatientPhotoFolderName(p) {
+  return 'Fotos_' + String(p.id) + '_' + (p.name || 'Paciente')
+    .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+/g, '_').substring(0, 25);
+}
 
 function openPhotoModule() {
   var p = db.patients.find(function(x){ return x.id == curId; });
@@ -15684,6 +15711,9 @@ function openPhotoModule() {
   if (section && section.scrollIntoView) {
     section.scrollIntoView({ behavior:'smooth', block:'start' });
   }
+  // También recupera las referencias de fotos que sí llegaron a Drive en una
+  // carga anterior, pero no alcanzaron a guardarse en el JSON del expediente.
+  recoverPatientPhotosFromDrive(p.id);
 }
 
 var _bulkFiles   = [];
@@ -15821,20 +15851,28 @@ function confirmBulkUpload() {
 
   var uploadBtn = document.getElementById('btn-upload-all-photos');
   var moreBtn = document.getElementById('btn-add-more-photos');
+  var cancelBtn = document.getElementById('btn-cancel-photo-upload');
   if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = '⏳ Subiendo…'; }
   if (moreBtn) moreBtn.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
   updatePhotoBatchStatus('Subiendo 0 de ' + files.length + ' foto(s)…');
   showToast('📤 Subiendo ' + files.length + ' foto(s)…', 'green');
+  _beginPhotoMutation();
 
   // Subir una por una en secuencia
   var i = 0, uploaded = 0, failed = 0;
   function uploadNext() {
     if (i >= files.length) {
       var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
+      _endPhotoMutation();
+      // Guardar una sola vez el lote completo; así ninguna foto puede
+      // sobrescribir las referencias de las anteriores.
+      if (uploaded > 0) saveDB();
       if (p) renderPhotoGrid(p);
       if (modal) modal.classList.remove('open');
       if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = '✅ Subir todas'; }
       if (moreBtn) moreBtn.disabled = false;
+      if (cancelBtn) cancelBtn.disabled = false;
       if (failed) {
         showToast('⚠️ ' + uploaded + ' foto(s) guardadas y ' + failed + ' con error', 'red');
       } else {
@@ -15842,6 +15880,8 @@ function confirmBulkUpload() {
       }
       _bulkFiles = []; _bulkPreviews = []; _appendPhotoSelection = false;
       updatePhotoBatchStatus();
+      // Incorpora además cualquier archivo huérfano de intentos anteriores.
+      recoverPatientPhotosFromDrive(_photoPatientId);
       return;
     }
     updatePhotoBatchStatus('Subiendo ' + (i + 1) + ' de ' + files.length + ': ' + files[i].name);
@@ -15873,8 +15913,8 @@ function _uploadPhotoToDrive(file, type, callback, quiet) {
   var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
   var p = db.patients.find(function(x){ return x.id == _photoPatientId; });
   if (!p) return callback && callback(false);
-
-  if (!p.photos) p.photos = [];
+  var patientId = p.id;
+  var patientFolderName = getPatientPhotoFolderName(p);
 
   // Sin Drive activo — no se pueden subir fotos
   if (!tok) {
@@ -15887,7 +15927,6 @@ function _uploadPhotoToDrive(file, type, callback, quiet) {
   // Subir foto a Drive como archivo independiente
   // El JSON solo guarda el driveId (liviano)
   if (!quiet) showToast('📤 Subiendo foto…', 'green');
-  var patientFolderName = 'Fotos_' + String(p.id) + '_' + (p.name||'Paciente').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+/g,'_').substring(0,25);
 
   _getDriveFolder(patientFolderName).then(function(folderId) {
     var fileName = new Date().toISOString().slice(0,10) + '_' + type + '_' + file.name;
@@ -15907,18 +15946,27 @@ function _uploadPhotoToDrive(file, type, callback, quiet) {
     });
   }).then(function(f) {
     if (f && f.id) {
+      // Buscar nuevamente al paciente. Una sincronización puede reemplazar
+      // los objetos de db mientras Drive termina de responder.
+      var currentPatient = db.patients.find(function(x){ return String(x.id) === String(patientId); });
+      if (!currentPatient) throw new Error('El expediente ya no está disponible');
+      if (!Array.isArray(currentPatient.photos)) currentPatient.photos = [];
       var photo = {
-        id:      Date.now(),
+        id:      Date.now() + '_' + String(f.id).slice(-8),
         type:    type,
         date:    new Date().toISOString().slice(0,10),
         name:    file.name,
         driveId: f.id,
         dataUrl: null  // NO base64 — se carga desde Drive con token
       };
-      p.photos.push(photo);
-      saveDB();
+      if (!currentPatient.photos.some(function(ph){ return ph.driveId === f.id; })) {
+        currentPatient.photos.push(photo);
+      }
+      // En lote se guarda una sola vez al terminar; fuera de lote se mantiene
+      // el comportamiento inmediato.
+      if (!quiet) saveDB();
       if (!quiet) showToast('✅ Foto guardada en Drive', 'green');
-      renderPhotoGrid(p);
+      if (!quiet) renderPhotoGrid(currentPatient);
     }
     if (callback) callback(!!(f && f.id));
   }).catch(function(e) {
@@ -15926,6 +15974,66 @@ function _uploadPhotoToDrive(file, type, callback, quiet) {
     if (!quiet) showToast('❌ Error al subir foto — verifica tu conexión', 'red');
     if (callback) callback(false);
   });
+}
+
+// Reconciliar la carpeta de Drive con el índice liviano del expediente.
+// Nunca elimina archivos: únicamente agrega referencias que falten.
+function recoverPatientPhotosFromDrive(patientId) {
+  var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
+  var p = db.patients.find(function(x){ return String(x.id) === String(patientId); });
+  if (!tok || !p) return Promise.resolve(0);
+  var recoveryKey = String(patientId);
+  if (_photoRecoveryInFlight[recoveryKey]) return _photoRecoveryInFlight[recoveryKey];
+
+  _beginPhotoMutation();
+  var folderName = getPatientPhotoFolderName(p);
+  var recovery = _getDriveFolder(folderName).then(function(folderId) {
+    if (!folderId) return [];
+    var q = "'" + folderId + "' in parents and trashed=false";
+    var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
+      + '&pageSize=1000&orderBy=createdTime&fields=files(id,name,mimeType,createdTime)';
+    return fetch(url, { headers: { Authorization: 'Bearer ' + tok } }).then(function(r) {
+      if (!r.ok) throw new Error('Drive listar fotos HTTP ' + r.status);
+      return r.json();
+    }).then(function(data) { return data.files || []; });
+  }).then(function(files) {
+    var currentPatient = db.patients.find(function(x){ return String(x.id) === recoveryKey; });
+    if (!currentPatient) return 0;
+    if (!Array.isArray(currentPatient.photos)) currentPatient.photos = [];
+    var known = {};
+    currentPatient.photos.forEach(function(ph) { if (ph.driveId) known[ph.driveId] = true; });
+    var added = 0;
+    files.forEach(function(f, index) {
+      if (!f || !f.id || known[f.id] || String(f.mimeType || '').indexOf('image/') !== 0) return;
+      var match = String(f.name || '').match(/^\d{4}-\d{2}-\d{2}_(antes|despues|intraoral|extraoral|rx)_(.*)$/);
+      var dateMatch = String(f.name || '').match(/^(\d{4}-\d{2}-\d{2})_/);
+      currentPatient.photos.push({
+        id: 'recovered_' + Date.now() + '_' + index + '_' + String(f.id).slice(-8),
+        type: match ? match[1] : 'intraoral',
+        date: dateMatch ? dateMatch[1] : (f.createdTime ? f.createdTime.slice(0,10) : new Date().toISOString().slice(0,10)),
+        name: match && match[2] ? match[2] : (f.name || 'Foto clínica'),
+        driveId: f.id,
+        dataUrl: null
+      });
+      known[f.id] = true;
+      added++;
+    });
+    if (added) {
+      renderPhotoGrid(currentPatient);
+      showToast('✅ Se recuperaron ' + added + ' foto(s) que ya estaban en Drive', 'green');
+    }
+    return added;
+  }).catch(function(e) {
+    console.warn('recoverPatientPhotos error:', e);
+    return 0;
+  }).then(function(added) {
+    _endPhotoMutation();
+    delete _photoRecoveryInFlight[recoveryKey];
+    if (added) saveDB();
+    return added;
+  });
+  _photoRecoveryInFlight[recoveryKey] = recovery;
+  return recovery;
 }
 
 // Obtener o crear carpeta en Drive
@@ -18317,7 +18425,7 @@ window.addEventListener('resize', function() {
     <div class="photo-bulk-sub" id="photo-bulk-status">Elige el tipo de cada foto antes de subirlas.</div>
     <div class="photo-bulk-grid" id="photo-bulk-grid"></div>
     <div class="photo-bulk-actions">
-      <button class="btn btn-ghost" onclick="cancelBulkUpload()" style="border-radius:var(--r-sm)">Cancelar</button>
+      <button class="btn btn-ghost" id="btn-cancel-photo-upload" onclick="cancelBulkUpload()" style="border-radius:var(--r-sm)">Cancelar</button>
       <button class="btn btn-ghost" id="btn-add-more-photos" onclick="addMorePhotos()" style="border-radius:var(--r-sm)">+ Agregar más</button>
       <button class="btn btn-primary" id="btn-upload-all-photos" onclick="confirmBulkUpload()" style="border-radius:var(--r-sm)">
         ✅ Subir todas
