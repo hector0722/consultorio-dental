@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260731-photo-metadata-v9';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260803-data-safe-v10';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

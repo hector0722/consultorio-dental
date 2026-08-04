@@ -4061,6 +4061,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
     <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Todo listo: corregimos los bugs reportados</h2>
     <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Esta versión mejora la seguridad de tus datos y la sincronización entre dispositivos.</p>
     <div style="display:grid;gap:9px;margin-bottom:22px">
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🛡️</span><span style="font-size:.79rem;line-height:1.45"><strong>Expedientes protegidos:</strong> cada dispositivo conserva su propia copia de rescate y Drive verifica el contenido completo antes de mostrar “Sincronizado”.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización automática:</strong> los cambios de otro dispositivo aparecen sin recargar manualmente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔐</span><span style="font-size:.79rem;line-height:1.45"><strong>Cuentas protegidas:</strong> pacientes y saldos ya no se mezclan entre cuentas de Google.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctores personalizados:</strong> se conservan el nombre configurado y todos los perfiles agregados en la clínica.</span></div>
@@ -5310,6 +5311,28 @@ function markPatientDeleted(id) {
   savePatientTombstones(deleted);
 }
 
+function patientUpdatedAt(patient) {
+  if (!patient || typeof patient !== 'object') return 0;
+  var latest = parseInt(patient._updatedAt || '0', 10) || 0;
+  var fields = patient._fieldUpdatedAt;
+  if (fields && typeof fields === 'object' && !Array.isArray(fields)) {
+    Object.keys(fields).forEach(function(key) {
+      latest = Math.max(latest, parseInt(fields[key] || '0', 10) || 0);
+    });
+  }
+  return latest;
+}
+
+// Una eliminación solo gana contra versiones anteriores del expediente.
+// Esto permite restaurar un respaldo nuevo sin que una marca vieja vuelva a
+// borrar silenciosamente al paciente en la siguiente sincronización.
+function isPatientDeletedByTombstone(patient, deletedAt) {
+  deletedAt = parseInt(deletedAt || '0', 10) || 0;
+  if (!deletedAt) return false;
+  var updatedAt = patientUpdatedAt(patient);
+  return !updatedAt || deletedAt >= updatedAt;
+}
+
 function syncComparable(value) {
   if (Array.isArray(value)) return value.map(syncComparable);
   if (!value || typeof value !== 'object') return value;
@@ -5382,6 +5405,19 @@ function prepareDentalSyncMetadata(previousRaw) {
         budget._updatedAt = oldBudget._updatedAt;
       }
     });
+    var fieldTimes = mergeTimestampMaps(
+      oldPatient && oldPatient._fieldUpdatedAt,
+      patient._fieldUpdatedAt
+    );
+    Object.keys(patient).forEach(function(key) {
+      if (key === '_updatedAt' || key === '_fieldUpdatedAt'
+          || key === 'budgets' || key === '_budgetTombstones') return;
+      var oldValue = oldPatient ? oldPatient[key] : undefined;
+      if (!oldPatient || syncSignature(oldValue) !== syncSignature(patient[key])) {
+        fieldTimes[key] = now;
+      }
+    });
+    if (Object.keys(fieldTimes).length) patient._fieldUpdatedAt = fieldTimes;
     if (!oldPatient || syncSignature(oldPatient) !== syncSignature(patient)) {
       patient._updatedAt = now;
     } else if (!patient._updatedAt && oldPatient._updatedAt) {
@@ -5404,6 +5440,38 @@ function prepareDentalSyncMetadata(previousRaw) {
       appt._updatedAt = oldAppt._updatedAt;
     }
   });
+}
+
+function mergeRecordFields(remoteRecord, localRecord, preferLocal, excluded) {
+  excluded = excluded || {};
+  var remoteAt = parseInt(remoteRecord && remoteRecord._updatedAt || '0', 10) || 0;
+  var localAt = parseInt(localRecord && localRecord._updatedAt || '0', 10) || 0;
+  var baseIsLocal = localAt > remoteAt || (localAt === remoteAt && preferLocal);
+  var merged = JSON.parse(JSON.stringify(baseIsLocal ? localRecord : remoteRecord));
+  var remoteFields = remoteRecord && remoteRecord._fieldUpdatedAt || {};
+  var localFields = localRecord && localRecord._fieldUpdatedAt || {};
+  var fieldTimes = mergeTimestampMaps(remoteFields, localFields);
+  var keys = {};
+  Object.keys(remoteRecord || {}).forEach(function(key){ keys[key] = true; });
+  Object.keys(localRecord || {}).forEach(function(key){ keys[key] = true; });
+  Object.keys(keys).forEach(function(key) {
+    if (key === '_updatedAt' || key === '_fieldUpdatedAt' || excluded[key]) return;
+    var remoteFieldAt = parseInt(remoteFields[key] || remoteAt || '0', 10) || 0;
+    var localFieldAt = parseInt(localFields[key] || localAt || '0', 10) || 0;
+    var useLocal = localFieldAt > remoteFieldAt
+      || (localFieldAt === remoteFieldAt && preferLocal);
+    var source = useLocal ? localRecord : remoteRecord;
+    if (source && Object.prototype.hasOwnProperty.call(source, key)) {
+      merged[key] = JSON.parse(JSON.stringify(source[key]));
+    } else {
+      delete merged[key];
+    }
+  });
+  if (Object.keys(fieldTimes).length) merged._fieldUpdatedAt = fieldTimes;
+  else delete merged._fieldUpdatedAt;
+  if (remoteAt || localAt) merged._updatedAt = Math.max(remoteAt, localAt);
+  else delete merged._updatedAt;
+  return merged;
 }
 
 function mergeTimestampMaps(remoteMap, localMap) {
@@ -5485,7 +5553,14 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
   });
 
   merged.patients = patientOrder.filter(function(id) {
-    return !patientTombstones[id];
+    var newest = null;
+    if (remoteById[id] && localById[id]) {
+      newest = patientUpdatedAt(localById[id]) >= patientUpdatedAt(remoteById[id])
+        ? localById[id] : remoteById[id];
+    } else {
+      newest = localById[id] || remoteById[id];
+    }
+    return !isPatientDeletedByTombstone(newest, patientTombstones[id]);
   }).map(function(id) {
     var remotePatient = remoteById[id];
     var localPatient = localById[id];
@@ -5495,7 +5570,10 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
     var remoteAt = parseInt(remotePatient._updatedAt || '0', 10) || 0;
     var localAt = parseInt(localPatient._updatedAt || '0', 10) || 0;
     var useLocal = localAt > remoteAt || (localAt === remoteAt && preferLocal);
-    var selected = JSON.parse(JSON.stringify(useLocal ? localPatient : remotePatient));
+    var selected = mergeRecordFields(remotePatient, localPatient, preferLocal, {
+      budgets:true,
+      _budgetTombstones:true
+    });
     var budgetMerge = mergePatientBudgets(remotePatient, localPatient, useLocal);
     if (budgetMerge.budgets.length
         || Array.isArray(remotePatient.budgets)
@@ -5579,7 +5657,8 @@ function recoverMissingPatientsFromLocalSnapshots() {
   db.patients.forEach(function(patient){ currentIds[String(patient.id)] = true; });
   var deletedPatientIds = loadPatientTombstones();
   var missing = best.db.patients.filter(function(patient){
-    return !currentIds[String(patient.id)] && !deletedPatientIds[String(patient.id)];
+    return !currentIds[String(patient.id)]
+      && !isPatientDeletedByTombstone(patient, deletedPatientIds[String(patient.id)]);
   });
   if (!missing.length) return 0;
   db.patients = db.patients.concat(missing);
@@ -12952,7 +13031,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260731-9', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260803-10', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12972,7 +13051,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260731_9';
+      var refreshKey = 'dental_sw_refreshed_20260803_10';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13278,7 +13357,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_07_31_photo_metadata_v9';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_03_data_safe_v10';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13316,6 +13395,8 @@ var GD = (function() {
   var DB_FILENAME = 'consultorio_dental_db.json';
   var CFG_FILENAME= 'consultorio_dental_cfg.json';
   var HERO_FILENAME='consultorio_dental_portada.json';
+  var DEVICE_DB_PREFIX='consultorio_dental_device_';
+  var DEVICE_ID_KEY='dental_device_id_v1';
   var FOLDER_NAME = 'Consultorio Dental';
   var GD_MODE_KEY = 'dental_gd_mode';
 
@@ -13327,6 +13408,8 @@ var GD = (function() {
   var _needsAppDataMigration = false;
   var _cfgFileId = null;
   var _heroFileId = null;
+  var _deviceDbFileId = null;
+  var _deviceId = localStorage.getItem(DEVICE_ID_KEY) || '';
   var _syncTimer = null;
   var _cfgSaveTimer = null;
   var _cfgSaving = false;
@@ -13342,6 +13425,7 @@ var GD = (function() {
   var _autoPulling = false;
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
+  var _lastMirrorModifiedTime = '';
   var _lastRemotePatientCount = null;
   var _visibilitySyncInstalled = false;
   var _accountEmail = localStorage.getItem('dental_gd_email') || '';
@@ -13349,6 +13433,23 @@ var GD = (function() {
   // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
   // da una actualización casi inmediata sin esperar la recarga de la página.
   var AUTO_PULL_MS = 3000;
+
+  function _getDeviceId() {
+    if (_deviceId) return _deviceId;
+    var randomPart = '';
+    try {
+      randomPart = crypto.randomUUID().replace(/-/g, '');
+    } catch(e) {
+      randomPart = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+    _deviceId = randomPart.slice(0, 32);
+    localStorage.setItem(DEVICE_ID_KEY, _deviceId);
+    return _deviceId;
+  }
+
+  function _deviceDbFilename() {
+    return DEVICE_DB_PREFIX + _getDeviceId() + '.json';
+  }
 
   // El caché del navegador debe pertenecer a una sola cuenta de Google.
   // Antes se reutilizaba dental_v4 al cambiar de cuenta y _loadDB terminaba
@@ -13436,6 +13537,8 @@ var GD = (function() {
       localStorage.setItem('dental_local_updated_at', '0');
       _preferLocalAfterReconnect = false;
       _dirty = false;
+      _deviceDbFileId = null;
+      _lastMirrorModifiedTime = '';
       showToast('🔐 Cuenta distinta: cargando únicamente sus datos de Drive', 'green');
     }
     localStorage.setItem(ACCOUNT_ID_KEY, nextId);
@@ -13670,14 +13773,22 @@ var GD = (function() {
     var importRevisionAtStart = localStorage.getItem('dental_import_revision') || '0';
     return _findPrimaryDBFile().then(function(file) {
       if (!file) {
-        // Primera conexión: crear la base privada de la app. Si este equipo
-        // trabajó offline, se subirá su contenido; si es nuevo, quedará lista
-        // para recibir datos sin depender de una carpeta visible de Drive.
-        _needsAppDataMigration = true;
-        _preferLocalAfterReconnect = !!(db && ((db.patients && db.patients.length)
-          || (db.appointments && db.appointments.length)));
-        _dirty = true;
-        return;
+        // Si la copia principal faltara, reconstruirla desde los espejos
+        // independientes de cada dispositivo antes de crear una base vacía.
+        return _loadDeviceDBPayloads().then(function(mirrors) {
+          if (mirrors.length) {
+            db = _mergeDeviceDBPayloads(db, mirrors);
+            if (!Array.isArray(db.patients)) db.patients = [];
+            if (!Array.isArray(db.appointments)) db.appointments = [];
+            localStorage.setItem('dental_v4', JSON.stringify(db));
+            localStorage.setItem('dental_local_updated_at', Date.now().toString());
+            _lastRemotePatientCount = db.patients.length;
+          }
+          _needsAppDataMigration = true;
+          _preferLocalAfterReconnect = !!(db && ((db.patients && db.patients.length)
+            || (db.appointments && db.appointments.length)));
+          _dirty = true;
+        });
       }
       _dbFileId = file.id;
       if (!_dbIsAppData) {
@@ -13687,7 +13798,8 @@ var GD = (function() {
         _needsAppDataMigration = true;
         _dirty = true;
       }
-      return _readFile(file.id).then(function(data) {
+      return Promise.all([_readFile(file.id), _loadDeviceDBPayloads()]).then(function(results) {
+        var data = _mergeDeviceDBPayloads(results[0], results[1]);
         if (!data) return;
         _lastRemotePatientCount = Array.isArray(data.patients) ? data.patients.length : 0;
         if (file.modifiedTime) _lastRemoteModifiedTime = file.modifiedTime;
@@ -13914,10 +14026,16 @@ var GD = (function() {
 
         // Aplicar eliminaciones conocidas antes de comparar y mezclar copias.
         if (Array.isArray(data.patients)) data.patients = data.patients.filter(function(patient) {
-          return !localPatientTombstones[String(patient.id)];
+          return !isPatientDeletedByTombstone(
+            patient,
+            localPatientTombstones[String(patient.id)]
+          );
         });
         if (db && Array.isArray(db.patients)) db.patients = db.patients.filter(function(patient) {
-          return !localPatientTombstones[String(patient.id)];
+          return !isPatientDeletedByTombstone(
+            patient,
+            localPatientTombstones[String(patient.id)]
+          );
         });
 
         // Unir siempre por registro. La fecha general del archivo no basta:
@@ -13930,7 +14048,10 @@ var GD = (function() {
         });
         var preservedLocalPatients = localPatientsBeforeMerge.filter(function(patient) {
           return !remotePatientIdsBeforeMerge[String(patient.id)]
-            && !localPatientTombstones[String(patient.id)];
+            && !isPatientDeletedByTombstone(
+              patient,
+              localPatientTombstones[String(patient.id)]
+            );
         }).length;
         var remoteSignatureBeforeMerge = syncSignature(data);
         var mergedData = mergeDentalDatabases(data, db, preferLocalMain);
@@ -14117,6 +14238,87 @@ var GD = (function() {
     });
   }
 
+  function _findDeviceDBFiles() {
+    var q = "name contains '" + DEVICE_DB_PREFIX + "' and trashed=false";
+    return _driveReq('GET', '/drive/v3/files?q=' + encodeURIComponent(q)
+      + '&spaces=appDataFolder&orderBy=modifiedTime%20desc&pageSize=100&fields=files(id,name,modifiedTime)').then(function(r) {
+      var files = (r.files && r.files.length) ? r.files : [];
+      var ownName = _deviceDbFilename();
+      var own = files.find(function(file){ return file.name === ownName; });
+      if (own) _deviceDbFileId = own.id;
+      return files;
+    });
+  }
+
+  function _loadDeviceDBPayloads() {
+    return _findDeviceDBFiles().then(function(files) {
+      // Un espejo por instalación evita que dos dispositivos escriban sobre
+      // la misma copia de rescate. Se leen todos porque cada uno puede contener
+      // el último cambio válido de un expediente distinto.
+      if (files[0] && files[0].modifiedTime) _lastMirrorModifiedTime = files[0].modifiedTime;
+      return Promise.all(files.slice(0, 100).map(function(file) {
+        return _readFile(file.id).then(function(data) {
+          return data && typeof data === 'object' ? data : null;
+        }).catch(function(){ return null; });
+      })).then(function(items){ return items.filter(Boolean); });
+    });
+  }
+
+  function _mergeDeviceDBPayloads(primaryData, mirrors) {
+    var merged = primaryData && typeof primaryData === 'object'
+      ? JSON.parse(JSON.stringify(primaryData))
+      : { patients:[], appointments:[] };
+    var tombstones = merged._patientTombstones || {};
+    (mirrors || []).forEach(function(mirror) {
+      tombstones = mergeTimestampMaps(tombstones, mirror._patientTombstones);
+    });
+    tombstones = mergeTimestampMaps(tombstones, loadPatientTombstones());
+    savePatientTombstones(tombstones);
+
+    (mirrors || []).forEach(function(mirror) {
+      var candidate = {
+        patients: Array.isArray(mirror.patients) ? mirror.patients : [],
+        appointments: Array.isArray(mirror.appointments) ? mirror.appointments : [],
+        _appointmentTombstones: mirror._appointmentTombstones || {},
+        catalogState: mirror.catalogState
+      };
+      merged = mergeDentalDatabases(merged, candidate, false);
+      var currentCatalogAt = parseInt(merged.catalogState && merged.catalogState.updatedAt || '0', 10) || 0;
+      var mirrorCatalogAt = parseInt(mirror.catalogState && mirror.catalogState.updatedAt || '0', 10) || 0;
+      if (mirrorCatalogAt > currentCatalogAt) {
+        merged.catalogState = JSON.parse(JSON.stringify(mirror.catalogState));
+      }
+    });
+    merged._patientTombstones = tombstones;
+    return merged;
+  }
+
+  function _payloadContentSignature(data) {
+    var copy = JSON.parse(JSON.stringify(data || {}));
+    delete copy._savedAt;
+    delete copy._syncRevision;
+    delete copy._syncPatientCount;
+    delete copy._syncContentSignature;
+    return syncSignature(copy);
+  }
+
+  function _writeDeviceDB(payload) {
+    var ownName = _deviceDbFilename();
+    var ensureId = _deviceDbFileId
+      ? Promise.resolve(_deviceDbFileId)
+      : _findAppDataFile(ownName).then(function(file) {
+          _deviceDbFileId = file ? file.id : null;
+          return _deviceDbFileId;
+        });
+    return ensureId.then(function(fileId) {
+      return _writeFile(fileId, ownName, payload, ['appDataFolder']);
+    }).then(function(file) {
+      if (file && file.id) _deviceDbFileId = file.id;
+      if (file && file.modifiedTime) _lastMirrorModifiedTime = file.modifiedTime;
+      return file;
+    });
+  }
+
   function _findPrimaryDBFile() {
     return _findAppDataFile(DB_FILENAME).then(function(appDataFile) {
       if (appDataFile) {
@@ -14201,6 +14403,8 @@ var GD = (function() {
     setBadge('syncing', 'Guardando…');
     var expectedRevision = '';
     var expectedPatientCount = 0;
+    var expectedContentSignature = '';
+    var savedMirrorFile = null;
     // Volver a leer justo antes de escribir reduce la ventana de conflicto:
     // si otro teléfono o computadora guardó desde la última comprobación,
     // primero se unen sus registros y después se sube el resultado completo.
@@ -14212,11 +14416,25 @@ var GD = (function() {
       expectedPatientCount = Array.isArray(payload.patients) ? payload.patients.length : 0;
       payload._syncRevision = expectedRevision;
       payload._syncPatientCount = expectedPatientCount;
-      return _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
+      expectedContentSignature = _payloadContentSignature(payload);
+      payload._syncContentSignature = expectedContentSignature;
+      // Guardar primero una copia exclusiva de este dispositivo. Si dos
+      // equipos escriben al mismo tiempo, ninguno puede borrar el respaldo
+      // del otro y la siguiente lectura reconstruye la unión completa.
+      return _writeDeviceDB(payload).then(function(mirrorFile) {
+        savedMirrorFile = mirrorFile;
+        return _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
+      });
     }).then(function(f) {
       var verifyId = (f && f.id) || _dbFileId;
       if (!verifyId) throw new Error('Drive no devolvió el identificador de la base');
-      return _readFile(verifyId).then(function(verifiedData) {
+      var mirrorVerifyId = (savedMirrorFile && savedMirrorFile.id) || _deviceDbFileId;
+      return Promise.all([
+        _readFile(verifyId),
+        mirrorVerifyId ? _readFile(mirrorVerifyId) : Promise.resolve(null)
+      ]).then(function(verifiedItems) {
+        var verifiedData = verifiedItems[0];
+        var verifiedMirror = verifiedItems[1];
         if (!verifiedData || verifiedData._syncRevision !== expectedRevision) {
           throw new Error('La verificación de Drive no coincide con el guardado');
         }
@@ -14224,7 +14442,16 @@ var GD = (function() {
         if (verifiedCount !== expectedPatientCount) {
           throw new Error('Drive guardó un número de pacientes distinto');
         }
-        return { file:f, patientCount:verifiedCount };
+        if (_payloadContentSignature(verifiedData) !== expectedContentSignature
+            || verifiedData._syncContentSignature !== expectedContentSignature) {
+          throw new Error('Drive no conservó todo el contenido enviado');
+        }
+        if (!verifiedMirror
+            || verifiedMirror._syncRevision !== expectedRevision
+            || _payloadContentSignature(verifiedMirror) !== expectedContentSignature) {
+          throw new Error('Drive no confirmó la copia de seguridad del dispositivo');
+        }
+        return { file:f, mirror:savedMirrorFile, patientCount:verifiedCount };
       });
     }).then(function(result) {
       var f = result.file;
@@ -14233,6 +14460,9 @@ var GD = (function() {
       _needsAppDataMigration = false;
       _lastRemotePatientCount = result.patientCount;
       if (f && f.modifiedTime) _lastRemoteModifiedTime = f.modifiedTime;
+      if (result.mirror && result.mirror.modifiedTime) {
+        _lastMirrorModifiedTime = result.mirror.modifiedTime;
+      }
       _dbSaving = false;
       _preferLocalAfterReconnect = false;
       setBadge('synced', '✓ Drive verificado: ' + result.patientCount + ' pacientes');
@@ -14265,11 +14495,15 @@ var GD = (function() {
     }
     if (document.hidden && !force) return Promise.resolve(false);
     _autoPulling = true;
-    return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME)])
+    return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME), _findDeviceDBFiles()])
       .then(function(files) {
         var dbFile = files[0];
         var cfgFile = files[1];
-        var dbChanged = !!(dbFile && (force || (dbFile.modifiedTime
+        var mirrorFiles = files[2] || [];
+        var newestMirrorModifiedTime = mirrorFiles[0] && mirrorFiles[0].modifiedTime || '';
+        var mirrorChanged = !!(newestMirrorModifiedTime && _lastMirrorModifiedTime
+          && newestMirrorModifiedTime !== _lastMirrorModifiedTime);
+        var dbChanged = !!(force || mirrorChanged || (dbFile && (dbFile.modifiedTime
           && _lastRemoteModifiedTime
           && dbFile.modifiedTime !== _lastRemoteModifiedTime)));
         // La configuración sí espera si hay una edición local pendiente. La
@@ -14283,6 +14517,9 @@ var GD = (function() {
         // volver a descargar lo que acaba de cargarse.
         if (dbFile && dbFile.modifiedTime && !_lastRemoteModifiedTime) {
           _lastRemoteModifiedTime = dbFile.modifiedTime;
+        }
+        if (newestMirrorModifiedTime && !_lastMirrorModifiedTime) {
+          _lastMirrorModifiedTime = newestMirrorModifiedTime;
         }
         if (cfgFile && cfgFile.modifiedTime && !_lastCfgModifiedTime) {
           _lastCfgModifiedTime = cfgFile.modifiedTime;
@@ -14636,6 +14873,7 @@ var GD = (function() {
     _stopAutoPull();
     _token = null; _folderId = null; _dbFileId = null; _regularDbFileId = null;
     _dbIsAppData = false; _needsAppDataMigration = false;
+    _deviceDbFileId = null; _lastMirrorModifiedTime = '';
     _cfgFileId = null; _heroFileId = null;
     _mode = 'local';
     _accountEmail = '';
@@ -18817,7 +19055,7 @@ window.addEventListener('resize', function() {
 
     <!-- Footer -->
     <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:.72rem;color:var(--ink-4)">Consultorio Dental v5.2 · @SoyHectorAcostaMx</span>
+      <span style="font-size:.72rem;color:var(--ink-4)">Consultorio Dental v5.3 · @SoyHectorAcostaMx</span>
       <button onclick="closeHelp()" class="btn btn-primary" style="border-radius:var(--r-sm);padding:7px 20px">Entendido ✓</button>
     </div>
 
