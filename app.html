@@ -4046,7 +4046,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
       <img src="https://www.google.com/favicon.ico" alt="Google">
       Continuar con Google
     </button>
-    <button class="gd-skip-btn" onclick="gdSkip()">Usar sin cuenta (solo local)</button>
+    <div style="margin-top:12px;font-size:.7rem;line-height:1.45;color:var(--ink-3)">Se requiere conexión a Google Drive. Esta aplicación no guarda expedientes en el navegador.</div>
   </div>
 </div>
 
@@ -4061,7 +4061,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
     <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Todo listo: corregimos los bugs reportados</h2>
     <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Esta versión mejora la seguridad de tus datos y la sincronización entre dispositivos.</p>
     <div style="display:grid;gap:9px;margin-bottom:22px">
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🛡️</span><span style="font-size:.79rem;line-height:1.45"><strong>Expedientes protegidos:</strong> cada dispositivo conserva su propia copia de rescate y Drive verifica el contenido completo antes de mostrar “Sincronizado”.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🛡️</span><span style="font-size:.79rem;line-height:1.45"><strong>Modo solo Drive:</strong> los expedientes y fotografías ya no se guardan en el navegador; Drive verifica el contenido completo antes de mostrar “Sincronizado”.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización automática:</strong> los cambios de otro dispositivo aparecen sin recargar manualmente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔐</span><span style="font-size:.79rem;line-height:1.45"><strong>Cuentas protegidas:</strong> pacientes y saldos ya no se mezclan entre cuentas de Google.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctores personalizados:</strong> se conservan el nombre configurado y todos los perfiles agregados en la clínica.</span></div>
@@ -4095,10 +4095,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
       <img src="https://www.google.com/favicon.ico" alt="Google">
       Continuar con Google
     </button>
-    <button class="gd-reconnect-local" onclick="gdUseOffline()">
-      Usar offline en este dispositivo
-    </button>
-    <div style="margin-top:10px;font-size:.66rem;line-height:1.45;color:var(--ink-3)">Tus cambios se guardarán automáticamente aquí. Cuando conectes Google, se subirán a Drive.</div>
+    <div style="margin-top:10px;font-size:.66rem;line-height:1.45;color:var(--ink-3)">Para proteger tus expedientes, debes reconectar Google Drive antes de continuar.</div>
   </div>
 </div>
 
@@ -4177,7 +4174,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
   <div id="backup-reminder-box">
     <div class="br-icon">💾</div>
     <h3 id="br-title">Haz un respaldo de tus datos</h3>
-    <p id="br-body">Tus datos se guardan en este navegador. Si limpias el caché o cambias de computadora, <strong>podrías perderlos</strong>.<br><br>Guarda un respaldo en tu Drive o USB — tarda menos de 5 segundos.</p>
+    <p id="br-body">Google Drive es el almacenamiento principal de la clínica. Como protección adicional, puedes descargar una copia manual para conservarla en una USB u otra ubicación segura.</p>
     <div class="br-actions">
       <button class="btn btn-success" onclick="exportDataAndClose()" style="justify-content:center;border-radius:var(--r-sm)">
         📤 Exportar respaldo ahora
@@ -5222,13 +5219,176 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 </div>
 
 <script>
+// ═══ DRIVE-ONLY STORAGE ═══
+// Los datos clínicos y la configuración viven en memoria durante la sesión;
+// su única copia persistente es Google Drive. El navegador solo conserva
+// marcadores mínimos de acceso/activación, nunca información de la clínica.
+var appStorage = (function(nativeStorage) {
+  var memory = Object.create(null);
+  var dirty = Object.create(null);
+  var hydrationDepth = 0;
+  var drivePersistTimer = null;
+  var READY_KEY = 'dental_drive_only_ready_v1';
+  var LOCAL_OPERATIONAL_KEYS = {
+    dental_drive_only_ready_v1:1,
+    dental_gd_mode:1,
+    dental_gd_token_hint:1,
+    dental_device_id_v1:1,
+    dental_license_activated_v1:1
+  };
+  var AUX_EXCLUDED = {
+    dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
+    dental_cfg_v1:1,
+    dental_autobackup_previous:1, dental_autobackup_latest:1,
+    dental_preimport_backup:1, dental_pre_drive_merge_backup:1,
+    dental_pre_drive_production_backup:1,
+    dental_local_updated_at:1, dental_offline_last_saved_at:1,
+    dental_offline_enabled:1, dental_import_revision:1,
+    dental_recovered_snapshot_source:1
+  };
+
+  function isOperational(key) { return !!LOCAL_OPERATIONAL_KEYS[String(key)]; }
+  function scheduleAuxDrivePersist(key) {
+    if (hydrationDepth || isOperational(key) || AUX_EXCLUDED[key]) return;
+    if (drivePersistTimer) clearTimeout(drivePersistTimer);
+    drivePersistTimer = setTimeout(function() {
+      drivePersistTimer = null;
+      if (typeof GD !== 'undefined' && GD && GD.save && GD._token && GD._token()) GD.save();
+    }, 80);
+  }
+  function isReady() { return nativeStorage.getItem(READY_KEY) === '1'; }
+  function memoryHas(key) { return Object.prototype.hasOwnProperty.call(memory, key); }
+  function getItem(key) {
+    key = String(key);
+    if (isOperational(key)) return nativeStorage.getItem(key);
+    if (memoryHas(key)) return memory[key];
+    // Solo durante la migración inicial se permite leer la copia antigua.
+    return isReady() ? null : nativeStorage.getItem(key);
+  }
+  function setItem(key, value) {
+    key = String(key);
+    if (isOperational(key)) nativeStorage.setItem(key, String(value));
+    else {
+      var next = String(value);
+      var changed = !memoryHas(key) || memory[key] !== next;
+      memory[key] = next;
+      if (!hydrationDepth && changed) {
+        dirty[key] = true;
+        scheduleAuxDrivePersist(key);
+      }
+    }
+  }
+  function removeItem(key) {
+    key = String(key);
+    if (isOperational(key)) nativeStorage.removeItem(key);
+    else {
+      var changed = !memoryHas(key) || memory[key] !== null;
+      memory[key] = null;
+      if (!hydrationDepth && changed) {
+        dirty[key] = true;
+        scheduleAuxDrivePersist(key);
+      }
+    }
+  }
+  function allKeys() {
+    var keys = {};
+    Object.keys(memory).forEach(function(key){ keys[key] = true; });
+    for (var i = 0; i < nativeStorage.length; i++) {
+      var key = nativeStorage.key(i);
+      if (key) keys[key] = true;
+    }
+    return Object.keys(keys);
+  }
+  function exportDriveData() {
+    var result = {};
+    allKeys().forEach(function(key) {
+      if (isOperational(key) || AUX_EXCLUDED[key]) return;
+      var value = getItem(key);
+      if (value !== null) {
+        if (String(value).indexOf('data:image/') !== -1) {
+          try { value = JSON.stringify(imageFreeClone(JSON.parse(value))); }
+          catch(e) { return; }
+        }
+        result[key] = value;
+      }
+    });
+    return result;
+  }
+  function importDriveData(values) {
+    values = values || {};
+    Object.keys(memory).forEach(function(key) {
+      if (!isOperational(key) && !AUX_EXCLUDED[key] && !dirty[key]
+          && !Object.prototype.hasOwnProperty.call(values, key)) {
+        memory[key] = null;
+      }
+    });
+    Object.keys(values).forEach(function(key) {
+      if (!isOperational(key) && !AUX_EXCLUDED[key] && values[key] !== null && !dirty[key]) {
+        memory[key] = String(values[key]);
+      }
+    });
+  }
+  function hasLegacyPersistentClinicalData() {
+    if (isReady()) return false;
+    for (var i = 0; i < nativeStorage.length; i++) {
+      var key = nativeStorage.key(i);
+      if (key && !isOperational(key) && nativeStorage.getItem(key) !== null) return true;
+    }
+    return false;
+  }
+  function activateDriveOnly() {
+    nativeStorage.setItem(READY_KEY, '1');
+    nativeStorage.removeItem('dental_auto_file_enabled');
+    var remove = [];
+    for (var i = 0; i < nativeStorage.length; i++) {
+      var key = nativeStorage.key(i);
+      if (key && !isOperational(key)) remove.push(key);
+    }
+    remove.forEach(function(key){ nativeStorage.removeItem(key); });
+  }
+  function clearSessionClinicalData() {
+    memory = Object.create(null);
+    dirty = Object.create(null);
+  }
+  function beginHydration() { hydrationDepth++; }
+  function endHydration() { hydrationDepth = Math.max(0, hydrationDepth - 1); }
+  function markClean() { dirty = Object.create(null); }
+
+  if (!isReady()) {
+    for (var legacyIndex = 0; legacyIndex < nativeStorage.length; legacyIndex++) {
+      var legacyKey = nativeStorage.key(legacyIndex);
+      if (legacyKey && !isOperational(legacyKey)) {
+        memory[legacyKey] = nativeStorage.getItem(legacyKey);
+        dirty[legacyKey] = true;
+      }
+    }
+  }
+
+  return {
+    getItem:getItem,
+    setItem:setItem,
+    removeItem:removeItem,
+    key:function(index){ return allKeys()[index] || null; },
+    get length(){ return allKeys().length; },
+    exportDriveData:exportDriveData,
+    importDriveData:importDriveData,
+    hasLegacyPersistentClinicalData:hasLegacyPersistentClinicalData,
+    activateDriveOnly:activateDriveOnly,
+    clearSessionClinicalData:clearSessionClinicalData,
+    beginHydration:beginHydration,
+    endHydration:endHydration,
+    markClean:markClean,
+    isReady:isReady
+  };
+})(window.localStorage);
+
 // ═══ DB ═══
 let db = { patients: [] };
 let curId = null, delId = null;
 
 // Las imágenes viven únicamente en Google Drive. El navegador conserva solo
 // ids, nombres y clasificación para poder mostrar el expediente sin duplicar
-// archivos pesados en localStorage.
+// archivos pesados en appStorage.
 var _legacyImageMigrationPending = false;
 
 function isInlineImageValue(value) {
@@ -5284,60 +5444,83 @@ function serializeConfigForLocalStorage(value) {
 
 function purgeInlineImagesFromLocalStorage() {
   var keys = [];
-  for (var i = 0; i < localStorage.length; i++) {
-    var key = localStorage.key(i);
+  for (var i = 0; i < appStorage.length; i++) {
+    var key = appStorage.key(i);
     if (key && (/^dental_/.test(key) || ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dbs1'].indexOf(key) !== -1)) {
       keys.push(key);
     }
   }
   keys.forEach(function(key) {
-    var raw = localStorage.getItem(key);
+    var raw = appStorage.getItem(key);
     if (!raw || raw.indexOf('data:image/') === -1) return;
     try {
       var parsed = JSON.parse(raw);
-      localStorage.setItem(key, JSON.stringify(imageFreeClone(parsed)));
+      appStorage.setItem(key, JSON.stringify(imageFreeClone(parsed)));
     } catch(e) {}
   });
 }
 
+function reloadDriveAuxRuntimeState() {
+  try {
+    if (typeof _rxCustomEdits !== 'undefined') {
+      _rxCustomEdits = JSON.parse(appStorage.getItem('dental_rx_edits_v1') || '{}');
+    }
+    if (typeof _ciEdits !== 'undefined') {
+      _ciEdits = JSON.parse(appStorage.getItem('dental_ci_edits_v1') || '{}');
+    }
+    if (typeof _indEdits !== 'undefined') {
+      _indEdits = JSON.parse(appStorage.getItem('dental_ind_edits_v1') || '{}');
+    }
+    if (typeof _timeFormat !== 'undefined') {
+      _timeFormat = appStorage.getItem('dental_time_format') || '12h';
+    }
+  } catch(e) {
+    console.warn('No se pudo recargar una personalización auxiliar de Drive.');
+  }
+}
+
+function persistAuxStateToDrive() {
+  if (typeof GD !== 'undefined' && GD.save && GD._token && GD._token()) GD.save();
+}
+
 const loadDB = () => {
-  // Cargar desde localStorage (cache local — Drive lo sobreescribirá si hay sesión)
-  const r = localStorage.getItem('dental_v4') || localStorage.getItem('dental_v3') || localStorage.getItem('dentalDB_v2') || localStorage.getItem('dentalClinicDB');
+  // Leer una copia local únicamente durante la migración desde versiones antiguas.
+  const r = appStorage.getItem('dental_v4') || appStorage.getItem('dental_v3') || appStorage.getItem('dentalDB_v2') || appStorage.getItem('dentalClinicDB');
   if (r) {
     try {
       db = JSON.parse(r);
       neutralizeUnsafeText(db);
       _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
-      localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+      appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
     } catch(e) {
       // Si el archivo principal quedó incompleto, recuperar la última copia sana.
       try {
-        const recovery = localStorage.getItem('dental_autobackup_previous');
+        const recovery = appStorage.getItem('dental_autobackup_previous');
         if (recovery) {
           db = JSON.parse(recovery);
           neutralizeUnsafeText(db);
           _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
-          localStorage.setItem('dental_v4', recovery);
+          appStorage.setItem('dental_v4', recovery);
           setTimeout(function(){ showToast('✅ Se recuperó el último respaldo automático', 'green'); }, 800);
         }
       } catch(recoveryError) {}
     }
   }
 };
-// saveDB: guarda local + programa sync a Drive si hay sesión
+// saveDB conserva el cambio solo en memoria y programa su escritura en Drive.
 const saveDB = () => {
-  // Siempre guardar primero una copia local recuperable.
+  // Mantener una instantánea temporal durante esta sesión.
   saveLocalWithAutoBackup();
   // Programar sync a Drive (debounced)
   if (typeof GD !== 'undefined' && GD.save) { GD.save(); }
 };
 
-// Conserva el estado actual y la versión inmediatamente anterior en cada cambio.
-// Así se puede recuperar información incluso si se cierra la página durante el guardado.
+// Conserva el estado actual y el anterior únicamente en memoria mientras la
+// pestaña permanece abierta. Drive es el único almacenamiento persistente.
 function saveLocalWithAutoBackup() {
   neutralizeUnsafeText(db);
   _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
-  var current = localStorage.getItem('dental_v4');
+  var current = appStorage.getItem('dental_v4');
   // Marcar únicamente los registros que realmente cambiaron. Estas fechas
   // permiten unir de forma segura dos dispositivos sin que uno sobrescriba
   // pacientes, presupuestos o citas capturados por el otro.
@@ -5345,26 +5528,26 @@ function saveLocalWithAutoBackup() {
   var next = serializeDatabaseForLocalStorage(db);
   var changed = current !== next;
   try {
-    if (current && changed) localStorage.setItem('dental_autobackup_previous', current);
-    localStorage.setItem('dental_v4', next);
-    localStorage.setItem('dental_autobackup_latest', next);
-    if (changed || !localStorage.getItem('dental_local_updated_at')) {
-      localStorage.setItem('dental_local_updated_at', Date.now().toString());
+    if (current && changed) appStorage.setItem('dental_autobackup_previous', current);
+    appStorage.setItem('dental_v4', next);
+    appStorage.setItem('dental_autobackup_latest', next);
+    if (changed || !appStorage.getItem('dental_local_updated_at')) {
+      appStorage.setItem('dental_local_updated_at', Date.now().toString());
     }
-    localStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
+    appStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
     if (changed && typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
     return true;
   } catch(e) {
-    // Si el navegador está casi lleno, priorizar siempre el archivo principal.
+    // Recuperación ante un dato no serializable; no se escribe en el navegador.
     try {
-      localStorage.removeItem('dental_autobackup_previous');
-      localStorage.removeItem('dental_autobackup_latest');
-      localStorage.setItem('dental_v4', next);
-      localStorage.setItem('dental_local_updated_at', Date.now().toString());
-      localStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
+      appStorage.removeItem('dental_autobackup_previous');
+      appStorage.removeItem('dental_autobackup_latest');
+      appStorage.setItem('dental_v4', next);
+      appStorage.setItem('dental_local_updated_at', Date.now().toString());
+      appStorage.setItem('dental_offline_last_saved_at', Date.now().toString());
       return true;
     } catch(finalError) {
-      showToast('⚠️ No hay espacio para guardar. Exporta un respaldo.', 'red');
+      showToast('⚠️ No se pudo preparar el cambio para Drive. Intenta nuevamente.', 'red');
       return false;
     }
   }
@@ -5376,12 +5559,12 @@ function saveLocalWithAutoBackup() {
 const PATIENT_TOMBSTONES_KEY = 'dental_patient_tombstones_v1';
 function loadPatientTombstones() {
   try {
-    var parsed = JSON.parse(localStorage.getItem(PATIENT_TOMBSTONES_KEY) || '{}');
+    var parsed = JSON.parse(appStorage.getItem(PATIENT_TOMBSTONES_KEY) || '{}');
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch(e) { return {}; }
 }
 function savePatientTombstones(value) {
-  localStorage.setItem(PATIENT_TOMBSTONES_KEY, JSON.stringify(value || {}));
+  appStorage.setItem(PATIENT_TOMBSTONES_KEY, JSON.stringify(value || {}));
 }
 function markPatientDeleted(id) {
   var deleted = loadPatientTombstones();
@@ -5719,7 +5902,7 @@ function recoverMissingPatientsFromLocalSnapshots() {
   var candidates = [];
   keys.forEach(function(key) {
     try {
-      var raw = localStorage.getItem(key);
+      var raw = appStorage.getItem(key);
       if (!raw) return;
       var parsed = JSON.parse(raw);
       var candidate = parsed && parsed.db && Array.isArray(parsed.db.patients) ? parsed.db : parsed;
@@ -5750,10 +5933,10 @@ function recoverMissingPatientsFromLocalSnapshots() {
       appointmentIds[String(appt.id)] = true;
     }
   });
-  localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
-  localStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
-  localStorage.setItem('dental_local_updated_at', Date.now().toString());
-  localStorage.setItem('dental_recovered_snapshot_source', best.key);
+  appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+  appStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
+  appStorage.setItem('dental_local_updated_at', Date.now().toString());
+  appStorage.setItem('dental_recovered_snapshot_source', best.key);
   return missing.length;
 }
 
@@ -6077,8 +6260,8 @@ function removeTag(i) {
 function saveNotes() {
   const p = db.patients.find(x => x.id == curId); if (!p) return;
   p.clinicalNotes = document.getElementById('notes-ta').value;
-  // Guardar localmente y forzar sync inmediato a Drive
-  localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+  // Conservar en memoria y forzar sincronización inmediata con Drive.
+  appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
   if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
   else saveDB();
   // Feedback visual
@@ -6172,7 +6355,7 @@ function moveHCField(i,d){var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var
 function saveHCTemplate(){
   _hcDraft.hiddenCore=[];document.querySelectorAll('#hc-core-list [data-core]').forEach(function(ch){if(!ch.checked)_hcDraft.hiddenCore.push(ch.dataset.core);});
   _hcDraft.fields=_hcDraft.fields.filter(function(f){return f.label&&f.label.trim();}); cfg.hcTemplate=_hcDraft;
-  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else localStorage.setItem('dental_cfg_v1',serializeConfigForLocalStorage(cfg));
+  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else appStorage.setItem('dental_cfg_v1',serializeConfigForLocalStorage(cfg));
   applyHCTemplate();closeHCEditor();showToast('✅ Plantilla de historia clínica guardada','green');
 }
 function resetHCTemplate(){if(!confirm('¿Mostrar todos los campos originales y quitar los personalizados?'))return;_hcDraft={hiddenCore:[],fields:[]};renderHCEditorFields();document.querySelectorAll('#hc-core-list [data-core]').forEach(function(x){x.checked=true;});}
@@ -6899,7 +7082,7 @@ function init() {
 // ══════════════════════════════════════════════════════════
 function migratePaymentsToCaja() {
   var MIGRATION_KEY = 'dental_caja_migrated_v1';
-  if (localStorage.getItem(MIGRATION_KEY)) return; // already done
+  if (appStorage.getItem(MIGRATION_KEY)) return; // already done
 
   var cajaData = cajaLoad();
   var existingPayIds = {};
@@ -6933,7 +7116,7 @@ function migratePaymentsToCaja() {
     saveDB(); // persist the assigned ids on legacy payments
     showToast('✅ ' + added + ' pago(s) histórico(s) migrados a Caja', 'green');
   }
-  localStorage.setItem(MIGRATION_KEY, '1');
+  appStorage.setItem(MIGRATION_KEY, '1');
 }
 
 // Run migration after a short delay so cajaLoad is available
@@ -8145,10 +8328,10 @@ function showBudgetDropdown() { filterBudgetPatients(); }
 var CATALOG_UPDATED_KEY = 'dental_catalog_updated_at';
 
 function loadCatalogOverrides() {
-  // La copia principal vive dentro de la base de Google Drive. localStorage
-  // solo acelera el arranque y sirve como respaldo si todavía no hay conexión.
-  var raw = localStorage.getItem('dental_catalog_v1');
-  var localUpdatedAt = parseInt(localStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
+  // La copia principal vive dentro de la base de Google Drive. appStorage es
+  // solo memoria temporal de la pestaña y no persiste datos de la clínica.
+  var raw = appStorage.getItem('dental_catalog_v1');
+  var localUpdatedAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
   var driveState = db && db.catalogState && typeof db.catalogState === 'object'
     ? db.catalogState : null;
   var driveStateUpdatedAt = parseInt(driveState && driveState.updatedAt || '0', 10) || 0;
@@ -8159,8 +8342,8 @@ function loadCatalogOverrides() {
   if (driveStateRaw && driveStateUpdatedAt > localUpdatedAt) {
     raw = driveStateRaw;
     localUpdatedAt = driveStateUpdatedAt;
-    localStorage.setItem('dental_catalog_v1', raw);
-    localStorage.setItem(CATALOG_UPDATED_KEY, String(localUpdatedAt));
+    appStorage.setItem('dental_catalog_v1', raw);
+    appStorage.setItem(CATALOG_UPDATED_KEY, String(localUpdatedAt));
   } else if (raw && db && (!driveState || localUpdatedAt > driveStateUpdatedAt)) {
     db.catalogState = { raw:raw, updatedAt:localUpdatedAt };
   }
@@ -8217,8 +8400,8 @@ function saveCatalogOverrides() {
   ov.__extra = extra;
   var raw = JSON.stringify(ov);
   var updatedAt = Date.now();
-  localStorage.setItem('dental_catalog_v1', raw);
-  localStorage.setItem(CATALOG_UPDATED_KEY, String(updatedAt));
+  appStorage.setItem('dental_catalog_v1', raw);
+  appStorage.setItem(CATALOG_UPDATED_KEY, String(updatedAt));
   // Fuente de verdad: esta sección viaja dentro de
   // consultorio_dental_db.json en Google Drive.
   db.catalogState = { raw:raw, updatedAt:updatedAt };
@@ -8508,7 +8691,7 @@ function previewAdvancedAppearance() {
   // evita que el tema vuelva al anterior al recargar o cerrar el panel.
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   else {
-    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
 }
 
@@ -8521,7 +8704,7 @@ function applyAppearancePreset(name) {
   fillAppearanceControls();applyColor(cfg.color);applyAppearance();
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   else {
-    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
   var presetLabels={apple:'Apple',midnight:'Medianoche',rose:'Rosa',emerald:'Esmeralda',warm:'Cálido'};
   showToast('🎨 Tema ' + (presetLabels[name] || name) + ' guardado', 'green');
@@ -8530,7 +8713,7 @@ function applyAppearancePreset(name) {
 function resetAppearanceApple() { applyAppearancePreset('apple'); showToast('Estilo Apple restaurado', 'green'); }
 
 function loadSettings() {
-  var raw = localStorage.getItem('dental_cfg_v1');
+  var raw = appStorage.getItem('dental_cfg_v1');
   if (!raw) return;
   try {
     var s = JSON.parse(raw);
@@ -8546,7 +8729,7 @@ function loadSettings() {
       && String(cfg.appearanceCard || '').toLowerCase() === '#ffffff') {
     cfg.appearanceCard = '#fbe3ec';
     cfg._savedAt = Date.now();
-    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
   if (!cfg.currency) cfg.currency = 'MXN';
   if (!cfg.countryCode) cfg.countryCode = '52';
@@ -8592,8 +8775,8 @@ function applyBranding() {
   // Compatibilidad con respaldos antiguos: usar cfg.doctors solo cuando no
   // existe ya una lista dedicada. Una configuración vieja no debe reemplazar
   // doctores recién agregados o descargados desde la base principal.
-  if (!localStorage.getItem(DOCTORS_KEY) && cfg.doctors && cfg.doctors.length) {
-    localStorage.setItem(DOCTORS_KEY, JSON.stringify(cfg.doctors));
+  if (!appStorage.getItem(DOCTORS_KEY) && cfg.doctors && cfg.doctors.length) {
+    appStorage.setItem(DOCTORS_KEY, JSON.stringify(cfg.doctors));
   }
   var h1      = document.querySelector('.sb-logo h1');
   var subEl   = document.querySelector('.sb-logo p');
@@ -8815,7 +8998,7 @@ function saveSettings() {
   // Guardar la misma lista dentro de configuración para compatibilidad con
   // respaldos antiguos y para que todos los dispositivos reciban el cambio.
   cfg.doctors = settingsDoctors;
-  if (typeof GD !== 'undefined') GD.saveCfg(); else localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+  if (typeof GD !== 'undefined') GD.saveCfg(); else appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   applyBranding();
   if (document.getElementById('dash-page').classList.contains('active')) renderDashboard();
   if (document.getElementById('budget-page').classList.contains('active')) { buildCatalogUI(); renderBudgetPanel(); }
@@ -8825,7 +9008,7 @@ function saveSettings() {
 
 function resetSettings() {
   if (!confirm('Restablecer configuracion por defecto?')) return;
-  localStorage.removeItem('dental_cfg_v1');
+  appStorage.removeItem('dental_cfg_v1');
   cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   applyBranding();
   closeSettings();
@@ -10127,11 +10310,11 @@ var BACKUP_SNZ_KEY = 'dental_backup_snooze_ts';
 var BACKUP_DAYS    = 7; // recordar cada 7 días
 
 function getLastBackupTs() {
-  var v = localStorage.getItem(BACKUP_TS_KEY);
+  var v = appStorage.getItem(BACKUP_TS_KEY);
   return v ? parseInt(v, 10) : null;
 }
 function setLastBackupTs() {
-  localStorage.setItem(BACKUP_TS_KEY, Date.now().toString());
+  appStorage.setItem(BACKUP_TS_KEY, Date.now().toString());
 }
 function updateBackupBadge() {
   var badge   = document.getElementById('backup-badge');
@@ -10161,7 +10344,7 @@ function updateBackupBadge() {
 function showBackupReminder(auto) {
   // Si es auto, verificar snooze
   if (auto) {
-    var snooze = localStorage.getItem(BACKUP_SNZ_KEY);
+    var snooze = appStorage.getItem(BACKUP_SNZ_KEY);
     if (snooze && (Date.now() - parseInt(snooze,10)) < BACKUP_DAYS * 86400000) return;
     var ts = getLastBackupTs();
     var diasDesde = ts ? Math.floor((Date.now() - ts) / 86400000) : 999;
@@ -10172,7 +10355,7 @@ function showBackupReminder(auto) {
 }
 
 function dismissBackupReminder() {
-  localStorage.setItem(BACKUP_SNZ_KEY, Date.now().toString());
+  appStorage.setItem(BACKUP_SNZ_KEY, Date.now().toString());
   var overlay = document.getElementById('backup-reminder-overlay');
   if (overlay) overlay.classList.remove('open');
 }
@@ -10197,16 +10380,16 @@ function buildCompleteBackup() {
     exportedAt: new Date().toISOString(),
     db: imageFreeClone(db),
     cfg: imageFreeClone(cfg),
-    catalog: localStorage.getItem('dental_catalog_v1') || null,
-    caja: localStorage.getItem('dental_caja_v1') || null,
-    production: localStorage.getItem('dental_production_v1') || null,
-    productionTrash: localStorage.getItem('dental_production_trash_v1') || null,
-    doctorRates: localStorage.getItem('dental_doctor_rates_v1') || null,
-    doctorRatesUpdatedAt: localStorage.getItem('dental_doctor_rates_updated_at') || null,
-    doctors: localStorage.getItem('dental_doctors_v1') || null,
-    doctorsUpdatedAt: localStorage.getItem('dental_doctors_updated_at') || null,
-    waTemplates: localStorage.getItem('dental_wa_custom_tpls_v1') || null,
-    quickNotes: localStorage.getItem('dental_quick_notes_v1') || null,
+    catalog: appStorage.getItem('dental_catalog_v1') || null,
+    caja: appStorage.getItem('dental_caja_v1') || null,
+    production: appStorage.getItem('dental_production_v1') || null,
+    productionTrash: appStorage.getItem('dental_production_trash_v1') || null,
+    doctorRates: appStorage.getItem('dental_doctor_rates_v1') || null,
+    doctorRatesUpdatedAt: appStorage.getItem('dental_doctor_rates_updated_at') || null,
+    doctors: appStorage.getItem('dental_doctors_v1') || null,
+    doctorsUpdatedAt: appStorage.getItem('dental_doctors_updated_at') || null,
+    waTemplates: appStorage.getItem('dental_wa_custom_tpls_v1') || null,
+    quickNotes: appStorage.getItem('dental_quick_notes_v1') || null,
     patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
   };
 }
@@ -10301,7 +10484,7 @@ function _setAutoFileStatus(text, state) {
 }
 
 async function _writeAutoBackupFile() {
-  if (localStorage.getItem(AUTO_FILE_ENABLED_KEY) !== '1') return false;
+  if (appStorage.getItem(AUTO_FILE_ENABLED_KEY) !== '1') return false;
   if (_autoBackupWriting) { _autoBackupAgain = true; return false; }
   var handle = await _loadAutoBackupHandle();
   if (!handle) { _setAutoFileStatus('Selecciona nuevamente el archivo de respaldo.', 'waiting'); return false; }
@@ -10328,12 +10511,14 @@ async function _writeAutoBackupFile() {
 }
 
 function scheduleAutoFileBackup() {
-  if (localStorage.getItem(AUTO_FILE_ENABLED_KEY) !== '1') return;
-  clearTimeout(_autoBackupTimer);
-  _autoBackupTimer = setTimeout(_writeAutoBackupFile, 900);
+  // Desactivado en modo solo-Drive. Los respaldos manuales siguen disponibles
+  // únicamente cuando el usuario los solicita de forma explícita.
+  return;
 }
 
 async function enableAutoFileBackup() {
+  showToast('☁️ El guardado automático ahora se realiza únicamente en Google Drive', 'green');
+  return;
   if (!window.isSecureContext || !('showSaveFilePicker' in window)) {
     showToast('Este navegador no permite guardar automáticamente. Usa Chrome o Edge y abre la página con HTTPS.', 'red');
     return;
@@ -10354,7 +10539,7 @@ async function enableAutoFileBackup() {
       _autoBackupHandle = handle;
       await _saveAutoBackupHandle(handle);
     }
-    localStorage.setItem(AUTO_FILE_ENABLED_KEY, '1');
+    appStorage.setItem(AUTO_FILE_ENABLED_KEY, '1');
     var ok = await _writeAutoBackupFile();
     if (ok) showToast('✅ Respaldo automático activado', 'green');
   } catch(e) {
@@ -10363,7 +10548,7 @@ async function enableAutoFileBackup() {
 }
 
 async function disableAutoFileBackup() {
-  localStorage.removeItem(AUTO_FILE_ENABLED_KEY);
+  appStorage.removeItem(AUTO_FILE_ENABLED_KEY);
   clearTimeout(_autoBackupTimer);
   await _deleteAutoBackupHandle();
   _setAutoFileStatus('Desactivado. Tus archivos existentes no se borraron.', 'off');
@@ -10371,7 +10556,7 @@ async function disableAutoFileBackup() {
 }
 
 function refreshAutoFileBackupUI() {
-  if (localStorage.getItem(AUTO_FILE_ENABLED_KEY) !== '1') {
+  if (appStorage.getItem(AUTO_FILE_ENABLED_KEY) !== '1') {
     _setAutoFileStatus('Desactivado', 'off');
     return;
   }
@@ -10388,6 +10573,12 @@ function refreshAutoFileBackupUI() {
 }
 
 function importData(input) {
+  if (typeof GD === 'undefined' || !GD._token || !GD._token()) {
+    input.value = '';
+    showToast('Conecta Google Drive antes de importar un respaldo.', 'red');
+    if (typeof GD !== 'undefined' && GD.showStatus) GD.showStatus();
+    return;
+  }
   var file = input.files[0];
   if (!file) return;
   var reader = new FileReader();
@@ -10418,21 +10609,21 @@ function importData(input) {
 
       var patientCount = importedDb.patients.length;
       var appointmentCount = Array.isArray(importedDb.appointments) ? importedDb.appointments.length : 0;
-      if (!confirm('Respaldo reconocido correctamente:\n\n• ' + patientCount + ' pacientes\n• ' + appointmentCount + ' eventos o citas\n\nEsto reemplazará los datos actuales. Antes se conservará una copia interna de seguridad.\n\n¿Importar ahora?')) {
+      if (!confirm('Respaldo reconocido correctamente:\n\n• ' + patientCount + ' pacientes\n• ' + appointmentCount + ' eventos o citas\n\nEsto reemplazará los datos actuales y guardará el resultado en Drive.\n\n¿Importar ahora?')) {
         input.value = '';
         return;
       }
 
       // Conservar el estado que había antes de importar para poder recuperarlo.
       try {
-        localStorage.setItem('dental_preimport_backup', JSON.stringify(buildCompleteBackup()));
+        appStorage.setItem('dental_preimport_backup', JSON.stringify(buildCompleteBackup()));
       } catch(preImportBackupError) {}
 
       // Invalidar cualquier lectura de Drive que haya empezado antes de elegir
       // este archivo. Sin esta marca, una descarga lenta podía terminar después
       // de la importación y reemplazar silenciosamente el respaldo recién leído.
-      var importRevision = (parseInt(localStorage.getItem('dental_import_revision') || '0', 10) || 0) + 1;
-      localStorage.setItem('dental_import_revision', String(importRevision));
+      var importRevision = (parseInt(appStorage.getItem('dental_import_revision') || '0', 10) || 0) + 1;
+      appStorage.setItem('dental_import_revision', String(importRevision));
 
       // Los archivos directos de Drive guardan datos complementarios dentro
       // del mismo objeto. Extraerlos antes de limpiar la base principal.
@@ -10476,7 +10667,7 @@ function importData(input) {
       if (backup.cfg) {
         cfg = neutralizeUnsafeText(backup.cfg);
         _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
-        localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+        appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
         applyBranding();
       }
 
@@ -10484,8 +10675,8 @@ function importData(input) {
       if (importedCatalog) {
         var importedCatalogRaw = typeof importedCatalog === 'string'
           ? importedCatalog : JSON.stringify(importedCatalog);
-        localStorage.setItem('dental_catalog_v1', importedCatalogRaw);
-        localStorage.setItem('dental_catalog_updated_at', String(importedCatalogUpdatedAt));
+        appStorage.setItem('dental_catalog_v1', importedCatalogRaw);
+        appStorage.setItem('dental_catalog_updated_at', String(importedCatalogUpdatedAt));
         db.catalogState = {
           raw: importedCatalogRaw,
           updatedAt: parseInt(importedCatalogUpdatedAt || '0', 10) || Date.now()
@@ -10495,21 +10686,21 @@ function importData(input) {
 
       // Restaurar Caja si existe
       if (importedCaja) {
-        localStorage.setItem('dental_caja_v1', typeof importedCaja === 'string' ? importedCaja : JSON.stringify(importedCaja));
+        appStorage.setItem('dental_caja_v1', typeof importedCaja === 'string' ? importedCaja : JSON.stringify(importedCaja));
       }
-      if (importedProduction) localStorage.setItem('dental_production_v1', typeof importedProduction === 'string' ? importedProduction : JSON.stringify(importedProduction));
-      if (importedProductionTrash) localStorage.setItem('dental_production_trash_v1', typeof importedProductionTrash === 'string' ? importedProductionTrash : JSON.stringify(importedProductionTrash));
+      if (importedProduction) appStorage.setItem('dental_production_v1', typeof importedProduction === 'string' ? importedProduction : JSON.stringify(importedProduction));
+      if (importedProductionTrash) appStorage.setItem('dental_production_trash_v1', typeof importedProductionTrash === 'string' ? importedProductionTrash : JSON.stringify(importedProductionTrash));
       if (importedDoctorRates) {
-        localStorage.setItem('dental_doctor_rates_v1', typeof importedDoctorRates === 'string' ? importedDoctorRates : JSON.stringify(importedDoctorRates));
-        localStorage.setItem('dental_doctor_rates_updated_at', String(backup.doctorRatesUpdatedAt || Date.now()));
+        appStorage.setItem('dental_doctor_rates_v1', typeof importedDoctorRates === 'string' ? importedDoctorRates : JSON.stringify(importedDoctorRates));
+        appStorage.setItem('dental_doctor_rates_updated_at', String(backup.doctorRatesUpdatedAt || Date.now()));
       }
       // Restaurar doctores si existe
       if (importedDoctors) {
-        localStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
-        localStorage.setItem('dental_doctors_updated_at', String(importedDoctorsUpdatedAt || Date.now()));
+        appStorage.setItem('dental_doctors_v1', typeof importedDoctors === 'string' ? importedDoctors : JSON.stringify(importedDoctors));
+        appStorage.setItem('dental_doctors_updated_at', String(importedDoctorsUpdatedAt || Date.now()));
       }
-      if (importedWa) localStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
-      if (importedNotes) localStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
+      if (importedWa) appStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
+      if (importedNotes) appStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
       // Las marcas de pacientes eliminados pertenecen al respaldo. Conservar
       // las del navegador anterior podía volver a borrar pacientes importados.
       if (typeof savePatientTombstones === 'function') {
@@ -10519,13 +10710,13 @@ function importData(input) {
         );
       }
       // Reset migration flag
-      localStorage.removeItem('dental_caja_migrated_v1');
+      appStorage.removeItem('dental_caja_migrated_v1');
 
       // Guardar una sola vez cuando toda la restauración ya está completa.
       // Esta fecha obliga a que la copia importada tenga prioridad sobre una
       // copia anterior de Drive durante la reconexión inmediata.
       saveLocalWithAutoBackup();
-      localStorage.setItem('dental_local_updated_at', Date.now().toString());
+      appStorage.setItem('dental_local_updated_at', Date.now().toString());
 
       // El doctor de la sesión anterior puede no existir en el respaldo.
       // Elegir un perfil válido inmediatamente para no firmar con otro doctor.
@@ -10536,13 +10727,12 @@ function importData(input) {
       else if (restoredDoctors.length === 1) setActiveDoctor(restoredDoctors[0]);
       else {
         _activeDoctor = null;
-        localStorage.removeItem('dental_active_doctor_v1');
+        appStorage.removeItem('dental_active_doctor_v1');
         setTimeout(openDoctorSelect, 250);
       }
       if (typeof _updateDoctorApptSelector === 'function') _updateDoctorApptSelector();
 
-      // Subir a Drive solo si realmente hay una sesión conectada. En modo
-      // offline se conserva localmente hasta que el usuario reconecte Google.
+      // La aplicación solo permite importar con una sesión de Drive activa.
       var googleConnected = typeof GD !== 'undefined' && GD._token && GD._token();
       if (googleConnected && GD.saveNow) {
         setTimeout(function() {
@@ -10563,7 +10753,7 @@ function importData(input) {
       renderList(db.patients);
       renderDashboard();
       closeSettings();
-      showToast('✅ ' + db.patients.length + ' pacientes importados' + (googleConnected ? ' — subiendo a Drive…' : ' — guardados offline'), 'green');
+      showToast('✅ ' + db.patients.length + ' pacientes importados — subiendo a Drive…', 'green');
     } catch(err) {
       showToast('❌ Error al leer el archivo: ' + err.message, 'red');
     }
@@ -10576,9 +10766,9 @@ function resetAllData() {
   if (!confirm('⚠️ ¿Estás seguro de que quieres BORRAR TODOS los datos?\n\nEsto eliminará permanentemente todos tus pacientes, citas, presupuestos y configuración.\n\nEsta acción NO se puede deshacer.\n\n¿Continuar?')) return;
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
-  // Limpiar todo el localStorage relacionado
+  // Limpiar el estado temporal y guardar el estado vacío en Drive.
   ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
-    localStorage.removeItem(k);
+    appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
 
@@ -10588,7 +10778,7 @@ function resetAllData() {
   cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   _activeDoctor = null;
   var defaultDoctor = { id:1, name:cfg.name, specialty:cfg.sub, cedula:'', cedula2:'', color:cfg.color };
-  localStorage.setItem('dental_doctors_v1', JSON.stringify([defaultDoctor]));
+  appStorage.setItem('dental_doctors_v1', JSON.stringify([defaultDoctor]));
   setActiveDoctor(defaultDoctor);
   // Persistir también el estado vacío en Drive para que no reaparezcan los
   // registros anteriores al volver a abrir la aplicación.
@@ -11512,14 +11702,14 @@ goPage = function(id, el) {
 // REPORTES DE INGRESOS
 // =====================================================
 var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_TRASH_KEY='dental_production_trash_v1';
-function prodLoad(){try{return JSON.parse(localStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
-function prodRates(){try{return JSON.parse(localStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
-function prodTrashLoad(){try{return JSON.parse(localStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
-function prodMarkLocalChange(){localStorage.setItem('dental_local_updated_at',Date.now().toString());localStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
-function prodMarkRatesChange(){var now=Date.now().toString();localStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();}
-function prodSave(data){localStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodSaveRates(r){localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodTrashSave(data){localStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodLoad(){try{return JSON.parse(appStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
+function prodRates(){try{return JSON.parse(appStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
+function prodTrashLoad(){try{return JSON.parse(appStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
+function prodMarkLocalChange(){appStorage.setItem('dental_local_updated_at',Date.now().toString());appStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
+function prodMarkRatesChange(){var now=Date.now().toString();appStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();}
+function prodSave(data){appStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodTrashSave(data){appStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
 function prodInitForm(){
   var ds=prodDoctors(),sel=document.getElementById('prod-doctor');if(!sel)return;
@@ -11593,8 +11783,8 @@ function prodSetRate(id,value,silent){
     }
   });
   // Guardar porcentaje y reportes juntos antes de programar una sola subida.
-  localStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
-  if(updated)localStorage.setItem(PROD_KEY,JSON.stringify(records));
+  appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
+  if(updated)appStorage.setItem(PROD_KEY,JSON.stringify(records));
   prodMarkRatesChange();
   if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();
   if(typeof GD!=='undefined'&&GD.save)GD.save();
@@ -11796,10 +11986,10 @@ function renderReportePage() {
 var CAJA_KEY = 'dental_caja_v1';
 
 function cajaLoad() {
-  try { return JSON.parse(localStorage.getItem(CAJA_KEY)) || []; } catch(e) { return []; }
+  try { return JSON.parse(appStorage.getItem(CAJA_KEY)) || []; } catch(e) { return []; }
 }
 function cajaSave(data) {
-  localStorage.setItem(CAJA_KEY, JSON.stringify(data));
+  appStorage.setItem(CAJA_KEY, JSON.stringify(data));
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -13093,7 +13283,7 @@ function printOrthoSummary() {
 var DARK_KEY = 'dental_dark_mode_v1';
 
 function initDarkMode() {
-  var isDark = localStorage.getItem(DARK_KEY) === '1';
+  var isDark = appStorage.getItem(DARK_KEY) === '1';
   if (isDark) document.documentElement.classList.add('dark');
   var chk = document.getElementById('cfg-dark-mode');
   if (chk) {
@@ -13105,10 +13295,10 @@ function initDarkMode() {
 function toggleDarkMode(on) {
   if (on) {
     document.documentElement.classList.add('dark');
-    localStorage.setItem(DARK_KEY, '1');
+    appStorage.setItem(DARK_KEY, '1');
   } else {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem(DARK_KEY, '0');
+    appStorage.setItem(DARK_KEY, '0');
   }
   var lbl = document.getElementById('dark-mode-label');
   if (lbl) lbl.textContent = on ? 'Activado' : 'Desactivado';
@@ -13124,7 +13314,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-12', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-13', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13179,10 +13369,10 @@ function installPWA() {
 var WA_CUSTOM_KEY = 'dental_wa_custom_tpls_v1';
 
 function loadCustomWATpls() {
-  try { return JSON.parse(localStorage.getItem(WA_CUSTOM_KEY)) || []; } catch(e) { return []; }
+  try { return JSON.parse(appStorage.getItem(WA_CUSTOM_KEY)) || []; } catch(e) { return []; }
 }
 function saveCustomWATpls(tpls) {
-  localStorage.setItem(WA_CUSTOM_KEY, JSON.stringify(tpls));
+  appStorage.setItem(WA_CUSTOM_KEY, JSON.stringify(tpls));
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -13259,13 +13449,13 @@ var DEFAULT_QUICK_NOTES = [
 
 function loadQuickNotes() {
   try {
-    var v = localStorage.getItem(QUICK_NOTES_KEY);
+    var v = appStorage.getItem(QUICK_NOTES_KEY);
     return v ? JSON.parse(v) : DEFAULT_QUICK_NOTES.slice();
   } catch(e) { return DEFAULT_QUICK_NOTES.slice(); }
 }
 
 function saveQuickNotes(notes) {
-  localStorage.setItem(QUICK_NOTES_KEY, JSON.stringify(notes));
+  appStorage.setItem(QUICK_NOTES_KEY, JSON.stringify(notes));
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -13444,26 +13634,26 @@ function renderBdayList() {
 
 // ══════════════════════════════════════════════════════════
 // ★ GOOGLE DRIVE SYNC ENGINE
-// Arquitectura: localStorage como cache local,
-// Google Drive como fuente de verdad en la nube.
+// Arquitectura: Google Drive como única fuente persistente de verdad.
+// El navegador mantiene el estado solo en memoria durante la sesión.
 // Cada dentista tiene su propio archivo en su Drive.
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_images_v12';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_only_v13';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
-  if (localStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+  if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
   if (_updateNoticeScheduled) return;
   _updateNoticeScheduled = true;
   setTimeout(function() {
     _updateNoticeScheduled = false;
-    if (localStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+    if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
     var overlay = document.getElementById('update-notice-overlay');
     var passScreen = document.getElementById('pass-screen');
     var loginScreen = document.getElementById('gd-login-screen');
-    var waitingForGoogle = localStorage.getItem('dental_gd_mode') === 'google'
+    var waitingForGoogle = appStorage.getItem('dental_gd_mode') === 'google'
       && (typeof GD === 'undefined' || !GD._token || !GD._token());
     // No cubrir activación ni selección de cuenta. Se mostrará cuando la app
     // ya esté disponible y el usuario pueda continuar normalmente.
@@ -13475,7 +13665,8 @@ function showUpdateNoticeOnce() {
 }
 
 function closeUpdateNotice() {
-  localStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
+  appStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
+  persistAuxStateToDrive();
   var overlay = document.getElementById('update-notice-overlay');
   if (overlay) overlay.style.display = 'none';
 }
@@ -13506,7 +13697,7 @@ var GD = (function() {
   var _heroImageFileId = null;
   var _logoImageFileId = null;
   var _deviceDbFileId = null;
-  var _deviceId = localStorage.getItem(DEVICE_ID_KEY) || '';
+  var _deviceId = appStorage.getItem(DEVICE_ID_KEY) || '';
   var _syncTimer = null;
   var _cfgSaveTimer = null;
   var _cfgSaving = false;
@@ -13517,7 +13708,7 @@ var GD = (function() {
   var _dbSaving  = false;
   var _saving    = false; // bloquear guardado mientras se carga
   var _preferLocalAfterReconnect = false;
-  var _mode      = localStorage.getItem(GD_MODE_KEY) || 'pending';
+  var _mode      = appStorage.getItem(GD_MODE_KEY) || 'pending';
   var _autoPullTimer = null;
   var _autoPulling = false;
   var _lastRemoteModifiedTime = '';
@@ -13526,7 +13717,8 @@ var GD = (function() {
   var _lastRemotePatientCount = null;
   var _mirrorRetryCount = 0;
   var _visibilitySyncInstalled = false;
-  var _accountEmail = localStorage.getItem('dental_gd_email') || '';
+  var _appInitialized = false;
+  var _accountEmail = appStorage.getItem('dental_gd_email') || '';
   var _authInProgress = false;
   // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
   // da una actualización casi inmediata sin esperar la recarga de la página.
@@ -13541,7 +13733,7 @@ var GD = (function() {
       randomPart = Date.now().toString(36) + Math.random().toString(36).slice(2);
     }
     _deviceId = randomPart.slice(0, 32);
-    localStorage.setItem(DEVICE_ID_KEY, _deviceId);
+    appStorage.setItem(DEVICE_ID_KEY, _deviceId);
     return _deviceId;
   }
 
@@ -13578,11 +13770,11 @@ var GD = (function() {
     if (!id) return false;
     var snapshot = {};
     ACCOUNT_LOCAL_KEYS.forEach(function(key) {
-      var value = localStorage.getItem(key);
+      var value = appStorage.getItem(key);
       if (value !== null) snapshot[key] = value;
     });
     try {
-      localStorage.setItem(_accountCacheKey(id), JSON.stringify(snapshot));
+      appStorage.setItem(_accountCacheKey(id), JSON.stringify(snapshot));
       return true;
     } catch(e) {
       console.warn('No se pudo guardar el caché de la cuenta anterior.');
@@ -13590,7 +13782,7 @@ var GD = (function() {
     }
   }
   function _clearAccountLocalData() {
-    ACCOUNT_LOCAL_KEYS.forEach(function(key){ localStorage.removeItem(key); });
+    ACCOUNT_LOCAL_KEYS.forEach(function(key){ appStorage.removeItem(key); });
     db = { patients: [], appointments: [] };
     cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
     selectedTx = {};
@@ -13600,14 +13792,14 @@ var GD = (function() {
     if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
   }
   function _restoreAccountSnapshot(id) {
-    var raw = localStorage.getItem(_accountCacheKey(id));
+    var raw = appStorage.getItem(_accountCacheKey(id));
     if (!raw) return false;
     try {
       var snapshot = JSON.parse(raw);
-      ACCOUNT_LOCAL_KEYS.forEach(function(key){ localStorage.removeItem(key); });
+      ACCOUNT_LOCAL_KEYS.forEach(function(key){ appStorage.removeItem(key); });
       Object.keys(snapshot || {}).forEach(function(key) {
         if (ACCOUNT_LOCAL_KEYS.indexOf(key) !== -1 && snapshot[key] !== null) {
-          localStorage.setItem(key, snapshot[key]);
+          appStorage.setItem(key, snapshot[key]);
         }
       });
       loadDB();
@@ -13620,8 +13812,8 @@ var GD = (function() {
   function _prepareAccount(user) {
     var nextId = _accountId(user);
     if (!nextId) return;
-    var previousId = localStorage.getItem(ACCOUNT_ID_KEY)
-      || String(localStorage.getItem('dental_gd_email') || '').trim().toLowerCase();
+    var previousId = appStorage.getItem(ACCOUNT_ID_KEY)
+      || String(appStorage.getItem('dental_gd_email') || '').trim().toLowerCase();
     if (previousId && previousId !== nextId) {
       // Fallar de forma segura: si el navegador está lleno y no admite la
       // copia, conservar todo intacto y no iniciar el cambio de cuenta.
@@ -13632,17 +13824,17 @@ var GD = (function() {
       _restoreAccountSnapshot(nextId);
       // Ninguna marca de la cuenta anterior debe hacer que el caché vacío
       // gane contra Drive ni que se recuperen pacientes de otra cuenta.
-      localStorage.setItem('dental_local_updated_at', '0');
+      appStorage.setItem('dental_local_updated_at', '0');
       _preferLocalAfterReconnect = false;
       _dirty = false;
       _deviceDbFileId = null;
       _lastMirrorModifiedTime = '';
       showToast('🔐 Cuenta distinta: cargando únicamente sus datos de Drive', 'green');
     }
-    localStorage.setItem(ACCOUNT_ID_KEY, nextId);
+    appStorage.setItem(ACCOUNT_ID_KEY, nextId);
     var accountEmail = user.emailAddress || user.email || '';
     _accountEmail = accountEmail || nextId;
-    if (accountEmail) localStorage.setItem('dental_gd_email', accountEmail);
+    if (accountEmail) appStorage.setItem('dental_gd_email', accountEmail);
   }
 
   // ── Badge ────────────────────────────────────────────────
@@ -13701,9 +13893,9 @@ var GD = (function() {
         }
         _token = resp.access_token;
         _mode  = 'google';
-        localStorage.setItem(GD_MODE_KEY, 'google');
-        localStorage.removeItem('dental_offline_enabled');
-        localStorage.setItem('dental_gd_token_hint', '1');
+        appStorage.setItem(GD_MODE_KEY, 'google');
+        appStorage.removeItem('dental_offline_enabled');
+        appStorage.setItem('dental_gd_token_hint', '1');
         // Resolver la identidad ANTES de leer Drive. Así nunca se mezcla el
         // caché de una cuenta anterior con la cuenta recién elegida.
         // Consultar la identidad desde Drive. El endpoint userinfo requiere
@@ -13718,15 +13910,13 @@ var GD = (function() {
           if (!info || !info.user) throw new Error('Drive no devolvió la identidad de la cuenta');
           _prepareAccount(info.user);
         });
-        // Ocultar pantallas de login/reconexión
+        // Mantener la aplicación bloqueada hasta terminar de cargar Drive.
         var ls = document.getElementById('gd-login-screen');
         var rb = document.getElementById('gd-reconnect-bar');
         var rm = document.getElementById('gd-reconnect-modal');
         if (ls) ls.style.display = 'none';
         if (rb) rb.style.display = 'none';
         if (rm) rm.classList.remove('open');
-        document.getElementById('sidebar').style.display = '';
-        document.getElementById('main').style.display = '';
         // Cargar desde Drive (bloquea guardados hasta terminar)
         _saving = true;
         setBadge('syncing', 'Verificando cuenta…');
@@ -13751,7 +13941,16 @@ var GD = (function() {
             return migrateLegacyInlineImagesToDrive();
           })
           .then(function() {
+            // La primera ejecución solo-Drive siempre hace un guardado
+            // verificado antes de retirar las copias antiguas del navegador.
+            if (!appStorage.isReady()) _dirty = true;
             _saving = false;
+            document.getElementById('sidebar').style.display = '';
+            document.getElementById('main').style.display = '';
+            if (!_appInitialized) {
+              _appInitialized = true;
+              _initApp();
+            }
             setBadge('synced', _lastRemotePatientCount === null
               ? 'Sincronizado'
               : ('Drive: ' + _lastRemotePatientCount + ' pacientes'));
@@ -13763,7 +13962,7 @@ var GD = (function() {
             if (_preferLocalAfterReconnect) {
               _scheduleSave();
               saveCfg();
-              showToast('☁️ Subiendo a Drive los cambios guardados offline…', 'green');
+              showToast('☁️ Subiendo a Drive los cambios pendientes de esta sesión…', 'green');
               _preferLocalAfterReconnect = false;
             }
             // _loadCfg puede descubrir una foto o logotipo local que falta en
@@ -13791,6 +13990,7 @@ var GD = (function() {
             console.error('Drive error:', e);
             setBadge('error', 'No se pudo verificar o cargar la cuenta');
             showToast('⚠️ No se cargaron datos para evitar mezclar cuentas. Reintenta la conexión.', 'red');
+            _showReconnectRequired('Reconecta Google Drive para continuar');
           });
       }
     });
@@ -13818,20 +14018,10 @@ var GD = (function() {
   }
 
   function skip() {
-    _stopAutoPull();
-    _mode = 'local';
-    localStorage.setItem(GD_MODE_KEY, 'local');
-    localStorage.setItem('dental_offline_enabled', '1');
-    saveLocalWithAutoBackup();
-    var ls = document.getElementById('gd-login-screen');
-    var rm = document.getElementById('gd-reconnect-modal');
-    if (ls) ls.style.display = 'none';
-    if (rm) rm.classList.remove('open');
-    document.getElementById('sidebar').style.display = '';
-    document.getElementById('main').style.display = '';
-    setBadge('offline', 'Guardado en este dispositivo');
-    _initApp();
-    showToast('💾 Modo offline activo — guardado automático en este dispositivo', 'green');
+    _mode = 'google';
+    appStorage.setItem(GD_MODE_KEY, 'google');
+    showToast('☁️ Se requiere Google Drive para usar el programa', 'red');
+    signIn(false);
   }
 
   // ── Carpeta ──────────────────────────────────────────────
@@ -13865,7 +14055,7 @@ var GD = (function() {
         _folderId = matching && matching.parents && matching.parents[0]
           ? matching.parents[0]
           : folders[0].id;
-        localStorage.setItem('dental_gd_folder_id', _folderId);
+        appStorage.setItem('dental_gd_folder_id', _folderId);
         console.warn('Se encontraron ' + folders.length + ' carpetas de Consultorio Dental; se usó la base más reciente.');
       });
     });
@@ -13873,7 +14063,8 @@ var GD = (function() {
 
   // ── Leer DB desde Drive ──────────────────────────────────
   function _loadDB(forceRemote) {
-    var importRevisionAtStart = localStorage.getItem('dental_import_revision') || '0';
+    appStorage.beginHydration();
+    var importRevisionAtStart = appStorage.getItem('dental_import_revision') || '0';
     return _findPrimaryDBFile().then(function(file) {
       if (!file) {
         // Si la copia principal faltara, reconstruirla desde los espejos
@@ -13883,8 +14074,8 @@ var GD = (function() {
             db = _mergeDeviceDBPayloads(db, mirrors);
             if (!Array.isArray(db.patients)) db.patients = [];
             if (!Array.isArray(db.appointments)) db.appointments = [];
-            localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
-            localStorage.setItem('dental_local_updated_at', Date.now().toString());
+            appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+            appStorage.setItem('dental_local_updated_at', Date.now().toString());
             _lastRemotePatientCount = db.patients.length;
           }
           _needsAppDataMigration = true;
@@ -13908,15 +14099,28 @@ var GD = (function() {
         if (file.modifiedTime) _lastRemoteModifiedTime = file.modifiedTime;
         // El usuario importó un respaldo mientras esta descarga estaba en
         // curso. No mezclar ni sobrescribir nada de esa nueva restauración.
-        if ((localStorage.getItem('dental_import_revision') || '0') !== importRevisionAtStart) {
+        if ((appStorage.getItem('dental_import_revision') || '0') !== importRevisionAtStart) {
           _preferLocalAfterReconnect = true;
           _dirty = true;
           return;
         }
         neutralizeUnsafeText(data);
 
+        if (data._auxStore && typeof data._auxStore === 'object') {
+          appStorage.importDriveData(data._auxStore);
+        }
+        delete data._auxStore;
+        if (data._configState && typeof data._configState === 'object') {
+          var dbConfigUpdatedAt = parseInt(data._configState._savedAt || '0', 10) || 0;
+          var memoryConfigUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
+          if (dbConfigUpdatedAt >= memoryConfigUpdatedAt) {
+            cfg = Object.assign(cfg, data._configState);
+          }
+        }
+        delete data._configState;
+
         var remoteSavedAt = parseInt(data._savedAt || '0', 10) || 0;
-        var localSavedAt  = parseInt(localStorage.getItem('dental_local_updated_at') || '0', 10) || 0;
+        var localSavedAt  = parseInt(appStorage.getItem('dental_local_updated_at') || '0', 10) || 0;
         var hasLocalData  = db && ((db.patients && db.patients.length) || (db.appointments && db.appointments.length));
         // Copia de rescate de la portada dentro de la base principal. Este es
         // el archivo que todos los dispositivos ya descargan para pacientes,
@@ -13929,14 +14133,14 @@ var GD = (function() {
             cfg.heroImageUrl = data._heroImageDataUrl;
             cfg.heroImageUpdatedAt = dbHeroUpdatedAt;
             _legacyImageMigrationPending = _legacyImageMigrationPending || isEmbeddedImageValue(cfg.heroImageUrl);
-            try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+            try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
           }
           delete data._heroImageDataUrl;
           delete data._heroImageUpdatedAt;
         }
         delete data._savedAt;
 
-        // Nunca reemplazar cambios offline recientes con una copia antigua de
+        // Nunca reemplazar cambios heredados o pendientes con una copia antigua de
         // Drive. Aun así continuamos leyendo Caja, producción y configuración:
         // antes este return provocaba que una computadora nueva mostrara cero
         // reportes aunque sí existieran en Drive.
@@ -13965,23 +14169,23 @@ var GD = (function() {
         }
         if (data._caja) {
           var remoteCaja = parseStoredArray(data._caja);
-          var localCaja = parseStoredArray(localStorage.getItem('dental_caja_v1'));
+          var localCaja = parseStoredArray(appStorage.getItem('dental_caja_v1'));
           var mergedCaja = mergeStoredRows(remoteCaja, localCaja);
-          localStorage.setItem('dental_caja_v1', JSON.stringify(mergedCaja));
+          appStorage.setItem('dental_caja_v1', JSON.stringify(mergedCaja));
           if (mergedCaja.length > remoteCaja.length) { _preferLocalAfterReconnect = true; _dirty = true; }
           delete data._caja;
         }
         var remoteTrash = parseStoredArray(data._productionTrash);
-        var localTrash = parseStoredArray(localStorage.getItem('dental_production_trash_v1'));
+        var localTrash = parseStoredArray(appStorage.getItem('dental_production_trash_v1'));
         var mergedTrash = mergeStoredRows(remoteTrash, localTrash);
         if (data._productionTrash || localTrash.length) {
-          localStorage.setItem('dental_production_trash_v1', JSON.stringify(mergedTrash));
+          appStorage.setItem('dental_production_trash_v1', JSON.stringify(mergedTrash));
           if (mergedTrash.length > remoteTrash.length) { _preferLocalAfterReconnect = true; _dirty = true; }
         }
         delete data._productionTrash;
         if (data._production) {
           var remoteProduction = parseStoredArray(data._production);
-          var localProduction = parseStoredArray(localStorage.getItem('dental_production_v1'));
+          var localProduction = parseStoredArray(appStorage.getItem('dental_production_v1'));
           var deletedProductionIds = {};
           mergedTrash.forEach(function(row){ deletedProductionIds[String(row.id)] = true; });
           var mergedProduction = mergeStoredRows(remoteProduction, localProduction).filter(function(row) {
@@ -13989,25 +14193,25 @@ var GD = (function() {
           });
           if (localProduction.length) {
             try {
-              localStorage.setItem('dental_pre_drive_production_backup', JSON.stringify(localProduction));
+              appStorage.setItem('dental_pre_drive_production_backup', JSON.stringify(localProduction));
             } catch(productionBackupError) {}
           }
-          localStorage.setItem('dental_production_v1', JSON.stringify(mergedProduction));
+          appStorage.setItem('dental_production_v1', JSON.stringify(mergedProduction));
           if (mergedProduction.length > remoteProduction.length) { _preferLocalAfterReconnect = true; _dirty = true; }
           delete data._production;
         }
         if (data._doctorRates) {
           // Los porcentajes tienen su propio control de versión. Una copia
           // antigua de Drive nunca debe devolverlos al valor inicial (40%).
-          var localRatesUpdatedAt = parseInt(localStorage.getItem('dental_doctor_rates_updated_at') || '0', 10) || 0;
+          var localRatesUpdatedAt = parseInt(appStorage.getItem('dental_doctor_rates_updated_at') || '0', 10) || 0;
           var remoteRatesUpdatedAt = parseInt(data._doctorRatesUpdatedAt || '0', 10) || 0;
-          var hasLocalRates = !!localStorage.getItem('dental_doctor_rates_v1');
+          var hasLocalRates = !!appStorage.getItem('dental_doctor_rates_v1');
           if (hasLocalRates && localRatesUpdatedAt > remoteRatesUpdatedAt) {
             _preferLocalAfterReconnect = true;
             _dirty = true;
           } else {
-            localStorage.setItem('dental_doctor_rates_v1', data._doctorRates);
-            if (remoteRatesUpdatedAt) localStorage.setItem('dental_doctor_rates_updated_at', String(remoteRatesUpdatedAt));
+            appStorage.setItem('dental_doctor_rates_v1', data._doctorRates);
+            if (remoteRatesUpdatedAt) appStorage.setItem('dental_doctor_rates_updated_at', String(remoteRatesUpdatedAt));
           }
           delete data._doctorRates;
         }
@@ -14047,8 +14251,8 @@ var GD = (function() {
             3
           ),
           catalogCandidate(
-            localStorage.getItem('dental_catalog_v1'),
-            localStorage.getItem('dental_catalog_updated_at'),
+            appStorage.getItem('dental_catalog_v1'),
+            appStorage.getItem('dental_catalog_updated_at'),
             4
           )
         ].filter(Boolean);
@@ -14076,8 +14280,8 @@ var GD = (function() {
               updatedAt: selectedCatalogState.updatedAt
             };
           }
-          localStorage.setItem('dental_catalog_v1', selectedCatalogState.raw);
-          localStorage.setItem('dental_catalog_updated_at', String(selectedCatalogState.updatedAt));
+          appStorage.setItem('dental_catalog_v1', selectedCatalogState.raw);
+          appStorage.setItem('dental_catalog_updated_at', String(selectedCatalogState.updatedAt));
           if (!remoteHasSelectedCatalog) {
             _preferLocalAfterReconnect = true;
             _dirty = true;
@@ -14085,17 +14289,17 @@ var GD = (function() {
         }
         delete data._catalog;
         delete data._catalogUpdatedAt;
-        if (data._waTpls)     { localStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
-        if (data._quickNotes) { localStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
+        if (data._waTpls)     { appStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
+        if (data._quickNotes) { appStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors !== undefined) {
           // La lista de doctores necesita su propio control de versión. Antes
           // una descarga automática podía reemplazar doctores recién agregados
           // con la lista antigua de Drive y dejar solo al usuario inicial.
           var remoteDoctors = parseStoredArray(data._doctors);
-          var localDoctorsRaw = localStorage.getItem('dental_doctors_v1');
+          var localDoctorsRaw = appStorage.getItem('dental_doctors_v1');
           var localDoctors = parseStoredArray(localDoctorsRaw);
           var remoteDoctorsUpdatedAt = parseInt(data._doctorsUpdatedAt || '0', 10) || 0;
-          var localDoctorsUpdatedAt = parseInt(localStorage.getItem('dental_doctors_updated_at') || '0', 10) || 0;
+          var localDoctorsUpdatedAt = parseInt(appStorage.getItem('dental_doctors_updated_at') || '0', 10) || 0;
           var preserveLegacyLocalDoctors = !!localDoctorsRaw
             && !remoteDoctorsUpdatedAt
             && localDoctors.length > remoteDoctors.length;
@@ -14103,14 +14307,14 @@ var GD = (function() {
               && (localDoctorsUpdatedAt > remoteDoctorsUpdatedAt || preserveLegacyLocalDoctors)) {
             if (!localDoctorsUpdatedAt) {
               localDoctorsUpdatedAt = Date.now();
-              localStorage.setItem('dental_doctors_updated_at', String(localDoctorsUpdatedAt));
+              appStorage.setItem('dental_doctors_updated_at', String(localDoctorsUpdatedAt));
             }
             _preferLocalAfterReconnect = true;
             _dirty = true;
           } else {
-            localStorage.setItem('dental_doctors_v1', JSON.stringify(remoteDoctors));
+            appStorage.setItem('dental_doctors_v1', JSON.stringify(remoteDoctors));
             if (remoteDoctorsUpdatedAt) {
-              localStorage.setItem('dental_doctors_updated_at', String(remoteDoctorsUpdatedAt));
+              appStorage.setItem('dental_doctors_updated_at', String(remoteDoctorsUpdatedAt));
             }
           }
           delete data._doctors;
@@ -14162,7 +14366,7 @@ var GD = (function() {
         var mergeAddedLocalWork = syncSignature(mergedData) !== remoteSignatureBeforeMerge;
 
         if (mergeAddedLocalWork) {
-          try { localStorage.setItem('dental_pre_drive_merge_backup', serializeDatabaseForLocalStorage(db)); }
+          try { appStorage.setItem('dental_pre_drive_merge_backup', serializeDatabaseForLocalStorage(db)); }
           catch(mergeBackupError) {}
           _preferLocalAfterReconnect = true;
           _dirty = true;
@@ -14171,8 +14375,8 @@ var GD = (function() {
         if (!Array.isArray(db.patients)) db.patients = [];
         if (!Array.isArray(db.appointments)) db.appointments = [];
         if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
-        localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
-        localStorage.setItem(
+        appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+        appStorage.setItem(
           'dental_local_updated_at',
           (mergeAddedLocalWork || _preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString()
         );
@@ -14182,6 +14386,8 @@ var GD = (function() {
           }, 500);
         }
       });
+    }).finally(function() {
+      appStorage.endHydration();
     });
   }
 
@@ -14200,8 +14406,8 @@ var GD = (function() {
           + ' configuraciones de Drive; se usó la más reciente sin borrar ninguna.');
       }
 
-      // Si hay cambios offline, solo identificar el archivo; no reemplazar la
-      // configuración local antes de subirla.
+      // Si hay cambios pendientes, solo identificar el archivo; no reemplazar
+      // la configuración de la sesión antes de subirla.
       if (_preferLocalAfterReconnect) return;
       return _readFile(_cfgFileId).then(function(data) {
         if (data && data.name) {
@@ -14226,7 +14432,7 @@ var GD = (function() {
             cfg = Object.assign(cfg, data);
           }
           _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
-          localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+          appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
           if (typeof applyBranding === 'function') applyBranding();
           if (_cfgDirty) {
             if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
@@ -14239,7 +14445,7 @@ var GD = (function() {
 
   // ── Portada y logo independientes ───────────────────────
   // La configuración guarda únicamente sus ids. Los bytes se descargan como
-  // Blob desde Drive y la URL temporal nunca se escribe en localStorage.
+  // Blob desde Drive y la URL temporal nunca se escribe en appStorage.
   function _loadHero() {
     return Promise.all([loadImageAsset('hero'), loadImageAsset('logo')]).then(function(loaded) {
       if (loaded[0] || cfg.heroImageDriveId || isEmbeddedImageValue(cfg.heroImageUrl)) return;
@@ -14279,7 +14485,7 @@ var GD = (function() {
       // habían elegido una carpeta duplicada o vacía antes de buscarla.
       if (file && name === DB_FILENAME && file.parents && file.parents[0]) {
         _folderId = file.parents[0];
-        localStorage.setItem('dental_gd_folder_id', _folderId);
+        appStorage.setItem('dental_gd_folder_id', _folderId);
       }
       return file;
     });
@@ -14646,7 +14852,7 @@ var GD = (function() {
       payload._syncPatientCount = expectedPatientCount;
       expectedContentSignature = _payloadContentSignature(payload);
       payload._syncContentSignature = expectedContentSignature;
-      // Guardar primero una copia exclusiva de este dispositivo. Si dos
+      // Guardar primero una copia auxiliar identificada para esta instalación. Si dos
       // equipos escriben al mismo tiempo, ninguno puede borrar el respaldo
       // del otro y la siguiente lectura reconstruye la unión completa.
       return _writeDeviceDB(payload).then(function(mirrorFile) {
@@ -14698,6 +14904,10 @@ var GD = (function() {
       }
       _dbSaving = false;
       _preferLocalAfterReconnect = false;
+      // La base principal ya quedó verificada. A partir de este punto es
+      // seguro retirar del navegador todas las copias clínicas heredadas.
+      appStorage.activateDriveOnly();
+      appStorage.markClean();
       setBadge('synced', result.mirrorPending
         ? ('✓ Drive guardado: ' + result.patientCount + ' pacientes')
         : ('✓ Drive verificado: ' + result.patientCount + ' pacientes'));
@@ -14725,7 +14935,7 @@ var GD = (function() {
       _dbSaving = false;
       _dirty = true;
       setBadge('error', 'No se pudo guardar en Drive');
-      showToast('⚠️ Tus cambios están guardados en este dispositivo. Reconecta Drive y vuelve a sincronizar.', 'red');
+      showToast('⚠️ El cambio sigue pendiente en esta sesión. Reconecta Drive antes de cerrar.', 'red');
     });
   }
 
@@ -14828,6 +15038,7 @@ var GD = (function() {
     if (!db.appointments) db.appointments = [];
     if (!db.patients) db.patients = [];
     if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
+    if (typeof reloadDriveAuxRuntimeState === 'function') reloadDriveAuxRuntimeState();
     if (typeof _loadBudgetState === 'function') _loadBudgetState();
     if (typeof populateCityFilter === 'function') populateCityFilter();
     if (typeof updateTopStats === 'function') updateTopStats();
@@ -14845,6 +15056,7 @@ var GD = (function() {
     // Drive puede haber cargado una lista de doctores distinta a la del caché.
     // Revalidar el perfil activo antes de dibujar filtros, firmas y saludo.
     if (typeof initDoctorSystem === 'function') initDoctorSystem();
+    if (typeof reloadDriveAuxRuntimeState === 'function') reloadDriveAuxRuntimeState();
     if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
     // Asignar HC ANTES de renderizar
     if (typeof assignHCNumbers === 'function') assignHCNumbers();
@@ -14879,9 +15091,8 @@ var GD = (function() {
 
   // ── Start ─────────────────────────────────────────────────
   function start() {
-    // Recuperar primero la copia guardada en este navegador. Antes solo se
-    // descargaba Drive y, al elegir modo offline, la app iniciaba con una base
-    // vacía aunque dental_v4 sí existiera en localStorage.
+    // En la primera ejecución de esta versión se carga en memoria cualquier
+    // copia heredada para migrarla y verificarla en Drive antes de retirarla.
     loadDB();
     if (!db || typeof db !== 'object') db = { patients: [], appointments: [] };
     if (!Array.isArray(db.patients)) db.patients = [];
@@ -14897,12 +15108,10 @@ var GD = (function() {
         showToast('✅ Se recuperaron ' + recoveredLocalPatients + ' pacientes de una copia local', 'green');
       }, 900);
     }
-    // La versión anterior podía iniciar vacía y sobrescribir dental_v4 al
-    // recargar. En modo local, recuperar la copia inmediatamente anterior si
-    // contiene registros y la principal quedó completamente vacía.
+    // Compatibilidad de migración con versiones antiguas que ofrecían modo local.
     if (_mode === 'local' && db.patients.length === 0 && db.appointments.length === 0) {
       try {
-        var previousLocal = JSON.parse(localStorage.getItem('dental_autobackup_previous') || 'null');
+        var previousLocal = JSON.parse(appStorage.getItem('dental_autobackup_previous') || 'null');
         var previousCount = previousLocal
           ? ((Array.isArray(previousLocal.patients) ? previousLocal.patients.length : 0)
             + (Array.isArray(previousLocal.appointments) ? previousLocal.appointments.length : 0))
@@ -14911,9 +15120,9 @@ var GD = (function() {
           db = previousLocal;
           if (!Array.isArray(db.patients)) db.patients = [];
           if (!Array.isArray(db.appointments)) db.appointments = [];
-          localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
-          localStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
-          setTimeout(function(){ showToast('✅ Se recuperaron tus datos offline', 'green'); }, 700);
+          appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+          appStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
+          setTimeout(function(){ showToast('✅ Se recuperaron datos antiguos para migrarlos a Drive', 'green'); }, 700);
         }
       } catch(recoverOfflineError) {}
     }
@@ -14921,25 +15130,15 @@ var GD = (function() {
     document.getElementById('sidebar').style.display = 'none';
     document.getElementById('main').style.display    = 'none';
 
-    if (_mode === 'local') {
-      document.getElementById('sidebar').style.display = '';
-      document.getElementById('main').style.display    = '';
+    if (_mode === 'google' && appStorage.getItem('dental_gd_token_hint')) {
+      // La interfaz permanece bloqueada hasta descargar y verificar Drive.
       var ls = document.getElementById('gd-login-screen');
       if (ls) ls.style.display = 'none';
-      setBadge('offline', 'Guardado en este dispositivo');
-      _initApp();
-    } else if (_mode === 'google' && localStorage.getItem('dental_gd_token_hint')) {
-      // Tenía cuenta Google — mostrar app con cache local inmediatamente
-      document.getElementById('sidebar').style.display = '';
-      document.getElementById('main').style.display    = '';
-      var ls = document.getElementById('gd-login-screen');
-      if (ls) ls.style.display = 'none';
-      _initApp(); // datos del cache local
       setBadge('syncing', 'Conectando…');
-      // Intentar One Tap automático
       _autoReconnect();
     } else {
-      // Primera vez — mostrar login
+      _mode = 'google';
+      appStorage.setItem(GD_MODE_KEY, 'google');
       var ls = document.getElementById('gd-login-screen');
       if (ls) ls.style.display = 'flex';
     }
@@ -14975,10 +15174,7 @@ var GD = (function() {
   }
 
   function save() {
-    var savedLocal = saveLocalWithAutoBackup();
-    if (_mode === 'local') {
-      setBadge(savedLocal === false ? 'error' : 'offline', savedLocal === false ? 'No se pudo guardar' : 'Guardado local ✓');
-    }
+    saveLocalWithAutoBackup();
     if (_mode === 'google' && _token) {
       if (_saving) {
         // La edición ocurrió durante una descarga. No perder la intención de
@@ -14987,6 +15183,10 @@ var GD = (function() {
       } else {
         _scheduleSave();
       }
+    } else {
+      _dirty = true;
+      _showReconnectRequired('Reconecta Drive para guardar este cambio');
+      showToast('⚠️ Cambio pendiente: reconecta Google Drive antes de cerrar', 'red');
     }
   }
 
@@ -15017,17 +15217,20 @@ var GD = (function() {
     cfg._savedAt = Date.now();
     var localCfgSaved = true;
     try {
-      localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+      appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
     } catch (e) {
       localCfgSaved = false;
-      console.error('No se pudo guardar la configuración local:', e);
-      showToast('⚠️ No hay espacio para guardar la configuración. Reduce la foto de portada.', 'red');
+      console.error('No se pudo preparar la configuración para Drive:', e);
+      showToast('⚠️ No se pudo preparar la configuración para Drive.', 'red');
     }
     if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
     if (_mode === 'google' && _token && !_saving) {
       _cfgDirty = true;
       if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
       _cfgSaveTimer = setTimeout(_doSaveCfg, 500);
+    } else if (!_token) {
+      _cfgDirty = true;
+      _showReconnectRequired('Reconecta Drive para guardar la configuración');
     }
     return localCfgSaved;
   }
@@ -15107,11 +15310,18 @@ var GD = (function() {
     _heroImageFileId = null; _logoImageFileId = null;
     _setRuntimeImage('hero', null);
     _setRuntimeImage('logo', null);
-    _mode = 'local';
+    _mode = 'google';
     _accountEmail = '';
-    localStorage.setItem(GD_MODE_KEY, 'local');
-    localStorage.removeItem('dental_gd_token_hint');
-    setBadge('offline', 'Sin cuenta');
+    appStorage.setItem(GD_MODE_KEY, 'google');
+    appStorage.removeItem('dental_gd_token_hint');
+    appStorage.clearSessionClinicalData();
+    db = { patients:[], appointments:[] };
+    cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
+    document.getElementById('sidebar').style.display = 'none';
+    document.getElementById('main').style.display = 'none';
+    var login = document.getElementById('gd-login-screen');
+    if (login) login.style.display = 'flex';
+    setBadge('error', 'Sin cuenta');
     showToast('Sesión cerrada', 'green');
   }
 
@@ -15119,17 +15329,19 @@ var GD = (function() {
   function _buildSavePayload() {
     return Object.assign({}, imageFreeClone(db), {
       _savedAt:     Date.now(),
-      _caja:       localStorage.getItem('dental_caja_v1')        || '[]',
-      _production: localStorage.getItem('dental_production_v1')  || '[]',
-      _productionTrash:localStorage.getItem('dental_production_trash_v1')|| '[]',
-      _doctorRates:localStorage.getItem('dental_doctor_rates_v1')|| '{}',
-      _doctorRatesUpdatedAt:parseInt(localStorage.getItem('dental_doctor_rates_updated_at')||'0',10)||0,
-      _catalog:    localStorage.getItem('dental_catalog_v1')     || null,
-      _catalogUpdatedAt:parseInt(localStorage.getItem('dental_catalog_updated_at')||'0',10)||0,
-      _waTpls:     localStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
-      _quickNotes: localStorage.getItem('dental_quick_notes_v1') || '[]',
-      _doctors:    localStorage.getItem('dental_doctors_v1')     || '[]',
-      _doctorsUpdatedAt:parseInt(localStorage.getItem('dental_doctors_updated_at')||'0',10)||0,
+      _auxStore:    appStorage.exportDriveData(),
+      _configState: imageFreeClone(cfg),
+      _caja:       appStorage.getItem('dental_caja_v1')        || '[]',
+      _production: appStorage.getItem('dental_production_v1')  || '[]',
+      _productionTrash:appStorage.getItem('dental_production_trash_v1')|| '[]',
+      _doctorRates:appStorage.getItem('dental_doctor_rates_v1')|| '{}',
+      _doctorRatesUpdatedAt:parseInt(appStorage.getItem('dental_doctor_rates_updated_at')||'0',10)||0,
+      _catalog:    appStorage.getItem('dental_catalog_v1')     || null,
+      _catalogUpdatedAt:parseInt(appStorage.getItem('dental_catalog_updated_at')||'0',10)||0,
+      _waTpls:     appStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
+      _quickNotes: appStorage.getItem('dental_quick_notes_v1') || '[]',
+      _doctors:    appStorage.getItem('dental_doctors_v1')     || '[]',
+      _doctorsUpdatedAt:parseInt(appStorage.getItem('dental_doctors_updated_at')||'0',10)||0,
       _patientTombstones: loadPatientTombstones()
     });
   }
@@ -15137,6 +15349,8 @@ var GD = (function() {
   function saveNow() {
     if (!_token || _saving) {
       saveLocalWithAutoBackup();
+      _dirty = true;
+      if (!_token) _showReconnectRequired('Reconecta Drive para guardar tus cambios');
       return;
     }
     saveLocalWithAutoBackup();
@@ -15229,7 +15443,7 @@ function checkPass() {
     return;
   }
 
-  localStorage.setItem(LICENSE_ACTIVE_KEY, '1');
+  appStorage.setItem(LICENSE_ACTIVE_KEY, '1');
   if (err) err.textContent = '';
   var screen = document.getElementById('pass-screen');
   if (screen) screen.style.display = 'none';
@@ -15238,7 +15452,7 @@ function checkPass() {
 
 function initPassGate() {
   var screen = document.getElementById('pass-screen');
-  if (localStorage.getItem(LICENSE_ACTIVE_KEY) === '1') {
+  if (appStorage.getItem(LICENSE_ACTIVE_KEY) === '1') {
     if (screen) screen.style.display = 'none';
     GD.start();
     return;
@@ -15291,7 +15505,7 @@ function _interactionStateFingerprint() {
         'dental_catalog_v1','dental_caja_v1','dental_production_v1',
         'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
         'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
-      ].map(function(k){ return localStorage.getItem(k) || ''; }).join('|');
+      ].map(function(k){ return appStorage.getItem(k) || ''; }).join('|');
   } catch(e) { return ''; }
   // Huella corta para no conservar otra copia completa de los datos en memoria.
   var hash = 2166136261;
@@ -15306,7 +15520,7 @@ function _saveAfterLastInteraction() {
   var cfgChanged = !!cfgSnapshot && cfgSnapshot !== _lastInteractionCfgSnapshot;
   _lastInteractionFingerprint = current;
   _lastInteractionCfgSnapshot = cfgSnapshot;
-  localStorage.setItem('dental_local_updated_at', Date.now().toString());
+  appStorage.setItem('dental_local_updated_at', Date.now().toString());
   if (typeof saveLocalWithAutoBackup === 'function') saveLocalWithAutoBackup();
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined') {
@@ -16043,7 +16257,7 @@ function _logoHTML(size) {
 var _rxEditIdx = -1;
 // Guardar ediciones personalizadas de recetas (no modifica RX_DB original)
 var _rxCustomEdits = (function() {
-  try { return JSON.parse(localStorage.getItem('dental_rx_edits_v1') || '{}'); } catch(e) { return {}; }
+  try { return JSON.parse(appStorage.getItem('dental_rx_edits_v1') || '{}'); } catch(e) { return {}; }
 })();
 
 function _getRx(idx) {
@@ -16079,7 +16293,8 @@ function saveRxEdit() {
   });
 
   _rxCustomEdits[_rxEditIdx] = { title: title, drugs: drugs, indicaciones: indsRaw };
-  localStorage.setItem('dental_rx_edits_v1', JSON.stringify(_rxCustomEdits));
+  appStorage.setItem('dental_rx_edits_v1', JSON.stringify(_rxCustomEdits));
+  persistAuxStateToDrive();
   closeRxEdit();
   renderRxGrid();
   showToast('✅ Receta guardada', 'green');
@@ -16221,7 +16436,7 @@ function migrateLegacyInlineImagesToDrive() {
     _legacyImageMigrationPending = false;
     purgeInlineImagesFromLocalStorage();
     saveLocalWithAutoBackup();
-    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
     return Promise.resolve(true);
   }
 
@@ -16279,7 +16494,7 @@ function migrateLegacyInlineImagesToDrive() {
     if (!_legacyImageMigrationPending) {
       purgeInlineImagesFromLocalStorage();
       saveLocalWithAutoBackup();
-      try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+      try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
       if (legacyPhotos.length || brandJobs.length) {
         showToast('✅ Imágenes migradas a Drive y eliminadas del almacenamiento local', 'green');
       }
@@ -16991,7 +17206,7 @@ var _activeDoctor    = null; // { id, name, specialty, cedula, cedula2 }
 // ── Cargar/guardar lista de doctores ─────────────────────
 function loadDoctors() {
   try {
-    var stored = localStorage.getItem(DOCTORS_KEY);
+    var stored = appStorage.getItem(DOCTORS_KEY);
     if (stored) {
       var parsedDoctors = JSON.parse(stored);
       neutralizeUnsafeText(parsedDoctors);
@@ -17002,8 +17217,8 @@ function loadDoctors() {
       if (cfgDoctors.length > parsedDoctors.length) {
         parsedDoctors = JSON.parse(JSON.stringify(cfgDoctors));
         neutralizeUnsafeText(parsedDoctors);
-        localStorage.setItem(DOCTORS_KEY, JSON.stringify(parsedDoctors));
-        localStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
+        appStorage.setItem(DOCTORS_KEY, JSON.stringify(parsedDoctors));
+        appStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
         setTimeout(function() {
           if (typeof GD !== 'undefined' && GD.save) GD.save();
         }, 100);
@@ -17024,13 +17239,13 @@ function loadDoctors() {
 
 function saveDoctors(doctors) {
   neutralizeUnsafeText(doctors);
-  localStorage.setItem(DOCTORS_KEY, JSON.stringify(doctors));
-  localStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
+  appStorage.setItem(DOCTORS_KEY, JSON.stringify(doctors));
+  appStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
   // Mantener también la configuración compatible actualizada. Así ningún
   // archivo de configuración antiguo puede devolver la clínica a un solo Dr.
   cfg.doctors = doctors;
   cfg._savedAt = Date.now();
-  localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+  appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   if (typeof GD !== 'undefined' && GD.save) GD.save();
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   setTimeout(function() {
@@ -17041,7 +17256,7 @@ function saveDoctors(doctors) {
 // ── Doctor activo ─────────────────────────────────────────
 function loadActiveDoctor() {
   try {
-    var stored = localStorage.getItem(ACTIVE_DOC_KEY);
+    var stored = appStorage.getItem(ACTIVE_DOC_KEY);
     if (stored) {
       var parsedDoctor = JSON.parse(stored);
       neutralizeUnsafeText(parsedDoctor);
@@ -17062,7 +17277,8 @@ function updateActiveDoctorIdentity(doc) {
 
 function setActiveDoctor(doc) {
   _activeDoctor = doc;
-  localStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(doc));
+  appStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(doc));
+  persistAuxStateToDrive();
   updateActiveDoctorIdentity(doc);
   // Actualizar badge en sidebar
   var badge = document.getElementById('active-doctor-badge');
@@ -17227,6 +17443,7 @@ openSettings = function() {
 
 // ── Init ─────────────────────────────────────────────────
 setTimeout(function() {
+  if (typeof GD === 'undefined' || !GD._token || !GD._token()) return;
   initDoctorSystem();
   setTimeout(_updateSbDoctorFilter, 600);
   setTimeout(_updateDoctorApptSelector, 600);
@@ -17668,7 +17885,7 @@ function saveEditAppt() {
 
 
 // ── Formato de hora 12h/24h ──────────────────────────────
-var _timeFormat = localStorage.getItem('dental_time_format') || '12h';
+var _timeFormat = appStorage.getItem('dental_time_format') || '12h';
 
 function fmtTime(time24) {
   if (!time24) return '';
@@ -17683,7 +17900,7 @@ function fmtTime(time24) {
 
 function setTimeFormat(fmt) {
   _timeFormat = fmt;
-  localStorage.setItem('dental_time_format', fmt);
+  appStorage.setItem('dental_time_format', fmt);
   renderCal();
   renderDashboard();
   // Actualizar botones
@@ -17735,8 +17952,8 @@ document.addEventListener('keydown', function(e) {
 
 
 // ── Editar consentimientos ────────────────────────────────
-var _ciEdits  = (function(){ try { return JSON.parse(localStorage.getItem('dental_ci_edits_v1') ||'{}'); } catch(e){ return {}; } })();
-var _indEdits = (function(){ try { return JSON.parse(localStorage.getItem('dental_ind_edits_v1')||'{}'); } catch(e){ return {}; } })();
+var _ciEdits  = (function(){ try { return JSON.parse(appStorage.getItem('dental_ci_edits_v1') ||'{}'); } catch(e){ return {}; } })();
+var _indEdits = (function(){ try { return JSON.parse(appStorage.getItem('dental_ind_edits_v1')||'{}'); } catch(e){ return {}; } })();
 var _ciEditId = null, _indEditId = null;
 
 function _getCI(id)  { var b = CI_DB.find(function(x){ return x.id===id; });  return _ciEdits[id]  ? Object.assign({},b,_ciEdits[id])  : b; }
@@ -17757,7 +17974,8 @@ function resetCIEdit() {
   var base = CI_DB.find(function(x){ return x.id===_ciEditId; });
   if (!base) return;
   delete _ciEdits[_ciEditId];
-  localStorage.setItem('dental_ci_edits_v1', JSON.stringify(_ciEdits));
+  appStorage.setItem('dental_ci_edits_v1', JSON.stringify(_ciEdits));
+  persistAuxStateToDrive();
   closeCIEdit(); renderCiGrid(); showToast('↩️ Restaurado al original', 'green');
 }
 function saveCIEdit() {
@@ -17773,7 +17991,8 @@ function saveCIEdit() {
     alternativas: parseLines(document.getElementById('ci-edit-alt').value),
     postop:       parseLines(document.getElementById('ci-edit-postop').value)
   };
-  localStorage.setItem('dental_ci_edits_v1', JSON.stringify(_ciEdits));
+  appStorage.setItem('dental_ci_edits_v1', JSON.stringify(_ciEdits));
+  persistAuxStateToDrive();
   closeCIEdit(); renderCiGrid(); showToast('✅ Consentimiento actualizado', 'green');
 }
 
@@ -17795,7 +18014,8 @@ function closeIndEdit() { document.getElementById('ind-edit-overlay').style.disp
 function resetIndEdit() {
   if (!_indEditId) return;
   delete _indEdits[_indEditId];
-  localStorage.setItem('dental_ind_edits_v1', JSON.stringify(_indEdits));
+  appStorage.setItem('dental_ind_edits_v1', JSON.stringify(_indEdits));
+  persistAuxStateToDrive();
   closeIndEdit(); renderIndGrid(); showToast('↩️ Restaurado al original', 'green');
 }
 function saveIndEdit() {
@@ -17806,7 +18026,8 @@ function saveIndEdit() {
     secciones: [{ titulo: '', items: document.getElementById('ind-edit-items').value
       .split('\n').map(function(l){ return l.replace(/^[•\-\*]\s*/,'').trim(); }).filter(Boolean) }]
   };
-  localStorage.setItem('dental_ind_edits_v1', JSON.stringify(_indEdits));
+  appStorage.setItem('dental_ind_edits_v1', JSON.stringify(_indEdits));
+  persistAuxStateToDrive();
   closeIndEdit(); renderIndGrid(); showToast('✅ Indicaciones actualizadas', 'green');
 }
 
@@ -18174,21 +18395,21 @@ function forceReloadFromDrive() {
     showToast('Conecta Google Drive primero', 'red');
     return;
   }
-  if (!confirm('¿Recargar todos los datos desde Google Drive?\nEsto reemplazará los datos locales con los de Drive.')) return;
+  if (!confirm('¿Recargar todos los datos desde Google Drive?\nSe descartarán los cambios de esta sesión que todavía no estén sincronizados.')) return;
 
   closeSettings();
   showToast('⏳ Descargando desde Drive…', 'green');
 
-  // Limpiar caché local de datos (NO de sesión)
-  localStorage.removeItem('dental_v4');
-  localStorage.removeItem('dental_caja_v1');
-  localStorage.removeItem('dental_production_v1');
-  localStorage.removeItem('dental_doctor_rates_v1');
-  localStorage.removeItem('dental_doctor_rates_updated_at');
-  localStorage.removeItem('dental_catalog_v1');
-  localStorage.removeItem('dental_wa_custom_tpls_v1');
-  localStorage.removeItem('dental_quick_notes_v1');
-  localStorage.removeItem('dental_doctors_v1');
+  // Limpiar la memoria temporal de datos.
+  appStorage.removeItem('dental_v4');
+  appStorage.removeItem('dental_caja_v1');
+  appStorage.removeItem('dental_production_v1');
+  appStorage.removeItem('dental_doctor_rates_v1');
+  appStorage.removeItem('dental_doctor_rates_updated_at');
+  appStorage.removeItem('dental_catalog_v1');
+  appStorage.removeItem('dental_wa_custom_tpls_v1');
+  appStorage.removeItem('dental_quick_notes_v1');
+  appStorage.removeItem('dental_doctors_v1');
 
   // Recargar la página — el programa descargará todo desde Drive al iniciar
   setTimeout(function() { window.location.reload(); }, 800);
@@ -18461,7 +18682,7 @@ window.addEventListener('resize', function() {
           ☁️ Conectar o reconectar Google
         </button>
         <div style="font-size:.7rem;color:var(--ink-3);line-height:1.45;margin:-4px 0 12px">
-          También puedes tocar el indicador 💾 de la barra superior cuando estés en modo offline.
+          El programa requiere conexión a Drive. Toca el indicador 💾 para revisar o reintentar la sincronización.
         </div>
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:4px">
           <label style="font-size:.78rem;font-weight:600;color:var(--ink-2)">Almacenamiento utilizado</label>
@@ -19159,7 +19380,7 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">1. Conecta Google Drive</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al abrir el programa toca <strong>"Continuar con Google"</strong>. Esto guarda todos tus datos en tu cuenta de Google Drive de forma segura. Sin Drive los datos solo se guardan en este dispositivo.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al abrir el programa toca <strong>"Continuar con Google"</strong>. Todos los datos de la clínica se cargan y guardan en Google Drive; sin conexión la aplicación permanece bloqueada.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">2. Configura tu perfil</div>
@@ -19344,9 +19565,9 @@ window.addEventListener('resize', function() {
       <div id="h-problemas" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">🛟 Solución de problemas</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:4px">No dice “Sincronizado”</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">Toca el indicador o Guardar, reconecta Google y espera. No cierres la página mientras diga Guardando. Si la conexión falla, los cambios quedan temporalmente en el dispositivo para subirlos al reconectar.</div></div>
+          <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:4px">No dice “Sincronizado”</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">Toca el indicador o Guardar, reconecta Google y espera. No cierres la página mientras diga Guardando: los cambios pendientes existen solo durante la sesión actual hasta que Drive los confirme.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">No aparecen pacientes o citas</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Comprueba que entraste con la misma cuenta de Google. Pulsa Guardar/Sync y espera hasta un minuto. Revisa filtros de ciudad, alertas y doctor; un filtro activo puede ocultar registros.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Modo offline</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Guarda en el almacenamiento del navegador del dispositivo actual. Al reconectar, permite que finalice la sincronización. No borres datos del navegador, no uses incógnito y exporta respaldos periódicamente.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Sin conexión a Drive</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">La aplicación no ofrece modo offline. Reconecta la misma cuenta de Google para cargar y guardar; no cierres la pestaña si hay un cambio pendiente.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Respaldo manual y recuperación</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En Configuración usa <strong>Exportar mis datos</strong> para descargar JSON. Para recuperar, usa <strong>Importar datos desde respaldo</strong> y selecciona un archivo exportado por esta app. Conserva varias copias fechadas antes de actualizar o borrar información.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Impresión cortada o extraña</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el diálogo selecciona tamaño Carta o A4, escala 90–100 %, orientación adecuada y márgenes predeterminados. Desactiva encabezados y pies del navegador si aparecen URL y fecha.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Antes de borrar</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Exporta un respaldo y confirma que terminó. Borrar paciente, fotografías o todos los datos puede ser irreversible después de sincronizarse con Drive.</div></div>
