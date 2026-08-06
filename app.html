@@ -4289,6 +4289,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.79rem;line-height:1.45"><strong>Portada estable:</strong> las actualizaciones automáticas conservan la fotografía y descargan una nueva únicamente cuando realmente cambió en Drive.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctor activo:</strong> la selección se mantiene al sincronizar y el selector ya no aparece por sí solo.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Precios persistentes:</strong> los cambios del catálogo se guardan inmediatamente y una copia anterior de otro dispositivo ya no puede restaurarlos al recargar.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Presupuesto siempre limpio:</strong> al abrir el módulo comienza uno nuevo; únicamente se conserva cuando lo generas y lo guardas en el expediente del paciente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -6257,7 +6258,13 @@ function goPage(id, el) {
     else if (typeof renderList === 'function') renderList(db.patients || []);
   }
   if (id === 'stats-page') buildStats();
-  if (id === 'budget-page') { populateBudgetSelect(); setTimeout(function(){ renderCombo('budget-patient-search','budget-patient-dropdown','budget-patient-sel',null); _restoreBudgetUI(); },150); }
+  if (id === 'budget-page') {
+    resetBudgetWorkspace();
+    populateBudgetSelect();
+    setTimeout(function(){
+      renderCombo('budget-patient-search','budget-patient-dropdown','budget-patient-sel',null);
+    },150);
+  }
   if (id === 'agenda-page') {
     populateApptSelect();
     // Importar eventos nuevos de Calendar al abrir la agenda
@@ -6770,32 +6777,14 @@ var _budgetNotes = '';
 
 // ── Simple budget state persistence ──────────────────────
 function _saveBudgetState() {
-  try {
-    // Use JSON parse/stringify to deep-copy — avoids reference bugs
-    db.budgetState = JSON.parse(JSON.stringify({
-      tx:    selectedTx,
-      ctx:   customTx,
-      patId: _budgetPatId,
-      notes: _budgetNotes
-    }));
-    saveDB();
-  } catch(e) {}
+  // El presupuesto en preparación pertenece únicamente a la vista actual.
+  // Solo un presupuesto generado y confirmado se guarda en el expediente.
 }
 function _loadBudgetState() {
-  try {
-    // Empezar limpio: si la cuenta o respaldo nuevo no tiene borrador, no
-    // conservar en memoria el presupuesto que editaba la sesión anterior.
-    selectedTx = {};
-    customTx = [];
-    _budgetPatId = '';
-    _budgetNotes = '';
-    var s = db.budgetState;
-    if (!s) return;
-    if (s.tx  !== null && s.tx  !== undefined) selectedTx  = s.tx;
-    if (s.ctx !== null && s.ctx !== undefined) customTx    = s.ctx;
-    if (s.patId) _budgetPatId = s.patId;
-    if (s.notes) _budgetNotes = s.notes;
-  } catch(e) {}
+  selectedTx = {};
+  customTx = [];
+  _budgetPatId = '';
+  _budgetNotes = '';
 }
 function _restoreBudgetUI() {
   // buildCatalogUI already ran via populateBudgetSelect with correct selectedTx
@@ -6818,6 +6807,22 @@ function _restoreBudgetUI() {
     var ni = document.getElementById('budget-notes');
     if (ni) ni.value = _budgetNotes;
   }
+}
+
+function resetBudgetWorkspace() {
+  _loadBudgetState();
+  if (db && Object.prototype.hasOwnProperty.call(db, 'budgetState')) {
+    delete db.budgetState;
+  }
+  var search = document.getElementById('budget-patient-search');
+  var hidden = document.getElementById('budget-patient-sel');
+  var info = document.getElementById('budget-patient-info');
+  var notes = document.getElementById('budget-notes');
+  if (search) search.value = '';
+  if (hidden) hidden.value = '';
+  if (info) info.textContent = '';
+  if (notes) notes.value = '';
+  if (typeof _comboSelected !== 'undefined') delete _comboSelected['budget-patient-sel'];
 }
 function _onBudgetNotesInput() {
   _budgetNotes = (document.getElementById('budget-notes') || {}).value || '';
@@ -6963,7 +6968,6 @@ function addCustomTx() {
 
 function populateBudgetSelect() {
   loadCatalogOverrides();
-  _loadBudgetState(); // ensure customTx and selectedTx are fresh from saved state
   buildCatalogUI();
   renderBudgetPanel();
 }
@@ -7344,11 +7348,10 @@ function seed(){return[
 function init() {
   loadDB();
   if (!db.appointments) { db.appointments = []; }
-  var _savedBudgetState = db.budgetState || null;
   _loadBudgetState();
+  if (Object.prototype.hasOwnProperty.call(db, 'budgetState')) delete db.budgetState;
   if (!db.patients || db.patients.length === 0) {
     db.patients = [];
-    if (_savedBudgetState) db.budgetState = _savedBudgetState;
   }
   populateCityFilter();
   updateTopStats();
@@ -8695,14 +8698,15 @@ function saveCatalogOverrides() {
   // consultorio_dental_db.json en Google Drive.
   db.catalogState = { raw:raw, updatedAt:updatedAt };
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
+  if (typeof GD !== 'undefined' && GD.saveCatalog) GD.saveCatalog(false);
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
 
 function saveCatalogOverridesNow() {
   saveCatalogOverrides();
-  // Al terminar de editar un campo, iniciar la escritura inmediatamente. El
-  // guardado normal sigue actuando como respaldo si ya había otro lote activo.
-  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
+  // El catálogo tiene un archivo pequeño e independiente en Drive. Confirmarlo
+  // directamente evita esperar a que termine el lote completo de expedientes.
+  if (typeof GD !== 'undefined' && GD.saveCatalog) GD.saveCatalog(true);
 }
 
 function toggleCatalogEditor() {
@@ -13615,7 +13619,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-18', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-19', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13941,7 +13945,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_persistence_v18';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_direct_v19';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -13994,6 +13998,7 @@ var GD = (function() {
   var SCOPES      = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/calendar.events';
   var DB_FILENAME = 'consultorio_dental_db.json';
   var CFG_FILENAME= 'consultorio_dental_cfg.json';
+  var CATALOG_FILENAME='consultorio_dental_catalog.json';
   var HERO_FILENAME='consultorio_dental_portada.json';
   var HERO_IMAGE_FILENAME='consultorio_dental_portada.img';
   var LOGO_IMAGE_FILENAME='consultorio_dental_logo.img';
@@ -14009,6 +14014,7 @@ var GD = (function() {
   var _dbIsAppData = false;
   var _needsAppDataMigration = false;
   var _cfgFileId = null;
+  var _catalogFileId = null;
   var _heroFileId = null;
   var _heroImageFileId = null;
   var _logoImageFileId = null;
@@ -14018,6 +14024,9 @@ var GD = (function() {
   var _cfgSaveTimer = null;
   var _cfgSaving = false;
   var _cfgDirty = false;
+  var _catalogSaveTimer = null;
+  var _catalogSaving = false;
+  var _catalogDirty = false;
   var _heroDirty = false;
   var _heroSaving = false;
   var _dirty     = false;
@@ -14029,6 +14038,7 @@ var GD = (function() {
   var _autoPulling = false;
   var _lastRemoteModifiedTime = '';
   var _lastCfgModifiedTime = '';
+  var _lastCatalogModifiedTime = '';
   var _lastMirrorModifiedTime = '';
   var _lastRemotePatientCount = null;
   var _mirrorRetryCount = 0;
@@ -14250,6 +14260,11 @@ var GD = (function() {
             updateAppLoading('Cargando pacientes, citas y notas clínicas…');
             setBadge('syncing', 'Cargando pacientes…');
             return _loadDB();
+          })
+          .then(function() {
+            updateAppLoading('Cargando tratamientos y precios…');
+            setBadge('syncing', 'Cargando precios…');
+            return _loadCatalog();
           })
           .then(function() {
             updateAppLoading('Aplicando la configuración de tu consultorio…');
@@ -14863,6 +14878,106 @@ var GD = (function() {
     });
   }
 
+  // El catálogo se confirma en un archivo pequeño propio. También continúa
+  // incluido dentro de la base principal como respaldo de compatibilidad.
+  function _loadCatalog() {
+    return _findFile(CATALOG_FILENAME).then(function(file) {
+      if (!file || !file.id) return false;
+      _catalogFileId = file.id;
+      if (file.modifiedTime) _lastCatalogModifiedTime = file.modifiedTime;
+      return _readFile(file.id, true).then(function(state) {
+        if (!state || !state.raw) return false;
+        var remoteAt = parseInt(state.updatedAt || '0', 10) || 0;
+        var localAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
+        var pendingLocal = appStorage.isDirty('dental_catalog_v1')
+          || appStorage.isDirty(CATALOG_UPDATED_KEY);
+        if (!pendingLocal && remoteAt >= localAt) {
+          var raw = typeof state.raw === 'string' ? state.raw : JSON.stringify(state.raw);
+          appStorage.beginHydration();
+          appStorage.setItem('dental_catalog_v1', raw);
+          appStorage.setItem(CATALOG_UPDATED_KEY, String(remoteAt));
+          appStorage.endHydration();
+          db.catalogState = { raw:raw, updatedAt:remoteAt };
+          if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
+          return true;
+        }
+        if (pendingLocal) saveCatalog(true);
+        return false;
+      });
+    });
+  }
+
+  function saveCatalog(immediate) {
+    if (!_token || _mode !== 'google') {
+      _catalogDirty = true;
+      _showReconnectRequired('Reconecta Drive para guardar los precios');
+      return false;
+    }
+    _catalogDirty = true;
+    if (_catalogSaveTimer) clearTimeout(_catalogSaveTimer);
+    if (immediate) _doSaveCatalog();
+    else _catalogSaveTimer = setTimeout(_doSaveCatalog, 120);
+    return true;
+  }
+
+  function _verifyCatalogSave(fileId, expectedRaw, expectedUpdatedAt, attempt) {
+    attempt = attempt || 0;
+    return _readFile(fileId, true).then(function(saved) {
+      var valid = !!saved
+        && String(saved.raw || '') === expectedRaw
+        && (parseInt(saved.updatedAt || '0', 10) || 0) === expectedUpdatedAt;
+      if (valid) return saved;
+      throw new Error('Drive todavía devuelve el catálogo anterior');
+    }).catch(function(error) {
+      if (attempt >= 3) throw error;
+      var waits = [180, 450, 950];
+      return new Promise(function(resolve) {
+        setTimeout(resolve, waits[attempt] || 950);
+      }).then(function() {
+        return _verifyCatalogSave(fileId, expectedRaw, expectedUpdatedAt, attempt + 1);
+      });
+    });
+  }
+
+  function _doSaveCatalog() {
+    if (!_token || !_catalogDirty || _catalogSaving) return;
+    var raw = appStorage.getItem('dental_catalog_v1');
+    if (!raw) return;
+    var updatedAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || Date.now();
+    var expectedRaw = String(raw);
+    _catalogSaving = true;
+    _catalogDirty = false;
+    setBadge('syncing', 'Guardando precios…');
+    var locate = _catalogFileId
+      ? Promise.resolve({ id:_catalogFileId })
+      : _findFile(CATALOG_FILENAME);
+    locate.then(function(file) {
+      if (file && file.id) _catalogFileId = file.id;
+      return _writeFile(_catalogFileId, CATALOG_FILENAME, {
+        raw:expectedRaw,
+        updatedAt:updatedAt
+      });
+    }).then(function(file) {
+      if (file && file.id) _catalogFileId = file.id;
+      if (file && file.modifiedTime) _lastCatalogModifiedTime = file.modifiedTime;
+      return _verifyCatalogSave(_catalogFileId, expectedRaw, updatedAt);
+    }).then(function(saved) {
+      _catalogSaving = false;
+      if (_catalogDirty) {
+        if (_catalogSaveTimer) clearTimeout(_catalogSaveTimer);
+        _catalogSaveTimer = setTimeout(_doSaveCatalog, 80);
+      } else {
+        setBadge('synced', '✓ Precios guardados en Drive');
+      }
+    }).catch(function(error) {
+      console.error('Catalog save error:', error);
+      _catalogSaving = false;
+      _catalogDirty = true;
+      setBadge('error', 'No se guardaron los precios');
+      showToast('⚠️ Drive no confirmó el catálogo. Intenta nuevamente.', 'red');
+    });
+  }
+
   function _findFiles(name) {
     // Los tres archivos centrales se buscan en toda la cuenta. Versiones
     // anteriores podían crear otra carpeta "Consultorio Dental" y cada
@@ -15327,11 +15442,12 @@ var GD = (function() {
     }
     if (document.hidden && !force) return Promise.resolve(false);
     _autoPulling = true;
-    return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME), _findDeviceDBFiles()])
+    return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME), _findDeviceDBFiles(), _findFile(CATALOG_FILENAME)])
       .then(function(files) {
         var dbFile = files[0];
         var cfgFile = files[1];
         var mirrorFiles = files[2] || [];
+        var catalogFile = files[3];
         var newestMirrorModifiedTime = mirrorFiles[0] && mirrorFiles[0].modifiedTime || '';
         var mirrorChanged = !!(newestMirrorModifiedTime && _lastMirrorModifiedTime
           && newestMirrorModifiedTime !== _lastMirrorModifiedTime);
@@ -15344,6 +15460,10 @@ var GD = (function() {
         var cfgChanged = !!(canPullCfg && cfgFile && (force || (cfgFile.modifiedTime
           && _lastCfgModifiedTime
           && cfgFile.modifiedTime !== _lastCfgModifiedTime)));
+        var canPullCatalog = !_catalogDirty && !_catalogSaving;
+        var catalogChanged = !!(canPullCatalog && catalogFile && (force || (catalogFile.modifiedTime
+          && _lastCatalogModifiedTime
+          && catalogFile.modifiedTime !== _lastCatalogModifiedTime)));
 
         // Primera comprobación después de conectar: registrar versiones sin
         // volver a descargar lo que acaba de cargarse.
@@ -15356,7 +15476,10 @@ var GD = (function() {
         if (cfgFile && cfgFile.modifiedTime && !_lastCfgModifiedTime) {
           _lastCfgModifiedTime = cfgFile.modifiedTime;
         }
-        if (!dbChanged && !cfgChanged) return false;
+        if (catalogFile && catalogFile.modifiedTime && !_lastCatalogModifiedTime) {
+          _lastCatalogModifiedTime = catalogFile.modifiedTime;
+        }
+        if (!dbChanged && !cfgChanged && !catalogChanged) return false;
 
         _saving = true;
         setBadge('syncing', 'Actualizando…');
@@ -15364,6 +15487,10 @@ var GD = (function() {
         if (dbChanged) jobs.push(_loadDB(true));
         if (cfgChanged) jobs.push(_loadCfg());
         return Promise.all(jobs).then(function() {
+          // Aplicar el archivo exclusivo del catálogo después de la base. Así
+          // una lectura general más lenta nunca vuelve a poner precios viejos.
+          if (catalogChanged) return _loadCatalog();
+        }).then(function() {
           // La base y la configuración solo guardan referencias. Revalidar los
           // archivos visuales antes de redibujar evita que una URL temporal se
           // pierda durante una actualización silenciosa.
@@ -15371,11 +15498,12 @@ var GD = (function() {
         }).then(function() {
           _saving = false;
           _refreshUI();
-          if (_dirty || _cfgDirty || _heroDirty) {
+          if (_dirty || _cfgDirty || _heroDirty || _catalogDirty) {
             // Algún cambio local apareció durante la descarga; conservarlo y
             // subirlo en vez de considerarlo sincronizado.
             if (_dirty) _scheduleSave();
             if (_cfgDirty) saveCfg();
+            if (_catalogDirty) saveCatalog(false);
           } else {
             setBadge('synced', 'Actualizado automáticamente');
             setTimeout(function(){ setBadge('synced', 'Sincronizado'); }, 2200);
@@ -15692,7 +15820,7 @@ var GD = (function() {
     _token = null; _folderId = null; _dbFileId = null; _regularDbFileId = null;
     _dbIsAppData = false; _needsAppDataMigration = false;
     _deviceDbFileId = null; _lastMirrorModifiedTime = '';
-    _cfgFileId = null; _heroFileId = null;
+    _cfgFileId = null; _catalogFileId = null; _heroFileId = null;
     _heroImageFileId = null; _logoImageFileId = null;
     _setRuntimeImage('hero', null);
     _setRuntimeImage('logo', null);
@@ -15715,7 +15843,11 @@ var GD = (function() {
 
   // ── Guardar inmediatamente (sin debounce) ───────────────
   function _buildSavePayload() {
-    return Object.assign({}, imageFreeClone(db), {
+    var basePayload = imageFreeClone(db);
+    // Los presupuestos en preparación no son información clínica confirmada y
+    // nunca deben reaparecer al volver a abrir la sección.
+    delete basePayload.budgetState;
+    return Object.assign({}, basePayload, {
       _savedAt:     Date.now(),
       _auxStore:    appStorage.exportDriveData(),
       _configState: imageFreeClone(cfg),
@@ -15772,10 +15904,10 @@ var GD = (function() {
     setTimeout(pullWhenSaveFinishes, 250);
   }
 
-  function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _heroDirty || _heroSaving)); }
+  function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _catalogDirty || _catalogSaving || _heroDirty || _heroSaving)); }
   function getToken() { return _token; }
   return {
-    signIn, skip, save, saveNow, syncNow, saveCfg, saveHeroImage,
+    signIn, skip, save, saveNow, syncNow, saveCfg, saveCatalog, saveHeroImage,
     uploadImageAsset, removeImageAsset, loadImageAsset,
     showStatus, signOut, start, reconnect, _hasPending, _token: getToken
   };
