@@ -1286,6 +1286,66 @@ html.dark .topbar { background: rgba(28,28,30,0.92) !important; }
 
 
 /* ━━━ GOOGLE DRIVE LOGIN SCREEN ━━━ */
+#app-loading-screen {
+  position: fixed; inset: 0; z-index: 99998;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 5%, rgba(41,151,255,.18), transparent 32rem),
+    linear-gradient(180deg, #f8fafc 0%, #f2f5f8 100%);
+  color: #1d1d1f;
+  transition: opacity .24s ease, visibility .24s ease;
+}
+#app-loading-screen.is-leaving { opacity: 0; visibility: hidden; }
+.app-loading-card {
+  width: min(420px, 92vw); text-align: center;
+  padding: 38px 34px 32px; border-radius: 30px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(255,255,255,.92);
+  box-shadow: 0 30px 90px rgba(20,45,75,.14);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+.app-loading-icon {
+  width: 68px; height: 68px; margin: 0 auto 18px;
+  display: grid; place-items: center; border-radius: 21px;
+  background: linear-gradient(145deg,#2997ff,#0066cc);
+  box-shadow: 0 15px 36px rgba(0,113,227,.28);
+  font-size: 2rem;
+}
+.app-loading-kicker {
+  margin-bottom: 8px; color: #0071e3; font-size: .65rem;
+  font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+}
+.app-loading-title {
+  margin: 0 0 9px; font-size: 1.38rem; line-height: 1.2;
+  letter-spacing: -.035em; font-weight: 750;
+}
+.app-loading-message {
+  min-height: 42px; margin: 0; color: #6e6e73;
+  font-size: .84rem; line-height: 1.55;
+}
+.app-loading-track {
+  width: 112px; height: 4px; margin: 24px auto 19px;
+  overflow: hidden; border-radius: 99px; background: rgba(0,113,227,.12);
+}
+.app-loading-track::after {
+  content: ''; display: block; width: 46%; height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg,#64b5ff,#0071e3);
+  animation: appLoadingSweep 1.1s ease-in-out infinite;
+}
+.app-loading-note {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 12px; border-radius: 999px;
+  background: #eef7ff; color: #35627f; font-size: .7rem; font-weight: 650;
+}
+@keyframes appLoadingSweep {
+  0% { transform: translateX(-130%); }
+  100% { transform: translateX(285%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-track::after { animation: none; width: 100%; opacity: .72; }
+}
+
 #gd-login-screen {
   position: fixed; inset: 0; z-index: 9999;
   background: var(--bg);
@@ -3212,6 +3272,17 @@ html.dark #pass-screen,
 html.dark #gd-login-screen {
   background: radial-gradient(circle at 50% 0,rgba(41,151,255,.12),transparent 28rem),#000 !important;
 }
+html.dark #app-loading-screen {
+  background: radial-gradient(circle at 50% 0,rgba(41,151,255,.12),transparent 28rem),#000 !important;
+  color: #f5f5f7 !important;
+}
+html.dark .app-loading-card {
+  background: rgba(28,28,30,.92) !important;
+  border-color: rgba(255,255,255,.1) !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.45) !important;
+}
+html.dark .app-loading-message { color: #a1a1a6 !important; }
+html.dark .app-loading-note { background: rgba(10,132,255,.14) !important; color: #9dccff !important; }
 html.dark .pass-box,
 html.dark .gd-login-box { background: rgba(28,28,30,.9) !important; }
 html.dark body > .no-print[style*="position:fixed"] {
@@ -4014,6 +4085,18 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 <body>
 
 <!-- ══ SIDEBAR ══ -->
+<!-- ══ PANTALLA DE CARGA SEGURA ══ -->
+<div id="app-loading-screen" role="status" aria-live="polite" aria-label="Cargando el consultorio">
+  <div class="app-loading-card">
+    <div class="app-loading-icon" aria-hidden="true">🦷</div>
+    <div class="app-loading-kicker">Consultorio Dental</div>
+    <h1 class="app-loading-title" id="app-loading-title">Preparando tu consultorio</h1>
+    <p class="app-loading-message" id="app-loading-message">Conectando de forma segura con Google Drive…</p>
+    <div class="app-loading-track" aria-hidden="true"></div>
+    <div class="app-loading-note"><span aria-hidden="true">☁️</span> Tus datos permanecen en Google Drive</div>
+  </div>
+</div>
+
 <!-- ══ PASSWORD SCREEN ══ -->
 <div id="pass-screen">
   <div class="pass-box">
@@ -5219,6 +5302,47 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 </div>
 
 <script>
+// ═══ STARTUP LOADING SCREEN ═══
+var _appLoadingHideTimer = null;
+function showAppLoading(title, message) {
+  var screen = document.getElementById('app-loading-screen');
+  var titleEl = document.getElementById('app-loading-title');
+  var messageEl = document.getElementById('app-loading-message');
+  if (_appLoadingHideTimer) {
+    clearTimeout(_appLoadingHideTimer);
+    _appLoadingHideTimer = null;
+  }
+  if (titleEl && title) titleEl.textContent = title;
+  if (messageEl && message) messageEl.textContent = message;
+  if (screen) {
+    screen.classList.remove('is-leaving');
+    screen.style.display = 'flex';
+  }
+}
+function updateAppLoading(message) {
+  var screen = document.getElementById('app-loading-screen');
+  var messageEl = document.getElementById('app-loading-message');
+  if (screen && screen.style.display !== 'none' && messageEl && message) {
+    messageEl.textContent = message;
+  }
+}
+function hideAppLoading(immediate) {
+  var screen = document.getElementById('app-loading-screen');
+  if (!screen) return;
+  if (_appLoadingHideTimer) clearTimeout(_appLoadingHideTimer);
+  if (immediate) {
+    screen.classList.remove('is-leaving');
+    screen.style.display = 'none';
+    return;
+  }
+  screen.classList.add('is-leaving');
+  _appLoadingHideTimer = setTimeout(function() {
+    screen.style.display = 'none';
+    screen.classList.remove('is-leaving');
+    _appLoadingHideTimer = null;
+  }, 260);
+}
+
 // ═══ DRIVE-ONLY STORAGE ═══
 // Los datos clínicos y la configuración viven en memoria durante la sesión;
 // su única copia persistente es Google Drive. El navegador solo conserva
@@ -10344,6 +10468,9 @@ function updateBackupBadge() {
 function showBackupReminder(auto) {
   // Si es auto, verificar snooze
   if (auto) {
+    if (typeof GD === 'undefined' || !GD._token || !GD._token()) return;
+    var mainEl = document.getElementById('main');
+    if (!mainEl || mainEl.style.display === 'none') return;
     var snooze = appStorage.getItem(BACKUP_SNZ_KEY);
     if (snooze && (Date.now() - parseInt(snooze,10)) < BACKUP_DAYS * 86400000) return;
     var ts = getLastBackupTs();
@@ -10371,8 +10498,8 @@ function openSettingsFromReminder() {
   openSettings();
 }
 
-// Mostrar recordatorio automático 3 segundos después de cargar
-setTimeout(function() { showBackupReminder(true); }, 3000);
+// El recordatorio automático se programa después de que Drive termina de
+// cargar; nunca debe aparecer encima de la conexión o de la pantalla inicial.
 
 function buildCompleteBackup() {
   return {
@@ -13314,7 +13441,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-13', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-14', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13862,6 +13989,9 @@ var GD = (function() {
 
   // ── Auth ─────────────────────────────────────────────────
   function _showReconnectRequired(message) {
+    hideAppLoading();
+    var backupOverlay = document.getElementById('backup-reminder-overlay');
+    if (backupOverlay) backupOverlay.classList.remove('open');
     setBadge('error', message || 'Reconecta para cargar tus datos');
     var modal = document.getElementById('gd-reconnect-modal');
     if (modal) modal.classList.add('open');
@@ -13871,11 +14001,13 @@ var GD = (function() {
     silent = silent === true;
     if (_authInProgress) return;
     if (typeof google === 'undefined') {
+      hideAppLoading();
       if (silent) _showReconnectRequired('Reconecta para cargar tus datos');
       else showToast('Google no cargó. Revisa tu conexión.', 'red');
       return;
     }
     _authInProgress = true;
+    showAppLoading('Conectando con Google Drive', 'Esperando la confirmación segura de tu cuenta…');
     setBadge('syncing', 'Conectando…');
     var tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
@@ -13883,6 +14015,7 @@ var GD = (function() {
       callback: function(resp) {
         _authInProgress = false;
         if (resp.error) {
+          hideAppLoading();
           if (silent) {
             _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
           } else {
@@ -13919,24 +14052,29 @@ var GD = (function() {
         if (rm) rm.classList.remove('open');
         // Cargar desde Drive (bloquea guardados hasta terminar)
         _saving = true;
+        updateAppLoading('Verificando tu cuenta y el acceso a Drive…');
         setBadge('syncing', 'Verificando cuenta…');
         // Identidad y carpeta son consultas independientes. Ejecutarlas al
         // mismo tiempo reduce sensiblemente la espera al iniciar sesión.
         Promise.all([identifyAccount, _ensureFolder()])
           .then(function() {
+            updateAppLoading('Cargando pacientes, citas y notas clínicas…');
             setBadge('syncing', 'Cargando pacientes…');
             return _loadDB();
           })
           .then(function() {
+            updateAppLoading('Aplicando la configuración de tu consultorio…');
             setBadge('syncing', 'Aplicando configuración…');
             return _loadCfg();
           })
           .then(function() {
+            updateAppLoading('Cargando portada, logotipo y fotografías…');
             setBadge('syncing', 'Cargando portada…');
             return _loadHero();
           })
           .then(function() {
             if (typeof migrateLegacyInlineImagesToDrive !== 'function') return;
+            updateAppLoading('Verificando las fotografías guardadas en Drive…');
             setBadge('syncing', 'Migrando imágenes a Drive…');
             return migrateLegacyInlineImagesToDrive();
           })
@@ -13984,9 +14122,11 @@ var GD = (function() {
             // save() dejó la marca pendiente. Subirla ahora que terminó la
             // carga en vez de permitir que la descarga la silencie.
             if (_dirty && !_dbSaving) _scheduleSave();
+            hideAppLoading();
           })
           .catch(function(e) {
             _saving = false;
+            hideAppLoading();
             console.error('Drive error:', e);
             setBadge('error', 'No se pudo verificar o cargar la cuenta');
             showToast('⚠️ No se cargaron datos para evitar mezclar cuentas. Reintenta la conexión.', 'red');
@@ -14009,6 +14149,7 @@ var GD = (function() {
       }
     } catch(authError) {
       _authInProgress = false;
+      hideAppLoading();
       if (silent) _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
       else {
         setBadge('error', 'No se pudo abrir Google');
@@ -15050,6 +15191,9 @@ var GD = (function() {
     if (typeof initDarkMode === 'function') setTimeout(initDarkMode, 50);
     if (typeof initPWA === 'function') setTimeout(initPWA, 50);
     if (typeof showUpdateNoticeOnce === 'function') showUpdateNoticeOnce();
+    if (typeof showBackupReminder === 'function') {
+      setTimeout(function(){ showBackupReminder(true); }, 3500);
+    }
   }
 
   function _refreshUI() {
@@ -15091,6 +15235,7 @@ var GD = (function() {
 
   // ── Start ─────────────────────────────────────────────────
   function start() {
+    showAppLoading('Preparando tu consultorio', 'Revisando la conexión segura con Google Drive…');
     // En la primera ejecución de esta versión se carga en memoria cualquier
     // copia heredada para migrarla y verificarla en Drive antes de retirarla.
     loadDB();
@@ -15135,12 +15280,14 @@ var GD = (function() {
       var ls = document.getElementById('gd-login-screen');
       if (ls) ls.style.display = 'none';
       setBadge('syncing', 'Conectando…');
+      updateAppLoading('Reconectando con la misma cuenta de Google…');
       _autoReconnect();
     } else {
       _mode = 'google';
       appStorage.setItem(GD_MODE_KEY, 'google');
       var ls = document.getElementById('gd-login-screen');
       if (ls) ls.style.display = 'flex';
+      hideAppLoading();
     }
   }
 
@@ -15321,6 +15468,7 @@ var GD = (function() {
     document.getElementById('main').style.display = 'none';
     var login = document.getElementById('gd-login-screen');
     if (login) login.style.display = 'flex';
+    hideAppLoading(true);
     setBadge('error', 'Sin cuenta');
     showToast('Sesión cerrada', 'green');
   }
@@ -15454,10 +15602,12 @@ function initPassGate() {
   var screen = document.getElementById('pass-screen');
   if (appStorage.getItem(LICENSE_ACTIVE_KEY) === '1') {
     if (screen) screen.style.display = 'none';
+    showAppLoading('Preparando tu consultorio', 'Conectando de forma segura con Google Drive…');
     GD.start();
     return;
   }
 
+  hideAppLoading(true);
   if (screen) screen.style.display = 'flex';
   var inp = document.getElementById('pass-input');
   if (inp) setTimeout(function(){ inp.focus(); }, 100);

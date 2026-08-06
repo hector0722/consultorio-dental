@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-drive-only-v13';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-startup-loader-v14';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
