@@ -4281,18 +4281,18 @@ body.app-ready #dash-page.active > .card {
   <div style="width:min(520px,96vw);max-height:90vh;overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--border-med);border-radius:26px;box-shadow:0 28px 80px rgba(0,0,0,.38);padding:28px 26px">
     <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#34c759,#16863a);display:flex;align-items:center;justify-content:center;color:white;font-size:1.8rem;box-shadow:0 10px 24px rgba(52,199,89,.28);margin-bottom:18px">✓</div>
     <div style="font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#248a3d;margin-bottom:6px">Actualización instalada</div>
-    <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Todo listo: corregimos los bugs reportados</h2>
-    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Esta versión mejora la seguridad de tus datos y la sincronización entre dispositivos.</p>
+    <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Una experiencia más segura, estable y profesional</h2>
+    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Actualizamos el almacenamiento, el inicio y la presentación visual del consultorio sin modificar tus expedientes.</p>
     <div style="display:grid;gap:9px;margin-bottom:22px">
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🛡️</span><span style="font-size:.79rem;line-height:1.45"><strong>Modo solo Drive:</strong> los expedientes y fotografías ya no se guardan en el navegador; Drive verifica el contenido completo antes de mostrar “Sincronizado”.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización automática:</strong> los cambios de otro dispositivo aparecen sin recargar manualmente.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔐</span><span style="font-size:.79rem;line-height:1.45"><strong>Cuentas protegidas:</strong> pacientes y saldos ya no se mezclan entre cuentas de Google.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctores personalizados:</strong> se conservan el nombre configurado y todos los perfiles agregados en la clínica.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Tratamientos y precios:</strong> las modificaciones y eliminaciones permanecen guardadas.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💰</span><span style="font-size:.79rem;line-height:1.45"><strong>Saldos correctos:</strong> importaciones y respaldos ya no duplican ni combinan información incorrecta.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Inicio claro y protegido:</strong> ahora ves el progreso mientras se conectan tu cuenta, expedientes, configuración y fotografías.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.79rem;line-height:1.45"><strong>Portada estable:</strong> las actualizaciones automáticas conservan la fotografía y descargan una nueva únicamente cuando realmente cambió en Drive.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctor activo:</strong> la selección se mantiene al sincronizar y el selector ya no aparece por sí solo.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
     <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:750;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido, continuar</button>
-    <div style="font-size:.65rem;text-align:center;color:var(--ink-4);margin-top:10px">Este mensaje solo aparecerá una vez.</div>
+    <div style="font-size:.65rem;text-align:center;color:var(--ink-4);margin-top:10px">Este mensaje aparecerá una sola vez para esta actualización.</div>
   </div>
 </div>
 
@@ -5498,7 +5498,8 @@ var appStorage = (function(nativeStorage) {
     dental_gd_mode:1,
     dental_gd_token_hint:1,
     dental_device_id_v1:1,
-    dental_license_activated_v1:1
+    dental_license_activated_v1:1,
+    dental_seen_version:1
   };
   var AUX_EXCLUDED = {
     dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
@@ -11034,7 +11035,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dental_seen_version','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -13581,7 +13582,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-16', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-17', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13907,16 +13908,26 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_only_v13';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_complete_polish_v17';
 var _updateNoticeScheduled = false;
+var _updateNoticeShownThisSession = false;
+var _updateNoticeAcknowledged = false;
 
 function showUpdateNoticeOnce() {
-  if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+  if (_updateNoticeAcknowledged || _updateNoticeShownThisSession) return;
+  if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) {
+    _updateNoticeAcknowledged = true;
+    return;
+  }
   if (_updateNoticeScheduled) return;
   _updateNoticeScheduled = true;
   setTimeout(function() {
     _updateNoticeScheduled = false;
-    if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) return;
+    if (_updateNoticeAcknowledged || _updateNoticeShownThisSession) return;
+    if (appStorage.getItem('dental_seen_version') === UPDATE_NOTICE_VERSION) {
+      _updateNoticeAcknowledged = true;
+      return;
+    }
     var overlay = document.getElementById('update-notice-overlay');
     var passScreen = document.getElementById('pass-screen');
     var loginScreen = document.getElementById('gd-login-screen');
@@ -13927,11 +13938,16 @@ function showUpdateNoticeOnce() {
     if ((passScreen && passScreen.style.display !== 'none')
         || (loginScreen && loginScreen.style.display !== 'none')
         || waitingForGoogle) return;
-    if (overlay) overlay.style.display = 'flex';
+    if (overlay) {
+      _updateNoticeShownThisSession = true;
+      overlay.style.display = 'flex';
+    }
   }, 900);
 }
 
 function closeUpdateNotice() {
+  _updateNoticeAcknowledged = true;
+  _updateNoticeShownThisSession = true;
   appStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
   persistAuxStateToDrive();
   var overlay = document.getElementById('update-notice-overlay');
