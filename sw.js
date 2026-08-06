@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-refresh-safety-v15';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-motion-polish-v16';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
