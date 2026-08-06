@@ -4288,6 +4288,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Inicio claro y protegido:</strong> ahora ves el progreso mientras se conectan tu cuenta, expedientes, configuración y fotografías.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.79rem;line-height:1.45"><strong>Portada estable:</strong> las actualizaciones automáticas conservan la fotografía y descargan una nueva únicamente cuando realmente cambió en Drive.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctor activo:</strong> la selección se mantiene al sincronizar y el selector ya no aparece por sí solo.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Precios persistentes:</strong> los cambios del catálogo se guardan inmediatamente y una copia anterior de otro dispositivo ya no puede restaurarlos al recargar.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -5490,6 +5491,7 @@ function hideAppLoading(immediate) {
 var appStorage = (function(nativeStorage) {
   var memory = Object.create(null);
   var dirty = Object.create(null);
+  var dirtyRevision = 0;
   var hydrationDepth = 0;
   var drivePersistTimer = null;
   var READY_KEY = 'dental_drive_only_ready_v1';
@@ -5538,7 +5540,7 @@ var appStorage = (function(nativeStorage) {
       var changed = !memoryHas(key) || memory[key] !== next;
       memory[key] = next;
       if (!hydrationDepth && changed) {
-        dirty[key] = true;
+        dirty[key] = ++dirtyRevision;
         scheduleAuxDrivePersist(key);
       }
     }
@@ -5550,7 +5552,7 @@ var appStorage = (function(nativeStorage) {
       var changed = !memoryHas(key) || memory[key] !== null;
       memory[key] = null;
       if (!hydrationDepth && changed) {
-        dirty[key] = true;
+        dirty[key] = ++dirtyRevision;
         scheduleAuxDrivePersist(key);
       }
     }
@@ -5617,14 +5619,30 @@ var appStorage = (function(nativeStorage) {
   }
   function beginHydration() { hydrationDepth++; }
   function endHydration() { hydrationDepth = Math.max(0, hydrationDepth - 1); }
-  function markClean() { dirty = Object.create(null); }
+  function isDirty(key) { return !!dirty[String(key)]; }
+  function dirtySnapshot() {
+    var snapshot = {};
+    Object.keys(dirty).forEach(function(key){ snapshot[key] = dirty[key]; });
+    return snapshot;
+  }
+  function markClean(snapshot) {
+    if (!snapshot) {
+      dirty = Object.create(null);
+      return;
+    }
+    Object.keys(snapshot).forEach(function(key) {
+      // Si el usuario volvió a modificar esta clave mientras Drive guardaba,
+      // conservarla pendiente para el siguiente lote.
+      if (dirty[key] === snapshot[key]) delete dirty[key];
+    });
+  }
 
   if (!isReady()) {
     for (var legacyIndex = 0; legacyIndex < nativeStorage.length; legacyIndex++) {
       var legacyKey = nativeStorage.key(legacyIndex);
       if (legacyKey && !isOperational(legacyKey)) {
         memory[legacyKey] = nativeStorage.getItem(legacyKey);
-        dirty[legacyKey] = true;
+        dirty[legacyKey] = ++dirtyRevision;
       }
     }
   }
@@ -5642,6 +5660,8 @@ var appStorage = (function(nativeStorage) {
     clearSessionClinicalData:clearSessionClinicalData,
     beginHydration:beginHydration,
     endHydration:endHydration,
+    isDirty:isDirty,
+    dirtySnapshot:dirtySnapshot,
     markClean:markClean,
     isReady:isReady
   };
@@ -8664,7 +8684,11 @@ function saveCatalogOverrides() {
   });
   ov.__extra = extra;
   var raw = JSON.stringify(ov);
-  var updatedAt = Date.now();
+  var previousMemoryAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
+  var previousDriveAt = parseInt(db && db.catalogState && db.catalogState.updatedAt || '0', 10) || 0;
+  // La versión siempre avanza, incluso si se escriben varios dígitos dentro
+  // del mismo milisegundo o si el reloj de otro dispositivo estaba adelantado.
+  var updatedAt = Math.max(Date.now(), previousMemoryAt + 1, previousDriveAt + 1);
   appStorage.setItem('dental_catalog_v1', raw);
   appStorage.setItem(CATALOG_UPDATED_KEY, String(updatedAt));
   // Fuente de verdad: esta sección viaja dentro de
@@ -8672,6 +8696,13 @@ function saveCatalogOverrides() {
   db.catalogState = { raw:raw, updatedAt:updatedAt };
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
+}
+
+function saveCatalogOverridesNow() {
+  saveCatalogOverrides();
+  // Al terminar de editar un campo, iniciar la escritura inmediatamente. El
+  // guardado normal sigue actuando como respaldo si ya había otro lote activo.
+  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
 }
 
 function toggleCatalogEditor() {
@@ -8703,12 +8734,13 @@ function renderCatalogEditor() {
       nameInp.type  = 'text';
       nameInp.value = item.name;
       nameInp.style.cssText = 'flex:1;padding:5px 8px;border:1px solid var(--border-med);border-radius:6px;font-family:inherit;font-size:.79rem;background:var(--bg)';
-      nameInp.onchange = (function(c,i){ return function(){ editCatalogItem(c,i,'name',this.value); }; })(ci,ii);
+      nameInp.oninput  = (function(c,i){ return function(){ editCatalogItem(c,i,'name',this.value); }; })(ci,ii);
+      nameInp.onchange = (function(c,i){ return function(){ editCatalogItem(c,i,'name',this.value,true); }; })(ci,ii);
       var priceInp = document.createElement('input');
       priceInp.type  = 'number';
       priceInp.value = item.price;
       priceInp.style.cssText = 'width:80px;padding:5px 8px;border:1px solid var(--border-med);border-radius:6px;font-family:inherit;font-size:.79rem;background:var(--bg)';
-      priceInp.onchange = (function(c,i){ return function(){ editCatalogItem(c,i,'price',this.value); }; })(ci,ii);
+      priceInp.onchange = (function(c,i){ return function(){ editCatalogItem(c,i,'price',this.value,true); }; })(ci,ii);
       priceInp.oninput  = (function(c,i){ return function(){ editCatalogItem(c,i,'price',this.value); }; })(ci,ii);
       var delBtn = document.createElement('button');
       if (item._custom) {
@@ -8768,7 +8800,7 @@ function deleteCustomTx(idx) {
   _saveBudgetState();
 }
 
-function editCatalogItem(ci, ii, field, val) {
+function editCatalogItem(ci, ii, field, val, saveImmediately) {
   var item = CATALOG[ci].items[ii];
   item._edited = true;
   if (field === 'price') item.price = parseFloat(val) || 0;
@@ -8777,7 +8809,8 @@ function editCatalogItem(ci, ii, field, val) {
     if (field === 'price') selectedTx[item.id].price = item.price;
     else selectedTx[item.id].name = item.name;
   }
-  saveCatalogOverrides();
+  if (saveImmediately) saveCatalogOverridesNow();
+  else saveCatalogOverrides();
   buildCatalogUI();
   if (item.id && selectedTx[item.id]) {
     renderBudgetPanel();
@@ -13582,7 +13615,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-17', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-18', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13908,7 +13941,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_complete_polish_v17';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_persistence_v18';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -14537,6 +14570,13 @@ var GD = (function() {
           ? data.catalogState : null;
         var localCatalogState = db && db.catalogState && typeof db.catalogState === 'object'
           ? db.catalogState : null;
+        var localPendingCatalog = appStorage.isDirty('dental_catalog_v1')
+          || appStorage.isDirty('dental_catalog_updated_at');
+        var localMemoryCatalogCandidate = catalogCandidate(
+          appStorage.getItem('dental_catalog_v1'),
+          appStorage.getItem('dental_catalog_updated_at'),
+          4
+        );
         var catalogCandidates = [
           catalogCandidate(data._catalog, data._catalogUpdatedAt, 1),
           catalogCandidate(
@@ -14549,13 +14589,24 @@ var GD = (function() {
             localCatalogState && localCatalogState.updatedAt,
             3
           ),
-          catalogCandidate(
-            appStorage.getItem('dental_catalog_v1'),
-            appStorage.getItem('dental_catalog_updated_at'),
-            4
-          )
+          localMemoryCatalogCandidate
         ].filter(Boolean);
-        var selectedCatalogState = catalogCandidates.reduce(function(best, candidate) {
+        var newestCatalogTimestamp = catalogCandidates.reduce(function(latest, candidate) {
+          return Math.max(latest, candidate.updatedAt);
+        }, 0);
+        var selectedCatalogState = localPendingCatalog && localMemoryCatalogCandidate
+          ? {
+              raw: localMemoryCatalogCandidate.raw,
+              // Una edición de esta sesión siempre gana al preflight. Si una
+              // computadora tenía el reloj adelantado, elevar la versión local
+              // evita que su espejo antiguo vuelva a restaurar el precio.
+              updatedAt: Math.max(
+                localMemoryCatalogCandidate.updatedAt,
+                newestCatalogTimestamp + 1
+              ),
+              priority: localMemoryCatalogCandidate.priority
+            }
+          : catalogCandidates.reduce(function(best, candidate) {
           if (!best
               || candidate.updatedAt > best.updatedAt
               || (candidate.updatedAt === best.updatedAt && candidate.priority > best.priority)) {
@@ -15159,6 +15210,7 @@ var GD = (function() {
     var expectedRevision = '';
     var expectedPatientCount = 0;
     var expectedContentSignature = '';
+    var savedDirtySnapshot = null;
     var savedMirrorFile = null;
     var mirrorWriteError = null;
     // Volver a leer justo antes de escribir reduce la ventana de conflicto:
@@ -15168,6 +15220,7 @@ var GD = (function() {
       saveLocalWithAutoBackup();
       var writeId = _dbIsAppData ? _dbFileId : null;
       var payload = _buildSavePayload();
+      savedDirtySnapshot = appStorage.dirtySnapshot();
       expectedRevision = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
       expectedPatientCount = Array.isArray(payload.patients) ? payload.patients.length : 0;
       payload._syncRevision = expectedRevision;
@@ -15229,7 +15282,7 @@ var GD = (function() {
       // La base principal ya quedó verificada. A partir de este punto es
       // seguro retirar del navegador todas las copias clínicas heredadas.
       appStorage.activateDriveOnly();
-      appStorage.markClean();
+      appStorage.markClean(savedDirtySnapshot);
       setBadge('synced', result.mirrorPending
         ? ('✓ Drive guardado: ' + result.patientCount + ' pacientes')
         : ('✓ Drive verificado: ' + result.patientCount + ' pacientes'));

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-update-once-v17';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-catalog-save-v18';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
