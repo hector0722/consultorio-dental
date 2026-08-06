@@ -13441,7 +13441,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-14', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-15', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -14255,7 +14255,7 @@ var GD = (function() {
           var dbConfigUpdatedAt = parseInt(data._configState._savedAt || '0', 10) || 0;
           var memoryConfigUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
           if (dbConfigUpdatedAt >= memoryConfigUpdatedAt) {
-            cfg = Object.assign(cfg, data._configState);
+            _applyDriveConfigPreservingImages(data._configState);
           }
         }
         delete data._configState;
@@ -14532,6 +14532,39 @@ var GD = (function() {
     });
   }
 
+  // La base JSON no contiene bytes ni URLs blob de imágenes. Al aplicar una
+  // actualización remota, conservar las URLs temporales que ya se descargaron
+  // mientras el identificador de Drive siga siendo el mismo. Así una consulta
+  // automática nunca hace desaparecer la portada o el logotipo en pantalla.
+  function _applyDriveConfigPreservingImages(remoteConfig) {
+    remoteConfig = remoteConfig || {};
+    var previousHeroUrl = cfg.heroImageUrl || '';
+    var previousHeroId = cfg.heroImageDriveId || '';
+    var previousHeroUpdatedAt = parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0;
+    var previousLogoUrl = cfg.logoImageUrl || '';
+    var previousLogoId = cfg.logoImageDriveId || '';
+    var previousLogoUpdatedAt = parseInt(cfg.logoImageUpdatedAt || '0', 10) || 0;
+    var remoteHeroId = remoteConfig.heroImageDriveId || '';
+    var remoteHeroUpdatedAt = parseInt(remoteConfig.heroImageUpdatedAt || '0', 10) || 0;
+    var remoteLogoId = remoteConfig.logoImageDriveId || '';
+    var remoteLogoUpdatedAt = parseInt(remoteConfig.logoImageUpdatedAt || '0', 10) || 0;
+
+    cfg = Object.assign(cfg, remoteConfig);
+
+    if (previousHeroUrl && ((previousHeroId && remoteHeroId === previousHeroId)
+        || (!remoteHeroId && remoteHeroUpdatedAt <= previousHeroUpdatedAt))) {
+      cfg.heroImageUrl = previousHeroUrl;
+      if (!cfg.heroImageDriveId && previousHeroId) cfg.heroImageDriveId = previousHeroId;
+      cfg.heroImageUpdatedAt = Math.max(previousHeroUpdatedAt, remoteHeroUpdatedAt);
+    }
+    if (previousLogoUrl && ((previousLogoId && remoteLogoId === previousLogoId)
+        || (!remoteLogoId && remoteLogoUpdatedAt <= previousLogoUpdatedAt))) {
+      cfg.logoImageUrl = previousLogoUrl;
+      if (!cfg.logoImageDriveId && previousLogoId) cfg.logoImageDriveId = previousLogoId;
+      cfg.logoImageUpdatedAt = Math.max(previousLogoUpdatedAt, remoteLogoUpdatedAt);
+    }
+  }
+
   // ── Leer Config desde Drive ──────────────────────────────
   function _loadCfg() {
     return _findFiles(CFG_FILENAME).then(function(files) {
@@ -14556,21 +14589,10 @@ var GD = (function() {
           neutralizeUnsafeText(data);
           var localCfgUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
           var remoteCfgUpdatedAt = parseInt(data._savedAt || '0', 10) || 0;
-          // Si la Mac conserva una portada que una configuración antigua de
-          // Drive no tiene, preservarla y volver a subirla.
-          if (cfg.heroImageUrl && !data.heroImageUrl) {
-            data.heroImageUrl = cfg.heroImageUrl;
-            data.heroImageUpdatedAt = cfg.heroImageUpdatedAt || 0;
-            _cfgDirty = true;
-          }
-          if (cfg.logoImageUrl && !data.logoImageUrl) {
-            data.logoImageUrl = cfg.logoImageUrl;
-            _cfgDirty = true;
-          }
           if (localCfgUpdatedAt > remoteCfgUpdatedAt) {
             _cfgDirty = true;
           } else {
-            cfg = Object.assign(cfg, data);
+            _applyDriveConfigPreservingImages(data);
           }
           _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
           appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
@@ -14943,6 +14965,7 @@ var GD = (function() {
       : Promise.resolve();
     return deletion.then(function() {
       cfg[info.idKey] = '';
+      cfg[kind === 'logo' ? 'logoImageUpdatedAt' : 'heroImageUpdatedAt'] = Date.now();
       if (kind === 'logo') _logoImageFileId = null;
       else _heroImageFileId = null;
       _setRuntimeImage(kind, null);
@@ -15130,6 +15153,11 @@ var GD = (function() {
         if (dbChanged) jobs.push(_loadDB(true));
         if (cfgChanged) jobs.push(_loadCfg());
         return Promise.all(jobs).then(function() {
+          // La base y la configuración solo guardan referencias. Revalidar los
+          // archivos visuales antes de redibujar evita que una URL temporal se
+          // pierda durante una actualización silenciosa.
+          return _loadHero();
+        }).then(function() {
           _saving = false;
           _refreshUI();
           if (_dirty || _cfgDirty || _heroDirty) {
@@ -15199,7 +15227,7 @@ var GD = (function() {
   function _refreshUI() {
     // Drive puede haber cargado una lista de doctores distinta a la del caché.
     // Revalidar el perfil activo antes de dibujar filtros, firmas y saludo.
-    if (typeof initDoctorSystem === 'function') initDoctorSystem();
+    if (typeof reconcileActiveDoctorAfterSync === 'function') reconcileActiveDoctorAfterSync();
     if (typeof reloadDriveAuxRuntimeState === 'function') reloadDriveAuxRuntimeState();
     if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
     // Asignar HC ANTES de renderizar
@@ -17352,6 +17380,7 @@ var DOCTORS_KEY      = 'dental_doctors_v1';
 var DOCTORS_UPDATED_KEY = 'dental_doctors_updated_at';
 var ACTIVE_DOC_KEY   = 'dental_active_doctor_v1';
 var _activeDoctor    = null; // { id, name, specialty, cedula, cedula2 }
+var _doctorSelectTimer = null;
 
 // ── Cargar/guardar lista de doctores ─────────────────────
 function loadDoctors() {
@@ -17425,10 +17454,8 @@ function updateActiveDoctorIdentity(doc) {
   if(sub)sub.textContent=cfg.sub||'';
 }
 
-function setActiveDoctor(doc) {
+function applyActiveDoctorRuntime(doc) {
   _activeDoctor = doc;
-  appStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(doc));
-  persistAuxStateToDrive();
   updateActiveDoctorIdentity(doc);
   // Actualizar badge en sidebar
   var badge = document.getElementById('active-doctor-badge');
@@ -17439,9 +17466,53 @@ function setActiveDoctor(doc) {
   if (typeof renderDashboard === 'function' && typeof db !== 'undefined') renderDashboard();
 }
 
+function setActiveDoctor(doc) {
+  applyActiveDoctorRuntime(doc);
+  appStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(doc));
+  persistAuxStateToDrive();
+}
+
+function reconcileActiveDoctorAfterSync() {
+  var doctors = loadDoctors();
+  var runtimeMatch = _activeDoctor && doctors.find(function(d) {
+    return String(d.id) === String(_activeDoctor.id);
+  });
+  var stored = loadActiveDoctor();
+  var storedMatch = stored && doctors.find(function(d) {
+    return String(d.id) === String(stored.id);
+  });
+  var selected = runtimeMatch || storedMatch || (doctors.length === 1 ? doctors[0] : null);
+
+  if (_doctorSelectTimer) {
+    clearTimeout(_doctorSelectTimer);
+    _doctorSelectTimer = null;
+  }
+  if (selected) {
+    applyActiveDoctorRuntime(selected);
+    // Si Drive no incluía todavía la selección, restaurarla sin mostrar el
+    // modal y dejar que la sincronización auxiliar la conserve.
+    if (!storedMatch) {
+      appStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(selected));
+      persistAuxStateToDrive();
+    }
+    return;
+  }
+  initDoctorSystem();
+}
+
 function initDoctorSystem() {
   var doctors = loadDoctors();
   var active  = loadActiveDoctor();
+  var runtimeActive = _activeDoctor && doctors.find(function(d) {
+    return String(d.id) === String(_activeDoctor.id);
+  });
+  if ((!active || !doctors.find(function(d){ return String(d.id) === String(active.id); })) && runtimeActive) {
+    active = runtimeActive;
+  }
+  if (_doctorSelectTimer) {
+    clearTimeout(_doctorSelectTimer);
+    _doctorSelectTimer = null;
+  }
 
   if (doctors.length === 1) {
     setActiveDoctor(doctors[0]);
@@ -17456,7 +17527,19 @@ function initDoctorSystem() {
     }, 400);
   } else if (doctors.length > 1) {
     // Múltiples doctores y ninguno activo — mostrar selector
-    setTimeout(function() { openDoctorSelect(); }, 800);
+    _doctorSelectTimer = setTimeout(function() {
+      _doctorSelectTimer = null;
+      var latestDoctors = loadDoctors();
+      var latestActive = _activeDoctor || loadActiveDoctor();
+      var latestMatch = latestActive && latestDoctors.find(function(d) {
+        return String(d.id) === String(latestActive.id);
+      });
+      if (latestMatch) {
+        applyActiveDoctorRuntime(latestMatch);
+        return;
+      }
+      openDoctorSelect();
+    }, 800);
   }
 }
 
@@ -17484,10 +17567,18 @@ function openDoctorSelect() {
 }
 
 function closeDoctorSelect() {
+  if (_doctorSelectTimer) {
+    clearTimeout(_doctorSelectTimer);
+    _doctorSelectTimer = null;
+  }
   document.getElementById('doctor-select-overlay').classList.remove('open');
 }
 
 function selectDoctor(id) {
+  if (_doctorSelectTimer) {
+    clearTimeout(_doctorSelectTimer);
+    _doctorSelectTimer = null;
+  }
   var doctors = loadDoctors();
   var doc = doctors.find(function(d){ return d.id === id; });
   if (!doc) return;
