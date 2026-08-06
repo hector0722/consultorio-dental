@@ -535,6 +535,31 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 }
 .gen-btn-wrap textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
 
+.budget-visits-box {
+  margin: 2px 0 12px; padding: 12px;
+  border: 1px solid var(--border); border-radius: var(--r);
+  background: color-mix(in srgb,var(--blue-pale) 45%,var(--card));
+}
+.budget-visits-head { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px; }
+.budget-visits-title { font-size:.75rem;font-weight:750;color:var(--ink); }
+.budget-visits-help { font-size:.68rem;line-height:1.4;color:var(--ink-3);margin-bottom:9px; }
+.budget-visit-empty { padding:8px 5px;text-align:center;font-size:.71rem;color:var(--ink-4); }
+.budget-visit-row {
+  display:grid;grid-template-columns:48px minmax(0,1fr) 78px 24px;
+  gap:6px;align-items:center;padding:7px 0;border-top:1px solid var(--border);
+}
+.budget-visit-row:first-child { border-top:0; }
+.budget-visit-label { font-size:.69rem;font-weight:750;color:var(--blue); }
+.budget-visit-row input {
+  min-width:0;width:100%;padding:6px 7px;border:1px solid var(--border-med);
+  border-radius:7px;background:var(--card);color:var(--ink);font:inherit;font-size:.72rem;
+}
+.budget-visit-row input:focus { outline:none;border-color:var(--blue);box-shadow:0 0 0 2px color-mix(in srgb,var(--blue) 14%,transparent); }
+.budget-visit-delete { border:0;background:transparent;color:var(--ink-4);cursor:pointer;font-size:.78rem;padding:3px; }
+.budget-visit-delete:hover { color:var(--red); }
+.budget-visits-total { display:flex;justify-content:space-between;gap:8px;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);font-size:.7rem;color:var(--ink-3); }
+.budget-visits-total strong { color:var(--ink); }
+
 .custom-tx-row { display: flex; gap: 7px; margin-bottom: 14px; }
 .custom-tx-row input {
   flex: 1; padding: 7px 11px;
@@ -616,6 +641,11 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .bdoc-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: .83rem; }
 .bdoc-table tbody tr:last-child td { border-bottom: none; }
 .bdoc-table tbody tr:hover td { background: var(--bg); }
+.bdoc-visits { margin-top:14px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden; }
+.bdoc-visits-title { padding:9px 12px;background:var(--blue-pale);color:var(--blue);font-size:.75rem;font-weight:750; }
+.bdoc-visits-row { display:grid;grid-template-columns:68px 1fr 110px;gap:10px;padding:9px 12px;border-top:1px solid var(--border);font-size:.78rem;align-items:center; }
+.bdoc-visits-row span:first-child { font-weight:750;color:var(--blue); }
+.bdoc-visits-row span:last-child { text-align:right;font-weight:750;color:var(--ink); }
 
 .bdoc-total-box {
   background: var(--ink); border-radius: var(--r);
@@ -4290,6 +4320,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctor activo:</strong> la selección se mantiene al sincronizar y el selector ya no aparece por sí solo.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Precios persistentes:</strong> los cambios del catálogo se guardan inmediatamente y una copia anterior de otro dispositivo ya no puede restaurarlos al recargar.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Presupuesto siempre limpio:</strong> al abrir el módulo comienza uno nuevo; únicamente se conserva cuando lo generas y lo guardas en el expediente del paciente.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -4701,6 +4732,15 @@ body.app-ready #dash-page.active > .card {
               <span class="bt-amount" id="bt-amount">$0</span>
             </div>
             <div class="gen-btn-wrap">
+              <div class="budget-visits-box">
+                <div class="budget-visits-head">
+                  <span class="budget-visits-title">📅 Plan por citas <span style="font-weight:500;color:var(--ink-3)">(opcional)</span></span>
+                  <button type="button" class="btn btn-ghost btn-xs" onclick="addBudgetVisit()">＋ Agregar cita</button>
+                </div>
+                <div class="budget-visits-help">Describe qué se realizará y cuánto corresponde en cada cita. Se numeran automáticamente.</div>
+                <div id="budget-visits-list"><div class="budget-visit-empty">Sin citas agregadas</div></div>
+                <div id="budget-visits-total" class="budget-visits-total" style="display:none"></div>
+              </div>
               <div class="fg" style="margin-bottom:10px">
                 <label>Notas adicionales</label>
                 <textarea id="budget-notes" rows="2" placeholder="Ej. Plan de pagos, observaciones…" oninput=""></textarea>
@@ -6775,6 +6815,7 @@ let customTx   = [];
 let selectedTx = {}; // { id: { name, price, qty, note? } }
 var _budgetPatId = '';
 var _budgetNotes = '';
+var _budgetVisits = [];
 
 // ── Simple budget state persistence ──────────────────────
 function _saveBudgetState() {
@@ -6786,6 +6827,7 @@ function _loadBudgetState() {
   customTx = [];
   _budgetPatId = '';
   _budgetNotes = '';
+  _budgetVisits = [];
 }
 function _restoreBudgetUI() {
   // buildCatalogUI already ran via populateBudgetSelect with correct selectedTx
@@ -6824,10 +6866,102 @@ function resetBudgetWorkspace() {
   if (info) info.textContent = '';
   if (notes) notes.value = '';
   if (typeof _comboSelected !== 'undefined') delete _comboSelected['budget-patient-sel'];
+  renderBudgetVisits();
 }
 function _onBudgetNotesInput() {
   _budgetNotes = (document.getElementById('budget-notes') || {}).value || '';
   _saveBudgetState();
+}
+
+function budgetTreatmentsTotal() {
+  return Object.keys(selectedTx || {}).reduce(function(sum, id) {
+    var tx = selectedTx[id] || {};
+    return sum + (Number(tx.price) || 0) * Math.max(1, Number(tx.qty) || 1);
+  }, 0);
+}
+
+function budgetVisitsTotal() {
+  return (_budgetVisits || []).reduce(function(sum, visit) {
+    return sum + (Number(visit.price) || 0);
+  }, 0);
+}
+
+function updateBudgetVisitsSummary() {
+  var box = document.getElementById('budget-visits-total');
+  if (!box) return;
+  if (!_budgetVisits.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  var visitsTotal = budgetVisitsTotal();
+  var treatmentTotal = budgetTreatmentsTotal();
+  var difference = treatmentTotal - visitsTotal;
+  var detail = difference === 0
+    ? '<span style="color:var(--green,#248a3d)">✓ Coincide con el presupuesto</span>'
+    : difference > 0
+      ? '<span>Por asignar: <strong>' + fmt$(difference) + '</strong></span>'
+      : '<span style="color:var(--red)">Excede por: <strong>' + fmt$(Math.abs(difference)) + '</strong></span>';
+  box.style.display = 'flex';
+  box.innerHTML = '<span>Total por citas: <strong>' + fmt$(visitsTotal) + '</strong></span>' + detail;
+}
+
+function renderBudgetVisits(focusLast) {
+  var list = document.getElementById('budget-visits-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!_budgetVisits.length) {
+    list.innerHTML = '<div class="budget-visit-empty">Sin citas agregadas</div>';
+    updateBudgetVisitsSummary();
+    return;
+  }
+  _budgetVisits.forEach(function(visit, index) {
+    var row = document.createElement('div');
+    row.className = 'budget-visit-row';
+    var label = document.createElement('span');
+    label.className = 'budget-visit-label';
+    label.textContent = 'Cita ' + (index + 1);
+    var description = document.createElement('input');
+    description.type = 'text';
+    description.placeholder = 'Ej. Preparación y provisionales';
+    description.value = visit.description || '';
+    description.setAttribute('aria-label', 'Descripción de la cita ' + (index + 1));
+    description.oninput = function() { visit.description = this.value; };
+    var price = document.createElement('input');
+    price.type = 'number';
+    price.min = '0';
+    price.step = '50';
+    price.placeholder = '$';
+    price.value = visit.price || '';
+    price.setAttribute('aria-label', 'Precio de la cita ' + (index + 1));
+    price.oninput = function() {
+      visit.price = Math.max(0, parseFloat(this.value) || 0);
+      updateBudgetVisitsSummary();
+    };
+    var remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'budget-visit-delete';
+    remove.title = 'Eliminar cita';
+    remove.textContent = '✕';
+    remove.onclick = function() { removeBudgetVisit(index); };
+    row.appendChild(label);
+    row.appendChild(description);
+    row.appendChild(price);
+    row.appendChild(remove);
+    list.appendChild(row);
+  });
+  updateBudgetVisitsSummary();
+  if (focusLast) {
+    var inputs = list.querySelectorAll('input[type="text"]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+}
+
+function addBudgetVisit() {
+  _budgetVisits.push({ id:'visit-' + Date.now() + '-' + _budgetVisits.length, description:'', price:0 });
+  renderBudgetVisits(true);
+}
+
+function removeBudgetVisit(index) {
+  if (index < 0 || index >= _budgetVisits.length) return;
+  _budgetVisits.splice(index, 1);
+  renderBudgetVisits(false);
 }
 
 // ── Budget draft persistence ──
@@ -6887,7 +7021,9 @@ function renderBudgetPanel() {
   const entries = Object.entries(selectedTx);
   if (!entries.length) {
     lines.innerHTML = '<div class="empty" style="padding:28px 10px"><div class="empty-icon">🦷</div><p>Selecciona tratamientos</p></div>';
-    totRow.style.display = 'none'; return;
+    totRow.style.display = 'none';
+    updateBudgetVisitsSummary();
+    return;
   }
   let total = 0;
   lines.innerHTML = entries.map(([id, tx]) => {
@@ -6921,6 +7057,7 @@ function renderBudgetPanel() {
   }).join('');
   totRow.style.display = 'flex';
   amtEl.textContent = fmt$(total);
+  updateBudgetVisitsSummary();
   // Mostrar campo mensualidad si hay ortodoncia
   _checkOrthoMensualidadRow();
 }
@@ -6943,8 +7080,10 @@ function clearBudget() {
   customTx = [];
   _budgetPatId = '';
   _budgetNotes = '';
+  _budgetVisits = [];
   document.querySelectorAll('.tx-chip').forEach(c => c.classList.remove('selected'));
   renderBudgetPanel();
+  renderBudgetVisits();
   _saveBudgetState();
 }
 function toggleCustom() {
@@ -6971,6 +7110,7 @@ function populateBudgetSelect() {
   loadCatalogOverrides();
   buildCatalogUI();
   renderBudgetPanel();
+  renderBudgetVisits();
 }
 
 document.addEventListener('change', e => {
@@ -7043,6 +7183,24 @@ function generateBudgetDoc() {
     </tr>`;
   }).join('');
 
+  const visits = (_budgetVisits || []).filter(function(visit) {
+    return String(visit.description || '').trim() || Number(visit.price || 0) > 0;
+  }).map(function(visit, index) {
+    return {
+      number:index + 1,
+      description:String(visit.description || '').trim(),
+      price:Math.max(0, Number(visit.price) || 0)
+    };
+  });
+  const visitsHtml = visits.length
+    ? `<div class="bdoc-visits">
+        <div class="bdoc-visits-title">📅 Plan sugerido por citas</div>
+        ${visits.map(function(visit) {
+          return `<div class="bdoc-visits-row"><span>Cita ${visit.number}</span><span>${escapeHTML(visit.description || 'Por definir')}</span><span>${fmt$(visit.price)}</span></div>`;
+        }).join('')}
+      </div>`
+    : '';
+
   let patBlock = '';
   if (p) {
     const alerts = [];
@@ -7097,6 +7255,7 @@ function generateBudgetDoc() {
       <span class="bdoc-total-label">Total del presupuesto</span>
       <span class="bdoc-total-amt">${fmt$(total)}</span>
     </div>
+    ${visitsHtml}
     ${notes ? `<div class="bdoc-note"><strong>📋 Notas:</strong>${notes}</div>` : ''}
     <div class="bdoc-note" style="margin-top:10px">
       <strong>📌 Condiciones:</strong>
@@ -7113,7 +7272,7 @@ function generateBudgetDoc() {
 
   // Guardar datos del presupuesto actual y conservarlo automáticamente
   // en el historial del expediente cuando existe un paciente seleccionado.
-  window._lastBudget = { patId, entries, total, notes, today, folio };
+  window._lastBudget = { patId, entries, total, notes, visits, today, folio };
   var saveBtn = document.getElementById('btn-save-budget');
   if (saveBtn) { saveBtn.style.display = patId ? 'flex' : 'none'; saveBtn.disabled=false; saveBtn.textContent='💾 Guardar en paciente'; }
   if (p) saveBudgetToPatient();
@@ -7145,6 +7304,10 @@ function printBudget() {
   .bdoc-table thead tr{background:#1d1d1f;}
   .bdoc-table th{color:rgba(255,255,255,.8);font-size:.67rem;text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;font-weight:600;}
   .bdoc-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0;font-size:.82rem;}
+  .bdoc-visits{margin-top:13px;border:1px solid #d9e6f7;border-radius:9px;overflow:hidden;}
+  .bdoc-visits-title{padding:8px 11px;background:#e8f1fd;color:#0071e3;font-size:.73rem;font-weight:700;}
+  .bdoc-visits-row{display:grid;grid-template-columns:64px 1fr 100px;gap:10px;padding:8px 11px;border-top:1px solid #e5e5e5;font-size:.75rem;align-items:center;}
+  .bdoc-visits-row span:first-child{font-weight:700;color:#0071e3}.bdoc-visits-row span:last-child{text-align:right;font-weight:700;}
   .bdoc-total-box{background:#1d1d1f;border-radius:10px;padding:14px 18px;margin-top:11px;display:flex;align-items:baseline;justify-content:space-between;}
   .bdoc-total-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.55);}
   .bdoc-total-amt{font-size:1.85rem;font-weight:800;letter-spacing:-.05em;color:#fff;}
@@ -9363,6 +9526,7 @@ function renderPatientBudgetHistory(patientId) {
       + '<span style="font-size:.88rem;font-weight:800;color:var(--blue)">' + fmt$(b.total) + '</span>'
       + '</div>'
       + '<div style="font-size:.75rem;color:var(--ink-2);line-height:1.4">' + items + '</div>'
+      + ((b.visits && b.visits.length) ? '<div style="font-size:.71rem;color:var(--blue);margin-top:4px">📅 ' + b.visits.length + ' cita(s) planificada(s)</div>' : '')
       + (b.notes ? '<div style="font-size:.72rem;color:var(--ink-3);margin-top:3px">' + b.notes + '</div>' : '')
       + '<button data-pid="' + patientId + '" data-idx="' + realIdx + '" onclick="deleteBudgetHistory(this)" '
       + 'style="background:none;border:none;cursor:pointer;color:var(--ink-4);font-size:.72rem;margin-top:4px;padding:0">✕ Eliminar</button>'
@@ -11080,7 +11244,7 @@ function resetAllData() {
 
   // Reiniciar estado en memoria
   db  = { patients: [], appointments: [] };
-  selectedTx = {}; customTx = []; _budgetPatId = ''; _budgetNotes = '';
+  selectedTx = {}; customTx = []; _budgetPatId = ''; _budgetNotes = ''; _budgetVisits = [];
   cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   _activeDoctor = null;
   var defaultDoctor = { id:1, name:cfg.name, specialty:cfg.sub, cedula:'', cedula2:'', color:cfg.color };
@@ -13620,7 +13784,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-20', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-21', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13640,7 +13804,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260806_20';
+      var refreshKey = 'dental_sw_refreshed_20260806_21';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13946,7 +14110,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_canonical_v20';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_visit_plan_v21';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -14116,6 +14280,7 @@ var GD = (function() {
     customTx = [];
     _budgetPatId = '';
     _budgetNotes = '';
+    _budgetVisits = [];
     if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
   }
   function _restoreAccountSnapshot(id) {
@@ -18186,6 +18351,16 @@ function renderPatientBudgetInDetail(patientId) {
         + '<span style="font-weight:600;color:var(--ink)">' + sub + '</span>'
         + '</div>';
     }).join('') : '';
+    var visitsHTML = (b.visits && b.visits.length)
+      ? '<div style="margin-top:8px;padding:8px 10px;background:var(--blue-pale);border-radius:var(--r-sm)">'
+        + '<div style="font-size:.69rem;font-weight:750;color:var(--blue);margin-bottom:4px">📅 Plan por citas</div>'
+        + b.visits.map(function(visit, visitIndex) {
+          return '<div style="display:grid;grid-template-columns:52px 1fr auto;gap:7px;padding:3px 0;font-size:.72rem">'
+            + '<strong style="color:var(--blue)">Cita ' + (visitIndex + 1) + '</strong>'
+            + '<span>' + escapeHTML(visit.description || 'Por definir') + '</span>'
+            + '<strong>' + fmt$(visit.price || 0) + '</strong></div>';
+        }).join('') + '</div>'
+      : '';
     return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       + '<span style="font-size:.72rem;color:var(--ink-3)">' + b.date + ' · Folio #' + b.folio + '</span>'
@@ -18198,6 +18373,7 @@ function renderPatientBudgetInDetail(patientId) {
       + 'style="background:none;border:none;cursor:pointer;color:var(--ink-4);font-size:.75rem" title="Eliminar">✕</button>'
       + '</div></div>'
       + '<div style="font-size:.78rem;color:var(--ink-2)">' + itemsHTML + '</div>'
+      + visitsHTML
       + '<div style="display:flex;justify-content:flex-end;margin-top:6px;padding-top:6px;border-top:1.5px solid var(--border-med)">'
       + '<span style="font-size:.82rem;font-weight:800;color:var(--blue)">Total: ' + fmt$(b.total) + '</span>'
       + '</div>'
@@ -18256,6 +18432,13 @@ function saveBudgetToPatient() {
     folio: lb.folio,
     total: lb.total,
     notes: lb.notes,
+    visits: (lb.visits || []).map(function(visit, index) {
+      return {
+        number:index + 1,
+        description:String(visit.description || ''),
+        price:Math.max(0, Number(visit.price) || 0)
+      };
+    }),
     items: lb.entries.map(function(e) {
       var id = e[0]; var tx = e[1];
       return {
@@ -18306,10 +18489,20 @@ function reprintBudget(patientId, idx) {
       + '</tr>';
   }).join('');
 
+  var visitsBlock = (b.visits && b.visits.length)
+    ? '<div class="visits"><div class="visits-title">PLAN SUGERIDO POR CITAS</div>'
+      + b.visits.map(function(visit, visitIndex) {
+        return '<div class="visit-row"><strong>Cita ' + (visitIndex + 1) + '</strong><span>'
+          + escapeHTML(visit.description || 'Por definir') + '</span><strong>'
+          + fmt$(visit.price || 0) + '</strong></div>';
+      }).join('') + '</div>'
+    : '';
+
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presupuesto #'+b.folio+'</title>'
     + '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:30px 40px;font-size:13px;color:#111;max-width:720px;margin:0 auto}'
     + 'table{width:100%;border-collapse:collapse}th{background:#f0f0f0;padding:8px 6px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em}'
     + '.total-box{background:#111;color:#fff;border-radius:8px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:14px}'
+    + '.visits{margin-top:14px;border:1px solid #cfe0f5;border-radius:8px;overflow:hidden}.visits-title{padding:8px 10px;background:#e8f1fd;color:#0071e3;font-size:10px;font-weight:700}.visit-row{display:grid;grid-template-columns:58px 1fr 100px;gap:10px;padding:8px 10px;border-top:1px solid #eee;font-size:11px}.visit-row strong:first-child{color:#0071e3}.visit-row strong:last-child{text-align:right}'
     + '@media print{body{padding:18px 24px}}</style></head><body>'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:14px;margin-bottom:20px">'
     + '<div>' + logoHtml
@@ -18326,6 +18519,7 @@ function reprintBudget(patientId, idx) {
     + rows + '</tbody></table>'
     + '<div class="total-box"><span style="font-size:13px;font-weight:600">TOTAL DEL PRESUPUESTO</span>'
     + '<span style="font-size:22px;font-weight:900">$' + (b.total||0).toLocaleString('es-MX') + ' MXN</span></div>'
+    + visitsBlock
     + (b.notes ? '<div style="margin-top:12px;padding:10px;background:#fff8e1;border-radius:6px;font-size:12px;color:#555">📌 '+b.notes+'</div>' : '')
     + '<div style="margin-top:30px;font-size:10px;color:#999;text-align:center">Presupuesto estimado · Vigencia 30 días</div>'
     + '</body></html>';
@@ -20045,6 +20239,10 @@ window.addEventListener('resize', function() {
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Guardado y plan de tratamiento automáticos</div>
             <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al tocar <strong>“Generar presupuesto”</strong>, el documento se guarda automáticamente en el historial del paciente y sus conceptos se agregan a su plan de tratamiento. Puedes imprimirlo o guardarlo como PDF, y reimprimirlo después desde el expediente.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Plan por citas</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Es opcional. Toca <strong>“＋ Agregar cita”</strong> y escribe qué se realizará y el importe de cada etapa. El programa numera Cita 1, Cita 2, Cita 3… y muestra si la distribución coincide con el total. También aparece en el PDF y al reimprimir.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Presupuestos anteriores</div>
