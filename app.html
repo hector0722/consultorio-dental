@@ -4040,7 +4040,7 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
       <div class="gd-login-feature"><span>☁️</span><span>Datos guardados en tu Google Drive</span></div>
       <div class="gd-login-feature"><span>📱</span><span>Accede desde cualquier dispositivo</span></div>
       <div class="gd-login-feature"><span>🔒</span><span>Solo tú ves tu información</span></div>
-      <div class="gd-login-feature"><span>📸</span><span>Fotos clínicas sin límite</span></div>
+      <div class="gd-login-feature"><span>📸</span><span>Fotos clínicas guardadas solo en Drive</span></div>
     </div>
     <button id="gd-signin-btn" onclick="gdSignIn()">
       <img src="https://www.google.com/favicon.ico" alt="Google">
@@ -5225,6 +5225,81 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
 // ═══ DB ═══
 let db = { patients: [] };
 let curId = null, delId = null;
+
+// Las imágenes viven únicamente en Google Drive. El navegador conserva solo
+// ids, nombres y clasificación para poder mostrar el expediente sin duplicar
+// archivos pesados en localStorage.
+var _legacyImageMigrationPending = false;
+
+function isInlineImageValue(value) {
+  return typeof value === 'string'
+    && (/^data:image\//i.test(value) || /^blob:/i.test(value));
+}
+
+function isEmbeddedImageValue(value) {
+  return typeof value === 'string' && /^data:image\//i.test(value);
+}
+
+function containsInlineImage(value, seen) {
+  if (isEmbeddedImageValue(value)) return true;
+  if (!value || typeof value !== 'object') return false;
+  seen = seen || [];
+  if (seen.indexOf(value) !== -1) return false;
+  seen.push(value);
+  var keys = Array.isArray(value) ? value.map(function(_, i){ return i; }) : Object.keys(value);
+  return keys.some(function(key){ return containsInlineImage(value[key], seen); });
+}
+
+function imageFreeClone(value) {
+  if (Array.isArray(value)) return value.map(imageFreeClone);
+  if (!value || typeof value !== 'object') return value;
+  var clean = {};
+  Object.keys(value).forEach(function(key) {
+    var item = value[key];
+    if (isInlineImageValue(item)) {
+      // Conservar el campo vacío por compatibilidad, nunca los bytes.
+      clean[key] = '';
+      return;
+    }
+    clean[key] = imageFreeClone(item);
+  });
+  return clean;
+}
+
+function serializeDatabaseForLocalStorage(value) {
+  // Durante la migración inicial se conserva temporalmente la única copia
+  // existente. Se elimina apenas Drive confirma todos los archivos.
+  if (_legacyImageMigrationPending && containsInlineImage(value)) {
+    return JSON.stringify(value);
+  }
+  return JSON.stringify(imageFreeClone(value));
+}
+
+function serializeConfigForLocalStorage(value) {
+  if (_legacyImageMigrationPending && containsInlineImage(value)) {
+    return JSON.stringify(value);
+  }
+  return JSON.stringify(imageFreeClone(value));
+}
+
+function purgeInlineImagesFromLocalStorage() {
+  var keys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key && (/^dental_/.test(key) || ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dbs1'].indexOf(key) !== -1)) {
+      keys.push(key);
+    }
+  }
+  keys.forEach(function(key) {
+    var raw = localStorage.getItem(key);
+    if (!raw || raw.indexOf('data:image/') === -1) return;
+    try {
+      var parsed = JSON.parse(raw);
+      localStorage.setItem(key, JSON.stringify(imageFreeClone(parsed)));
+    } catch(e) {}
+  });
+}
+
 const loadDB = () => {
   // Cargar desde localStorage (cache local — Drive lo sobreescribirá si hay sesión)
   const r = localStorage.getItem('dental_v4') || localStorage.getItem('dental_v3') || localStorage.getItem('dentalDB_v2') || localStorage.getItem('dentalClinicDB');
@@ -5232,7 +5307,8 @@ const loadDB = () => {
     try {
       db = JSON.parse(r);
       neutralizeUnsafeText(db);
-      localStorage.setItem('dental_v4', JSON.stringify(db));
+      _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
+      localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
     } catch(e) {
       // Si el archivo principal quedó incompleto, recuperar la última copia sana.
       try {
@@ -5240,6 +5316,7 @@ const loadDB = () => {
         if (recovery) {
           db = JSON.parse(recovery);
           neutralizeUnsafeText(db);
+          _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
           localStorage.setItem('dental_v4', recovery);
           setTimeout(function(){ showToast('✅ Se recuperó el último respaldo automático', 'green'); }, 800);
         }
@@ -5259,12 +5336,13 @@ const saveDB = () => {
 // Así se puede recuperar información incluso si se cierra la página durante el guardado.
 function saveLocalWithAutoBackup() {
   neutralizeUnsafeText(db);
+  _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
   var current = localStorage.getItem('dental_v4');
   // Marcar únicamente los registros que realmente cambiaron. Estas fechas
   // permiten unir de forma segura dos dispositivos sin que uno sobrescriba
   // pacientes, presupuestos o citas capturados por el otro.
   prepareDentalSyncMetadata(current);
-  var next = JSON.stringify(db);
+  var next = serializeDatabaseForLocalStorage(db);
   var changed = current !== next;
   try {
     if (current && changed) localStorage.setItem('dental_autobackup_previous', current);
@@ -5338,7 +5416,7 @@ function syncComparable(value) {
   if (!value || typeof value !== 'object') return value;
   var clean = {};
   Object.keys(value).sort().forEach(function(key) {
-    if (key === '_updatedAt') return;
+    if (key === '_updatedAt' || key === 'dataUrl') return;
     clean[key] = syncComparable(value[key]);
   });
   return clean;
@@ -5672,8 +5750,8 @@ function recoverMissingPatientsFromLocalSnapshots() {
       appointmentIds[String(appt.id)] = true;
     }
   });
-  localStorage.setItem('dental_v4', JSON.stringify(db));
-  localStorage.setItem('dental_autobackup_latest', JSON.stringify(db));
+  localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+  localStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
   localStorage.setItem('dental_local_updated_at', Date.now().toString());
   localStorage.setItem('dental_recovered_snapshot_source', best.key);
   return missing.length;
@@ -6000,7 +6078,7 @@ function saveNotes() {
   const p = db.patients.find(x => x.id == curId); if (!p) return;
   p.clinicalNotes = document.getElementById('notes-ta').value;
   // Guardar localmente y forzar sync inmediato a Drive
-  localStorage.setItem('dental_v4', JSON.stringify(db));
+  localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
   if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
   else saveDB();
   // Feedback visual
@@ -6094,7 +6172,7 @@ function moveHCField(i,d){var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var
 function saveHCTemplate(){
   _hcDraft.hiddenCore=[];document.querySelectorAll('#hc-core-list [data-core]').forEach(function(ch){if(!ch.checked)_hcDraft.hiddenCore.push(ch.dataset.core);});
   _hcDraft.fields=_hcDraft.fields.filter(function(f){return f.label&&f.label.trim();}); cfg.hcTemplate=_hcDraft;
-  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else localStorage.setItem('dental_cfg_v1',JSON.stringify(cfg));
+  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else localStorage.setItem('dental_cfg_v1',serializeConfigForLocalStorage(cfg));
   applyHCTemplate();closeHCEditor();showToast('✅ Plantilla de historia clínica guardada','green');
 }
 function resetHCTemplate(){if(!confirm('¿Mostrar todos los campos originales y quitar los personalizados?'))return;_hcDraft={hiddenCore:[],fields:[]};renderHCEditorFields();document.querySelectorAll('#hc-core-list [data-core]').forEach(function(x){x.checked=true;});}
@@ -8430,7 +8508,7 @@ function previewAdvancedAppearance() {
   // evita que el tema vuelva al anterior al recargar o cerrar el panel.
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   else {
-    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
 }
 
@@ -8443,7 +8521,7 @@ function applyAppearancePreset(name) {
   fillAppearanceControls();applyColor(cfg.color);applyAppearance();
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   else {
-    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
   var presetLabels={apple:'Apple',midnight:'Medianoche',rose:'Rosa',emerald:'Esmeralda',warm:'Cálido'};
   showToast('🎨 Tema ' + (presetLabels[name] || name) + ' guardado', 'green');
@@ -8454,7 +8532,12 @@ function resetAppearanceApple() { applyAppearancePreset('apple'); showToast('Est
 function loadSettings() {
   var raw = localStorage.getItem('dental_cfg_v1');
   if (!raw) return;
-  try { var s = JSON.parse(raw); neutralizeUnsafeText(s); Object.assign(cfg, s); } catch(e) {}
+  try {
+    var s = JSON.parse(raw);
+    neutralizeUnsafeText(s);
+    _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(s);
+    Object.assign(cfg, s);
+  } catch(e) {}
   // Migrar el preset Rosa anterior: sus paneles eran blancos y algunas
   // etiquetas claras perdían contraste. Solo cambia la combinación exacta
   // del preset viejo; no toca colores personalizados elegidos por el usuario.
@@ -8463,7 +8546,7 @@ function loadSettings() {
       && String(cfg.appearanceCard || '').toLowerCase() === '#ffffff') {
     cfg.appearanceCard = '#fbe3ec';
     cfg._savedAt = Date.now();
-    try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
   }
   if (!cfg.currency) cfg.currency = 'MXN';
   if (!cfg.countryCode) cfg.countryCode = '52';
@@ -8560,52 +8643,57 @@ function uploadHeroImage(input) {
     input.value = '';
     return;
   }
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var img = new Image();
-    img.onload = function() {
-      // Recorte horizontal 16:9 y compresión para no llenar el navegador ni Drive.
-      // Una portada enorme en base64 puede agotar localStorage y hacer que
-      // dejen de guardarse pacientes/configuración. 1280×720 conserva buena
-      // calidad incluso en pantallas Retina con un peso mucho menor.
-      var outW = 1280, outH = 720;
-      var sourceRatio = img.width / img.height;
-      var targetRatio = outW / outH;
-      var sx = 0, sy = 0, sw = img.width, sh = img.height;
-      if (sourceRatio > targetRatio) {
-        sw = img.height * targetRatio;
-        sx = (img.width - sw) / 2;
-      } else {
-        sh = img.width / targetRatio;
-        sy = (img.height - sh) / 2;
-      }
-      var canvas = document.createElement('canvas');
-      canvas.width = outW; canvas.height = outH;
-      canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
-      cfg.heroImageUrl = canvas.toDataURL('image/jpeg', .72);
-      cfg.heroImageUpdatedAt = Date.now();
-      applyHeroImage();
-      refreshHeroImagePreview();
-      var heroSaved = typeof GD !== 'undefined' && GD.saveHeroImage
-        ? GD.saveHeroImage()
-        : (typeof GD !== 'undefined' && GD.saveCfg ? GD.saveCfg() : true);
-      if (heroSaved !== false) showToast('✅ Foto de portada actualizada', 'green');
-      input.value = '';
-    };
-    img.onerror = function() { showToast('No se pudo leer esa imagen', 'red'); input.value = ''; };
-    img.src = e.target.result;
+  if (typeof GD === 'undefined' || !GD._token || !GD._token()) {
+    input.value = '';
+    showToast('☁️ Conecta Google Drive para guardar la portada', 'red');
+    if (typeof GD !== 'undefined' && GD.reconnect) GD.reconnect();
+    return;
+  }
+  var sourceUrl = URL.createObjectURL(file);
+  var img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(sourceUrl);
+    var outW = 1280, outH = 720;
+    var sourceRatio = img.width / img.height;
+    var targetRatio = outW / outH;
+    var sx = 0, sy = 0, sw = img.width, sh = img.height;
+    if (sourceRatio > targetRatio) {
+      sw = img.height * targetRatio;
+      sx = (img.width - sw) / 2;
+    } else {
+      sh = img.width / targetRatio;
+      sy = (img.height - sh) / 2;
+    }
+    var canvas = document.createElement('canvas');
+    canvas.width = outW; canvas.height = outH;
+    canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+    showToast('📤 Subiendo portada a Drive…', 'green');
+    canvas.toBlob(function(blob) {
+      if (!blob) { showToast('No se pudo preparar la imagen', 'red'); return; }
+      GD.uploadImageAsset('hero', blob).then(function() {
+        showToast('✅ Foto de portada guardada en Drive', 'green');
+      }).catch(function(error) {
+        console.error('No se pudo subir la portada:', error);
+        showToast('❌ No se guardó la portada en Drive', 'red');
+      });
+    }, 'image/jpeg', .72);
+    input.value = '';
   };
-  reader.readAsDataURL(file);
+  img.onerror = function() {
+    URL.revokeObjectURL(sourceUrl);
+    showToast('No se pudo leer esa imagen', 'red');
+    input.value = '';
+  };
+  img.src = sourceUrl;
 }
 
 function removeHeroImage() {
-  cfg.heroImageUrl = '';
-  cfg.heroImageUpdatedAt = Date.now();
-  applyHeroImage();
-  refreshHeroImagePreview();
-  if (typeof GD !== 'undefined' && GD.saveHeroImage) GD.saveHeroImage();
-  else if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
-  showToast('Diseño abstracto restaurado', 'green');
+  if (typeof GD === 'undefined' || !GD.removeImageAsset) return;
+  GD.removeImageAsset('hero').then(function() {
+    showToast('Diseño abstracto restaurado', 'green');
+  }).catch(function() {
+    showToast('No se pudo eliminar la portada de Drive', 'red');
+  });
 }
 
 function openSettings() {
@@ -8727,7 +8815,7 @@ function saveSettings() {
   // Guardar la misma lista dentro de configuración para compatibilidad con
   // respaldos antiguos y para que todos los dispositivos reciban el cambio.
   cfg.doctors = settingsDoctors;
-  if (typeof GD !== 'undefined') GD.saveCfg(); else localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+  if (typeof GD !== 'undefined') GD.saveCfg(); else localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   applyBranding();
   if (document.getElementById('dash-page').classList.contains('active')) renderDashboard();
   if (document.getElementById('budget-page').classList.contains('active')) { buildCatalogUI(); renderBudgetPanel(); }
@@ -10105,10 +10193,10 @@ setTimeout(function() { showBackupReminder(true); }, 3000);
 
 function buildCompleteBackup() {
   return {
-    version: 'dental_backup_v3',
+    version: 'dental_backup_v4_drive_images',
     exportedAt: new Date().toISOString(),
-    db: db,
-    cfg: cfg,
+    db: imageFreeClone(db),
+    cfg: imageFreeClone(cfg),
     catalog: localStorage.getItem('dental_catalog_v1') || null,
     caja: localStorage.getItem('dental_caja_v1') || null,
     production: localStorage.getItem('dental_production_v1') || null,
@@ -10387,7 +10475,8 @@ function importData(input) {
       // Restaurar config si existe
       if (backup.cfg) {
         cfg = neutralizeUnsafeText(backup.cfg);
-        localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+        _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
+        localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
         applyBranding();
       }
 
@@ -10456,10 +10545,14 @@ function importData(input) {
       // offline se conserva localmente hasta que el usuario reconecte Google.
       var googleConnected = typeof GD !== 'undefined' && GD._token && GD._token();
       if (googleConnected && GD.saveNow) {
-        // Pequeño delay para que localStorage se actualice primero
         setTimeout(function() {
-          GD.saveNow();
-          showToast('☁️ Subiendo a Drive…', 'green');
+          var migration = typeof migrateLegacyInlineImagesToDrive === 'function'
+            ? migrateLegacyInlineImagesToDrive()
+            : Promise.resolve();
+          migration.then(function() {
+            GD.saveNow();
+            showToast('☁️ Subiendo a Drive…', 'green');
+          });
         }, 300);
       }
 
@@ -13031,7 +13124,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-11', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-12', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13051,7 +13144,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260806_11';
+      var refreshKey = 'dental_sw_refreshed_20260806_12';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13357,7 +13450,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_ack_v11';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_images_v12';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13395,6 +13488,8 @@ var GD = (function() {
   var DB_FILENAME = 'consultorio_dental_db.json';
   var CFG_FILENAME= 'consultorio_dental_cfg.json';
   var HERO_FILENAME='consultorio_dental_portada.json';
+  var HERO_IMAGE_FILENAME='consultorio_dental_portada.img';
+  var LOGO_IMAGE_FILENAME='consultorio_dental_logo.img';
   var DEVICE_DB_PREFIX='consultorio_dental_device_';
   var DEVICE_ID_KEY='dental_device_id_v1';
   var FOLDER_NAME = 'Consultorio Dental';
@@ -13408,6 +13503,8 @@ var GD = (function() {
   var _needsAppDataMigration = false;
   var _cfgFileId = null;
   var _heroFileId = null;
+  var _heroImageFileId = null;
+  var _logoImageFileId = null;
   var _deviceDbFileId = null;
   var _deviceId = localStorage.getItem(DEVICE_ID_KEY) || '';
   var _syncTimer = null;
@@ -13649,6 +13746,11 @@ var GD = (function() {
             return _loadHero();
           })
           .then(function() {
+            if (typeof migrateLegacyInlineImagesToDrive !== 'function') return;
+            setBadge('syncing', 'Migrando imágenes a Drive…');
+            return migrateLegacyInlineImagesToDrive();
+          })
+          .then(function() {
             _saving = false;
             setBadge('synced', _lastRemotePatientCount === null
               ? 'Sincronizado'
@@ -13781,7 +13883,7 @@ var GD = (function() {
             db = _mergeDeviceDBPayloads(db, mirrors);
             if (!Array.isArray(db.patients)) db.patients = [];
             if (!Array.isArray(db.appointments)) db.appointments = [];
-            localStorage.setItem('dental_v4', JSON.stringify(db));
+            localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
             localStorage.setItem('dental_local_updated_at', Date.now().toString());
             _lastRemotePatientCount = db.patients.length;
           }
@@ -13826,7 +13928,8 @@ var GD = (function() {
           if (!cfg.heroImageUrl || dbHeroUpdatedAt >= localHeroUpdatedAt) {
             cfg.heroImageUrl = data._heroImageDataUrl;
             cfg.heroImageUpdatedAt = dbHeroUpdatedAt;
-            try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
+            _legacyImageMigrationPending = _legacyImageMigrationPending || isEmbeddedImageValue(cfg.heroImageUrl);
+            try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
           }
           delete data._heroImageDataUrl;
           delete data._heroImageUpdatedAt;
@@ -14059,7 +14162,7 @@ var GD = (function() {
         var mergeAddedLocalWork = syncSignature(mergedData) !== remoteSignatureBeforeMerge;
 
         if (mergeAddedLocalWork) {
-          try { localStorage.setItem('dental_pre_drive_merge_backup', JSON.stringify(db)); }
+          try { localStorage.setItem('dental_pre_drive_merge_backup', serializeDatabaseForLocalStorage(db)); }
           catch(mergeBackupError) {}
           _preferLocalAfterReconnect = true;
           _dirty = true;
@@ -14068,7 +14171,7 @@ var GD = (function() {
         if (!Array.isArray(db.patients)) db.patients = [];
         if (!Array.isArray(db.appointments)) db.appointments = [];
         if (typeof loadCatalogOverrides === 'function') loadCatalogOverrides();
-        localStorage.setItem('dental_v4', JSON.stringify(db));
+        localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
         localStorage.setItem(
           'dental_local_updated_at',
           (mergeAddedLocalWork || _preferLocalAfterReconnect ? Date.now() : (remoteSavedAt || Date.now())).toString()
@@ -14122,7 +14225,8 @@ var GD = (function() {
           } else {
             cfg = Object.assign(cfg, data);
           }
-          localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+          _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
+          localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
           if (typeof applyBranding === 'function') applyBranding();
           if (_cfgDirty) {
             if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
@@ -14133,55 +14237,24 @@ var GD = (function() {
     });
   }
 
-  // ── Portada independiente ───────────────────────────────
-  // Las imágenes base64 son mucho más grandes que el resto de la
-  // configuración. Guardarlas también en un archivo propio evita que un
-  // teléfono reciba una configuración antigua o incompleta sin la portada.
+  // ── Portada y logo independientes ───────────────────────
+  // La configuración guarda únicamente sus ids. Los bytes se descargan como
+  // Blob desde Drive y la URL temporal nunca se escribe en localStorage.
   function _loadHero() {
-    return _findFile(HERO_FILENAME).then(function(file) {
-      var localDataUrl = cfg.heroImageUrl || '';
-      var localUpdatedAt = parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0;
-      if (!file) {
-        if (localDataUrl || localUpdatedAt) _heroDirty = true;
-        return;
-      }
-      _heroFileId = file.id;
-      if (_preferLocalAfterReconnect) {
-        _heroDirty = true;
-        return;
-      }
-      return _readFile(file.id).then(function(data) {
-        if (!data || typeof data.dataUrl !== 'string') return;
-        var remoteUpdatedAt = parseInt(data.updatedAt || data._savedAt || '0', 10) || 0;
-        var remoteDataUrl = data.dataUrl.trim();
-
-        // Una versión anterior podía crear el archivo de portada vacío al
-        // quitar la imagen o durante una sincronización incompleta. Si la DB
-        // principal o este dispositivo ya tienen una foto válida, un archivo
-        // vacío nunca debe reemplazarla aunque su fecha sea más reciente.
-        if (!remoteDataUrl && localDataUrl) {
-          _heroDirty = true;
-          if (typeof applyHeroImage === 'function') applyHeroImage();
-          return;
-        }
-
-        // Ignorar valores corruptos en lugar de ocultar la portada actual.
-        if (remoteDataUrl && !/^data:image\/(?:jpeg|jpg|png|webp);base64,/i.test(remoteDataUrl)) {
-          console.warn('La portada de Drive no contiene una imagen válida; se conserva la copia local.');
-          if (localDataUrl) _heroDirty = true;
-          return;
-        }
-        // La copia más reciente gana. En instalaciones antiguas, si solo la
-        // computadora tiene foto y todavía no existe fecha, conservarla.
-        if (localDataUrl && (!remoteUpdatedAt || localUpdatedAt > remoteUpdatedAt)) {
-          _heroDirty = true;
-          return;
-        }
-        cfg.heroImageUrl = remoteDataUrl;
-        cfg.heroImageUpdatedAt = remoteUpdatedAt;
-        try { localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg)); } catch(e) {}
-        if (typeof applyHeroImage === 'function') applyHeroImage();
-        if (typeof refreshHeroImagePreview === 'function') refreshHeroImagePreview();
+    return Promise.all([loadImageAsset('hero'), loadImageAsset('logo')]).then(function(loaded) {
+      if (loaded[0] || cfg.heroImageDriveId || isEmbeddedImageValue(cfg.heroImageUrl)) return;
+      // Migración desde la portada JSON usada por versiones anteriores. Se
+      // mantiene en memoria hasta que migrateLegacyInlineImagesToDrive la
+      // convierta en un archivo de imagen real.
+      return _findFile(HERO_FILENAME).then(function(file) {
+        if (!file) return;
+        _heroFileId = file.id;
+        return _readFile(file.id, true).then(function(data) {
+          if (!data || !isEmbeddedImageValue(data.dataUrl)) return;
+          cfg.heroImageUrl = data.dataUrl;
+          cfg.heroImageUpdatedAt = parseInt(data.updatedAt || data._savedAt || '0', 10) || 0;
+          _legacyImageMigrationPending = true;
+        });
       });
     });
   }
@@ -14413,6 +14486,122 @@ var GD = (function() {
         return r.json();
       });
     }
+  }
+
+  function _writeBinaryFile(fileId, name, blob) {
+    if (!blob || String(blob.type || '').indexOf('image/') !== 0) {
+      return Promise.reject(new Error('El archivo no es una imagen válida'));
+    }
+    if (fileId) {
+      return fetch('https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&fields=id,modifiedTime', {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + _token, 'Content-Type': blob.type },
+        body: blob
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Drive imagen HTTP ' + r.status);
+        return r.json();
+      });
+    }
+    var meta = { name:name, parents:_folderId ? [_folderId] : [] };
+    var form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(meta)], { type:'application/json' }));
+    form.append('file', blob);
+    return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+      method:'POST',
+      headers:{ Authorization:'Bearer ' + _token },
+      body:form
+    }).then(function(r) {
+      if (!r.ok) throw new Error('Drive imagen HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  function _assetInfo(kind) {
+    return kind === 'logo'
+      ? { filename:LOGO_IMAGE_FILENAME, idKey:'logoImageDriveId', urlKey:'logoImageUrl' }
+      : { filename:HERO_IMAGE_FILENAME, idKey:'heroImageDriveId', urlKey:'heroImageUrl' };
+  }
+
+  function _setRuntimeImage(kind, blob) {
+    var info = _assetInfo(kind);
+    var previous = cfg[info.urlKey] || '';
+    if (/^blob:/i.test(previous)) URL.revokeObjectURL(previous);
+    cfg[info.urlKey] = blob ? URL.createObjectURL(blob) : '';
+    if (kind === 'logo') {
+      if (typeof applyBranding === 'function') applyBranding();
+    } else {
+      if (typeof applyHeroImage === 'function') applyHeroImage();
+      if (typeof refreshHeroImagePreview === 'function') refreshHeroImagePreview();
+    }
+  }
+
+  function loadImageAsset(kind) {
+    if (!_token) return Promise.resolve(false);
+    var info = _assetInfo(kind);
+    var knownId = cfg[info.idKey] || (kind === 'logo' ? _logoImageFileId : _heroImageFileId);
+    var locate = knownId
+      ? Promise.resolve({ id:knownId })
+      : _findFile(info.filename);
+    return locate.then(function(file) {
+      if (!file || !file.id) return false;
+      if (cfg[info.idKey] !== file.id) _cfgDirty = true;
+      cfg[info.idKey] = file.id;
+      if (kind === 'logo') _logoImageFileId = file.id;
+      else _heroImageFileId = file.id;
+      return fetch('https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media&asset=' + Date.now(), {
+        headers:{ Authorization:'Bearer ' + _token },
+        cache:'no-store'
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Drive imagen HTTP ' + r.status);
+        return r.blob();
+      }).then(function(blob) {
+        if (String(blob.type || '').indexOf('image/') !== 0) throw new Error('Drive devolvió un archivo que no es imagen');
+        _setRuntimeImage(kind, blob);
+        return true;
+      });
+    }).catch(function(error) {
+      console.warn('No se pudo cargar ' + kind + ' desde Drive:', error);
+      return false;
+    });
+  }
+
+  function uploadImageAsset(kind, blob, deferSave) {
+    if (!_token) return Promise.reject(new Error('Conecta Google Drive primero'));
+    var info = _assetInfo(kind);
+    var knownId = cfg[info.idKey] || (kind === 'logo' ? _logoImageFileId : _heroImageFileId);
+    var locate = knownId ? Promise.resolve({ id:knownId }) : _findFile(info.filename);
+    return locate.then(function(file) {
+      return _writeBinaryFile(file && file.id, info.filename, blob);
+    }).then(function(file) {
+      if (!file || !file.id) throw new Error('Drive no devolvió el identificador de la imagen');
+      cfg[info.idKey] = file.id;
+      cfg[kind === 'logo' ? 'logoImageUpdatedAt' : 'heroImageUpdatedAt'] = Date.now();
+      if (kind === 'logo') _logoImageFileId = file.id;
+      else _heroImageFileId = file.id;
+      _setRuntimeImage(kind, blob);
+      if (deferSave) _cfgDirty = true;
+      else saveCfg();
+      return file;
+    });
+  }
+
+  function removeImageAsset(kind) {
+    if (!_token) return Promise.reject(new Error('Conecta Google Drive primero'));
+    var info = _assetInfo(kind);
+    var fileId = cfg[info.idKey] || (kind === 'logo' ? _logoImageFileId : _heroImageFileId);
+    var deletion = fileId
+      ? fetch('https://www.googleapis.com/drive/v3/files/' + fileId, {
+          method:'DELETE', headers:{ Authorization:'Bearer ' + _token }
+        }).then(function(r){ if (!r.ok && r.status !== 404) throw new Error('Drive imagen HTTP ' + r.status); })
+      : Promise.resolve();
+    return deletion.then(function() {
+      cfg[info.idKey] = '';
+      if (kind === 'logo') _logoImageFileId = null;
+      else _heroImageFileId = null;
+      _setRuntimeImage(kind, null);
+      saveCfg();
+      return true;
+    });
   }
 
   // ── Guardar en Drive (debounced, bloqueado si cargando) ──
@@ -14722,8 +14911,8 @@ var GD = (function() {
           db = previousLocal;
           if (!Array.isArray(db.patients)) db.patients = [];
           if (!Array.isArray(db.appointments)) db.appointments = [];
-          localStorage.setItem('dental_v4', JSON.stringify(db));
-          localStorage.setItem('dental_autobackup_latest', JSON.stringify(db));
+          localStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
+          localStorage.setItem('dental_autobackup_latest', serializeDatabaseForLocalStorage(db));
           setTimeout(function(){ showToast('✅ Se recuperaron tus datos offline', 'green'); }, 700);
         }
       } catch(recoverOfflineError) {}
@@ -14828,7 +15017,7 @@ var GD = (function() {
     cfg._savedAt = Date.now();
     var localCfgSaved = true;
     try {
-      localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+      localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
     } catch (e) {
       localCfgSaved = false;
       console.error('No se pudo guardar la configuración local:', e);
@@ -14854,7 +15043,7 @@ var GD = (function() {
     var locate = _cfgFileId ? Promise.resolve({ id: _cfgFileId }) : _findFile(CFG_FILENAME);
     locate.then(function(file) {
       if (file && file.id) _cfgFileId = file.id;
-      return _writeFile(_cfgFileId, CFG_FILENAME, cfg);
+      return _writeFile(_cfgFileId, CFG_FILENAME, imageFreeClone(cfg));
     }).then(function(f) {
       if (!_cfgFileId && f && f.id) _cfgFileId = f.id;
       if (f && f.modifiedTime) _lastCfgModifiedTime = f.modifiedTime;
@@ -14870,42 +15059,24 @@ var GD = (function() {
   }
 
   function saveHeroImage() {
-    // Mantener además una copia en configuración para compatibilidad con las
-    // versiones anteriores de la aplicación.
-    var localSaved = saveCfg();
-    if (_mode === 'google' && _token) {
-      _heroDirty = true;
-      // Guardar además una copia en la base principal para que versiones y
-      // dispositivos que todavía no ven el archivo separado puedan cargarla.
-      _dirty = true;
-      if (!_saving) _scheduleSave();
-      if (!_saving) setTimeout(_doSaveHero, 80);
+    if (!_token) return false;
+    if (isEmbeddedImageValue(cfg.heroImageUrl)) {
+      fetch(cfg.heroImageUrl).then(function(r){ return r.blob(); })
+        .then(function(blob){ return uploadImageAsset('hero', blob); })
+        .catch(function(error){
+          console.error('No se pudo migrar la portada:', error);
+          setBadge('error', 'Error al guardar portada');
+        });
+      return true;
     }
-    return localSaved;
+    return saveCfg();
   }
 
   function _doSaveHero() {
-    if (!_token || _saving || !_heroDirty || _heroSaving) return;
-    _heroSaving = true;
+    // Compatibilidad con temporizadores de versiones anteriores. Las imágenes
+    // nuevas se escriben con uploadImageAsset como archivos binarios.
     _heroDirty = false;
-    var payload = {
-      dataUrl: cfg.heroImageUrl || '',
-      updatedAt: parseInt(cfg.heroImageUpdatedAt || Date.now(), 10) || Date.now()
-    };
-    var locate = _heroFileId ? Promise.resolve({ id: _heroFileId }) : _findFile(HERO_FILENAME);
-    locate.then(function(file) {
-      if (file && file.id) _heroFileId = file.id;
-      return _writeFile(_heroFileId, HERO_FILENAME, payload);
-    }).then(function(file) {
-      if (!_heroFileId && file && file.id) _heroFileId = file.id;
-      _heroSaving = false;
-      if (_heroDirty) setTimeout(_doSaveHero, 150);
-    }).catch(function(error) {
-      console.error('No se pudo guardar la portada en Drive:', error);
-      _heroSaving = false;
-      _heroDirty = true;
-      setBadge('error', 'Error al guardar portada');
-    });
+    _heroSaving = false;
   }
 
   function showStatus() {
@@ -14933,6 +15104,9 @@ var GD = (function() {
     _dbIsAppData = false; _needsAppDataMigration = false;
     _deviceDbFileId = null; _lastMirrorModifiedTime = '';
     _cfgFileId = null; _heroFileId = null;
+    _heroImageFileId = null; _logoImageFileId = null;
+    _setRuntimeImage('hero', null);
+    _setRuntimeImage('logo', null);
     _mode = 'local';
     _accountEmail = '';
     localStorage.setItem(GD_MODE_KEY, 'local');
@@ -14943,10 +15117,8 @@ var GD = (function() {
 
   // ── Guardar inmediatamente (sin debounce) ───────────────
   function _buildSavePayload() {
-    return Object.assign({}, db, {
+    return Object.assign({}, imageFreeClone(db), {
       _savedAt:     Date.now(),
-      _heroImageDataUrl: cfg.heroImageUrl || '',
-      _heroImageUpdatedAt: parseInt(cfg.heroImageUpdatedAt || '0', 10) || 0,
       _caja:       localStorage.getItem('dental_caja_v1')        || '[]',
       _production: localStorage.getItem('dental_production_v1')  || '[]',
       _productionTrash:localStorage.getItem('dental_production_trash_v1')|| '[]',
@@ -15000,7 +15172,11 @@ var GD = (function() {
 
   function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _heroDirty || _heroSaving)); }
   function getToken() { return _token; }
-  return { signIn, skip, save, saveNow, syncNow, saveCfg, saveHeroImage, showStatus, signOut, start, reconnect, _hasPending, _token: getToken };
+  return {
+    signIn, skip, save, saveNow, syncNow, saveCfg, saveHeroImage,
+    uploadImageAsset, removeImageAsset, loadImageAsset,
+    showStatus, signOut, start, reconnect, _hasPending, _token: getToken
+  };
 })();
 
 // ── Funciones globales para el HTML ──────────────────────
@@ -15802,30 +15978,42 @@ document.addEventListener('change', function(e) {
 function uploadLogoImage(input) {
   var file = input.files[0];
   if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var dataUrl = e.target.result;
-    cfg.logoImageUrl = dataUrl;
-    // Mostrar preview
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    input.value = '';
+    showToast('Selecciona una imagen válida', 'red');
+    return;
+  }
+  if (typeof GD === 'undefined' || !GD._token || !GD._token()) {
+    input.value = '';
+    showToast('☁️ Conecta Google Drive para guardar el logo', 'red');
+    if (typeof GD !== 'undefined' && GD.reconnect) GD.reconnect();
+    return;
+  }
+  showToast('📤 Subiendo logo a Drive…', 'green');
+  GD.uploadImageAsset('logo', file).then(function() {
     var prev = document.getElementById('cfg-logo-img-preview');
     var rem  = document.getElementById('cfg-logo-img-remove');
-    if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
-    if (rem)  rem.style.display = 'inline';
-    // Guardar en settings
-    if (typeof GD !== 'undefined') GD.saveCfg();
-    showToast('✅ Logo subido', 'green');
-  };
-  reader.readAsDataURL(file);
+    if (prev) { prev.src = cfg.logoImageUrl || ''; prev.style.display = 'block'; }
+    if (rem) rem.style.display = 'inline';
+    showToast('✅ Logo guardado en Drive', 'green');
+  }).catch(function(error) {
+    console.error('No se pudo subir el logo:', error);
+    showToast('❌ No se guardó el logo en Drive', 'red');
+  });
+  input.value = '';
 }
 
 function removeLogoImage() {
-  cfg.logoImageUrl = '';
-  var prev = document.getElementById('cfg-logo-img-preview');
-  var rem  = document.getElementById('cfg-logo-img-remove');
-  if (prev) { prev.src = ''; prev.style.display = 'none'; }
-  if (rem)  rem.style.display = 'none';
-  if (typeof GD !== 'undefined') GD.saveCfg();
-  showToast('Logo eliminado', 'red');
+  if (typeof GD === 'undefined' || !GD.removeImageAsset) return;
+  GD.removeImageAsset('logo').then(function() {
+    var prev = document.getElementById('cfg-logo-img-preview');
+    var rem  = document.getElementById('cfg-logo-img-remove');
+    if (prev) { prev.src = ''; prev.style.display = 'none'; }
+    if (rem) rem.style.display = 'none';
+    showToast('Logo eliminado de Drive', 'green');
+  }).catch(function() {
+    showToast('No se pudo eliminar el logo de Drive', 'red');
+  });
 }
 
 // Cargar preview del logo al abrir settings
@@ -15991,6 +16179,122 @@ function _beginPhotoMutation() {
 
 function _endPhotoMutation() {
   _photoMutationDepth = Math.max(0, _photoMutationDepth - 1);
+}
+
+function _inlineImageToFile(dataUrl, name) {
+  return fetch(dataUrl).then(function(r){ return r.blob(); }).then(function(blob) {
+    var ext = String(blob.type || '').split('/')[1] || 'jpg';
+    var safeName = String(name || ('foto_migrada.' + ext));
+    if (safeName.indexOf('.') === -1) safeName += '.' + ext.replace('jpeg','jpg');
+    return new File([blob], safeName, { type:blob.type || 'image/jpeg' });
+  });
+}
+
+// Migra imágenes heredadas sin borrar la única copia antes de que Drive
+// confirme el archivo. Al terminar, limpia también respaldos locales antiguos.
+function migrateLegacyInlineImagesToDrive() {
+  if (typeof GD === 'undefined' || !GD._token || !GD._token()) return Promise.resolve(false);
+  var brandJobs = [];
+  ['hero','logo'].forEach(function(kind) {
+    var urlKey = kind === 'logo' ? 'logoImageUrl' : 'heroImageUrl';
+    var inline = cfg[urlKey];
+    if (!isEmbeddedImageValue(inline)) return;
+    brandJobs.push(
+      fetch(inline).then(function(r){ return r.blob(); })
+        .then(function(blob){ return GD.uploadImageAsset(kind, blob, true); })
+    );
+  });
+
+  var legacyPhotos = [];
+  (db.patients || []).forEach(function(patient) {
+    (patient.photos || []).forEach(function(photo) {
+      if (!photo || !isEmbeddedImageValue(photo.dataUrl)) return;
+      if (photo.driveId) {
+        legacyPhotos.push({ patientId:patient.id, photo:photo, verifyOnly:true });
+      } else {
+        legacyPhotos.push({ patientId:patient.id, photo:photo });
+      }
+    });
+  });
+
+  if (!brandJobs.length && !legacyPhotos.length && !containsInlineImage(db) && !containsInlineImage(cfg)) {
+    _legacyImageMigrationPending = false;
+    purgeInlineImagesFromLocalStorage();
+    saveLocalWithAutoBackup();
+    try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+    return Promise.resolve(true);
+  }
+
+  _legacyImageMigrationPending = true;
+  _beginPhotoMutation();
+  var failed = 0;
+  return Promise.all(brandJobs.map(function(job) {
+    return job.catch(function(error){ failed++; console.warn('Migración de imagen de marca pendiente:', error); });
+  })).then(function() {
+    var index = 0;
+    function next() {
+      if (index >= legacyPhotos.length) return Promise.resolve();
+      var item = legacyPhotos[index++];
+      var patient = db.patients.find(function(p){ return String(p.id) === String(item.patientId); });
+      if (!patient || !item.photo || !isEmbeddedImageValue(item.photo.dataUrl)) return next();
+      if (item.verifyOnly) {
+        return fetch('https://www.googleapis.com/drive/v3/files/' + item.photo.driveId + '?fields=id,mimeType', {
+          headers:{ Authorization:'Bearer ' + GD._token() }, cache:'no-store'
+        }).then(function(r) {
+          if (!r.ok) throw new Error('Drive foto HTTP ' + r.status);
+          return r.json();
+        }).then(function(meta) {
+          if (!meta || String(meta.mimeType || '').indexOf('image/') !== 0) throw new Error('El archivo de Drive no es una imagen');
+          item.photo.dataUrl = null;
+        }).catch(function(error) {
+          failed++;
+          console.warn('No se confirmó una foto clínica existente:', error);
+        }).then(next);
+      }
+      return _inlineImageToFile(item.photo.dataUrl, item.photo.name).then(function(file) {
+        return new Promise(function(resolve) {
+          _photoPatientId = patient.id;
+          _uploadPhotoToDrive(file, item.photo.type || 'intraoral', function(ok) {
+            if (ok) {
+              var current = db.patients.find(function(p){ return String(p.id) === String(item.patientId); });
+              if (current && Array.isArray(current.photos)) {
+                var oldIndex = current.photos.indexOf(item.photo);
+                if (oldIndex !== -1) current.photos.splice(oldIndex, 1);
+              }
+            } else {
+              failed++;
+            }
+            resolve();
+          }, true);
+        });
+      }).catch(function(error) {
+        failed++;
+        console.warn('Migración de foto clínica pendiente:', error);
+      }).then(next);
+    }
+    return next();
+  }).then(function() {
+    _endPhotoMutation();
+    _legacyImageMigrationPending = containsInlineImage(db) || containsInlineImage(cfg);
+    if (!_legacyImageMigrationPending) {
+      purgeInlineImagesFromLocalStorage();
+      saveLocalWithAutoBackup();
+      try { localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
+      if (legacyPhotos.length || brandJobs.length) {
+        showToast('✅ Imágenes migradas a Drive y eliminadas del almacenamiento local', 'green');
+      }
+      if (typeof GD !== 'undefined' && GD.save) GD.save();
+      return true;
+    }
+    showToast('⚠️ Algunas imágenes siguen pendientes. No se eliminaron de este dispositivo.', 'red');
+    return false;
+  }).catch(function(error) {
+    _endPhotoMutation();
+    _legacyImageMigrationPending = true;
+    console.error('No se pudo completar la migración de imágenes:', error);
+    showToast('⚠️ No se eliminaron las imágenes locales porque Drive no confirmó la migración.', 'red');
+    return false;
+  });
 }
 
 function getPatientPhotoFolderName(p) {
@@ -16726,7 +17030,7 @@ function saveDoctors(doctors) {
   // archivo de configuración antiguo puede devolver la clínica a un solo Dr.
   cfg.doctors = doctors;
   cfg._savedAt = Date.now();
-  localStorage.setItem('dental_cfg_v1', JSON.stringify(cfg));
+  localStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   if (typeof GD !== 'undefined' && GD.save) GD.save();
   if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
   setTimeout(function() {
@@ -18888,7 +19192,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Fotografías clínicas</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el expediente toca <strong>"+ Agregar foto"</strong>. Puedes seleccionar varias fotos a la vez y clasificar cada una (Antes, Después, Intraoral, Extraoral, Rx). Las fotos se guardan en tu Google Drive.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el expediente toca <strong>"+ Agregar foto"</strong>. Puedes seleccionar varias fotos a la vez y clasificarlas. Los archivos se guardan únicamente en Google Drive; el navegador conserva solo sus referencias.</div>
           </div>
         </div>
       </div>

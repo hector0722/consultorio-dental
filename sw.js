@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-drive-ack-v11';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-drive-images-v12';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
