@@ -5507,6 +5507,7 @@ var appStorage = (function(nativeStorage) {
   var AUX_EXCLUDED = {
     dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
     dental_cfg_v1:1,
+    dental_catalog_v1:1, dental_catalog_updated_at:1,
     dental_autobackup_previous:1, dental_autobackup_latest:1,
     dental_preimport_backup:1, dental_pre_drive_merge_backup:1,
     dental_pre_drive_production_backup:1,
@@ -8699,7 +8700,6 @@ function saveCatalogOverrides() {
   db.catalogState = { raw:raw, updatedAt:updatedAt };
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.saveCatalog) GD.saveCatalog(false);
-  if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
 
 function saveCatalogOverridesNow() {
@@ -8713,8 +8713,9 @@ function toggleCatalogEditor() {
   var ed  = document.getElementById('catalog-editor');
   var btn = document.getElementById('btn-edit-catalog');
   var open = ed.style.display === 'none';
+  if (!open) saveCatalogOverridesNow();
   ed.style.display = open ? '' : 'none';
-  btn.textContent  = open ? 'Cerrar editor' : '✏️ Editar catálogo';
+  btn.textContent  = open ? '💾 Guardar y cerrar' : '✏️ Editar catálogo';
   if (open) { loadCatalogOverrides(); renderCatalogEditor(); }
 }
 
@@ -13619,7 +13620,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-19', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-20', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13639,7 +13640,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260806_12';
+      var refreshKey = 'dental_sw_refreshed_20260806_20';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13945,7 +13946,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_direct_v19';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_catalog_canonical_v20';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -14888,10 +14889,13 @@ var GD = (function() {
       return _readFile(file.id, true).then(function(state) {
         if (!state || !state.raw) return false;
         var remoteAt = parseInt(state.updatedAt || '0', 10) || 0;
-        var localAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || 0;
         var pendingLocal = appStorage.isDirty('dental_catalog_v1')
           || appStorage.isDirty(CATALOG_UPDATED_KEY);
-        if (!pendingLocal && remoteAt >= localAt) {
+        // Desde que existe este archivo, es la fuente canónica del catálogo.
+        // No compararlo con la fecha de la base general: una copia vieja de
+        // otro dispositivo podía tener el reloj adelantado y bloquear precios
+        // que sí habían quedado confirmados aquí.
+        if (!pendingLocal) {
           var raw = typeof state.raw === 'string' ? state.raw : JSON.stringify(state.raw);
           appStorage.beginHydration();
           appStorage.setItem('dental_catalog_v1', raw);
