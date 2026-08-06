@@ -13031,7 +13031,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260803-10', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-11', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13051,7 +13051,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260803_10';
+      var refreshKey = 'dental_sw_refreshed_20260806_11';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -13357,7 +13357,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_03_data_safe_v10';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_drive_ack_v11';
 var _updateNoticeScheduled = false;
 
 function showUpdateNoticeOnce() {
@@ -13427,6 +13427,7 @@ var GD = (function() {
   var _lastCfgModifiedTime = '';
   var _lastMirrorModifiedTime = '';
   var _lastRemotePatientCount = null;
+  var _mirrorRetryCount = 0;
   var _visibilitySyncInstalled = false;
   var _accountEmail = localStorage.getItem('dental_gd_email') || '';
   var _authInProgress = false;
@@ -14338,12 +14339,49 @@ var GD = (function() {
     });
   }
 
-  function _readFile(fileId) {
-    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
-      headers: { Authorization: 'Bearer ' + _token }
+  function _readFile(fileId, fresh) {
+    // La respuesta de alt=media puede permanecer unos instantes en la caché
+    // del navegador después de un PATCH. Para confirmar un guardado hay que
+    // pedir una lectura nueva; de otro modo una copia correcta puede parecer
+    // antigua y producir el aviso falso de "Drive no confirmó".
+    var cacheBust = fresh ? '&ack=' + Date.now() + '-' + Math.random().toString(36).slice(2,8) : '';
+    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media' + cacheBust, {
+      headers: { Authorization: 'Bearer ' + _token },
+      cache: fresh ? 'no-store' : 'default'
     }).then(function(r) {
       if (!r.ok) throw new Error('Read HTTP ' + r.status);
       return r.json();
+    });
+  }
+
+  function _verifySavedPayload(fileId, expectedRevision, expectedPatientCount, expectedContentSignature, attempt) {
+    attempt = attempt || 0;
+    if (!fileId) return Promise.reject(new Error('Drive no devolvió el identificador del archivo'));
+    return _readFile(fileId, true).then(function(data) {
+      var count = data && Array.isArray(data.patients) ? data.patients.length : -1;
+      var valid = !!data
+        && data._syncRevision === expectedRevision
+        && count === expectedPatientCount
+        && data._syncContentSignature === expectedContentSignature
+        && _payloadContentSignature(data) === expectedContentSignature;
+      if (valid) return { data:data, patientCount:count };
+      throw new Error('Drive todavía devuelve la versión anterior');
+    }).catch(function(error) {
+      // Drive puede tardar brevemente en hacer visible el contenido recién
+      // escrito. Reintentar evita declarar un fallo por consistencia eventual.
+      if (attempt >= 3) throw error;
+      var waits = [250, 650, 1400];
+      return new Promise(function(resolve) {
+        setTimeout(resolve, waits[attempt] || 1400);
+      }).then(function() {
+        return _verifySavedPayload(
+          fileId,
+          expectedRevision,
+          expectedPatientCount,
+          expectedContentSignature,
+          attempt + 1
+        );
+      });
     });
   }
 
@@ -14405,6 +14443,7 @@ var GD = (function() {
     var expectedPatientCount = 0;
     var expectedContentSignature = '';
     var savedMirrorFile = null;
+    var mirrorWriteError = null;
     // Volver a leer justo antes de escribir reduce la ventana de conflicto:
     // si otro teléfono o computadora guardó desde la última comprobación,
     // primero se unen sus registros y después se sube el resultado completo.
@@ -14423,35 +14462,40 @@ var GD = (function() {
       // del otro y la siguiente lectura reconstruye la unión completa.
       return _writeDeviceDB(payload).then(function(mirrorFile) {
         savedMirrorFile = mirrorFile;
+      }).catch(function(error) {
+        // La copia por dispositivo añade protección, pero un fallo temporal en
+        // ella no debe impedir que la base principal se guarde en Drive.
+        mirrorWriteError = error;
+        console.warn('Copia secundaria pendiente:', error);
+      }).then(function() {
         return _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
       });
     }).then(function(f) {
       var verifyId = (f && f.id) || _dbFileId;
       if (!verifyId) throw new Error('Drive no devolvió el identificador de la base');
       var mirrorVerifyId = (savedMirrorFile && savedMirrorFile.id) || _deviceDbFileId;
-      return Promise.all([
-        _readFile(verifyId),
-        mirrorVerifyId ? _readFile(mirrorVerifyId) : Promise.resolve(null)
-      ]).then(function(verifiedItems) {
-        var verifiedData = verifiedItems[0];
-        var verifiedMirror = verifiedItems[1];
-        if (!verifiedData || verifiedData._syncRevision !== expectedRevision) {
-          throw new Error('La verificación de Drive no coincide con el guardado');
+      // La base principal es obligatoria. La copia secundaria se verifica por
+      // separado para no mostrar un error general si solo ella está retrasada.
+      return _verifySavedPayload(
+        verifyId,
+        expectedRevision,
+        expectedPatientCount,
+        expectedContentSignature
+      ).then(function(primaryResult) {
+        if (mirrorWriteError || !mirrorVerifyId) {
+          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:true };
         }
-        var verifiedCount = Array.isArray(verifiedData.patients) ? verifiedData.patients.length : 0;
-        if (verifiedCount !== expectedPatientCount) {
-          throw new Error('Drive guardó un número de pacientes distinto');
-        }
-        if (_payloadContentSignature(verifiedData) !== expectedContentSignature
-            || verifiedData._syncContentSignature !== expectedContentSignature) {
-          throw new Error('Drive no conservó todo el contenido enviado');
-        }
-        if (!verifiedMirror
-            || verifiedMirror._syncRevision !== expectedRevision
-            || _payloadContentSignature(verifiedMirror) !== expectedContentSignature) {
-          throw new Error('Drive no confirmó la copia de seguridad del dispositivo');
-        }
-        return { file:f, mirror:savedMirrorFile, patientCount:verifiedCount };
+        return _verifySavedPayload(
+          mirrorVerifyId,
+          expectedRevision,
+          expectedPatientCount,
+          expectedContentSignature
+        ).then(function() {
+          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:false };
+        }).catch(function(error) {
+          console.warn('La base principal quedó verificada; la copia secundaria sigue pendiente:', error);
+          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:true };
+        });
       });
     }).then(function(result) {
       var f = result.file;
@@ -14465,20 +14509,34 @@ var GD = (function() {
       }
       _dbSaving = false;
       _preferLocalAfterReconnect = false;
-      setBadge('synced', '✓ Drive verificado: ' + result.patientCount + ' pacientes');
+      setBadge('synced', result.mirrorPending
+        ? ('✓ Drive guardado: ' + result.patientCount + ' pacientes')
+        : ('✓ Drive verificado: ' + result.patientCount + ' pacientes'));
       setTimeout(function() {
-        setBadge('synced', 'Drive: ' + result.patientCount + ' pacientes');
+        if (!_dbSaving && !_dirty) {
+          setBadge('synced', 'Drive: ' + result.patientCount + ' pacientes');
+        }
       }, 2600);
+      if (result.mirrorPending && _mirrorRetryCount < 2) {
+        // Reintentar el lote completo más tarde. Si hubo una edición nueva,
+        // _doSave construirá un payload actualizado y nunca restaurará el viejo.
+        _mirrorRetryCount += 1;
+        _dirty = true;
+        if (_syncTimer) clearTimeout(_syncTimer);
+        _syncTimer = setTimeout(_doSave, 2400 * _mirrorRetryCount);
+      } else if (!result.mirrorPending) {
+        _mirrorRetryCount = 0;
+      }
       if (_dirty) {
         if (_syncTimer) clearTimeout(_syncTimer);
-        _syncTimer = setTimeout(_doSave, 150);
+        _syncTimer = setTimeout(_doSave, result.mirrorPending ? 2400 * _mirrorRetryCount : 150);
       }
     }).catch(function(e) {
       console.error('Drive save error:', e);
       _dbSaving = false;
       _dirty = true;
-      setBadge('error', 'Drive no confirmó el guardado');
-      showToast('⚠️ Google Drive no confirmó la copia. Reconecta y vuelve a sincronizar.', 'red');
+      setBadge('error', 'No se pudo guardar en Drive');
+      showToast('⚠️ Tus cambios están guardados en este dispositivo. Reconecta Drive y vuelve a sincronizar.', 'red');
     });
   }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260803-data-safe-v10';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-drive-ack-v11';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -37,7 +37,10 @@ self.addEventListener('fetch', event => {
     fetch(networkRequest).then(response => {
       if (response && response.ok) {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        const cacheKey = isAppDocument ? './app.html' : request;
+        return caches.open(CACHE_NAME)
+          .then(cache => cache.put(cacheKey, copy))
+          .then(() => response);
       }
       return response;
     }).catch(() => caches.match(request).then(cached => cached || caches.match('./app.html')))
