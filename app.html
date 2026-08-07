@@ -4321,6 +4321,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Precios persistentes:</strong> los cambios del catálogo se guardan inmediatamente y una copia anterior de otro dispositivo ya no puede restaurarlos al recargar.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Presupuesto siempre limpio:</strong> al abrir el módulo comienza uno nuevo; únicamente se conserva cuando lo generas y lo guardas en el expediente del paciente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -5548,6 +5549,7 @@ var appStorage = (function(nativeStorage) {
     dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
     dental_cfg_v1:1,
     dental_catalog_v1:1, dental_catalog_updated_at:1,
+    dental_caja_v1:1, dental_caja_trash_v1:1, dental_caja_updated_at:1,
     dental_autobackup_previous:1, dental_autobackup_latest:1,
     dental_preimport_backup:1, dental_pre_drive_merge_backup:1,
     dental_pre_drive_production_backup:1,
@@ -7534,11 +7536,11 @@ function init() {
 // ══════════════════════════════════════════════════════════
 function migratePaymentsToCaja() {
   var MIGRATION_KEY = 'dental_caja_migrated_v1';
-  if (appStorage.getItem(MIGRATION_KEY)) return; // already done
+  var firstReconciliation = !appStorage.getItem(MIGRATION_KEY);
 
   var cajaData = cajaLoad();
   var existingPayIds = {};
-  cajaData.forEach(function(m){ if (m._payId) existingPayIds[m._payId] = true; });
+  cajaData.forEach(function(m){ if (m._payId !== undefined && m._payId !== null) existingPayIds[String(m._payId)] = true; });
 
   var added = 0;
   db.patients.forEach(function(p) {
@@ -7547,7 +7549,7 @@ function migratePaymentsToCaja() {
       if (!(pay.type === 'in' || pay.type === 'ing')) return;
       // Assign id if missing (legacy payments)
       if (!pay.id) pay.id = Date.now() + Math.random();
-      if (existingPayIds[pay.id]) return; // skip already synced
+      if (existingPayIds[String(pay.id)]) return; // skip already synced
       cajaData.push({
         id:         pay.id,
         tipo:       'ing',
@@ -7557,8 +7559,10 @@ function migratePaymentsToCaja() {
         fecha:      pay.date || fmtDate(new Date()),
         notas:      p.name,
         _patientId: p.id,
-        _payId:     pay.id
+        _payId:     pay.id,
+        _updatedAt: Date.now()
       });
+      existingPayIds[String(pay.id)] = true;
       added++;
     });
   });
@@ -7566,13 +7570,14 @@ function migratePaymentsToCaja() {
   if (added > 0) {
     cajaSave(cajaData);
     saveDB(); // persist the assigned ids on legacy payments
-    showToast('✅ ' + added + ' pago(s) histórico(s) migrados a Caja', 'green');
+    showToast('✅ Caja recuperó ' + added + ' abono(s) desde los expedientes', 'green');
   }
   appStorage.setItem(MIGRATION_KEY, '1');
 }
 
-// Run migration after a short delay so cajaLoad is available
-setTimeout(migratePaymentsToCaja, 800);
+// La conciliación se ejecuta desde GD._initApp(), después de terminar de
+// cargar Drive. Ejecutarla aquí marcaba la migración como terminada mientras
+// la base aún estaba vacía y luego impedía recuperar los abonos.
 
 
 // ══════════════════════════════════════════════════════════
@@ -8404,7 +8409,7 @@ function addPayment() {
   // Un cargo aumenta el adeudo del paciente, pero NO es un egreso de Caja.
   if (type === 'in' || type === 'ing') {
     var cajaData = cajaLoad();
-    cajaData.push({id:payId,tipo:'ing',desc:desc,monto:amt,cat:'abono',fecha:today,notas:p.name,_patientId:p.id,_payId:payId});
+    cajaData.push({id:payId,tipo:'ing',desc:desc,monto:amt,cat:'abono',fecha:today,notas:p.name,_patientId:p.id,_payId:payId,_updatedAt:Date.now()});
     cajaSave(cajaData);
   }
   document.getElementById('pay-desc').value = '';
@@ -8421,7 +8426,12 @@ function delPayment(idx) {
   saveDB();
   // Remove matching entry from Caja
   if (pay && pay.id) {
-    var cajaData = cajaLoad().filter(function(m){ return m._payId !== pay.id; });
+    var cajaTrash = cajaLoadTrash();
+    cajaLoad().forEach(function(m) {
+      if (String(m._payId) === String(pay.id)) cajaTrash[String(m.id)] = Date.now();
+    });
+    appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(cajaTrash));
+    var cajaData = cajaLoad().filter(function(m){ return String(m._payId) !== String(pay.id); });
     cajaSave(cajaData);
   }
   renderPayments(p);
@@ -8493,7 +8503,7 @@ function toggleTxp(i) {
       var payDesc='Pago automático · '+tx.name;
       p.payments.push({id:payId,date:todayStr(),desc:payDesc,amount:total,type:'in',source:'treatment-plan',treatmentPlanId:tx.id||''});
       var cajaData=cajaLoad();
-      cajaData.push({id:payId,tipo:'ing',desc:payDesc,monto:total,cat:'abono',fecha:todayStr(),notas:p.name,_patientId:p.id,_payId:payId,source:'treatment-plan',treatmentPlanId:tx.id||''});
+      cajaData.push({id:payId,tipo:'ing',desc:payDesc,monto:total,cat:'abono',fecha:todayStr(),notas:p.name,_patientId:p.id,_payId:payId,source:'treatment-plan',treatmentPlanId:tx.id||'',_updatedAt:Date.now()});
       cajaSave(cajaData);
       tx.autoPaymentId=payId;
       showToast('✅ Realizado, pagado y registrado en Caja','green');
@@ -8505,6 +8515,11 @@ function toggleTxp(i) {
     if(tx.autoPaymentId){
       var autoPayId=tx.autoPaymentId;
       p.payments=(p.payments||[]).filter(function(x){return String(x.id)!==String(autoPayId);});
+      var autoCajaTrash=cajaLoadTrash();
+      cajaLoad().forEach(function(x){
+        if(String(x._payId)===String(autoPayId)||String(x.id)===String(autoPayId)) autoCajaTrash[String(x.id)]=Date.now();
+      });
+      appStorage.setItem(CAJA_TRASH_KEY,JSON.stringify(autoCajaTrash));
       cajaSave(cajaLoad().filter(function(x){return String(x._payId)!==String(autoPayId)&&String(x.id)!==String(autoPayId);}));
     }
     tx.done=false;delete tx.completedAt;delete tx.completedBy;delete tx.doctorId;delete tx.productionId;delete tx.autoPaymentId;
@@ -10852,6 +10867,8 @@ function buildCompleteBackup() {
     cfg: imageFreeClone(cfg),
     catalog: appStorage.getItem('dental_catalog_v1') || null,
     caja: appStorage.getItem('dental_caja_v1') || null,
+    cajaTrash: appStorage.getItem(CAJA_TRASH_KEY) || null,
+    cajaUpdatedAt: appStorage.getItem(CAJA_UPDATED_KEY) || null,
     production: appStorage.getItem('dental_production_v1') || null,
     productionTrash: appStorage.getItem('dental_production_trash_v1') || null,
     doctorRates: appStorage.getItem('dental_doctor_rates_v1') || null,
@@ -11108,6 +11125,10 @@ function importData(input) {
         || importedDb._catalogUpdatedAt
         || Date.now();
       var importedCaja = backup.caja || importedDb._caja || null;
+      var importedCajaTrash = backup.cajaTrash || importedDb._cajaTrash
+        || (importedDb.cajaState && importedDb.cajaState.tombstones) || null;
+      var importedCajaUpdatedAt = backup.cajaUpdatedAt || importedDb._cajaUpdatedAt
+        || (importedDb.cajaState && importedDb.cajaState.updatedAt) || null;
       var importedProduction = backup.production || importedDb._production || null;
       var importedDoctorRates = backup.doctorRates || importedDb._doctorRates || null;
       var importedProductionTrash = backup.productionTrash || importedDb._productionTrash || null;
@@ -11124,6 +11145,9 @@ function importData(input) {
       delete db._savedAt;
       delete db._catalog;
       delete db._caja;
+      delete db._cajaTrash;
+      delete db._cajaUpdatedAt;
+      delete db.cajaState;
       delete db._production;
       delete db._productionTrash;
       delete db._doctorRates;
@@ -11158,6 +11182,10 @@ function importData(input) {
       if (importedCaja) {
         appStorage.setItem('dental_caja_v1', typeof importedCaja === 'string' ? importedCaja : JSON.stringify(importedCaja));
       }
+      if (importedCajaTrash) {
+        appStorage.setItem(CAJA_TRASH_KEY, typeof importedCajaTrash === 'string' ? importedCajaTrash : JSON.stringify(importedCajaTrash));
+      }
+      if (importedCajaUpdatedAt) appStorage.setItem(CAJA_UPDATED_KEY, String(importedCajaUpdatedAt));
       if (importedProduction) appStorage.setItem('dental_production_v1', typeof importedProduction === 'string' ? importedProduction : JSON.stringify(importedProduction));
       if (importedProductionTrash) appStorage.setItem('dental_production_trash_v1', typeof importedProductionTrash === 'string' ? importedProductionTrash : JSON.stringify(importedProductionTrash));
       if (importedDoctorRates) {
@@ -11237,7 +11265,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -12454,12 +12482,84 @@ function renderReportePage() {
 // =====================================================
 
 var CAJA_KEY = 'dental_caja_v1';
+var CAJA_TRASH_KEY = 'dental_caja_trash_v1';
+var CAJA_UPDATED_KEY = 'dental_caja_updated_at';
+
+function cajaParseRows(value) {
+  if (Array.isArray(value)) return value;
+  try {
+    var parsed = JSON.parse(value || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) { return []; }
+}
+
+function cajaParseTrash(value) {
+  if (!value) return {};
+  var parsed = value;
+  if (typeof value === 'string') {
+    try { parsed = JSON.parse(value); } catch(e) { return {}; }
+  }
+  var result = {};
+  if (Array.isArray(parsed)) {
+    parsed.forEach(function(row) {
+      if (!row || row.id === undefined || row.id === null) return;
+      result[String(row.id)] = parseInt(row.deletedAt || row._deletedAt || Date.now(), 10) || Date.now();
+    });
+    return result;
+  }
+  if (!parsed || typeof parsed !== 'object') return result;
+  Object.keys(parsed).forEach(function(id) {
+    result[String(id)] = parseInt(parsed[id] || '0', 10) || 0;
+  });
+  return result;
+}
+
+function cajaMergeTrash(sources) {
+  var merged = {};
+  (sources || []).forEach(function(source) {
+    var parsed = cajaParseTrash(source);
+    Object.keys(parsed).forEach(function(id) {
+      merged[id] = Math.max(parseInt(merged[id] || '0', 10) || 0, parsed[id]);
+    });
+  });
+  return merged;
+}
+
+function cajaMergeRows(sources, tombstones) {
+  var byId = {};
+  var order = [];
+  (sources || []).forEach(function(source) {
+    cajaParseRows(source).forEach(function(row) {
+      if (!row || row.id === undefined || row.id === null) return;
+      var id = String(row.id);
+      var previous = byId[id];
+      var rowUpdatedAt = parseInt(row._updatedAt || '0', 10) || 0;
+      var previousUpdatedAt = parseInt(previous && previous._updatedAt || '0', 10) || 0;
+      if (!previous) order.push(id);
+      if (!previous || rowUpdatedAt > previousUpdatedAt) {
+        byId[id] = row;
+      }
+    });
+  });
+  tombstones = cajaParseTrash(tombstones);
+  return order.map(function(id){ return byId[id]; }).filter(function(row) {
+    var deletedAt = parseInt(tombstones[String(row.id)] || '0', 10) || 0;
+    var rowUpdatedAt = parseInt(row._updatedAt || '0', 10) || 0;
+    return !deletedAt || rowUpdatedAt > deletedAt;
+  });
+}
+
+function cajaLoadTrash() {
+  return cajaParseTrash(appStorage.getItem(CAJA_TRASH_KEY));
+}
 
 function cajaLoad() {
-  try { return JSON.parse(appStorage.getItem(CAJA_KEY)) || []; } catch(e) { return []; }
+  return cajaMergeRows([appStorage.getItem(CAJA_KEY)], cajaLoadTrash());
 }
 function cajaSave(data) {
-  appStorage.setItem(CAJA_KEY, JSON.stringify(data));
+  var clean = cajaMergeRows([data], cajaLoadTrash());
+  appStorage.setItem(CAJA_KEY, JSON.stringify(clean));
+  appStorage.setItem(CAJA_UPDATED_KEY, Date.now().toString());
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
   if (typeof GD !== 'undefined' && GD.save) GD.save();
 }
@@ -12516,7 +12616,8 @@ function cajaAgregar() {
   if (!monto || monto <= 0) { document.getElementById('caja-monto').focus(); showToast('Ingresa un monto valido', 'red'); return; }
 
   var data = cajaLoad();
-  data.push({ id: Date.now(), tipo: tipo, desc: desc, monto: monto, cat: cat, fecha: fecha, notas: notas });
+  var now = Date.now();
+  data.push({ id: now, tipo: tipo, desc: desc, monto: monto, cat: cat, fecha: fecha, notas: notas, _updatedAt: now });
   cajaSave(data);
 
   // Limpiar form
@@ -12530,7 +12631,10 @@ function cajaAgregar() {
 }
 
 function cajaEliminar(id) {
-  var data = cajaLoad().filter(function(m){ return m.id !== id; });
+  var trash = cajaLoadTrash();
+  trash[String(id)] = Date.now();
+  appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(trash));
+  var data = cajaLoad().filter(function(m){ return String(m.id) !== String(id); });
   cajaSave(data);
   cajaRender();
   showToast('Movimiento eliminado', 'red');
@@ -13784,7 +13888,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-21', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260806-22', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13804,7 +13908,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260806_21';
+      var refreshKey = 'dental_sw_refreshed_20260806_22';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -14110,7 +14214,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_visit_plan_v21';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_caja_recovery_v22';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -14242,7 +14346,8 @@ var GD = (function() {
     'dental_local_updated_at','dental_offline_last_saved_at',
     'dental_pre_drive_merge_backup','dental_patient_tombstones_v1',
     'dental_cfg_v1','dental_catalog_v1','dental_catalog_updated_at',
-    'dental_caja_v1','dental_production_v1','dental_production_trash_v1',
+    'dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at',
+    'dental_production_v1','dental_production_trash_v1',
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
     'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
     'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
@@ -14582,9 +14687,21 @@ var GD = (function() {
       if (!file) {
         // Si la copia principal faltara, reconstruirla desde los espejos
         // independientes de cada dispositivo antes de crear una base vacía.
-        return _loadDeviceDBPayloads().then(function(mirrors) {
-          if (mirrors.length) {
+        return Promise.all([_loadDeviceDBPayloads(), _loadLegacyCajaPayloads()]).then(function(results) {
+          var mirrors = results[0];
+          var legacyCaja = results[1];
+          if (mirrors.length || legacyCaja.length) {
             db = _mergeDeviceDBPayloads(db, mirrors);
+            if (!cajaParseRows(db._caja).length && !Object.keys(cajaParseTrash(db._cajaTrash)).length && legacyCaja.length) {
+              db = _mergeDeviceDBPayloads(db, legacyCaja);
+            }
+            appStorage.setItem(CAJA_KEY, JSON.stringify(cajaParseRows(db._caja)));
+            appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(cajaParseTrash(db._cajaTrash)));
+            if (db._cajaUpdatedAt) appStorage.setItem(CAJA_UPDATED_KEY, String(db._cajaUpdatedAt));
+            delete db._caja;
+            delete db._cajaTrash;
+            delete db._cajaUpdatedAt;
+            delete db.cajaState;
             if (!Array.isArray(db.patients)) db.patients = [];
             if (!Array.isArray(db.appointments)) db.appointments = [];
             appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
@@ -14605,8 +14722,13 @@ var GD = (function() {
         _needsAppDataMigration = true;
         _dirty = true;
       }
-      return Promise.all([_readFile(file.id), _loadDeviceDBPayloads()]).then(function(results) {
+      return Promise.all([_readFile(file.id), _loadDeviceDBPayloads(), _loadLegacyCajaPayloads()]).then(function(results) {
         var data = _mergeDeviceDBPayloads(results[0], results[1]);
+        if (!cajaParseRows(data._caja).length
+            && !Object.keys(cajaParseTrash(data._cajaTrash)).length
+            && results[2].length) {
+          data = _mergeDeviceDBPayloads(data, results[2]);
+        }
         if (!data) return;
         _lastRemotePatientCount = Array.isArray(data.patients) ? data.patients.length : 0;
         if (file.modifiedTime) _lastRemoteModifiedTime = file.modifiedTime;
@@ -14680,14 +14802,41 @@ var GD = (function() {
           });
           return merged;
         }
-        if (data._caja) {
-          var remoteCaja = parseStoredArray(data._caja);
-          var localCaja = parseStoredArray(appStorage.getItem('dental_caja_v1'));
-          var mergedCaja = mergeStoredRows(remoteCaja, localCaja);
-          appStorage.setItem('dental_caja_v1', JSON.stringify(mergedCaja));
-          if (mergedCaja.length > remoteCaja.length) { _preferLocalAfterReconnect = true; _dirty = true; }
-          delete data._caja;
+        var remoteCajaTrash = cajaMergeTrash([
+          data._cajaTrash,
+          data.cajaState && data.cajaState.tombstones
+        ]);
+        var remoteCaja = cajaMergeRows([
+          data._caja,
+          data.cajaState && data.cajaState.rows
+        ], remoteCajaTrash);
+        var localCaja = cajaParseRows(appStorage.getItem(CAJA_KEY));
+        var mergedCajaTrash = cajaMergeTrash([
+          remoteCajaTrash,
+          appStorage.getItem(CAJA_TRASH_KEY)
+        ]);
+        var mergedCaja = cajaMergeRows([
+          data._caja,
+          data.cajaState && data.cajaState.rows,
+          appStorage.getItem(CAJA_KEY)
+        ], mergedCajaTrash);
+        var mergedCajaUpdatedAt = Math.max(
+          parseInt(data._cajaUpdatedAt || '0', 10) || 0,
+          parseInt(data.cajaState && data.cajaState.updatedAt || '0', 10) || 0,
+          parseInt(appStorage.getItem(CAJA_UPDATED_KEY) || '0', 10) || 0
+        );
+        appStorage.setItem(CAJA_KEY, JSON.stringify(mergedCaja));
+        appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(mergedCajaTrash));
+        if (mergedCajaUpdatedAt) appStorage.setItem(CAJA_UPDATED_KEY, String(mergedCajaUpdatedAt));
+        if (mergedCaja.length > remoteCaja.length
+            || JSON.stringify(mergedCajaTrash) !== JSON.stringify(remoteCajaTrash)) {
+          _preferLocalAfterReconnect = true;
+          _dirty = true;
         }
+        delete data._caja;
+        delete data._cajaTrash;
+        delete data._cajaUpdatedAt;
+        delete data.cajaState;
         var remoteTrash = parseStoredArray(data._productionTrash);
         var localTrash = parseStoredArray(appStorage.getItem('dental_production_trash_v1'));
         var mergedTrash = mergeStoredRows(remoteTrash, localTrash);
@@ -15200,10 +15349,73 @@ var GD = (function() {
     });
   }
 
+  function _loadLegacyCajaPayloads() {
+    // Antes de appDataFolder la base vivía en una carpeta visible de Drive.
+    // Leer esas copias solo como último recurso permite rescatar movimientos
+    // manuales de Caja sin volver a mezclar pacientes ni citas antiguas.
+    return _findFiles(DB_FILENAME).then(function(files) {
+      return Promise.all(files.slice(0, 30).map(function(file) {
+        return _readFile(file.id).then(function(payload) {
+          if (!payload || typeof payload !== 'object') return null;
+          return {
+            patients: [],
+            appointments: [],
+            _caja: payload._caja,
+            _cajaTrash: payload._cajaTrash,
+            _cajaUpdatedAt: payload._cajaUpdatedAt,
+            cajaState: payload.cajaState,
+            _auxStore: payload._auxStore
+          };
+        }).catch(function(){ return null; });
+      })).then(function(payloads){ return payloads.filter(Boolean); });
+    }).catch(function(){ return []; });
+  }
+
   function _mergeDeviceDBPayloads(primaryData, mirrors) {
     var merged = primaryData && typeof primaryData === 'object'
       ? JSON.parse(JSON.stringify(primaryData))
       : { patients:[], appointments:[] };
+    var allPayloads = [primaryData].concat(mirrors || []).filter(function(payload) {
+      return payload && typeof payload === 'object';
+    });
+    var cajaRowSources = [appStorage.getItem(CAJA_KEY)];
+    var cajaTrashSources = [appStorage.getItem(CAJA_TRASH_KEY)];
+    var cajaUpdatedAt = parseInt(appStorage.getItem(CAJA_UPDATED_KEY) || '0', 10) || 0;
+    allPayloads.forEach(function(payload) {
+      if (payload._caja !== undefined) cajaRowSources.push(payload._caja);
+      if (payload.cajaState && payload.cajaState.rows !== undefined) {
+        cajaRowSources.push(payload.cajaState.rows);
+      }
+      if (payload._auxStore && payload._auxStore[CAJA_KEY] !== undefined) {
+        cajaRowSources.push(payload._auxStore[CAJA_KEY]);
+      }
+      if (payload._cajaTrash !== undefined) cajaTrashSources.push(payload._cajaTrash);
+      if (payload.cajaState && payload.cajaState.tombstones !== undefined) {
+        cajaTrashSources.push(payload.cajaState.tombstones);
+      }
+      if (payload._auxStore && payload._auxStore[CAJA_TRASH_KEY] !== undefined) {
+        cajaTrashSources.push(payload._auxStore[CAJA_TRASH_KEY]);
+      }
+      cajaUpdatedAt = Math.max(
+        cajaUpdatedAt,
+        parseInt(payload._cajaUpdatedAt || '0', 10) || 0,
+        parseInt(payload.cajaState && payload.cajaState.updatedAt || '0', 10) || 0,
+        parseInt(payload._auxStore && payload._auxStore[CAJA_UPDATED_KEY] || '0', 10) || 0
+      );
+    });
+    var mergedCajaTrash = cajaMergeTrash(cajaTrashSources);
+    var mergedCajaRows = cajaMergeRows(cajaRowSources, mergedCajaTrash);
+    // Caja también se reconstruye desde todas las copias por dispositivo.
+    // Una base principal vacía ya no puede ocultar movimientos que sigan
+    // presentes en la Mac, el teléfono u otra instalación autorizada.
+    merged._caja = JSON.stringify(mergedCajaRows);
+    merged._cajaTrash = JSON.stringify(mergedCajaTrash);
+    merged._cajaUpdatedAt = cajaUpdatedAt;
+    merged.cajaState = {
+      rows: mergedCajaRows,
+      tombstones: mergedCajaTrash,
+      updatedAt: cajaUpdatedAt
+    };
     var tombstones = merged._patientTombstones || {};
     (mirrors || []).forEach(function(mirror) {
       tombstones = mergeTimestampMaps(tombstones, mirror._patientTombstones);
@@ -16021,6 +16233,13 @@ var GD = (function() {
       _auxStore:    appStorage.exportDriveData(),
       _configState: imageFreeClone(cfg),
       _caja:       appStorage.getItem('dental_caja_v1')        || '[]',
+      _cajaTrash:  appStorage.getItem(CAJA_TRASH_KEY)           || '{}',
+      _cajaUpdatedAt:parseInt(appStorage.getItem(CAJA_UPDATED_KEY)||'0',10)||0,
+      cajaState: {
+        rows: cajaLoad(),
+        tombstones: cajaLoadTrash(),
+        updatedAt: parseInt(appStorage.getItem(CAJA_UPDATED_KEY)||'0',10)||0
+      },
       _production: appStorage.getItem('dental_production_v1')  || '[]',
       _productionTrash:appStorage.getItem('dental_production_trash_v1')|| '[]',
       _doctorRates:appStorage.getItem('dental_doctor_rates_v1')|| '{}',
@@ -16193,7 +16412,7 @@ function _interactionStateFingerprint() {
     raw = JSON.stringify(typeof db !== 'undefined' ? db : {})
       + '|' + JSON.stringify(typeof cfg !== 'undefined' ? cfg : {})
       + '|' + [
-        'dental_catalog_v1','dental_caja_v1','dental_production_v1',
+        'dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1',
         'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
         'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
       ].map(function(k){ return appStorage.getItem(k) || ''; }).join('|');
@@ -17809,7 +18028,8 @@ function resyncPaymentsToCaja() {
         fecha:      pay.date || fmtDate(new Date()),
         notas:      p.name,
         _patientId: p.id,
-        _payId:     pay.id
+        _payId:     pay.id,
+        _updatedAt: Date.now()
       });
     });
   });
@@ -19186,6 +19406,8 @@ function forceReloadFromDrive() {
   // Limpiar la memoria temporal de datos.
   appStorage.removeItem('dental_v4');
   appStorage.removeItem('dental_caja_v1');
+  appStorage.removeItem('dental_caja_trash_v1');
+  appStorage.removeItem('dental_caja_updated_at');
   appStorage.removeItem('dental_production_v1');
   appStorage.removeItem('dental_doctor_rates_v1');
   appStorage.removeItem('dental_doctor_rates_updated_at');
