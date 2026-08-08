@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-receipt-center-v26';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-invoice-workflow-v27';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

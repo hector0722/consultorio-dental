@@ -804,7 +804,7 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .receipt-filters{display:flex;align-items:end;gap:9px;flex-wrap:wrap;}
 .receipt-filter-field label{display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-4);margin:0 0 4px 3px;}
 .receipt-filter-field input,.receipt-filter-field select{padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);background:var(--card);color:var(--ink);font:inherit;font-size:.78rem;}
-.receipt-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0;}
+.receipt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:14px 0;}
 .receipt-kpi{padding:15px 16px;border:1px solid var(--border);background:var(--card);border-radius:var(--r-md);box-shadow:var(--sh-sm);}
 .receipt-kpi small{display:block;font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);font-weight:750;margin-bottom:5px;}
 .receipt-kpi strong{font-size:1.15rem;letter-spacing:-.035em;}
@@ -818,6 +818,9 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .receipt-line input{width:100%;padding:9px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font:inherit;font-size:.8rem;background:var(--bg);color:var(--ink);}
 .receipt-line input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
 .receipt-line-del{width:32px;height:32px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--red);cursor:pointer;}
+.invoice-badge{display:inline-flex;align-items:center;border-radius:999px;padding:2px 7px;font-size:.58rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-top:4px;}
+.invoice-none{background:var(--bg);color:var(--ink-4);border:1px solid var(--border-med);}.invoice-pending{background:#fff4d8;color:#9a5b00;border:1px solid #f4c66a;}.invoice-invoiced{background:var(--green-bg);color:#248a3d;border:1px solid rgba(52,199,89,.3);}
+.fiscal-ready{background:var(--green-bg);border:1px solid rgba(52,199,89,.28);color:#248a3d}.fiscal-missing{background:#fff8e1;border:1px solid #f3ce78;color:#8a5700}
 @media(max-width:900px){.receipt-kpis{grid-template-columns:1fr 1fr}.receipt-history-row{grid-template-columns:84px 1fr 95px}.receipt-history-row>:nth-child(2),.receipt-history-row>:nth-child(4){display:none}.receipt-history-actions{grid-column:3}.receipt-hero{align-items:flex-start;flex-direction:column}.receipt-hero:after{right:4%;}}
 @media(max-width:560px){.receipt-kpis{grid-template-columns:1fr}.receipt-history-row{grid-template-columns:78px minmax(0,1fr);gap:8px}.receipt-history-row>:nth-child(5){grid-column:1}.receipt-history-actions{grid-column:2}.receipt-line{grid-template-columns:minmax(0,1fr) 90px 32px}}
 /* ━━━━ PLAN TRATAMIENTO ━━━━ */
@@ -4352,6 +4355,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🖼️</span><span style="font-size:.79rem;line-height:1.45"><strong>Logo en documentos:</strong> el logotipo configurado aparece en presupuestos, recetas, consentimientos, historias clínicas, indicaciones, odontogramas y reportes guardados como PDF.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Centro de recibos:</strong> agrupa varios tratamientos en un comprobante, consulta el historial completo y genera cortes semanales, quincenales, mensuales o personalizados en PDF y CSV.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾c</span><span style="font-size:.79rem;line-height:1.45"><strong>Control de facturación:</strong> guarda los datos CFDI 4.0 en el expediente, los completa al crear recibos y separa por facturar, facturados y pagos que no requieren factura en el corte del contador.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -5053,7 +5057,7 @@ body.app-ready #dash-page.active > .card {
     <!-- CAJA PAGE -->
     <div id="receipts-page" class="page">
       <div class="receipt-hero">
-        <div><h3>Recibos y cortes</h3><p>Agrupa varios tratamientos en un solo recibo, reimprime comprobantes anteriores y prepara cortes para contabilidad.</p></div>
+        <div><h3>Recibos, facturación y cortes</h3><p>Agrupa tratamientos, identifica lo que debe facturarse y entrega al contador un corte con los datos fiscales completos.</p></div>
         <button class="btn btn-primary" onclick="openReceiptCreator()" style="position:relative;z-index:1;background:#fff;color:#15314c;border-color:#fff">＋ Nuevo recibo</button>
       </div>
 
@@ -5063,6 +5067,7 @@ body.app-ready #dash-page.active > .card {
           <div class="receipt-filter-field"><label>Desde</label><input type="date" id="receipts-from" onchange="receiptsUseCustomRange()"></div>
           <div class="receipt-filter-field"><label>Hasta</label><input type="date" id="receipts-to" onchange="receiptsUseCustomRange()"></div>
           <div class="receipt-filter-field"><label>Forma de pago</label><select id="receipts-method" onchange="renderReceiptsPage()"><option value="all">Todas</option><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option><option value="Cheque">Cheque</option><option value="Otro">Otro</option><option value="No especificado">No especificado</option></select></div>
+          <div class="receipt-filter-field"><label>Facturación</label><select id="receipts-invoice" onchange="renderReceiptsPage()"><option value="all">Todos</option><option value="pending">Por facturar</option><option value="invoiced">Facturado</option><option value="none">No requiere</option></select></div>
           <div class="receipt-filter-field" style="flex:1;min-width:180px"><label>Buscar</label><input type="search" id="receipts-search" placeholder="Paciente, concepto o folio…" oninput="renderReceiptsPage()" style="width:100%"></div>
           <button class="btn btn-ghost btn-sm" onclick="printReceiptsCut()">🖨️ Imprimir corte</button>
           <button class="btn btn-ghost btn-sm" onclick="exportReceiptsCSV()">⬇️ CSV contador</button>
@@ -5242,6 +5247,15 @@ body.app-ready #dash-page.active > .card {
           <div class="detail-row"><span class="dl">Estatura</span><span class="dv" id="dd-height">—</span></div>
           <div class="detail-row"><span class="dl">Peso</span><span class="dv" id="dd-weight">—</span></div>
           <div class="detail-row"><span class="dl">Hijos / Embarazo</span><span class="dv" id="dd-kids">—</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between"><span>🧾 Datos de facturación</span><span id="dd-fiscal-status" class="invoice-badge invoice-none">Sin capturar</span></div>
+          <div class="detail-row"><span class="dl">RFC</span><span class="dv" id="dd-fiscal-rfc">—</span></div>
+          <div class="detail-row"><span class="dl">Nombre fiscal</span><span class="dv" id="dd-fiscal-name">—</span></div>
+          <div class="detail-row"><span class="dl">C.P. fiscal</span><span class="dv" id="dd-fiscal-zip">—</span></div>
+          <div class="detail-row"><span class="dl">Régimen</span><span class="dv" id="dd-fiscal-regime">—</span></div>
+          <div class="detail-row"><span class="dl">Uso CFDI</span><span class="dv" id="dd-fiscal-use">—</span></div>
+          <div class="detail-row"><span class="dl">Correo factura</span><span class="dv" id="dd-fiscal-email">—</span></div>
         </div>
         <div class="card">
           <div class="card-title">Antecedentes médicos</div>
@@ -5460,6 +5474,20 @@ body.app-ready #dash-page.active > .card {
         </div>
       </div>
       <div class="form-sec">
+        <div class="form-sec-title">Datos de facturación CFDI 4.0 <span style="font-size:.68rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-4)">— solo si el paciente solicita factura</span></div>
+        <div style="font-size:.72rem;line-height:1.55;color:var(--ink-3);margin-bottom:12px">Captúralos tal como aparecen en sus datos fiscales. El correo es opcional y estos campos se completarán automáticamente al crear recibos.</div>
+        <div class="fgrid">
+          <div class="fg"><label>RFC</label><input type="text" id="fp-fiscal-rfc" maxlength="13" placeholder="12 o 13 caracteres" style="text-transform:uppercase"></div>
+          <div class="fg"><label>Nombre o razón social</label><input type="text" id="fp-fiscal-name" placeholder="Tal como está registrado ante el SAT" style="text-transform:uppercase"></div>
+          <div class="fg"><label>Código postal fiscal</label><input type="text" id="fp-fiscal-zip" maxlength="5" inputmode="numeric" placeholder="5 dígitos"></div>
+          <div class="fg"><label>Régimen fiscal</label><select id="fp-fiscal-regime">
+            <option value="">Seleccionar…</option><option value="601">601 · General de Ley Personas Morales</option><option value="603">603 · Personas Morales con Fines no Lucrativos</option><option value="605">605 · Sueldos y Salarios e Ingresos Asimilados</option><option value="606">606 · Arrendamiento</option><option value="607">607 · Enajenación o Adquisición de Bienes</option><option value="608">608 · Demás ingresos</option><option value="610">610 · Residentes en el Extranjero</option><option value="611">611 · Ingresos por Dividendos</option><option value="612">612 · Actividades Empresariales y Profesionales</option><option value="614">614 · Ingresos por intereses</option><option value="615">615 · Obtención de premios</option><option value="616">616 · Sin obligaciones fiscales</option><option value="620">620 · Sociedades Cooperativas de Producción</option><option value="621">621 · Incorporación Fiscal</option><option value="622">622 · Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option><option value="623">623 · Opcional para Grupos de Sociedades</option><option value="624">624 · Coordinados</option><option value="625">625 · Plataformas Tecnológicas</option><option value="626">626 · Régimen Simplificado de Confianza</option>
+          </select></div>
+          <div class="fg"><label>Uso del CFDI</label><select id="fp-fiscal-use"><option value="">Seleccionar…</option><option value="D01">D01 · Honorarios médicos, dentales y gastos hospitalarios</option><option value="G03">G03 · Gastos en general</option><option value="S01">S01 · Sin efectos fiscales</option><option value="D02">D02 · Gastos médicos por incapacidad o discapacidad</option><option value="D10">D10 · Pagos por servicios educativos</option></select></div>
+          <div class="fg"><label>Correo para enviar factura <span style="font-weight:400;color:var(--ink-4)">(opcional)</span></label><input type="email" id="fp-fiscal-email" placeholder="facturacion@correo.com"></div>
+        </div>
+      </div>
+      <div class="form-sec">
         <div class="form-sec-title">Antecedentes y Hábitos</div>
         <div class="fgrid">
           <div class="fg full"><label>Condición médica / Medicamentos</label><textarea id="fp-meds" rows="3"></textarea></div>
@@ -5551,6 +5579,24 @@ body.app-ready #dash-page.active > .card {
         <div class="fg full"><label>Paciente</label><select id="receipt-new-patient" onchange="receiptPatientChanged()"></select></div>
         <div class="fg"><label>Fecha del pago</label><input type="date" id="receipt-new-date"></div>
         <div class="fg"><label>Forma de pago</label><select id="receipt-new-method"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option><option value="Cheque">Cheque</option><option value="Otro">Otro</option><option value="No especificado">No especificado</option></select></div>
+      </div>
+      <div style="padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);margin-bottom:14px">
+        <div class="fgrid" style="gap:10px">
+          <div class="fg full"><label>¿Se solicitará factura?</label><select id="receipt-invoice-status" onchange="receiptToggleInvoiceFields()"><option value="none">No requiere factura</option><option value="pending">Sí · Por facturar</option><option value="invoiced">Ya facturado</option></select></div>
+        </div>
+        <div id="receipt-fiscal-fields" style="display:none;margin-top:11px">
+          <div id="receipt-fiscal-message" style="padding:9px 11px;border-radius:9px;font-size:.7rem;line-height:1.45;margin-bottom:10px"></div>
+          <div class="fgrid" style="gap:10px">
+            <div class="fg"><label>RFC</label><input type="text" id="receipt-fiscal-rfc" maxlength="13" style="text-transform:uppercase" oninput="receiptUpdateFiscalMessage()"></div>
+            <div class="fg"><label>Nombre o razón social</label><input type="text" id="receipt-fiscal-name" style="text-transform:uppercase" oninput="receiptUpdateFiscalMessage()"></div>
+            <div class="fg"><label>C.P. fiscal</label><input type="text" id="receipt-fiscal-zip" maxlength="5" inputmode="numeric" oninput="receiptUpdateFiscalMessage()"></div>
+            <div class="fg"><label>Régimen fiscal</label><select id="receipt-fiscal-regime" onchange="receiptUpdateFiscalMessage()"></select></div>
+            <div class="fg"><label>Uso CFDI</label><select id="receipt-fiscal-use" onchange="receiptUpdateFiscalMessage()"></select></div>
+            <div class="fg"><label>Correo factura <span style="font-weight:400;color:var(--ink-4)">(opcional)</span></label><input type="email" id="receipt-fiscal-email"></div>
+            <div class="fg full" id="receipt-invoice-folio-wrap" style="display:none"><label>Folio o UUID de la factura <span style="font-weight:400;color:var(--ink-4)">(opcional)</span></label><input type="text" id="receipt-invoice-folio" placeholder="Para identificar el CFDI ya emitido"></div>
+          </div>
+          <div style="font-size:.65rem;color:var(--ink-4);line-height:1.45;margin-top:8px">Esta sección prepara la información para contabilidad; no emite ni timbra el CFDI.</div>
+        </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)">Tratamientos / conceptos</div><button class="btn btn-ghost btn-xs" onclick="receiptAddLine()">＋ Agregar concepto</button></div>
       <datalist id="receipt-treatment-options"></datalist>
@@ -6654,6 +6700,47 @@ function populateCityFilter() {
   populateDoctorFilter();
 }
 
+// ═══ DATOS FISCALES CFDI 4.0 ═══
+// El expediente conserva los datos vigentes del paciente. Cada recibo guarda
+// además una copia de los datos utilizados para el corte administrativo.
+function patientFiscalData(patient) {
+  var fiscal = patient && patient.fiscalData && typeof patient.fiscalData === 'object' ? patient.fiscalData : {};
+  return {
+    rfc:String(fiscal.rfc || '').trim().toUpperCase(),
+    name:String(fiscal.name || '').trim().toUpperCase(),
+    postalCode:String(fiscal.postalCode || '').trim(),
+    regime:String(fiscal.regime || '').trim(),
+    use:String(fiscal.use || '').trim(),
+    email:String(fiscal.email || '').trim()
+  };
+}
+
+function fiscalDataComplete(fiscal) {
+  fiscal = fiscal || {};
+  return /^[A-ZÑ&0-9]{12,13}$/.test(String(fiscal.rfc || '').trim().toUpperCase())
+    && !!String(fiscal.name || '').trim()
+    && /^\d{5}$/.test(String(fiscal.postalCode || '').trim())
+    && !!String(fiscal.regime || '').trim()
+    && !!String(fiscal.use || '').trim();
+}
+
+function fiscalSelectLabel(sourceId, value) {
+  var source = document.getElementById(sourceId);
+  if (!source || !value) return value || '—';
+  var option = Array.from(source.options).find(function(item){ return item.value === value; });
+  return option ? option.textContent : value;
+}
+
+function invoiceStatusLabel(status) {
+  if (status === 'pending') return 'Por facturar';
+  if (status === 'invoiced') return 'Facturado';
+  return 'No requiere factura';
+}
+
+function invoiceStatusClass(status) {
+  return status === 'pending' ? 'invoice-pending' : status === 'invoiced' ? 'invoice-invoiced' : 'invoice-none';
+}
+
 // ═══ DETAIL ═══
 function _renderDetailBase(id) {
   const p = db.patients.find(x => x.id == id); if (!p) return;
@@ -6677,6 +6764,19 @@ function _renderDetailBase(id) {
   document.getElementById('dd-height').textContent = p.heightCm && p.heightCm !== 'N/A' ? p.heightCm + ' cm' : '—';
   document.getElementById('dd-weight').textContent = p.weightKg && p.weightKg !== 'N/A' ? p.weightKg + ' kg' + (p.weightNote ? ` (${p.weightNote})` : '') : '—';
   document.getElementById('dd-kids').textContent   = `Hijos: ${s(p.hasKids)} · Embarazo/AC: ${s(p.isPregnant)}`;
+  var fiscal = patientFiscalData(p);
+  document.getElementById('dd-fiscal-rfc').textContent = s(fiscal.rfc);
+  document.getElementById('dd-fiscal-name').textContent = s(fiscal.name);
+  document.getElementById('dd-fiscal-zip').textContent = s(fiscal.postalCode);
+  document.getElementById('dd-fiscal-regime').textContent = fiscalSelectLabel('fp-fiscal-regime', fiscal.regime);
+  document.getElementById('dd-fiscal-use').textContent = fiscalSelectLabel('fp-fiscal-use', fiscal.use);
+  document.getElementById('dd-fiscal-email').textContent = s(fiscal.email);
+  var fiscalStatus = document.getElementById('dd-fiscal-status');
+  if (fiscalStatus) {
+    var ready = fiscalDataComplete(fiscal);
+    fiscalStatus.textContent = ready ? 'Datos completos' : (fiscal.rfc || fiscal.name || fiscal.postalCode ? 'Datos incompletos' : 'Sin capturar');
+    fiscalStatus.className = 'invoice-badge ' + (ready ? 'fiscal-ready' : 'fiscal-missing');
+  }
   document.getElementById('dd-meds').innerHTML     = (p.medsCondition || '—').replace(/\n/g, '<br>');
   document.getElementById('dd-allergy').textContent = s(p.allergies);
   document.getElementById('dd-supps').textContent  = s(p.supplements);
@@ -6758,7 +6858,7 @@ function delOrtho(i) {
 
 // ═══ FORM ═══
 var HC_CORE_FIELDS = [
-  ['fp-expediente','No. Expediente'],['fp-phone','Teléfono'],['fp-dob','Fecha de nacimiento'],['fp-sex','Sexo'],['fp-curp','CURP'],['fp-city','Ciudad / Residencia'],['fp-email','Correo electrónico'],['fp-rep-legal','Representante legal'],['fp-rep-parentesco','Parentesco representante'],['fp-civil','Estado civil'],['fp-occ','Ocupación'],['fp-social','Red social contacto'],['fp-height','Estatura'],['fp-weight','Peso'],['fp-wnote','Nota peso'],['fp-kids','Hijos'],['fp-preg','Embarazo / AC'],['fp-meds','Condición médica / Medicamentos'],['fp-allergy','Alergias'],['fp-supps','Suplementos / Vitaminas'],['fp-smoke','Fuma / Vapea'],['fp-subst','Sustancias'],['fp-alc','Alcohol'],['fp-soda','Refresco / Café'],['fp-diet','Dieta'],['fp-snacks','Snacks'],['fp-other','Otros problemas de salud'],['fp-brush','Cepillado'],['fp-paste','Pasta dental'],['fp-floss','Hilo dental'],['fp-mouth','Enjuague bucal'],['fp-cie10','Diagnóstico principal (CIE-10)'],['fp-pronostico','Pronóstico'],['fp-aviso-priv','Aviso de privacidad'],['fp-dental','Historial dental previo']
+  ['fp-expediente','No. Expediente'],['fp-phone','Teléfono'],['fp-dob','Fecha de nacimiento'],['fp-sex','Sexo'],['fp-curp','CURP'],['fp-city','Ciudad / Residencia'],['fp-email','Correo electrónico'],['fp-rep-legal','Representante legal'],['fp-rep-parentesco','Parentesco representante'],['fp-civil','Estado civil'],['fp-occ','Ocupación'],['fp-social','Red social contacto'],['fp-height','Estatura'],['fp-weight','Peso'],['fp-wnote','Nota peso'],['fp-kids','Hijos'],['fp-preg','Embarazo / AC'],['fp-fiscal-rfc','RFC'],['fp-fiscal-name','Nombre o razón social'],['fp-fiscal-zip','Código postal fiscal'],['fp-fiscal-regime','Régimen fiscal'],['fp-fiscal-use','Uso del CFDI'],['fp-fiscal-email','Correo para factura'],['fp-meds','Condición médica / Medicamentos'],['fp-allergy','Alergias'],['fp-supps','Suplementos / Vitaminas'],['fp-smoke','Fuma / Vapea'],['fp-subst','Sustancias'],['fp-alc','Alcohol'],['fp-soda','Refresco / Café'],['fp-diet','Dieta'],['fp-snacks','Snacks'],['fp-other','Otros problemas de salud'],['fp-brush','Cepillado'],['fp-paste','Pasta dental'],['fp-floss','Hilo dental'],['fp-mouth','Enjuague bucal'],['fp-cie10','Diagnóstico principal (CIE-10)'],['fp-pronostico','Pronóstico'],['fp-aviso-priv','Aviso de privacidad'],['fp-dental','Historial dental previo']
 ];
 var _hcDraft = null;
 function escapeHTML(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -6849,7 +6949,7 @@ function openAddForm() { curId = null; clearForm(); document.getElementById('for
 function editCurrent() { const p = db.patients.find(x => x.id == curId); if (!p) return; fillForm(p); document.getElementById('form-title').textContent = 'Editar paciente'; showForm(); }
 function cancelForm() { curId ? showDetail(curId) : showList(); }
 const fv = id => document.getElementById(id).value;
-function clearForm() { ['fp-name','fp-phone','fp-dob','fp-sex','fp-curp','fp-city','fp-email','fp-rep-legal','fp-rep-parentesco','fp-occ','fp-social','fp-height','fp-weight','fp-wnote','fp-meds','fp-allergy','fp-supps','fp-smoke','fp-subst','fp-alc','fp-soda','fp-diet','fp-snacks','fp-other','fp-brush','fp-paste','fp-floss','fp-mouth','fp-dental','fp-cie10','fp-aviso-priv','fp-expediente'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
+function clearForm() { ['fp-name','fp-phone','fp-dob','fp-sex','fp-curp','fp-city','fp-email','fp-rep-legal','fp-rep-parentesco','fp-occ','fp-social','fp-height','fp-weight','fp-wnote','fp-fiscal-rfc','fp-fiscal-name','fp-fiscal-zip','fp-fiscal-regime','fp-fiscal-use','fp-fiscal-email','fp-meds','fp-allergy','fp-supps','fp-smoke','fp-subst','fp-alc','fp-soda','fp-diet','fp-snacks','fp-other','fp-brush','fp-paste','fp-floss','fp-mouth','fp-dental','fp-cie10','fp-aviso-priv','fp-expediente'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
 function fillForm(p) {
   document.getElementById('fp-id').value = p.id;
   const s = (id, v) => { const e = document.getElementById(id); if (e) e.value = v || ''; };
@@ -6859,6 +6959,9 @@ function fillForm(p) {
   s('fp-civil',p.maritalStatus);s('fp-occ',p.occupation);s('fp-social',p.contactSocial);
   s('fp-height',p.heightCm!=='N/A'?p.heightCm:'');s('fp-weight',p.weightKg!=='N/A'?p.weightKg:'');
   s('fp-wnote',p.weightNote);s('fp-kids',p.hasKids);s('fp-preg',p.isPregnant);
+  var fiscal = patientFiscalData(p);
+  s('fp-fiscal-rfc',fiscal.rfc);s('fp-fiscal-name',fiscal.name);s('fp-fiscal-zip',fiscal.postalCode);
+  s('fp-fiscal-regime',fiscal.regime);s('fp-fiscal-use',fiscal.use);s('fp-fiscal-email',fiscal.email);
   s('fp-meds',p.medsCondition);s('fp-allergy',p.allergies);s('fp-supps',p.supplements);
   s('fp-smoke',p.smokeVape);s('fp-subst',p.substances);s('fp-alc',p.alcohol);
   s('fp-soda',p.sodaCoffee);s('fp-diet',p.diet);s('fp-snacks',p.snacks);
@@ -6870,7 +6973,7 @@ function fillForm(p) {
 function savePatient() {
   const name = fv('fp-name').trim(); if (!name) { alert('El nombre es obligatorio.'); return; }
   const id = fv('fp-id');
-  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
+  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), fiscalData:{rfc:fv('fp-fiscal-rfc').trim().toUpperCase(),name:fv('fp-fiscal-name').trim().toUpperCase(),postalCode:fv('fp-fiscal-zip').trim(),regime:fv('fp-fiscal-regime'),use:fv('fp-fiscal-use'),email:fv('fp-fiscal-email').trim()}, medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
   if (id) { const idx = db.patients.findIndex(x => x.id == id); db.patients[idx] = { ...db.patients[idx], ...data }; curId = parseInt(id); }
   else { data.id = Date.now(); data.orthoControls = []; data.tags = []; data.clinicalNotes = ''; db.patients.push(data); curId = data.id; assignHCNumbers(); }
   saveDB(); updateTopStats(); populateCityFilter(); renderList(db.patients); showDetail(curId);
@@ -8630,6 +8733,9 @@ function syncPaymentToCaja(patient, payment) {
     fecha: payment.date || todayStr(),
     notas: patient.name || '',
     method: payment.method || 'No especificado',
+    invoiceStatus: payment.invoiceStatus || 'none',
+    invoiceData: payment.invoiceData || {},
+    invoiceFolio: payment.invoiceFolio || '',
     _patientId: patient.id,
     _payId: payment.id,
     _updatedAt: Date.now()
@@ -8702,6 +8808,69 @@ function receiptItemsForPayment(payment) {
   return items.map(function(item){ return { desc:String(item.desc || '').trim(), amount:Number(item.amount) || 0 }; });
 }
 
+function receiptCopyFiscalOptions() {
+  [['receipt-fiscal-regime','fp-fiscal-regime'],['receipt-fiscal-use','fp-fiscal-use']].forEach(function(pair) {
+    var target = document.getElementById(pair[0]), source = document.getElementById(pair[1]);
+    if (target && source && !target.options.length) target.innerHTML = source.innerHTML;
+  });
+}
+
+function receiptCollectFiscalData() {
+  function value(id) { var element = document.getElementById(id); return element ? String(element.value || '').trim() : ''; }
+  return {
+    rfc:value('receipt-fiscal-rfc').toUpperCase(),
+    name:value('receipt-fiscal-name').toUpperCase(),
+    postalCode:value('receipt-fiscal-zip'),
+    regime:value('receipt-fiscal-regime'),
+    use:value('receipt-fiscal-use'),
+    email:value('receipt-fiscal-email')
+  };
+}
+
+function receiptLoadFiscalData(data) {
+  receiptCopyFiscalOptions();
+  data = data || {};
+  var values = {
+    'receipt-fiscal-rfc':data.rfc,
+    'receipt-fiscal-name':data.name,
+    'receipt-fiscal-zip':data.postalCode,
+    'receipt-fiscal-regime':data.regime,
+    'receipt-fiscal-use':data.use,
+    'receipt-fiscal-email':data.email
+  };
+  Object.keys(values).forEach(function(id) {
+    var element = document.getElementById(id);
+    if (element) element.value = values[id] || '';
+  });
+  receiptUpdateFiscalMessage();
+}
+
+function receiptLoadFiscalFromSelectedPatient() {
+  var patientId = (document.getElementById('receipt-new-patient') || {}).value;
+  var patient = (db.patients || []).find(function(item){ return String(item.id) === String(patientId); });
+  receiptLoadFiscalData(patientFiscalData(patient));
+}
+
+function receiptUpdateFiscalMessage() {
+  var message = document.getElementById('receipt-fiscal-message');
+  if (!message) return;
+  var fiscal = receiptCollectFiscalData();
+  var ready = fiscalDataComplete(fiscal);
+  message.className = ready ? 'fiscal-ready' : 'fiscal-missing';
+  message.textContent = ready
+    ? '✓ Datos fiscales completos; se incluirán automáticamente en el corte del contador.'
+    : '⚠ Completa RFC, nombre fiscal, C.P. fiscal, régimen y uso del CFDI para guardar este recibo como facturable.';
+}
+
+function receiptToggleInvoiceFields() {
+  var status = (document.getElementById('receipt-invoice-status') || {}).value || 'none';
+  var fields = document.getElementById('receipt-fiscal-fields');
+  var folio = document.getElementById('receipt-invoice-folio-wrap');
+  if (fields) fields.style.display = status === 'none' ? 'none' : 'block';
+  if (folio) folio.style.display = status === 'invoiced' ? '' : 'none';
+  if (status !== 'none') receiptUpdateFiscalMessage();
+}
+
 function receiptDateRange(mode) {
   var now = new Date();
   var year = now.getFullYear(), month = now.getMonth(), day = now.getDate();
@@ -8755,6 +8924,8 @@ function receiptAllHistory() {
   (db.patients || []).forEach(function(patient) {
     (patient.payments || []).forEach(function(payment, paymentIndex) {
       if (!(payment.type === 'in' || payment.type === 'ing')) return;
+      var invoiceStatus = payment.invoiceStatus === 'pending' || payment.invoiceStatus === 'invoiced' ? payment.invoiceStatus : 'none';
+      var invoiceData = payment.invoiceData && typeof payment.invoiceData === 'object' ? patientFiscalData({fiscalData:payment.invoiceData}) : patientFiscalData(patient);
       result.push({
         patient:patient,
         patientId:patient.id,
@@ -8764,7 +8935,10 @@ function receiptAllHistory() {
         method:_paymentMethodLabel(payment.method),
         amount:Number(payment.amount || 0),
         items:receiptItemsForPayment(payment),
-        folio:_paymentReceiptFolio(payment)
+        folio:_paymentReceiptFolio(payment),
+        invoiceStatus:invoiceStatus,
+        invoiceData:invoiceData,
+        invoiceFolio:String(payment.invoiceFolio || '')
       });
     });
   });
@@ -8777,17 +8951,20 @@ function receiptsFilteredHistory() {
   var fromEl = document.getElementById('receipts-from');
   var toEl = document.getElementById('receipts-to');
   var methodEl = document.getElementById('receipts-method');
+  var invoiceEl = document.getElementById('receipts-invoice');
   var searchEl = document.getElementById('receipts-search');
   var from = fromEl ? fromEl.value : '';
   var to = toEl ? toEl.value : '';
   var method = methodEl ? methodEl.value : 'all';
+  var invoice = invoiceEl ? invoiceEl.value : 'all';
   var query = searchEl ? String(searchEl.value || '').trim().toLowerCase() : '';
   return receiptAllHistory().filter(function(entry) {
     if (from && entry.date < from) return false;
     if (to && entry.date > to) return false;
     if (method !== 'all' && entry.method !== method) return false;
+    if (invoice !== 'all' && entry.invoiceStatus !== invoice) return false;
     if (query) {
-      var haystack = [entry.patient.name, entry.folio, entry.method]
+      var haystack = [entry.patient.name, entry.folio, entry.method, entry.invoiceData.rfc, entry.invoiceData.name, entry.invoiceFolio, invoiceStatusLabel(entry.invoiceStatus)]
         .concat(entry.items.map(function(item){ return item.desc; })).join(' ').toLowerCase();
       if (haystack.indexOf(query) === -1) return false;
     }
@@ -8814,12 +8991,17 @@ function renderReceiptsPage() {
   var total = entries.reduce(function(sum,entry){ return sum + entry.amount; },0);
   var cash = entries.filter(function(entry){ return entry.method === 'Efectivo'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
   var bank = entries.filter(function(entry){ return entry.method === 'Transferencia' || entry.method === 'Tarjeta'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var pending = entries.filter(function(entry){ return entry.invoiceStatus === 'pending'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var invoiced = entries.filter(function(entry){ return entry.invoiceStatus === 'invoiced'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var noInvoice = entries.filter(function(entry){ return entry.invoiceStatus === 'none'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
   var kpis = document.getElementById('receipts-kpis');
   if (kpis) kpis.innerHTML = ''
     + '<div class="receipt-kpi"><small>Recibos del corte</small><strong>' + entries.length + '</strong></div>'
     + '<div class="receipt-kpi"><small>Total cobrado</small><strong style="color:#248a3d">' + fmt$(total) + '</strong></div>'
-    + '<div class="receipt-kpi"><small>Efectivo</small><strong>' + fmt$(cash) + '</strong></div>'
-    + '<div class="receipt-kpi"><small>Transferencia + tarjeta</small><strong>' + fmt$(bank) + '</strong></div>';
+    + '<div class="receipt-kpi"><small>Por facturar</small><strong style="color:#a05800">' + fmt$(pending) + '</strong></div>'
+    + '<div class="receipt-kpi"><small>Ya facturado</small><strong style="color:var(--blue)">' + fmt$(invoiced) + '</strong></div>'
+    + '<div class="receipt-kpi"><small>No requiere factura</small><strong>' + fmt$(noInvoice) + '</strong></div>'
+    + '<div class="receipt-kpi"><small>Efectivo / banco</small><strong>' + fmt$(cash) + ' / ' + fmt$(bank) + '</strong></div>';
   var label = document.getElementById('receipts-range-label');
   if (label) label.textContent = receiptsPeriodLabel();
   var badge = document.getElementById('receipts-count-badge');
@@ -8839,7 +9021,7 @@ function renderReceiptsPage() {
       + '<span>' + escapeHTML(dateText) + '</span>'
       + '<span style="font-size:.68rem;color:var(--ink-4)">' + escapeHTML(entry.folio) + '</span>'
       + '<span class="receipt-history-concepts">' + escapeHTML(entry.patient.name || 'Paciente') + '<small>' + escapeHTML(summary) + '</small></span>'
-      + '<span>' + escapeHTML(entry.method) + '</span>'
+      + '<span>' + escapeHTML(entry.method) + '<br><span class="invoice-badge ' + invoiceStatusClass(entry.invoiceStatus) + '">' + escapeHTML(invoiceStatusLabel(entry.invoiceStatus)) + '</span></span>'
       + '<strong style="color:#248a3d">' + fmt$(entry.amount) + '</strong>'
       + '<span class="receipt-history-actions"><button class="btn btn-ghost btn-xs" onclick="openReceiptCreatorEncoded(\'' + encodedPatient + '\',' + entry.paymentIndex + ')" title="Editar recibo">✏️</button><button class="btn btn-primary btn-xs" onclick="printReceiptFromHistory(\'' + encodedPatient + '\',' + entry.paymentIndex + ')">🧾 PDF</button></span>'
       + '</div>';
@@ -8877,8 +9059,12 @@ function openReceiptCreator(patientId, paymentIndex) {
   }
   methodSelect.value = selectedMethod;
   document.getElementById('receipt-new-note').value = payment ? (payment.receiptNote || '') : '';
+  document.getElementById('receipt-invoice-status').value = payment && (payment.invoiceStatus === 'pending' || payment.invoiceStatus === 'invoiced') ? payment.invoiceStatus : 'none';
+  document.getElementById('receipt-invoice-folio').value = payment ? (payment.invoiceFolio || '') : '';
   _receiptDraftItems = payment ? receiptItemsForPayment(payment) : [{desc:'',amount:0},{desc:'',amount:0}];
   receiptPatientChanged(false);
+  if (payment) receiptLoadFiscalData(payment.invoiceData && typeof payment.invoiceData === 'object' ? payment.invoiceData : patientFiscalData(patient));
+  receiptToggleInvoiceFields();
   renderReceiptDraftItems();
   document.getElementById('receipt-new-overlay').classList.add('open');
 }
@@ -8912,6 +9098,7 @@ function receiptPatientChanged(resetAmounts) {
   if (dataList) dataList.innerHTML = receiptSuggestionItems().map(function(item) {
     return '<option value="' + escapeHTML(item.name) + '">' + escapeHTML(fmt$(item.price)) + '</option>';
   }).join('');
+  if (!_receiptEditTarget) receiptLoadFiscalFromSelectedPatient();
   if (resetAmounts === true) renderReceiptDraftItems();
 }
 
@@ -8972,6 +9159,18 @@ function saveReceiptDraft() {
   if (!date) { showToast('Selecciona la fecha del pago', 'red'); return; }
   var method = document.getElementById('receipt-new-method').value || 'No especificado';
   var note = (document.getElementById('receipt-new-note').value || '').trim();
+  var invoiceStatus = (document.getElementById('receipt-invoice-status') || {}).value || 'none';
+  var invoiceData = receiptCollectFiscalData();
+  var invoiceFolio = String((document.getElementById('receipt-invoice-folio') || {}).value || '').trim();
+  if (invoiceStatus !== 'none' && !fiscalDataComplete(invoiceData)) {
+    receiptUpdateFiscalMessage();
+    showToast('Completa los datos fiscales obligatorios para marcar este recibo como facturable', 'red');
+    return;
+  }
+  if (invoiceData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invoiceData.email)) {
+    showToast('Revisa el correo de facturación', 'red');
+    return;
+  }
   var total = items.reduce(function(sum,item){ return sum + item.amount; },0);
   if (!Array.isArray(patient.payments)) patient.payments = [];
   var payment = null;
@@ -8989,7 +9188,14 @@ function saveReceiptDraft() {
   payment.receiptItems = items;
   payment.desc = items.map(function(item){ return item.desc; }).join(' + ');
   payment.receiptNote = note;
+  payment.invoiceStatus = invoiceStatus;
+  payment.invoiceData = invoiceData;
+  payment.invoiceFolio = invoiceStatus === 'invoiced' ? invoiceFolio : '';
   payment._updatedAt = Date.now();
+  // En un recibo nuevo, la captura también actualiza la ficha del paciente.
+  // Al editar un recibo histórico se conserva la HC vigente para que una
+  // copia fiscal anterior no sustituya accidentalmente datos más recientes.
+  if (!_receiptEditTarget) patient.fiscalData = invoiceData;
   syncPaymentToCaja(patient, payment);
   saveDB();
   closeReceiptCreator();
@@ -9017,15 +9223,17 @@ function printReceiptsCut() {
   if (!entries.length) { showToast('No hay recibos en el periodo seleccionado', 'red'); return; }
   var total = entries.reduce(function(sum,entry){ return sum + entry.amount; },0);
   var methods = receiptCutMethodTotals(entries);
+  var invoicePending = entries.filter(function(entry){ return entry.invoiceStatus === 'pending'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var invoiceDone = entries.filter(function(entry){ return entry.invoiceStatus === 'invoiced'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
   var methodHtml = Object.keys(methods).sort().map(function(method){ return '<div><span>' + escapeHTML(method) + '</span><strong>' + fmt$(methods[method]) + '</strong></div>'; }).join('');
   var rows = entries.map(function(entry) {
-    return '<tr><td>' + escapeHTML(entry.date) + '</td><td>' + escapeHTML(entry.folio) + '</td><td>' + escapeHTML(entry.patient.name || '') + '</td><td>' + escapeHTML(entry.items.map(function(item){return item.desc;}).join(' · ')) + '</td><td>' + escapeHTML(entry.method) + '</td><td class="num">' + fmt$(entry.amount) + '</td></tr>';
+    return '<tr><td>' + escapeHTML(entry.date) + '</td><td>' + escapeHTML(entry.folio) + '</td><td>' + escapeHTML(entry.patient.name || '') + '</td><td>' + escapeHTML(entry.items.map(function(item){return item.desc;}).join(' · ')) + '</td><td>' + escapeHTML(entry.method) + '</td><td>' + escapeHTML(invoiceStatusLabel(entry.invoiceStatus)) + (entry.invoiceData.rfc ? '<br><small>' + escapeHTML(entry.invoiceData.rfc) + '</small>' : '') + '</td><td class="num">' + fmt$(entry.amount) + '</td></tr>';
   }).join('');
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Corte de recibos</title><style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#171717;margin:0;padding:28px;font-size:10px}.top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border-bottom:2px solid #171717;padding-bottom:14px}.clinic{font-size:17px;font-weight:800}.muted{color:#666;margin-top:3px}.title{margin:20px 0 13px}.title h1{font-size:21px;margin:0 0 4px}.summary{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;margin-bottom:18px}.total{background:#171717;color:#fff;border-radius:12px;padding:15px 17px}.total strong{display:block;font-size:24px;margin-top:4px}.methods{border:1px solid #ddd;border-radius:12px;padding:9px 14px}.methods div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.methods div:last-child{border:0}table{width:100%;border-collapse:collapse}th{text-align:left;background:#f1f3f5;padding:8px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.05em}td{padding:8px 7px;border-bottom:1px solid #e5e5e5;vertical-align:top}.num{text-align:right;font-weight:800;white-space:nowrap}.footer{margin-top:20px;border-top:1px solid #ddd;padding-top:8px;color:#777;text-align:center}@media print{@page{size:landscape;margin:10mm}body{padding:0}}</style></head><body>'
     + '<div class="top"><div data-print-logo-slot>' + _logoHTML(52) + '</div><div><div class="clinic">' + escapeHTML(cfg.name || 'Consultorio Dental') + '</div><div class="muted">' + escapeHTML(cfg.sub || cfg.specialty || '') + '</div></div><div style="text-align:right"><strong>CORTE DE RECIBOS</strong><div class="muted">Generado ' + escapeHTML(new Date().toLocaleString('es-MX')) + '</div></div></div>'
     + '<div class="title"><h1>Cobros y recibos</h1><div class="muted">' + escapeHTML(receiptsPeriodLabel()) + ' · ' + entries.length + (entries.length === 1 ? ' recibo' : ' recibos') + '</div></div>'
-    + '<div class="summary"><div class="total">Total cobrado<strong>' + fmt$(total) + '</strong></div><div class="methods">' + methodHtml + '</div></div>'
-    + '<table><thead><tr><th>Fecha</th><th>Folio</th><th>Paciente</th><th>Conceptos</th><th>Forma de pago</th><th style="text-align:right">Monto</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<div class="summary"><div class="total">Total cobrado<strong>' + fmt$(total) + '</strong><div style="margin-top:7px;font-size:9px">Por facturar: ' + fmt$(invoicePending) + ' · Facturado: ' + fmt$(invoiceDone) + '</div></div><div class="methods">' + methodHtml + '</div></div>'
+    + '<table><thead><tr><th>Fecha</th><th>Folio</th><th>Paciente</th><th>Conceptos</th><th>Forma de pago</th><th>Facturación / RFC</th><th style="text-align:right">Monto</th></tr></thead><tbody>' + rows + '</tbody></table>'
     + '<div class="footer">Corte administrativo de recibos internos. Verificar contra Caja y comprobantes bancarios.</div></body></html>';
   var w = window.open('', '_blank');
   if (!w) { showToast('⚠️ Permite ventanas emergentes para imprimir el corte', 'red'); return; }
@@ -9041,8 +9249,9 @@ function receiptCSVCell(value) {
 function exportReceiptsCSV() {
   var entries = receiptsFilteredHistory();
   if (!entries.length) { showToast('No hay recibos para exportar', 'red'); return; }
-  var lines = [['Fecha','Folio','Paciente','Conceptos','Forma de pago','Monto MXN']].concat(entries.map(function(entry) {
-    return [entry.date,entry.folio,entry.patient.name || '',entry.items.map(function(item){return item.desc;}).join(' | '),entry.method,entry.amount.toFixed(2)];
+  var lines = [['Fecha','Folio recibo','Paciente','Conceptos','Forma de pago','Monto MXN','Estado factura','RFC','Nombre o razón social','C.P. fiscal','Régimen fiscal','Uso CFDI','Correo factura','Folio o UUID factura']].concat(entries.map(function(entry) {
+    var fiscal = entry.invoiceData || {};
+    return [entry.date,entry.folio,entry.patient.name || '',entry.items.map(function(item){return item.desc;}).join(' | '),entry.method,entry.amount.toFixed(2),invoiceStatusLabel(entry.invoiceStatus),fiscal.rfc || '',fiscal.name || '',fiscal.postalCode || '',fiscal.regime ? fiscalSelectLabel('fp-fiscal-regime',fiscal.regime) : '',fiscal.use ? fiscalSelectLabel('fp-fiscal-use',fiscal.use) : '',fiscal.email || '',entry.invoiceFolio || ''];
   }));
   var csv = '\ufeff' + lines.map(function(row){ return row.map(receiptCSVCell).join(','); }).join('\r\n');
   var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -9133,6 +9342,11 @@ function printPaymentReceipt(patient, payment, options) {
   }).join('');
   var method = escapeHTML(_paymentMethodLabel(payment.method || payment.metodo));
   var receiptNote = escapeHTML(payment.receiptNote || 'Pago recibido');
+  var invoiceStatus = payment.invoiceStatus === 'pending' || payment.invoiceStatus === 'invoiced' ? payment.invoiceStatus : 'none';
+  var invoiceData = payment.invoiceData && typeof payment.invoiceData === 'object' ? patientFiscalData({fiscalData:payment.invoiceData}) : patientFiscalData(patient);
+  var invoiceInfo = invoiceStatusLabel(invoiceStatus)
+    + (invoiceStatus !== 'none' && invoiceData.rfc ? ' · RFC ' + invoiceData.rfc : '')
+    + (invoiceStatus === 'invoiced' && payment.invoiceFolio ? ' · Folio/UUID ' + payment.invoiceFolio : '');
   var patientName = escapeHTML(patient.name || payment.notas || 'Paciente');
   var patientFile = escapeHTML(patient.expediente || patient.hcNumber || ('HC-' + String(patient.id || '').slice(-4)));
   var doctor = (typeof _activeDoctor !== 'undefined' && _activeDoctor)
@@ -9157,6 +9371,7 @@ function printPaymentReceipt(patient, payment, options) {
     + '<div class="words">' + paymentAmountInWords(amount) + '</div>'
     + '<table class="items"><thead><tr><th>Tratamiento / concepto</th><th>Importe</th></tr></thead><tbody>' + receiptItemsRows + '</tbody></table>'
     + '<div class="info"><div class="box"><div class="label">Forma de pago</div><div class="value">' + method + '</div></div><div class="box"><div class="label">Nota</div><div class="value">' + receiptNote + '</div></div></div>'
+    + '<div class="box" style="margin-top:11px;min-height:0"><div class="label">Control de facturación</div><div class="value">' + escapeHTML(invoiceInfo) + '</div></div>'
     + (balanceText ? '<div class="balance">' + escapeHTML(balanceText) + '</div>' : '')
     + '<div class="signatures"><div class="line">' + receivedBy + '<br>Recibió</div><div class="line">Paciente / Responsable<br>Firma</div></div>'
     + '<div class="legal">Comprobante interno de pago por servicios odontológicos. No sustituye una factura o CFDI cuando fiscalmente corresponda.</div></div></body></html>';
@@ -14644,7 +14859,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260807-26', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260807-27', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -14664,7 +14879,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260807_26';
+      var refreshKey = 'dental_sw_refreshed_20260807_27';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -14970,7 +15185,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_receipt_center_v26';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_invoice_workflow_v27';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -21337,7 +21552,7 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Indica si fue pagado: el sistema registra automáticamente el abono y el ingreso en Caja; si no, conserva la deuda.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
-          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Centro de recibos</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la pestaña <strong>Recibos</strong> puedes reunir varios tratamientos en un solo comprobante, editar recibos anteriores y reimprimirlos. Filtra por semana, quincena, mes, año o fechas personalizadas; después imprime el corte o descarga el CSV para contabilidad.</div></div>
+          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Centro de recibos y facturación</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la pestaña <strong>Recibos</strong> puedes reunir varios tratamientos en un comprobante, editarlo y reimprimirlo. Marca <strong>No requiere factura</strong>, <strong>Por facturar</strong> o <strong>Facturado</strong>. Los datos CFDI guardados en la historia clínica se completarán automáticamente; el CSV del corte incluye estado, RFC, nombre fiscal, C.P., régimen, uso CFDI, correo y folio de factura para el contador.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción por doctor</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Reportes → Producción por doctor</strong> consulta tratamientos realizados, cantidades, precios y pago calculado. El porcentaje es personalizable por doctor y también puede ajustarse en cada registro. Puedes registrar trabajo manualmente si no nació desde el plan.</div></div>
