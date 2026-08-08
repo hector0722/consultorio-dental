@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260806-caja-recovery-v22';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-print-logo-v23';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

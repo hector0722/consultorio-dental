@@ -4322,6 +4322,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Presupuesto siempre limpio:</strong> al abrir el módulo comienza uno nuevo; únicamente se conserva cuando lo generas y lo guardas en el expediente del paciente.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🖼️</span><span style="font-size:.79rem;line-height:1.45"><strong>Logo en documentos:</strong> el logotipo configurado aparece en presupuestos, recetas, consentimientos, historias clínicas, indicaciones, odontogramas y reportes guardados como PDF.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -6723,7 +6724,7 @@ function printPatientForm(){
     +'<div class="signatures"><div class="line">Paciente / Representante legal<br>Nombre y firma</div><div class="line">'+clinic+'<br>Firma y sello</div></div>'
     +'<div class="foot"><span>NOM-004-SSA3-2012 · Expediente clínico</span><span>'+folio+'</span></div></body></html>';
   w.document.open();w.document.write(html);w.document.close();
-  setTimeout(function(){w.focus();w.print();},350);
+  _printWindow(w);
 }
 
 function openAddForm() { curId = null; clearForm(); document.getElementById('form-title').textContent = 'Nuevo paciente'; document.getElementById('fp-id').value = ''; showForm(); applyHCTemplate(); }
@@ -7228,7 +7229,7 @@ function generateBudgetDoc() {
   const clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Consultorio Dental';
   const clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : '';
   const clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : '';
-  const clinicLogo = (typeof cfg !== 'undefined') ? cfg.logo  : '🦷';
+  const clinicLogo = _logoHTML(42);
   // Mensualidad de ortodoncia
   var orthoMensual = 0;
   if (selectedTx['ortod-conv'] && selectedTx['ortod-conv'].mensualidad) orthoMensual = selectedTx['ortod-conv'].mensualidad;
@@ -7236,7 +7237,7 @@ function generateBudgetDoc() {
 
   const html = `<div class="bdoc">
     <div class="bdoc-top">
-      <div class="bdoc-logo">${clinicLogo}</div>
+      <div class="bdoc-logo"${cfg.logoImageUrl ? ' style="width:auto;min-width:52px;height:auto;background:transparent;box-shadow:none"' : ''}>${clinicLogo}</div>
       <div>
         <div class="bdoc-clinic-name">${clinicName}</div>
         <div class="bdoc-clinic-sub">${clinicSub} · ${clinicCity}</div>
@@ -7318,7 +7319,7 @@ function printBudget() {
   .bdoc-footer{margin-top:16px;padding-top:12px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;font-size:.68rem;color:#aeaeb2;}
   <\/style><\/head><body>${body}<\/body><\/html>`);
   w.document.close();
-  setTimeout(() => w.print(), 350);
+  _printWindow(w);
 }
 
 // ═══ STATS ═══
@@ -9506,7 +9507,14 @@ function applyBrandingToBudgetDoc() {
     var ft = body.querySelectorAll('.bdoc-footer span');
     if (cn) cn.textContent = cfg.name;
     if (cs) cs.textContent = cfg.sub + ' · ' + cfg.city;
-    if (lg) { lg.textContent = cfg.logo; lg.style.background = 'linear-gradient(145deg,' + lighten(cfg.color,0.15) + ',' + cfg.color + ')'; }
+    if (lg) {
+      lg.innerHTML = _logoHTML(42);
+      lg.style.background = cfg.logoImageUrl ? 'transparent' : 'linear-gradient(145deg,' + lighten(cfg.color,0.15) + ',' + cfg.color + ')';
+      lg.style.width = cfg.logoImageUrl ? 'auto' : '40px';
+      lg.style.minWidth = cfg.logoImageUrl ? '52px' : '0';
+      lg.style.height = cfg.logoImageUrl ? 'auto' : '40px';
+      lg.style.boxShadow = cfg.logoImageUrl ? 'none' : '0 4px 12px rgba(0,113,227,0.25)';
+    }
     if (ft[0]) ft[0].textContent = cfg.name + ' · ' + cfg.sub + ' · ' + cfg.city;
   }, 0);
 }
@@ -9726,7 +9734,7 @@ function printAvisoPrivacidad() {
   w.document.close();
   set
   w.document.close();
-  setTimeout(function(){ w.print(); }, 350);
+  _printWindow(w);
 }
 
 var CI_DB = [
@@ -10292,7 +10300,7 @@ function printHistoriaClinica() {
 
     // ENCABEZADO
     + '<div class="header-box">'
-    +   '<div style="font-size:2rem;width:44px;text-align:center">'+cfg.logo+'</div>'
+    +   '<div data-print-logo-slot style="min-width:54px;text-align:center">'+_logoHTML(52)+'</div>'
     +   '<div>'
     +     '<div style="font-size:13px;font-weight:bold;text-transform:uppercase">'+cn+'</div>'
     +     '<div style="font-size:10.5px">'+csub+'</div>'
@@ -10423,7 +10431,7 @@ function printHistoriaClinica() {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 function ciPrint(id, patientId) {
@@ -10489,7 +10497,7 @@ function ciPrint(id, patientId) {
     // ── ENCABEZADO ──
     + '<div class="header-top">'
     +   '<div class="header-grid">'
-    +     '<div style="font-size:2rem;width:44px;text-align:center">'+cfg.logo+'</div>'
+    +     '<div data-print-logo-slot style="min-width:54px;text-align:center">'+_logoHTML(52)+'</div>'
     +     '<div>'
     +       '<div class="clinic-name">'+cn+'</div>'
     +       '<div class="clinic-sub">'+csub+'</div>'
@@ -10612,7 +10620,7 @@ function ciPrint(id, patientId) {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 
@@ -11917,7 +11925,7 @@ function indPrint(id) {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 380);
+  _printWindow(w);
 }
 
 // ── Enviar indicaciones por WhatsApp ────────────────────────
@@ -12298,7 +12306,7 @@ function prodRender(range){
   var vals=Object.values(groups),trash=prodTrashLoad(),restoreHtml=trash.length?'<div style="grid-column:1/-1;display:flex;justify-content:flex-end"><button type="button" class="btn btn-ghost btn-xs" onclick="prodRestoreLastDeleted()">↩️ Restaurar último eliminado ('+trash.length+')</button></div>':'';summary.innerHTML=restoreHtml+(vals.length?vals.map(function(g){var d=ds.find(function(x){return String(x.id)===g.id;})||{},effective=g.gross?g.pay/g.gross*100:0;return '<div class="prod-doctor-card"><div class="prod-doctor-head"><div class="prod-avatar" style="background:'+(d.color||'var(--blue)')+'">'+escapeHTML(g.name.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join(''))+'</div><div><strong>'+escapeHTML(g.name)+'</strong><div style="font-size:.68rem;color:var(--ink-3)">'+g.count+' tratamiento'+(g.count===1?'':'s')+' · '+g.units+' unidad'+(g.units===1?'':'es')+'</div></div></div><div class="prod-metric"><span>Producción</span><strong>'+fmt$(g.gross)+'</strong></div><div class="prod-metric"><span>Porcentaje efectivo</span><strong>'+effective.toFixed(1)+' %</strong></div><div class="prod-pay"><span>Pago calculado</span><span>'+fmt$(g.pay)+'</span></div><button class="btn btn-ghost btn-xs" onclick="prodPrintDoctor(\''+g.id+'\')" style="width:100%;justify-content:center;margin-top:10px">🖨️ Imprimir desglose</button></div>';}).join(''):'<div class="hc-custom-empty" style="grid-column:1/-1">No hay producción registrada en este periodo.</div>');
   var ledger=document.getElementById('prod-ledger');ledger.innerHTML=rows.length?'<table class="prod-table"><thead><tr><th>Fecha</th><th>Doctor</th><th>Tratamiento</th><th>Cant.</th><th>Precio</th><th>Producción</th><th>%</th><th>Pago</th><th>Eliminar</th></tr></thead><tbody>'+rows.map(function(x){var safeId=String(x.id).replace(/[^a-zA-Z0-9_-]/g,'');return '<tr><td>'+escapeHTML(x.date)+'</td><td>'+escapeHTML(x.doctorName)+'</td><td><strong>'+escapeHTML(x.treatment)+'</strong>'+(x.patient?'<div style="font-size:.68rem;color:var(--ink-3)">👤 '+escapeHTML(x.patient)+'</div>':'')+'</td><td>'+x.qty+'</td><td>'+fmt$(x.unitPrice)+'</td><td><strong>'+fmt$(x.gross)+'</strong></td><td>'+x.percent+' %</td><td style="color:var(--blue);font-weight:800">'+fmt$(x.pay)+'</td><td><button type="button" class="prod-delete-btn" onclick="prodDelete(\''+safeId+'\')" title="Eliminar este registro" aria-label="Eliminar registro de '+escapeHTML(x.treatment)+'">✕</button></td></tr>';}).join('')+'</tbody></table>':'';
 }
-function prodPrintDoc(title,rows,range){var totalG=rows.reduce(function(s,x){return s+Number(x.gross||0);},0),totalP=rows.reduce(function(s,x){return s+Number(x.pay||0);},0),html='<!doctype html><html><head><meta charset="utf-8"><title>'+escapeHTML(title)+'</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:11px}h1{font-size:18px;margin:0}h2{font-size:12px;color:#555;margin:5px 0 20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ccc;text-align:left}th{background:#f3f3f3;font-size:9px;text-transform:uppercase}.tot{font-size:13px;font-weight:bold}.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:50px;text-align:center}.line{border-top:1px solid #111;padding-top:5px}@media print{@page{margin:12mm}}</style></head><body><h1>'+escapeHTML(title)+'</h1><h2>'+escapeHTML(cfg.name||'Consultorio Dental')+' · '+escapeHTML(range.label)+'</h2><table><tr><th>Fecha</th><th>Doctor</th><th>Tratamiento / paciente</th><th>Cant.</th><th>Producción</th><th>%</th><th>Pago</th></tr>'+rows.map(function(x){return '<tr><td>'+x.date+'</td><td>'+escapeHTML(x.doctorName)+'</td><td>'+escapeHTML(x.treatment)+(x.patient?'<br><small>'+escapeHTML(x.patient)+'</small>':'')+'</td><td>'+x.qty+'</td><td>'+fmt$(x.gross)+'</td><td>'+x.percent+'%</td><td>'+fmt$(x.pay)+'</td></tr>';}).join('')+'<tr class="tot"><td colspan="4">Totales</td><td>'+fmt$(totalG)+'</td><td></td><td>'+fmt$(totalP)+'</td></tr></table><div class="sign"><div class="line">Firma del doctor</div><div class="line">Autorizó / Pagó</div></div></body></html>';var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();setTimeout(function(){w.print();},300);}
+function prodPrintDoc(title,rows,range){var totalG=rows.reduce(function(s,x){return s+Number(x.gross||0);},0),totalP=rows.reduce(function(s,x){return s+Number(x.pay||0);},0),html='<!doctype html><html><head><meta charset="utf-8"><title>'+escapeHTML(title)+'</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:11px}h1{font-size:18px;margin:0}h2{font-size:12px;color:#555;margin:5px 0 20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ccc;text-align:left}th{background:#f3f3f3;font-size:9px;text-transform:uppercase}.tot{font-size:13px;font-weight:bold}.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:50px;text-align:center}.line{border-top:1px solid #111;padding-top:5px}@media print{@page{margin:12mm}}</style></head><body><h1>'+escapeHTML(title)+'</h1><h2>'+escapeHTML(cfg.name||'Consultorio Dental')+' · '+escapeHTML(range.label)+'</h2><table><tr><th>Fecha</th><th>Doctor</th><th>Tratamiento / paciente</th><th>Cant.</th><th>Producción</th><th>%</th><th>Pago</th></tr>'+rows.map(function(x){return '<tr><td>'+x.date+'</td><td>'+escapeHTML(x.doctorName)+'</td><td>'+escapeHTML(x.treatment)+(x.patient?'<br><small>'+escapeHTML(x.patient)+'</small>':'')+'</td><td>'+x.qty+'</td><td>'+fmt$(x.gross)+'</td><td>'+x.percent+'%</td><td>'+fmt$(x.pay)+'</td></tr>';}).join('')+'<tr class="tot"><td colspan="4">Totales</td><td>'+fmt$(totalG)+'</td><td></td><td>'+fmt$(totalP)+'</td></tr></table><div class="sign"><div class="line">Firma del doctor</div><div class="line">Autorizó / Pagó</div></div></body></html>';var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();_printWindow(w);}
 function prodPrintDoctor(id){var r=repGetRange();prodPrintDoc('Desglose de producción',prodFiltered(r).filter(function(x){return String(x.doctorId)===String(id);}),r);}
 function prodPrintAll(){var r=repGetRange();prodPrintDoc('Corte de producción por doctores',prodFiltered(r),r);}
 
@@ -13111,7 +13119,7 @@ function printOdontogram() {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 // Close surface panel when clicking outside
@@ -13476,7 +13484,7 @@ function printPeriodontogram() {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 
@@ -13847,7 +13855,7 @@ function printOrthoSummary() {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 
@@ -13888,7 +13896,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260806-22', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260807-23', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -13908,7 +13916,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260806_22';
+      var refreshKey = 'dental_sw_refreshed_20260807_23';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -14214,7 +14222,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_06_caja_recovery_v22';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_print_logo_v23';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -17156,9 +17164,73 @@ openSettings = function() {
 function _logoHTML(size) {
   size = size || 48;
   if (cfg.logoImageUrl) {
-    return '<img src="' + cfg.logoImageUrl + '" style="height:' + size + 'px;max-width:120px;object-fit:contain;vertical-align:middle">';
+    return '<img data-clinic-print-logo="1" src="' + cfg.logoImageUrl + '" alt="Logo de la clínica" style="height:' + size + 'px;max-width:140px;object-fit:contain;vertical-align:middle">';
   }
-  return '<span style="font-size:' + Math.round(size * 0.7) + 'px">' + (cfg.logo || '🦷') + '</span>';
+  return '<span data-clinic-print-logo="1" style="font-size:' + Math.round(size * 0.7) + 'px">' + (cfg.logo || '🦷') + '</span>';
+}
+
+function _applyPrintBranding(doc) {
+  if (!doc || !doc.body) return;
+  var configuredLogo = cfg && cfg.logoImageUrl;
+  var existing = doc.querySelector('[data-clinic-print-logo="1"]');
+  if (!existing && configuredLogo) {
+    var images = Array.prototype.slice.call(doc.images || []);
+    existing = images.find(function(img) {
+      return img.getAttribute('src') === configuredLogo || img.src === configuredLogo;
+    });
+    if (existing) existing.setAttribute('data-clinic-print-logo', '1');
+  }
+  if (existing) return;
+
+  var slot = doc.querySelector('[data-print-logo-slot], .bdoc-logo, .logo');
+  if (slot) {
+    slot.innerHTML = _logoHTML(slot.classList.contains('bdoc-logo') ? 42 : 52);
+    slot.style.background = 'transparent';
+    slot.style.width = 'auto';
+    slot.style.minWidth = '52px';
+    slot.style.height = 'auto';
+    return;
+  }
+
+  // Los reportes técnicos antiguos no tenían un espacio para marca.
+  // Agregar un encabezado compacto garantiza el logo sin alterar sus tablas.
+  var brand = doc.createElement('div');
+  brand.setAttribute('data-global-print-brand', '1');
+  brand.style.cssText = 'display:flex;align-items:center;gap:12px;padding-bottom:10px;margin-bottom:14px;border-bottom:1.5px solid #222;break-inside:avoid;';
+  brand.innerHTML = '<div data-print-logo-slot>' + _logoHTML(50) + '</div>'
+    + '<div><div style="font-size:14px;font-weight:800;line-height:1.2">' + escapeHTML(cfg.name || 'Consultorio Dental') + '</div>'
+    + '<div style="font-size:9px;color:#666;margin-top:2px">' + escapeHTML(cfg.sub || cfg.specialty || '') + '</div></div>';
+  doc.body.insertBefore(brand, doc.body.firstChild);
+}
+
+function _printWindow(w) {
+  if (!w || !w.document) return;
+  try { _applyPrintBranding(w.document); } catch(e) {}
+  var done = false;
+  function printNow() {
+    if (done) return;
+    done = true;
+    try { w.focus(); w.print(); } catch(e) {}
+  }
+  var images = [];
+  try { images = Array.prototype.slice.call(w.document.images || []); } catch(e) {}
+  var pending = images.filter(function(img){ return !img.complete; });
+  if (!pending.length) {
+    setTimeout(printNow, 120);
+    return;
+  }
+  var remaining = pending.length;
+  function settled() {
+    remaining--;
+    if (remaining <= 0) setTimeout(printNow, 80);
+  }
+  pending.forEach(function(img) {
+    img.addEventListener('load', settled, { once:true });
+    img.addEventListener('error', settled, { once:true });
+  });
+  // Nunca dejar bloqueada la impresión si el navegador tarda en decodificar
+  // una imagen; normalmente el logo blob de Drive carga casi de inmediato.
+  setTimeout(printNow, 2200);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -17231,9 +17303,7 @@ function printRx(idx) {
       + '</div>' : '';
 
   var fecha = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
-  var logoHtml = cfg.logoImageUrl
-    ? '<img src="'+cfg.logoImageUrl+'" style="height:50px;max-width:130px;object-fit:contain">'
-    : '<span style="font-size:2rem">'+(cfg.logo||'🦷')+'</span>';
+  var logoHtml = _logoHTML(50);
 
   // Usar paciente seleccionado en recetas, o el activo
   var rxPatientIdToUse = _rxPatientId || curId;
@@ -17284,7 +17354,7 @@ function printRx(idx) {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -18694,9 +18764,7 @@ function reprintBudget(patientId, idx) {
   if (!p || !p.budgets || !p.budgets[idx]) return;
   var b = p.budgets[idx];
 
-  var logoHtml = cfg.logoImageUrl
-    ? '<img src="'+cfg.logoImageUrl+'" style="height:44px;object-fit:contain">'
-    : '<span style="font-size:1.8rem">'+(cfg.logo||'🦷')+'</span>';
+  var logoHtml = _logoHTML(44);
 
   var rows = (b.items||[]).map(function(it) {
     var sub = it.price * it.qty;
@@ -18747,7 +18815,7 @@ function reprintBudget(patientId, idx) {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 
@@ -19388,7 +19456,7 @@ function printOdontogramPed() {
   var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 400);
+  _printWindow(w);
 }
 
 
