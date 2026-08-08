@@ -788,6 +788,8 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .pay-del:hover{color:var(--red);}
 .pay-receipt{border:1px solid var(--border-med);background:var(--card);color:var(--blue);border-radius:8px;padding:4px 7px;font-family:inherit;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .pay-receipt:hover{border-color:var(--blue);background:var(--blue-pale);transform:translateY(-1px);}
+.pay-edit{border:0;background:transparent;color:var(--ink-4);border-radius:7px;padding:4px 5px;font-family:inherit;font-size:.75rem;cursor:pointer;transition:all .15s;}
+.pay-edit:hover{color:var(--blue);background:var(--blue-pale);}
 .pay-summary{display:flex;justify-content:space-between;align-items:baseline;padding:10px 13px;border-radius:var(--r-sm);margin-top:8px;}
 .pay-summary.owe{background:var(--red-bg);border:1px solid rgba(255,59,48,.2);}
 .pay-summary.paid{background:var(--green-bg);border:1px solid rgba(52,199,89,.25);}
@@ -4325,7 +4327,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🖼️</span><span style="font-size:.79rem;line-height:1.45"><strong>Logo en documentos:</strong> el logotipo configurado aparece en presupuestos, recetas, consentimientos, historias clínicas, indicaciones, odontogramas y reportes guardados como PDF.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Recibos de pago:</strong> cada abono permite imprimir o guardar un comprobante con logo, folio, concepto, monto en número y letra, forma de pago y firmas.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Recibos de pago editables:</strong> cada abono permite corregir concepto, monto, fecha y forma de pago antes de imprimir un comprobante con logo, folio, monto en número y letra y firmas.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -5316,7 +5318,8 @@ body.app-ready #dash-page.active > .card {
           <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">
             <input type="text" id="pay-desc" placeholder="Descripción" style="flex:1;min-width:100px;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg)">
             <input type="number" id="pay-amt" placeholder="$ Monto" style="width:86px;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg)">
-            <select id="pay-type" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg);-webkit-appearance:none">
+            <input type="date" id="pay-date" title="Fecha del movimiento" style="width:132px;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.75rem;background:var(--bg)">
+            <select id="pay-type" onchange="updateNewPaymentMethodState()" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg);-webkit-appearance:none">
               <option value="in">Abono ✅</option>
               <option value="out">Cargo 📋</option>
             </select>
@@ -5478,6 +5481,30 @@ body.app-ready #dash-page.active > .card {
       <button class="btn btn-ghost btn-sm" onclick="closeBudgetDoc()">Cerrar</button>
       <button class="btn btn-primary btn-sm" onclick="saveBudgetToPatient()" id="btn-save-budget" style="background:var(--blue)">💾 Guardar en paciente</button>
       <button class="btn btn-dark btn-sm" onclick="printBudget()">🖨️ Imprimir / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR PAGO / ABONO -->
+<div class="overlay" id="payment-edit-overlay">
+  <div class="overlay-box" style="max-width:500px">
+    <div class="ob-header">
+      <div><h2>✏️ Editar movimiento</h2><p style="font-size:.75rem;color:var(--ink-3);margin-top:3px">Los cambios también se reflejarán en Caja y en el recibo.</p></div>
+      <button class="ob-close" onclick="closePaymentEditor()">✕</button>
+    </div>
+    <div class="ob-body">
+      <div class="fgrid" style="gap:12px">
+        <div class="fg full"><label>Concepto</label><input type="text" id="pay-edit-desc"></div>
+        <div class="fg"><label>Monto</label><input type="number" id="pay-edit-amount" min="0.01" step="0.01"></div>
+        <div class="fg"><label>Fecha</label><input type="date" id="pay-edit-date"></div>
+        <div class="fg"><label>Tipo de movimiento</label><select id="pay-edit-type" onchange="updatePaymentEditMethodState()"><option value="in">Abono recibido</option><option value="out">Cargo al paciente</option></select></div>
+        <div class="fg"><label>Forma de pago</label><select id="pay-edit-method"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option><option value="Cheque">Cheque</option><option value="Otro">Otro</option><option value="No especificado">No especificado</option></select></div>
+      </div>
+      <div id="pay-edit-note" style="margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--blue-pale);color:var(--blue);font-size:.72rem;line-height:1.5">Los abonos entran a Caja. Los cargos solo aumentan el saldo pendiente.</div>
+    </div>
+    <div class="ob-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closePaymentEditor()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="savePaymentEdit()">💾 Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -8376,6 +8403,9 @@ function renderPayments(p) {
   const list = document.getElementById('pay-list');
   const sumBox = document.getElementById('pay-summary-box');
   const badge = document.getElementById('pay-badge');
+  const dateInput = document.getElementById('pay-date');
+  if (dateInput && !dateInput.value) dateInput.value = todayStr();
+  updateNewPaymentMethodState();
   if (!list) return;
   if (!pays.length) { list.innerHTML = '<p style="font-size:.8rem;color:var(--ink-3)">Sin movimientos registrados.</p>'; }
   else {
@@ -8388,6 +8418,7 @@ function renderPayments(p) {
         <span class="pay-date">${py.date}</span>
         <span class="pay-desc">${escapeHTML(py.desc||'Pago')}${py.method?'<small style="display:block;font-size:.62rem;color:var(--ink-4);margin-top:1px">'+escapeHTML(py.method)+'</small>':''}</span>
         <span class="pay-amount ${cls}">${sign}${fmt$(py.amount)}</span>
+        <button class="pay-edit" onclick="openPaymentEditor(${i})" title="Editar fecha, concepto, monto o forma de pago">✏️</button>
         ${isIncome?`<button class="pay-receipt" onclick="printPaymentReceiptByIndex(${i})" title="Imprimir o guardar como PDF">🧾 Recibo</button>`:''}
         <button class="pay-del" onclick="delPayment(${i})">✕</button>
       </div>`;
@@ -8408,31 +8439,145 @@ function renderPayments(p) {
   }
 }
 
+function updateNewPaymentMethodState() {
+  var typeEl = document.getElementById('pay-type');
+  var methodEl = document.getElementById('pay-method');
+  if (!typeEl || !methodEl) return;
+  var isIncome = typeEl.value === 'in' || typeEl.value === 'ing';
+  methodEl.disabled = !isIncome;
+  methodEl.title = isIncome ? 'Forma de pago' : 'Los cargos no tienen forma de pago';
+}
+
 function addPayment() {
   const desc = document.getElementById('pay-desc').value.trim();
   const amt  = parseFloat(document.getElementById('pay-amt').value);
   const type = document.getElementById('pay-type').value;
+  const dateEl = document.getElementById('pay-date');
+  const paymentDate = dateEl && dateEl.value ? dateEl.value : todayStr();
   const methodEl = document.getElementById('pay-method');
   const method = methodEl ? methodEl.value : 'No especificado';
   if (!desc || !amt || amt <= 0) { alert('Ingresa descripción y monto.'); return; }
   const p = db.patients.find(x => x.id == curId); if (!p) return;
   if (!p.payments) p.payments = [];
   const payId = Date.now();
-  const today = todayStr();
-  p.payments.push({ id: payId, date: today, desc, amount: amt, type, method: (type === 'in' || type === 'ing') ? method : '' });
+  p.payments.push({ id: payId, date: paymentDate, desc, amount: amt, type, method: (type === 'in' || type === 'ing') ? method : '' });
   saveDB();
   // Solo un abono representa dinero real que entró al consultorio.
   // Un cargo aumenta el adeudo del paciente, pero NO es un egreso de Caja.
   if (type === 'in' || type === 'ing') {
     var cajaData = cajaLoad();
-    cajaData.push({id:payId,tipo:'ing',desc:desc,monto:amt,cat:'abono',fecha:today,notas:p.name,method:method,_patientId:p.id,_payId:payId,_updatedAt:Date.now()});
+    cajaData.push({id:payId,tipo:'ing',desc:desc,monto:amt,cat:'abono',fecha:paymentDate,notas:p.name,method:method,_patientId:p.id,_payId:payId,_updatedAt:Date.now()});
     cajaSave(cajaData);
   }
   document.getElementById('pay-desc').value = '';
   document.getElementById('pay-amt').value = '';
+  if (dateEl) dateEl.value = todayStr();
   renderPayments(p);
   renderDashboard();
   showToast(type === 'in' ? '+ Abono registrado y enviado a Caja' : 'Cargo adicional registrado en el saldo del paciente', 'green');
+}
+
+var _paymentEditIndex = -1;
+
+function updatePaymentEditMethodState() {
+  var typeEl = document.getElementById('pay-edit-type');
+  var methodEl = document.getElementById('pay-edit-method');
+  var noteEl = document.getElementById('pay-edit-note');
+  if (!typeEl || !methodEl) return;
+  var isIncome = typeEl.value === 'in' || typeEl.value === 'ing';
+  methodEl.disabled = !isIncome;
+  if (noteEl) noteEl.textContent = isIncome
+    ? 'Este abono aparecerá en Caja y podrá generar un recibo con la fecha y forma de pago seleccionadas.'
+    : 'Este cargo aumenta el saldo pendiente, pero no representa dinero recibido y no aparece como ingreso en Caja.';
+}
+
+function openPaymentEditor(index) {
+  var patient = db.patients.find(function(item){ return item.id == curId; });
+  var payment = patient && Array.isArray(patient.payments) ? patient.payments[index] : null;
+  if (!payment) return;
+  _paymentEditIndex = index;
+  document.getElementById('pay-edit-desc').value = payment.desc || '';
+  document.getElementById('pay-edit-amount').value = Number(payment.amount || 0);
+  document.getElementById('pay-edit-date').value = payment.date || todayStr();
+  document.getElementById('pay-edit-type').value = (payment.type === 'in' || payment.type === 'ing') ? 'in' : 'out';
+  var methodEl = document.getElementById('pay-edit-method');
+  var method = payment.method || 'No especificado';
+  var hasMethod = Array.from(methodEl.options).some(function(option){ return option.value === method; });
+  if (!hasMethod) methodEl.add(new Option(method, method));
+  methodEl.value = method;
+  updatePaymentEditMethodState();
+  document.getElementById('payment-edit-overlay').classList.add('open');
+}
+
+function closePaymentEditor() {
+  _paymentEditIndex = -1;
+  var overlay = document.getElementById('payment-edit-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function syncPaymentToCaja(patient, payment) {
+  if (!patient || !payment || payment.id === undefined || payment.id === null) return;
+  var paymentId = String(payment.id);
+  var currentRows = cajaLoad();
+  var linkedRows = currentRows.filter(function(row){ return String(row._payId) === paymentId; });
+  var trash = cajaLoadTrash();
+  var isIncome = payment.type === 'in' || payment.type === 'ing';
+
+  if (!isIncome) {
+    linkedRows.forEach(function(row){ trash[String(row.id)] = Date.now(); });
+    trash[paymentId] = Date.now();
+    appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(trash));
+    cajaSave(cajaLoad().filter(function(row){ return String(row._payId) !== paymentId; }));
+    return;
+  }
+
+  delete trash[paymentId];
+  linkedRows.forEach(function(row){ delete trash[String(row.id)]; });
+  appStorage.setItem(CAJA_TRASH_KEY, JSON.stringify(trash));
+  var previous = linkedRows[0] || {};
+  var rows = cajaLoad().filter(function(row){ return String(row._payId) !== paymentId; });
+  rows.push(Object.assign({}, previous, {
+    id: payment.id,
+    tipo: 'ing',
+    desc: payment.desc || 'Abono de tratamiento dental',
+    monto: Number(payment.amount || 0),
+    cat: 'abono',
+    fecha: payment.date || todayStr(),
+    notas: patient.name || '',
+    method: payment.method || 'No especificado',
+    _patientId: patient.id,
+    _payId: payment.id,
+    _updatedAt: Date.now()
+  }));
+  cajaSave(rows);
+}
+
+function savePaymentEdit() {
+  var patient = db.patients.find(function(item){ return item.id == curId; });
+  var payment = patient && Array.isArray(patient.payments) ? patient.payments[_paymentEditIndex] : null;
+  if (!payment) { closePaymentEditor(); return; }
+  var desc = (document.getElementById('pay-edit-desc').value || '').trim();
+  var amount = parseFloat(document.getElementById('pay-edit-amount').value);
+  var date = document.getElementById('pay-edit-date').value;
+  var type = document.getElementById('pay-edit-type').value;
+  var method = document.getElementById('pay-edit-method').value || 'No especificado';
+  if (!desc || !amount || amount <= 0 || !date) {
+    showToast('Completa concepto, monto y fecha', 'red');
+    return;
+  }
+  payment.desc = desc;
+  payment.amount = amount;
+  payment.date = date;
+  payment.type = type === 'in' || type === 'ing' ? 'in' : 'out';
+  payment.method = payment.type === 'in' ? method : '';
+  payment._updatedAt = Date.now();
+  syncPaymentToCaja(patient, payment);
+  saveDB();
+  closePaymentEditor();
+  renderPayments(patient);
+  renderDashboard();
+  if (typeof cajaRender === 'function' && document.getElementById('caja-list')) cajaRender();
+  showToast('✓ Movimiento actualizado en el expediente y en Caja', 'green');
 }
 
 function delPayment(idx) {
@@ -14038,7 +14183,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260807-24', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260807-25', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -14058,7 +14203,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260807_24';
+      var refreshKey = 'dental_sw_refreshed_20260807_25';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -14364,7 +14509,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_payment_receipt_v24';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_payment_editor_v25';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -20731,7 +20876,7 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Indica si fue pagado: el sistema registra automáticamente el abono y el ingreso en Caja; si no, conserva la deuda.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
-          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Recibos de pago</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar un abono elige efectivo, transferencia, tarjeta, cheque u otro. Después toca <strong>🧾 Recibo</strong> junto al pago, o el icono 🧾 dentro de Caja, para imprimirlo o guardarlo como PDF. Incluye logo, folio, monto en número y letra, concepto, forma de pago y firmas.</div></div>
+          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Recibos de pago</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar un abono elige la fecha y la forma de pago. Usa <strong>✏️</strong> para corregir cualquier movimiento anterior y <strong>🧾 Recibo</strong> para imprimirlo o guardarlo como PDF. Los cambios se reflejan también en Caja.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción por doctor</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Reportes → Producción por doctor</strong> consulta tratamientos realizados, cantidades, precios y pago calculado. El porcentaje es personalizable por doctor y también puede ajustarse en cada registro. Puedes registrar trabajo manualmente si no nació desde el plan.</div></div>
