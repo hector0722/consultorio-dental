@@ -796,6 +796,30 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .pay-summary.zero{background:var(--bg);border:1px solid var(--border);}
 .ps-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
 .ps-amount{font-size:1.35rem;font-weight:800;letter-spacing:-.04em;}
+/* ━━━━ RECIBOS Y CORTES ━━━━ */
+.receipt-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 24px;margin-bottom:16px;border-radius:var(--r-lg);color:#fff;background:linear-gradient(135deg,#111827,#15314c 58%,#0b6e69);box-shadow:0 18px 44px rgba(15,23,42,.18);overflow:hidden;position:relative;}
+.receipt-hero:after{content:'🧾';position:absolute;right:26%;top:-25px;font-size:8rem;opacity:.07;transform:rotate(-12deg);}
+.receipt-hero h3{font-size:1.35rem;margin:0 0 5px;letter-spacing:-.03em;}
+.receipt-hero p{font-size:.79rem;line-height:1.55;color:rgba(255,255,255,.72);margin:0;max-width:620px;}
+.receipt-filters{display:flex;align-items:end;gap:9px;flex-wrap:wrap;}
+.receipt-filter-field label{display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-4);margin:0 0 4px 3px;}
+.receipt-filter-field input,.receipt-filter-field select{padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);background:var(--card);color:var(--ink);font:inherit;font-size:.78rem;}
+.receipt-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0;}
+.receipt-kpi{padding:15px 16px;border:1px solid var(--border);background:var(--card);border-radius:var(--r-md);box-shadow:var(--sh-sm);}
+.receipt-kpi small{display:block;font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);font-weight:750;margin-bottom:5px;}
+.receipt-kpi strong{font-size:1.15rem;letter-spacing:-.035em;}
+.receipt-history-row{display:grid;grid-template-columns:100px 145px minmax(180px,1fr) 120px 105px 120px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:.76rem;}
+.receipt-history-row:last-child{border-bottom:0;}
+.receipt-history-head{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;font-weight:750;color:var(--ink-4);background:var(--bg);}
+.receipt-history-concepts{font-weight:650;line-height:1.35;}
+.receipt-history-concepts small{display:block;color:var(--ink-4);font-weight:500;margin-top:2px;}
+.receipt-history-actions{display:flex;gap:5px;justify-content:flex-end;}
+.receipt-line{display:grid;grid-template-columns:minmax(0,1fr) 120px 34px;gap:7px;align-items:center;margin-bottom:7px;}
+.receipt-line input{width:100%;padding:9px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font:inherit;font-size:.8rem;background:var(--bg);color:var(--ink);}
+.receipt-line input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
+.receipt-line-del{width:32px;height:32px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--red);cursor:pointer;}
+@media(max-width:900px){.receipt-kpis{grid-template-columns:1fr 1fr}.receipt-history-row{grid-template-columns:84px 1fr 95px}.receipt-history-row>:nth-child(2),.receipt-history-row>:nth-child(4){display:none}.receipt-history-actions{grid-column:3}.receipt-hero{align-items:flex-start;flex-direction:column}.receipt-hero:after{right:4%;}}
+@media(max-width:560px){.receipt-kpis{grid-template-columns:1fr}.receipt-history-row{grid-template-columns:78px minmax(0,1fr);gap:8px}.receipt-history-row>:nth-child(5){grid-column:1}.receipt-history-actions{grid-column:2}.receipt-line{grid-template-columns:minmax(0,1fr) 90px 32px}}
 /* ━━━━ PLAN TRATAMIENTO ━━━━ */
 .txp-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;transition:background .12s;}
 .txp-item.done{background:var(--green-bg);border-color:rgba(52,199,89,.3);}
@@ -4327,7 +4351,7 @@ body.app-ready #dash-page.active > .card {
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🖼️</span><span style="font-size:.79rem;line-height:1.45"><strong>Logo en documentos:</strong> el logotipo configurado aparece en presupuestos, recetas, consentimientos, historias clínicas, indicaciones, odontogramas y reportes guardados como PDF.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Recibos de pago editables:</strong> cada abono permite corregir concepto, monto, fecha y forma de pago antes de imprimir un comprobante con logo, folio, monto en número y letra y firmas.</span></div>
+      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Centro de recibos:</strong> agrupa varios tratamientos en un comprobante, consulta el historial completo y genera cortes semanales, quincenales, mensuales o personalizados en PDF y CSV.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
       <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
     </div>
@@ -4383,6 +4407,9 @@ body.app-ready #dash-page.active > .card {
     </div>
     <div class="nav-item" onclick="goPage('budget-page',this)">
       <div class="nav-icon">💰</div> Presupuestos
+    </div>
+    <div class="nav-item" onclick="goPage('receipts-page',this)">
+      <div class="nav-icon">🧾</div> Recibos
     </div>
     <div class="sb-section">Herramientas</div>
     <div class="nav-item" onclick="goPage('stats-page',this)">
@@ -5024,6 +5051,32 @@ body.app-ready #dash-page.active > .card {
     </div>
 
     <!-- CAJA PAGE -->
+    <div id="receipts-page" class="page">
+      <div class="receipt-hero">
+        <div><h3>Recibos y cortes</h3><p>Agrupa varios tratamientos en un solo recibo, reimprime comprobantes anteriores y prepara cortes para contabilidad.</p></div>
+        <button class="btn btn-primary" onclick="openReceiptCreator()" style="position:relative;z-index:1;background:#fff;color:#15314c;border-color:#fff">＋ Nuevo recibo</button>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="receipt-filters">
+          <div class="receipt-filter-field"><label>Periodo</label><select id="receipts-period" onchange="receiptsSetPeriod(this.value)"><option value="week">Esta semana</option><option value="fortnight">Esta quincena</option><option value="month" selected>Este mes</option><option value="year">Este año</option><option value="all">Todo el historial</option><option value="custom">Personalizado</option></select></div>
+          <div class="receipt-filter-field"><label>Desde</label><input type="date" id="receipts-from" onchange="receiptsUseCustomRange()"></div>
+          <div class="receipt-filter-field"><label>Hasta</label><input type="date" id="receipts-to" onchange="receiptsUseCustomRange()"></div>
+          <div class="receipt-filter-field"><label>Forma de pago</label><select id="receipts-method" onchange="renderReceiptsPage()"><option value="all">Todas</option><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option><option value="Cheque">Cheque</option><option value="Otro">Otro</option><option value="No especificado">No especificado</option></select></div>
+          <div class="receipt-filter-field" style="flex:1;min-width:180px"><label>Buscar</label><input type="search" id="receipts-search" placeholder="Paciente, concepto o folio…" oninput="renderReceiptsPage()" style="width:100%"></div>
+          <button class="btn btn-ghost btn-sm" onclick="printReceiptsCut()">🖨️ Imprimir corte</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportReceiptsCSV()">⬇️ CSV contador</button>
+        </div>
+      </div>
+
+      <div class="receipt-kpis" id="receipts-kpis"></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:15px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div class="card-title" style="margin:0">Historial de recibos</div><div id="receipts-range-label" style="font-size:.7rem;color:var(--ink-4);margin-top:3px"></div></div><span class="badge b-blue" id="receipts-count-badge"></span></div>
+        <div id="receipts-history"></div>
+      </div>
+    </div>
+
+    <!-- CAJA PAGE -->
     <div id="caja-page" class="page">
 
       <div class="prod-help" style="margin-bottom:16px">
@@ -5331,6 +5384,7 @@ body.app-ready #dash-page.active > .card {
               <option value="Otro">Otro</option>
             </select>
             <button class="btn btn-primary btn-xs" onclick="addPayment()">Registrar</button>
+            <button class="btn btn-ghost btn-xs" onclick="openReceiptCreator(curId)" title="Incluir varios tratamientos en un recibo">🧾 Varios</button>
           </div>
         </div>
       </div>
@@ -5481,6 +5535,32 @@ body.app-ready #dash-page.active > .card {
       <button class="btn btn-ghost btn-sm" onclick="closeBudgetDoc()">Cerrar</button>
       <button class="btn btn-primary btn-sm" onclick="saveBudgetToPatient()" id="btn-save-budget" style="background:var(--blue)">💾 Guardar en paciente</button>
       <button class="btn btn-dark btn-sm" onclick="printBudget()">🖨️ Imprimir / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR PAGO / ABONO -->
+<div class="overlay" id="receipt-new-overlay">
+  <div class="overlay-box" style="max-width:680px">
+    <div class="ob-header">
+      <div><h2 id="receipt-new-title">🧾 Nuevo recibo</h2><p style="font-size:.75rem;color:var(--ink-3);margin-top:3px">Puedes incluir uno o varios tratamientos en el mismo comprobante.</p></div>
+      <button class="ob-close" onclick="closeReceiptCreator()">✕</button>
+    </div>
+    <div class="ob-body">
+      <div class="fgrid" style="gap:12px;margin-bottom:14px">
+        <div class="fg full"><label>Paciente</label><select id="receipt-new-patient" onchange="receiptPatientChanged()"></select></div>
+        <div class="fg"><label>Fecha del pago</label><input type="date" id="receipt-new-date"></div>
+        <div class="fg"><label>Forma de pago</label><select id="receipt-new-method"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option><option value="Cheque">Cheque</option><option value="Otro">Otro</option><option value="No especificado">No especificado</option></select></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)">Tratamientos / conceptos</div><button class="btn btn-ghost btn-xs" onclick="receiptAddLine()">＋ Agregar concepto</button></div>
+      <datalist id="receipt-treatment-options"></datalist>
+      <div id="receipt-lines"></div>
+      <div style="display:flex;justify-content:flex-end;padding:10px 2px 14px;border-top:1px solid var(--border);margin-top:10px"><span style="font-size:.75rem;color:var(--ink-3);margin-right:12px">Total del recibo</span><strong id="receipt-draft-total" style="font-size:1.25rem">$0 MXN</strong></div>
+      <div class="fg"><label>Nota adicional (opcional)</label><textarea id="receipt-new-note" rows="2" placeholder="Ej. Pago parcial, número de referencia…"></textarea></div>
+    </div>
+    <div class="ob-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeReceiptCreator()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="saveReceiptDraft()">💾 Guardar recibo</button>
     </div>
   </div>
 </div>
@@ -6324,7 +6404,7 @@ function goPage(id, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
-  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
+  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','receipts-page':'Recibos y cortes','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
   document.getElementById('topbar-title').textContent = map[id] || '';
   document.getElementById('btn-add').style.display = id === 'list-page' ? '' : 'none';
   closeMobileNav();
@@ -6346,6 +6426,7 @@ function goPage(id, el) {
       renderCombo('budget-patient-search','budget-patient-dropdown','budget-patient-sel',null);
     },150);
   }
+  if (id === 'receipts-page' && typeof receiptsInit === 'function') receiptsInit();
   if (id === 'agenda-page') {
     populateApptSelect();
     // Importar eventos nuevos de Calendar al abrir la agenda
@@ -8495,6 +8576,10 @@ function openPaymentEditor(index) {
   var patient = db.patients.find(function(item){ return item.id == curId; });
   var payment = patient && Array.isArray(patient.payments) ? patient.payments[index] : null;
   if (!payment) return;
+  if (Array.isArray(payment.receiptItems) && payment.receiptItems.length > 1) {
+    openReceiptCreator(patient.id, index);
+    return;
+  }
   _paymentEditIndex = index;
   document.getElementById('pay-edit-desc').value = payment.desc || '';
   document.getElementById('pay-edit-amount').value = Number(payment.amount || 0);
@@ -8570,6 +8655,9 @@ function savePaymentEdit() {
   payment.date = date;
   payment.type = type === 'in' || type === 'ing' ? 'in' : 'out';
   payment.method = payment.type === 'in' ? method : '';
+  if (Array.isArray(payment.receiptItems) && payment.receiptItems.length === 1) {
+    payment.receiptItems = [{desc:desc,amount:amount}];
+  }
   payment._updatedAt = Date.now();
   syncPaymentToCaja(patient, payment);
   saveDB();
@@ -8597,6 +8685,374 @@ function delPayment(idx) {
   }
   renderPayments(p);
   renderDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
+// ★ RECIBOS — MULTICONCEPTO, HISTORIAL Y CORTES
+// ══════════════════════════════════════════════════════════
+var _receiptDraftItems = [];
+var _receiptEditTarget = null;
+
+function receiptItemsForPayment(payment) {
+  var items = Array.isArray(payment && payment.receiptItems) ? payment.receiptItems : [];
+  items = items.filter(function(item){ return item && String(item.desc || '').trim() && Number(item.amount) > 0; });
+  if (!items.length && payment) {
+    items = [{ desc: payment.desc || payment.descripcion || 'Abono de tratamiento dental', amount: Number(payment.amount !== undefined ? payment.amount : payment.monto) || 0 }];
+  }
+  return items.map(function(item){ return { desc:String(item.desc || '').trim(), amount:Number(item.amount) || 0 }; });
+}
+
+function receiptDateRange(mode) {
+  var now = new Date();
+  var year = now.getFullYear(), month = now.getMonth(), day = now.getDate();
+  var start, end;
+  if (mode === 'week') {
+    var mondayOffset = (now.getDay() + 6) % 7;
+    start = new Date(year, month, day - mondayOffset);
+    end = new Date(year, month, day + (6 - mondayOffset));
+  } else if (mode === 'fortnight') {
+    start = new Date(year, month, day <= 15 ? 1 : 16);
+    end = day <= 15 ? new Date(year, month, 15) : new Date(year, month + 1, 0);
+  } else if (mode === 'year') {
+    start = new Date(year, 0, 1); end = new Date(year, 11, 31);
+  } else if (mode === 'all') {
+    return { from:'', to:'' };
+  } else {
+    start = new Date(year, month, 1); end = new Date(year, month + 1, 0);
+  }
+  return { from:fmtDate(start), to:fmtDate(end) };
+}
+
+function receiptsInit() {
+  var period = document.getElementById('receipts-period');
+  var from = document.getElementById('receipts-from');
+  var to = document.getElementById('receipts-to');
+  if (!period || !from || !to) return;
+  if (!from.value && !to.value) receiptsSetPeriod(period.value || 'month');
+  else renderReceiptsPage();
+}
+
+function receiptsSetPeriod(mode) {
+  var from = document.getElementById('receipts-from');
+  var to = document.getElementById('receipts-to');
+  if (!from || !to) return;
+  if (mode !== 'custom') {
+    var range = receiptDateRange(mode);
+    from.value = range.from;
+    to.value = range.to;
+  }
+  renderReceiptsPage();
+}
+
+function receiptsUseCustomRange() {
+  var period = document.getElementById('receipts-period');
+  if (period) period.value = 'custom';
+  renderReceiptsPage();
+}
+
+function receiptAllHistory() {
+  var result = [];
+  (db.patients || []).forEach(function(patient) {
+    (patient.payments || []).forEach(function(payment, paymentIndex) {
+      if (!(payment.type === 'in' || payment.type === 'ing')) return;
+      result.push({
+        patient:patient,
+        patientId:patient.id,
+        payment:payment,
+        paymentIndex:paymentIndex,
+        date:payment.date || todayStr(),
+        method:_paymentMethodLabel(payment.method),
+        amount:Number(payment.amount || 0),
+        items:receiptItemsForPayment(payment),
+        folio:_paymentReceiptFolio(payment)
+      });
+    });
+  });
+  return result.sort(function(a,b) {
+    return String(b.date).localeCompare(String(a.date)) || String(b.payment.id || '').localeCompare(String(a.payment.id || ''));
+  });
+}
+
+function receiptsFilteredHistory() {
+  var fromEl = document.getElementById('receipts-from');
+  var toEl = document.getElementById('receipts-to');
+  var methodEl = document.getElementById('receipts-method');
+  var searchEl = document.getElementById('receipts-search');
+  var from = fromEl ? fromEl.value : '';
+  var to = toEl ? toEl.value : '';
+  var method = methodEl ? methodEl.value : 'all';
+  var query = searchEl ? String(searchEl.value || '').trim().toLowerCase() : '';
+  return receiptAllHistory().filter(function(entry) {
+    if (from && entry.date < from) return false;
+    if (to && entry.date > to) return false;
+    if (method !== 'all' && entry.method !== method) return false;
+    if (query) {
+      var haystack = [entry.patient.name, entry.folio, entry.method]
+        .concat(entry.items.map(function(item){ return item.desc; })).join(' ').toLowerCase();
+      if (haystack.indexOf(query) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function receiptsPeriodLabel() {
+  var from = (document.getElementById('receipts-from') || {}).value || '';
+  var to = (document.getElementById('receipts-to') || {}).value || '';
+  function pretty(value) {
+    if (!value) return '';
+    var date = new Date(value + 'T12:00:00');
+    return isNaN(date.getTime()) ? value : date.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+  }
+  if (!from && !to) return 'Todo el historial disponible';
+  return (from ? pretty(from) : 'Inicio') + ' — ' + (to ? pretty(to) : 'Hoy');
+}
+
+function renderReceiptsPage() {
+  var historyEl = document.getElementById('receipts-history');
+  if (!historyEl) return;
+  var entries = receiptsFilteredHistory();
+  var total = entries.reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var cash = entries.filter(function(entry){ return entry.method === 'Efectivo'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var bank = entries.filter(function(entry){ return entry.method === 'Transferencia' || entry.method === 'Tarjeta'; }).reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var kpis = document.getElementById('receipts-kpis');
+  if (kpis) kpis.innerHTML = ''
+    + '<div class="receipt-kpi"><small>Recibos del corte</small><strong>' + entries.length + '</strong></div>'
+    + '<div class="receipt-kpi"><small>Total cobrado</small><strong style="color:#248a3d">' + fmt$(total) + '</strong></div>'
+    + '<div class="receipt-kpi"><small>Efectivo</small><strong>' + fmt$(cash) + '</strong></div>'
+    + '<div class="receipt-kpi"><small>Transferencia + tarjeta</small><strong>' + fmt$(bank) + '</strong></div>';
+  var label = document.getElementById('receipts-range-label');
+  if (label) label.textContent = receiptsPeriodLabel();
+  var badge = document.getElementById('receipts-count-badge');
+  if (badge) badge.textContent = entries.length + (entries.length === 1 ? ' recibo' : ' recibos');
+  if (!entries.length) {
+    historyEl.innerHTML = '<div class="empty" style="padding:44px 20px"><div class="empty-icon">🧾</div><p>No hay recibos en este periodo</p></div>';
+    return;
+  }
+  var head = '<div class="receipt-history-row receipt-history-head"><span>Fecha</span><span>Folio</span><span>Paciente / conceptos</span><span>Forma de pago</span><span>Monto</span><span></span></div>';
+  historyEl.innerHTML = head + entries.map(function(entry) {
+    var encodedPatient = encodeURIComponent(String(entry.patientId));
+    var concepts = entry.items.map(function(item){ return item.desc; });
+    var summary = concepts.slice(0,2).join(' · ') + (concepts.length > 2 ? ' +' + (concepts.length - 2) + ' más' : '');
+    var date = new Date(entry.date + 'T12:00:00');
+    var dateText = isNaN(date.getTime()) ? entry.date : date.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+    return '<div class="receipt-history-row">'
+      + '<span>' + escapeHTML(dateText) + '</span>'
+      + '<span style="font-size:.68rem;color:var(--ink-4)">' + escapeHTML(entry.folio) + '</span>'
+      + '<span class="receipt-history-concepts">' + escapeHTML(entry.patient.name || 'Paciente') + '<small>' + escapeHTML(summary) + '</small></span>'
+      + '<span>' + escapeHTML(entry.method) + '</span>'
+      + '<strong style="color:#248a3d">' + fmt$(entry.amount) + '</strong>'
+      + '<span class="receipt-history-actions"><button class="btn btn-ghost btn-xs" onclick="openReceiptCreatorEncoded(\'' + encodedPatient + '\',' + entry.paymentIndex + ')" title="Editar recibo">✏️</button><button class="btn btn-primary btn-xs" onclick="printReceiptFromHistory(\'' + encodedPatient + '\',' + entry.paymentIndex + ')">🧾 PDF</button></span>'
+      + '</div>';
+  }).join('');
+}
+
+function populateReceiptPatients(selectedId) {
+  var select = document.getElementById('receipt-new-patient');
+  if (!select) return;
+  var patients = (db.patients || []).slice().sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''),'es'); });
+  select.innerHTML = '<option value="">Selecciona un paciente…</option>' + patients.map(function(patient) {
+    return '<option value="' + escapeHTML(String(patient.id)) + '">' + escapeHTML(patient.name || 'Sin nombre') + '</option>';
+  }).join('');
+  if (selectedId !== undefined && selectedId !== null) select.value = String(selectedId);
+}
+
+function openReceiptCreatorEncoded(encodedPatient, paymentIndex) {
+  openReceiptCreator(decodeURIComponent(encodedPatient), paymentIndex);
+}
+
+function openReceiptCreator(patientId, paymentIndex) {
+  var editing = paymentIndex !== undefined && paymentIndex !== null && patientId !== undefined && patientId !== null;
+  var patient = editing ? db.patients.find(function(item){ return String(item.id) === String(patientId); }) : null;
+  var payment = patient && Array.isArray(patient.payments) ? patient.payments[paymentIndex] : null;
+  _receiptEditTarget = payment ? { patientId:patient.id, paymentIndex:Number(paymentIndex) } : null;
+  populateReceiptPatients(patientId);
+  var patientSelect = document.getElementById('receipt-new-patient');
+  patientSelect.disabled = !!payment;
+  document.getElementById('receipt-new-title').textContent = payment ? '✏️ Editar recibo' : '🧾 Nuevo recibo';
+  document.getElementById('receipt-new-date').value = payment ? (payment.date || todayStr()) : todayStr();
+  var methodSelect = document.getElementById('receipt-new-method');
+  var selectedMethod = payment ? _paymentMethodLabel(payment.method) : 'Efectivo';
+  if (!Array.from(methodSelect.options).some(function(option){ return option.value === selectedMethod; })) {
+    methodSelect.add(new Option(selectedMethod, selectedMethod));
+  }
+  methodSelect.value = selectedMethod;
+  document.getElementById('receipt-new-note').value = payment ? (payment.receiptNote || '') : '';
+  _receiptDraftItems = payment ? receiptItemsForPayment(payment) : [{desc:'',amount:0},{desc:'',amount:0}];
+  receiptPatientChanged(false);
+  renderReceiptDraftItems();
+  document.getElementById('receipt-new-overlay').classList.add('open');
+}
+
+function closeReceiptCreator() {
+  var overlay = document.getElementById('receipt-new-overlay');
+  if (overlay) overlay.classList.remove('open');
+  _receiptEditTarget = null;
+  _receiptDraftItems = [];
+}
+
+function receiptSuggestionItems() {
+  var patientId = (document.getElementById('receipt-new-patient') || {}).value;
+  var patient = (db.patients || []).find(function(item){ return String(item.id) === String(patientId); });
+  var result = [], seen = {};
+  function add(name, price) {
+    name = String(name || '').trim();
+    if (!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()] = true;
+    result.push({name:name,price:Number(price) || 0});
+  }
+  (patient && patient.treatmentPlan || []).forEach(function(item){ add(item.name, Number(item.price || 0) * Number(item.qty || 1)); });
+  (typeof CATALOG !== 'undefined' && Array.isArray(CATALOG) ? CATALOG : []).forEach(function(category) {
+    (category.items || []).forEach(function(item){ if (!item._hidden) add(item.name, item.price); });
+  });
+  return result;
+}
+
+function receiptPatientChanged(resetAmounts) {
+  var dataList = document.getElementById('receipt-treatment-options');
+  if (dataList) dataList.innerHTML = receiptSuggestionItems().map(function(item) {
+    return '<option value="' + escapeHTML(item.name) + '">' + escapeHTML(fmt$(item.price)) + '</option>';
+  }).join('');
+  if (resetAmounts === true) renderReceiptDraftItems();
+}
+
+function renderReceiptDraftItems() {
+  var container = document.getElementById('receipt-lines');
+  if (!container) return;
+  if (!_receiptDraftItems.length) _receiptDraftItems.push({desc:'',amount:0});
+  container.innerHTML = _receiptDraftItems.map(function(item,index) {
+    return '<div class="receipt-line">'
+      + '<input type="text" list="receipt-treatment-options" value="' + escapeHTML(item.desc || '') + '" placeholder="Tratamiento o concepto" oninput="receiptUpdateItem(' + index + ',\'desc\',this.value)" onchange="receiptAutofillLine(' + index + ',this.value)">'
+      + '<input type="number" min="0" step="0.01" value="' + (Number(item.amount) || '') + '" placeholder="$ Monto" oninput="receiptUpdateItem(' + index + ',\'amount\',this.value)">'
+      + '<button class="receipt-line-del" type="button" onclick="receiptRemoveLine(' + index + ')" title="Quitar concepto">✕</button></div>';
+  }).join('');
+  renderReceiptDraftTotal();
+}
+
+function receiptUpdateItem(index, field, value) {
+  if (!_receiptDraftItems[index]) return;
+  _receiptDraftItems[index][field] = field === 'amount' ? (parseFloat(value) || 0) : value;
+  renderReceiptDraftTotal();
+}
+
+function receiptAutofillLine(index, value) {
+  var item = _receiptDraftItems[index];
+  if (!item) return;
+  item.desc = value;
+  if (!Number(item.amount)) {
+    var match = receiptSuggestionItems().find(function(suggestion){ return suggestion.name.toLowerCase() === String(value || '').trim().toLowerCase(); });
+    if (match) item.amount = match.price;
+  }
+  renderReceiptDraftItems();
+}
+
+function receiptAddLine(item) {
+  _receiptDraftItems.push(item || {desc:'',amount:0});
+  renderReceiptDraftItems();
+}
+
+function receiptRemoveLine(index) {
+  _receiptDraftItems.splice(index,1);
+  renderReceiptDraftItems();
+}
+
+function renderReceiptDraftTotal() {
+  var total = _receiptDraftItems.reduce(function(sum,item){ return sum + (Number(item.amount) || 0); },0);
+  var element = document.getElementById('receipt-draft-total');
+  if (element) element.textContent = fmt$(total);
+}
+
+function saveReceiptDraft() {
+  var patientId = (document.getElementById('receipt-new-patient') || {}).value;
+  var patient = (db.patients || []).find(function(item){ return String(item.id) === String(patientId); });
+  if (!patient) { showToast('Selecciona un paciente', 'red'); return; }
+  var invalidLine = _receiptDraftItems.some(function(item){ return String(item.desc || '').trim() && !(Number(item.amount) > 0); });
+  var items = _receiptDraftItems.filter(function(item){ return String(item.desc || '').trim() && Number(item.amount) > 0; }).map(function(item){ return {desc:String(item.desc).trim(),amount:Number(item.amount)}; });
+  if (invalidLine || !items.length) { showToast('Cada concepto necesita descripción y monto', 'red'); return; }
+  var date = document.getElementById('receipt-new-date').value;
+  if (!date) { showToast('Selecciona la fecha del pago', 'red'); return; }
+  var method = document.getElementById('receipt-new-method').value || 'No especificado';
+  var note = (document.getElementById('receipt-new-note').value || '').trim();
+  var total = items.reduce(function(sum,item){ return sum + item.amount; },0);
+  if (!Array.isArray(patient.payments)) patient.payments = [];
+  var payment = null;
+  if (_receiptEditTarget && String(_receiptEditTarget.patientId) === String(patient.id)) {
+    payment = patient.payments[_receiptEditTarget.paymentIndex] || null;
+  }
+  if (!payment) {
+    payment = {id:Date.now(),type:'in'};
+    patient.payments.push(payment);
+  }
+  payment.date = date;
+  payment.type = 'in';
+  payment.method = method;
+  payment.amount = total;
+  payment.receiptItems = items;
+  payment.desc = items.map(function(item){ return item.desc; }).join(' + ');
+  payment.receiptNote = note;
+  payment._updatedAt = Date.now();
+  syncPaymentToCaja(patient, payment);
+  saveDB();
+  closeReceiptCreator();
+  if (String(curId) === String(patient.id)) renderPayments(patient);
+  renderDashboard();
+  renderReceiptsPage();
+  showToast('✓ Recibo guardado y disponible en el historial', 'green');
+}
+
+function printReceiptFromHistory(encodedPatient, paymentIndex) {
+  var patientId = decodeURIComponent(encodedPatient);
+  var patient = (db.patients || []).find(function(item){ return String(item.id) === String(patientId); });
+  var payment = patient && patient.payments ? patient.payments[paymentIndex] : null;
+  printPaymentReceipt(patient, payment);
+}
+
+function receiptCutMethodTotals(entries) {
+  var totals = {};
+  entries.forEach(function(entry){ totals[entry.method] = (totals[entry.method] || 0) + entry.amount; });
+  return totals;
+}
+
+function printReceiptsCut() {
+  var entries = receiptsFilteredHistory();
+  if (!entries.length) { showToast('No hay recibos en el periodo seleccionado', 'red'); return; }
+  var total = entries.reduce(function(sum,entry){ return sum + entry.amount; },0);
+  var methods = receiptCutMethodTotals(entries);
+  var methodHtml = Object.keys(methods).sort().map(function(method){ return '<div><span>' + escapeHTML(method) + '</span><strong>' + fmt$(methods[method]) + '</strong></div>'; }).join('');
+  var rows = entries.map(function(entry) {
+    return '<tr><td>' + escapeHTML(entry.date) + '</td><td>' + escapeHTML(entry.folio) + '</td><td>' + escapeHTML(entry.patient.name || '') + '</td><td>' + escapeHTML(entry.items.map(function(item){return item.desc;}).join(' · ')) + '</td><td>' + escapeHTML(entry.method) + '</td><td class="num">' + fmt$(entry.amount) + '</td></tr>';
+  }).join('');
+  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Corte de recibos</title><style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#171717;margin:0;padding:28px;font-size:10px}.top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border-bottom:2px solid #171717;padding-bottom:14px}.clinic{font-size:17px;font-weight:800}.muted{color:#666;margin-top:3px}.title{margin:20px 0 13px}.title h1{font-size:21px;margin:0 0 4px}.summary{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;margin-bottom:18px}.total{background:#171717;color:#fff;border-radius:12px;padding:15px 17px}.total strong{display:block;font-size:24px;margin-top:4px}.methods{border:1px solid #ddd;border-radius:12px;padding:9px 14px}.methods div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.methods div:last-child{border:0}table{width:100%;border-collapse:collapse}th{text-align:left;background:#f1f3f5;padding:8px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.05em}td{padding:8px 7px;border-bottom:1px solid #e5e5e5;vertical-align:top}.num{text-align:right;font-weight:800;white-space:nowrap}.footer{margin-top:20px;border-top:1px solid #ddd;padding-top:8px;color:#777;text-align:center}@media print{@page{size:landscape;margin:10mm}body{padding:0}}</style></head><body>'
+    + '<div class="top"><div data-print-logo-slot>' + _logoHTML(52) + '</div><div><div class="clinic">' + escapeHTML(cfg.name || 'Consultorio Dental') + '</div><div class="muted">' + escapeHTML(cfg.sub || cfg.specialty || '') + '</div></div><div style="text-align:right"><strong>CORTE DE RECIBOS</strong><div class="muted">Generado ' + escapeHTML(new Date().toLocaleString('es-MX')) + '</div></div></div>'
+    + '<div class="title"><h1>Cobros y recibos</h1><div class="muted">' + escapeHTML(receiptsPeriodLabel()) + ' · ' + entries.length + (entries.length === 1 ? ' recibo' : ' recibos') + '</div></div>'
+    + '<div class="summary"><div class="total">Total cobrado<strong>' + fmt$(total) + '</strong></div><div class="methods">' + methodHtml + '</div></div>'
+    + '<table><thead><tr><th>Fecha</th><th>Folio</th><th>Paciente</th><th>Conceptos</th><th>Forma de pago</th><th style="text-align:right">Monto</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<div class="footer">Corte administrativo de recibos internos. Verificar contra Caja y comprobantes bancarios.</div></body></html>';
+  var w = window.open('', '_blank');
+  if (!w) { showToast('⚠️ Permite ventanas emergentes para imprimir el corte', 'red'); return; }
+  w.document.write(html); w.document.close(); _printWindow(w);
+}
+
+function receiptCSVCell(value) {
+  var text = String(value === undefined || value === null ? '' : value);
+  if (/^[=+\-@]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g,'""') + '"';
+}
+
+function exportReceiptsCSV() {
+  var entries = receiptsFilteredHistory();
+  if (!entries.length) { showToast('No hay recibos para exportar', 'red'); return; }
+  var lines = [['Fecha','Folio','Paciente','Conceptos','Forma de pago','Monto MXN']].concat(entries.map(function(entry) {
+    return [entry.date,entry.folio,entry.patient.name || '',entry.items.map(function(item){return item.desc;}).join(' | '),entry.method,entry.amount.toFixed(2)];
+  }));
+  var csv = '\ufeff' + lines.map(function(row){ return row.map(receiptCSVCell).join(','); }).join('\r\n');
+  var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'corte-recibos-' + todayStr() + '.csv';
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+  showToast('✓ Corte CSV listo para contabilidad', 'green');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -8671,8 +9127,12 @@ function printPaymentReceipt(patient, payment, options) {
   var clinicEmail = escapeHTML(cfg.email || cfg.correo || '');
   var rfc = escapeHTML(cfg.rfc || '');
   var folio = _paymentReceiptFolio(payment);
-  var concept = escapeHTML(payment.desc || payment.descripcion || 'Abono de tratamiento dental');
+  var receiptItems = receiptItemsForPayment(payment);
+  var receiptItemsRows = receiptItems.map(function(item) {
+    return '<tr><td>' + escapeHTML(item.desc) + '</td><td>' + fmt$(item.amount) + '</td></tr>';
+  }).join('');
   var method = escapeHTML(_paymentMethodLabel(payment.method || payment.metodo));
+  var receiptNote = escapeHTML(payment.receiptNote || 'Pago recibido');
   var patientName = escapeHTML(patient.name || payment.notas || 'Paciente');
   var patientFile = escapeHTML(patient.expediente || patient.hcNumber || ('HC-' + String(patient.id || '').slice(-4)));
   var doctor = (typeof _activeDoctor !== 'undefined' && _activeDoctor)
@@ -8689,13 +9149,14 @@ function printPaymentReceipt(patient, payment, options) {
   }
   var details = [clinicAddress, clinicPhone ? 'Tel. ' + clinicPhone : '', clinicEmail, rfc ? 'RFC ' + rfc : ''].filter(Boolean).join(' · ');
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Recibo ' + folio + '</title>'
-    + '<style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#151515;background:#fff;margin:0;padding:30px;font-size:12px}.receipt{max-width:720px;margin:0 auto;border:1px solid #d6d6d6;border-radius:18px;padding:26px 28px;position:relative}.top{display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center;padding-bottom:17px;border-bottom:2px solid #171717}.clinic{font-size:17px;font-weight:800}.sub{font-size:10px;color:#666;margin-top:3px}.meta{text-align:right;font-size:10px;color:#555;line-height:1.55}.title{display:flex;justify-content:space-between;align-items:flex-end;margin:22px 0 16px}.title h1{font-size:22px;margin:0;letter-spacing:-.03em}.paid{color:#248a3d;font-size:11px;font-weight:800;letter-spacing:.1em}.patient{background:#f4f8fd;border:1px solid #cfe0f5;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:7px 18px}.label{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.07em;font-weight:700}.value{font-size:13px;font-weight:700;margin-top:2px}.amount{margin:18px 0;background:#151515;color:#fff;border-radius:13px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center}.amount strong{font-size:25px}.words{font-size:10px;color:#444;text-align:center;border:1px dashed #bbb;border-radius:9px;padding:9px 11px;text-transform:uppercase}.info{margin-top:17px;display:grid;grid-template-columns:1fr 1fr;gap:11px}.box{border:1px solid #ddd;border-radius:10px;padding:10px 12px;min-height:58px}.balance{margin-top:13px;text-align:center;font-size:10px;color:#555}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:70px;margin-top:48px;text-align:center;font-size:10px}.line{border-top:1px solid #333;padding-top:6px}.legal{margin-top:22px;padding-top:10px;border-top:1px solid #ddd;text-align:center;font-size:8.5px;line-height:1.5;color:#777}@media print{@page{size:letter;margin:12mm}body{padding:0}.receipt{border-color:#aaa;break-inside:avoid}}</style></head><body>'
+    + '<style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#151515;background:#fff;margin:0;padding:30px;font-size:12px}.receipt{max-width:720px;margin:0 auto;border:1px solid #d6d6d6;border-radius:18px;padding:26px 28px;position:relative}.top{display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center;padding-bottom:17px;border-bottom:2px solid #171717}.clinic{font-size:17px;font-weight:800}.sub{font-size:10px;color:#666;margin-top:3px}.meta{text-align:right;font-size:10px;color:#555;line-height:1.55}.title{display:flex;justify-content:space-between;align-items:flex-end;margin:22px 0 16px}.title h1{font-size:22px;margin:0;letter-spacing:-.03em}.paid{color:#248a3d;font-size:11px;font-weight:800;letter-spacing:.1em}.patient{background:#f4f8fd;border:1px solid #cfe0f5;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:7px 18px}.label{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.07em;font-weight:700}.value{font-size:13px;font-weight:700;margin-top:2px}.amount{margin:18px 0;background:#151515;color:#fff;border-radius:13px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center}.amount strong{font-size:25px}.words{font-size:10px;color:#444;text-align:center;border:1px dashed #bbb;border-radius:9px;padding:9px 11px;text-transform:uppercase}.items{width:100%;border-collapse:collapse;margin-top:17px;border:1px solid #ddd;border-radius:10px;overflow:hidden}.items th{padding:8px 11px;background:#f5f5f5;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#666}.items th:last-child,.items td:last-child{text-align:right}.items td{padding:9px 11px;border-top:1px solid #e6e6e6;font-weight:650}.info{margin-top:11px;display:grid;grid-template-columns:1fr 1fr;gap:11px}.box{border:1px solid #ddd;border-radius:10px;padding:10px 12px;min-height:58px}.balance{margin-top:13px;text-align:center;font-size:10px;color:#555}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:70px;margin-top:48px;text-align:center;font-size:10px}.line{border-top:1px solid #333;padding-top:6px}.legal{margin-top:22px;padding-top:10px;border-top:1px solid #ddd;text-align:center;font-size:8.5px;line-height:1.5;color:#777}@media print{@page{size:letter;margin:12mm}body{padding:0}.receipt{border-color:#aaa;break-inside:avoid}}</style></head><body>'
     + '<div class="receipt"><div class="top"><div data-print-logo-slot>' + _logoHTML(58) + '</div><div><div class="clinic">' + clinicName + '</div><div class="sub">' + clinicSub + '</div>' + (details ? '<div class="sub">' + details + '</div>' : '') + '</div><div class="meta"><strong>' + folio + '</strong><br>' + dateLabel + '<br>ORIGINAL · PACIENTE</div></div>'
     + '<div class="title"><h1>Recibo de pago</h1><span class="paid">✓ PAGO RECIBIDO</span></div>'
     + '<div class="patient"><div><div class="label">Recibimos de</div><div class="value">' + patientName + '</div></div><div style="text-align:right"><div class="label">Expediente</div><div class="value">' + patientFile + '</div></div></div>'
     + '<div class="amount"><span>Monto recibido</span><strong>' + fmt$(amount) + '</strong></div>'
     + '<div class="words">' + paymentAmountInWords(amount) + '</div>'
-    + '<div class="info"><div class="box"><div class="label">Concepto</div><div class="value">' + concept + '</div></div><div class="box"><div class="label">Forma de pago</div><div class="value">' + method + '</div></div></div>'
+    + '<table class="items"><thead><tr><th>Tratamiento / concepto</th><th>Importe</th></tr></thead><tbody>' + receiptItemsRows + '</tbody></table>'
+    + '<div class="info"><div class="box"><div class="label">Forma de pago</div><div class="value">' + method + '</div></div><div class="box"><div class="label">Nota</div><div class="value">' + receiptNote + '</div></div></div>'
     + (balanceText ? '<div class="balance">' + escapeHTML(balanceText) + '</div>' : '')
     + '<div class="signatures"><div class="line">' + receivedBy + '<br>Recibió</div><div class="line">Paciente / Responsable<br>Firma</div></div>'
     + '<div class="legal">Comprobante interno de pago por servicios odontológicos. No sustituye una factura o CFDI cuando fiscalmente corresponda.</div></div></body></html>';
@@ -14183,7 +14644,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260807-25', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260807-26', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -14203,7 +14664,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260807_25';
+      var refreshKey = 'dental_sw_refreshed_20260807_26';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -14509,7 +14970,7 @@ function renderBdayList() {
 // ══════════════════════════════════════════════════════════
 // AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_payment_editor_v25';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_receipt_center_v26';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -20876,7 +21337,7 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Flujo recomendado</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.7"><strong>1.</strong> Genera el presupuesto o agrega tratamientos al plan.<br><strong>2.</strong> Marca cada tratamiento cuando se realice.<br><strong>3.</strong> Indica si fue pagado: el sistema registra automáticamente el abono y el ingreso en Caja; si no, conserva la deuda.<br><strong>4.</strong> Revisa Caja para conocer el efectivo y Producción para calcular lo correspondiente a cada doctor.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Cuenta y saldo del paciente</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Un <strong>abono</strong> reduce el saldo y entra automáticamente a Caja como dinero recibido. Un <strong>cargo adicional</strong> aumenta la deuda del paciente, pero no es un egreso de Caja. El expediente indica si el saldo fue calculado con presupuestos, con el plan o si todavía no existe ninguno.</div></div>
-          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Recibos de pago</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar un abono elige la fecha y la forma de pago. Usa <strong>✏️</strong> para corregir cualquier movimiento anterior y <strong>🧾 Recibo</strong> para imprimirlo o guardarlo como PDF. Los cambios se reflejan también en Caja.</div></div>
+          <div style="background:var(--green-bg);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--green)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Centro de recibos</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la pestaña <strong>Recibos</strong> puedes reunir varios tratamientos en un solo comprobante, editar recibos anteriores y reimprimirlos. Filtra por semana, quincena, mes, año o fechas personalizadas; después imprime el corte o descarga el CSV para contabilidad.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Caja: dinero real</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Caja muestra el dinero que realmente entró o salió del consultorio. Los abonos de pacientes aparecen automáticamente. Registra manualmente otros ingresos y egresos como materiales, renta, laboratorio, nómina o gastos generales.</div></div>
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción no es lo mismo que Caja</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Producción</strong> es el valor del trabajo realizado por cada doctor, aunque el paciente aún no haya pagado. <strong>Caja</strong> es el dinero efectivamente cobrado o gastado. Por eso sus totales pueden ser diferentes y ambos pueden estar correctos.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Producción por doctor</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Reportes → Producción por doctor</strong> consulta tratamientos realizados, cantidades, precios y pago calculado. El porcentaje es personalizable por doctor y también puede ajustarse en cada registro. Puedes registrar trabajo manualmente si no nació desde el plan.</div></div>
