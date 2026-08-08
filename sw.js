@@ -1,4 +1,4 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-print-logo-v23';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-payment-receipt-v24';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
