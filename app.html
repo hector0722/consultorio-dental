@@ -5728,7 +5728,7 @@ var appStorage = (function(nativeStorage) {
     if (drivePersistTimer) clearTimeout(drivePersistTimer);
     drivePersistTimer = setTimeout(function() {
       drivePersistTimer = null;
-      if (typeof GD !== 'undefined' && GD && GD.save && GD._token && GD._token()) GD.save();
+      if (typeof GD !== 'undefined' && GD && GD.saveNow && GD._token && GD._token()) GD.saveNow();
     }, 80);
   }
   function isReady() { return nativeStorage.getItem(READY_KEY) === '1'; }
@@ -5973,7 +5973,7 @@ function reloadDriveAuxRuntimeState() {
 }
 
 function persistAuxStateToDrive() {
-  if (typeof GD !== 'undefined' && GD.save && GD._token && GD._token()) GD.save();
+  if (typeof GD !== 'undefined' && GD.saveNow && GD._token && GD._token()) GD.saveNow();
 }
 
 const loadDB = () => {
@@ -6000,12 +6000,10 @@ const loadDB = () => {
     }
   }
 };
-// saveDB conserva el cambio solo en memoria y programa su escritura en Drive.
+// Cada acción que modifica datos inicia su escritura en Drive inmediatamente.
 const saveDB = () => {
-  // Mantener una instantánea temporal durante esta sesión.
-  saveLocalWithAutoBackup();
-  // Programar sync a Drive (debounced)
-  if (typeof GD !== 'undefined' && GD.save) { GD.save(); }
+  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
+  else saveLocalWithAutoBackup();
 };
 
 // Conserva el estado actual y el anterior únicamente en memoria mientras la
@@ -15280,15 +15278,16 @@ var GD = (function() {
   var _lastCfgModifiedTime = '';
   var _lastCatalogModifiedTime = '';
   var _lastMirrorModifiedTime = '';
+  var _lastRemoteCheckAt = 0;
   var _lastRemotePatientCount = null;
   var _mirrorRetryCount = 0;
   var _visibilitySyncInstalled = false;
   var _appInitialized = false;
   var _accountEmail = appStorage.getItem('dental_gd_email') || '';
   var _authInProgress = false;
-  // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
-  // da una actualización casi inmediata sin esperar la recarga de la página.
-  var AUTO_PULL_MS = 3000;
+  // Drive no ofrece sockets en una app estática. Consultar cada dos segundos
+  // permite que el segundo dispositivo reciba pronto los cambios confirmados.
+  var AUTO_PULL_MS = 2000;
   // Evitar que una respuesta lenta deje la interfaz indefinidamente en
   // "Guardando…".
   var DRIVE_REQUEST_TIMEOUT_MS = 12000;
@@ -16228,7 +16227,7 @@ var GD = (function() {
     _catalogDirty = true;
     if (_catalogSaveTimer) clearTimeout(_catalogSaveTimer);
     if (immediate) _doSaveCatalog();
-    else _catalogSaveTimer = setTimeout(_doSaveCatalog, 120);
+    else _catalogSaveTimer = setTimeout(_doSaveCatalog, 0);
     return true;
   }
 
@@ -16673,14 +16672,18 @@ var GD = (function() {
     });
   }
 
-  // ── Guardar en Drive (debounced, bloqueado si cargando) ──
+  // ── Guardar en Drive inmediatamente (en cola si ya está guardando) ──
   function _preflightBeforeSave() {
     // El sondeo automático ya mantiene estas marcas al día. Antes se
     // descargaban la base principal, todos los espejos y los respaldos
     // heredados antes de cada escritura, aunque nada remoto hubiera cambiado.
     // Consultar solo metadatos hace rápido el guardado normal y conserva la
     // mezcla completa cuando realmente hay una versión de otro dispositivo.
+    // Cada escritura consulta de nuevo los metadatos. Así, aunque dos equipos
+    // editen casi al mismo tiempo, ninguno parte deliberadamente de una versión
+    // que el otro dispositivo ya reemplazó en Drive.
     return Promise.all([_findPrimaryDBFile(), _findDeviceDBFiles()]).then(function(results) {
+      _lastRemoteCheckAt = Date.now();
       var primaryFile = results[0];
       var mirrorFiles = results[1] || [];
       var newestMirrorModifiedTime = mirrorFiles[0] && mirrorFiles[0].modifiedTime || '';
@@ -16707,8 +16710,9 @@ var GD = (function() {
     if (_saving) { _dirty = true; return; }
     _dirty = true;
     if (_syncTimer) clearTimeout(_syncTimer);
-    // Subir pronto para reducir el riesgo si se cierra la pestaña.
-    _syncTimer = setTimeout(_doSave, 700);
+    // Cero demora: solo se difiere al siguiente ciclo para terminar de aplicar
+    // en memoria todos los cambios producidos por el mismo botón.
+    _syncTimer = setTimeout(_doSave, 0);
   }
 
   function _doSave() {
@@ -16744,45 +16748,39 @@ var GD = (function() {
       payload._syncPatientCount = expectedPatientCount;
       expectedContentSignature = _payloadContentSignature(payload);
       payload._syncContentSignature = expectedContentSignature;
-      // Guardar primero una copia auxiliar identificada para esta instalación. Si dos
-      // equipos escriben al mismo tiempo, ninguno puede borrar el respaldo
-      // del otro y la siguiente lectura reconstruye la unión completa.
-      return _writeDeviceDB(payload).then(function(mirrorFile) {
+      // La copia principal y el espejo pertenecen a archivos distintos, por
+      // lo que pueden escribirse al mismo tiempo sin esperar una a la otra.
+      var mirrorWrite = _writeDeviceDB(payload).then(function(mirrorFile) {
         savedMirrorFile = mirrorFile;
       }).catch(function(error) {
         // La copia por dispositivo añade protección, pero un fallo temporal en
         // ella no debe impedir que la base principal se guarde en Drive.
         mirrorWriteError = error;
         console.warn('Copia secundaria pendiente:', error);
-      }).then(function() {
-        return _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
+      });
+      var primaryWrite = _writeFile(writeId, DB_FILENAME, payload, ['appDataFolder']);
+      return Promise.all([mirrorWrite, primaryWrite]).then(function(results) {
+        return results[1];
       });
     }).then(function(f) {
       var verifyId = (f && f.id) || _dbFileId;
       if (!verifyId) throw new Error('Drive no devolvió el identificador de la base');
-      var mirrorVerifyId = (savedMirrorFile && savedMirrorFile.id) || _deviceDbFileId;
-      // La base principal es obligatoria. La copia secundaria se verifica por
-      // separado para no mostrar un error general si solo ella está retrasada.
+      var mirrorAccepted = !!((savedMirrorFile && savedMirrorFile.id) || _deviceDbFileId);
+      // La base principal es la copia obligatoria y se confirma leyendo de
+      // vuelta todo su contenido. El espejo ya devolvió una respuesta 2xx de
+      // Drive y no necesita otra lectura bloqueante para terminar la interfaz.
       return _verifySavedPayload(
         verifyId,
         expectedRevision,
         expectedPatientCount,
         expectedContentSignature
       ).then(function(primaryResult) {
-        if (mirrorWriteError || !mirrorVerifyId) {
-          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:true };
-        }
-        return _verifySavedPayload(
-          mirrorVerifyId,
-          expectedRevision,
-          expectedPatientCount,
-          expectedContentSignature
-        ).then(function() {
-          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:false };
-        }).catch(function(error) {
-          console.warn('La base principal quedó verificada; la copia secundaria sigue pendiente:', error);
-          return { file:f, mirror:savedMirrorFile, patientCount:primaryResult.patientCount, mirrorPending:true };
-        });
+        return {
+          file:f,
+          mirror:savedMirrorFile,
+          patientCount:primaryResult.patientCount,
+          mirrorPending:!!(mirrorWriteError || !mirrorAccepted)
+        };
       });
     }).then(function(result) {
       var f = result.file;
@@ -16794,6 +16792,7 @@ var GD = (function() {
       if (result.mirror && result.mirror.modifiedTime) {
         _lastMirrorModifiedTime = result.mirror.modifiedTime;
       }
+      _lastRemoteCheckAt = Date.now();
       _dbSaving = false;
       _preferLocalAfterReconnect = false;
       // La base principal ya quedó verificada. A partir de este punto es
@@ -16820,7 +16819,7 @@ var GD = (function() {
       }
       if (_dirty) {
         if (_syncTimer) clearTimeout(_syncTimer);
-        _syncTimer = setTimeout(_doSave, result.mirrorPending ? 2400 * _mirrorRetryCount : 150);
+        _syncTimer = setTimeout(_doSave, result.mirrorPending ? 2400 * _mirrorRetryCount : 0);
       }
     }).catch(function(e) {
       console.error('Drive save error:', e);
@@ -16846,6 +16845,7 @@ var GD = (function() {
     _autoPulling = true;
     return Promise.all([_findPrimaryDBFile(), _findFile(CFG_FILENAME), _findDeviceDBFiles(), _findFile(CATALOG_FILENAME)])
       .then(function(files) {
+        _lastRemoteCheckAt = Date.now();
         var dbFile = files[0];
         var cfgFile = files[1];
         var mirrorFiles = files[2] || [];
@@ -16932,7 +16932,9 @@ var GD = (function() {
     _autoPullTimer = setInterval(_pullRemoteChanges, AUTO_PULL_MS);
     if (!_visibilitySyncInstalled) {
       document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) _pullRemoteChanges(true);
+        // Volver a la pestaña solo comprueba metadatos. La descarga completa
+        // se reserva para cambios reales o para el botón Sincronizar.
+        if (!document.hidden) _pullRemoteChanges(false);
       });
       _visibilitySyncInstalled = true;
     }
@@ -17143,7 +17145,7 @@ var GD = (function() {
     if (_mode === 'google' && _token && !_saving) {
       _cfgDirty = true;
       if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
-      _cfgSaveTimer = setTimeout(_doSaveCfg, 500);
+      _cfgSaveTimer = setTimeout(_doSaveCfg, 0);
     } else if (!_token) {
       _cfgDirty = true;
       _showReconnectRequired('Reconecta Drive para guardar la configuración');
