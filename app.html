@@ -15289,6 +15289,9 @@ var GD = (function() {
   // Drive no ofrece sockets en una app estática. Consultar cada 3 segundos
   // da una actualización casi inmediata sin esperar la recarga de la página.
   var AUTO_PULL_MS = 3000;
+  // Evitar que una respuesta lenta deje la interfaz indefinidamente en
+  // "Guardando…".
+  var DRIVE_REQUEST_TIMEOUT_MS = 12000;
 
   function _getDeviceId() {
     if (_deviceId) return _deviceId;
@@ -16139,13 +16142,33 @@ var GD = (function() {
   }
 
   // ── Helpers Drive API ────────────────────────────────────
+  function _fetchDrive(url, options, timeoutMs) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = null;
+    var opts = Object.assign({}, options || {});
+    if (controller) {
+      opts.signal = controller.signal;
+      timer = setTimeout(function() {
+        controller.abort();
+      }, timeoutMs || DRIVE_REQUEST_TIMEOUT_MS);
+    }
+    return fetch(url, opts).catch(function(error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('Drive tardó demasiado en responder');
+      }
+      throw error;
+    }).finally(function() {
+      if (timer) clearTimeout(timer);
+    });
+  }
+
   function _driveReq(method, path, body) {
     var opts = {
       method: method,
       headers: { Authorization: 'Bearer ' + _token, 'Content-Type': 'application/json' }
     };
     if (body) opts.body = JSON.stringify(body);
-    return fetch('https://www.googleapis.com' + path, opts).then(function(r) {
+    return _fetchDrive('https://www.googleapis.com' + path, opts).then(function(r) {
       if (!r.ok) throw new Error('Drive HTTP ' + r.status);
       return r.json();
     });
@@ -16463,7 +16486,7 @@ var GD = (function() {
     // pedir una lectura nueva; de otro modo una copia correcta puede parecer
     // antigua y producir el aviso falso de "Drive no confirmó".
     var cacheBust = fresh ? '&ack=' + Date.now() + '-' + Math.random().toString(36).slice(2,8) : '';
-    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media' + cacheBust, {
+    return _fetchDrive('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media' + cacheBust, {
       headers: { Authorization: 'Bearer ' + _token },
       cache: fresh ? 'no-store' : 'default'
     }).then(function(r) {
@@ -16507,7 +16530,7 @@ var GD = (function() {
     var json = JSON.stringify(data);
     var blob = new Blob([json], { type: 'application/json' });
     if (fileId) {
-      return fetch('https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&fields=id,modifiedTime', {
+      return _fetchDrive('https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&fields=id,modifiedTime', {
         method: 'PATCH',
         headers: { Authorization: 'Bearer ' + _token, 'Content-Type': 'application/json' },
         body: blob
@@ -16522,7 +16545,7 @@ var GD = (function() {
       var form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
       form.append('file', blob);
-      return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+      return _fetchDrive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + _token },
         body: form
@@ -16651,6 +16674,33 @@ var GD = (function() {
   }
 
   // ── Guardar en Drive (debounced, bloqueado si cargando) ──
+  function _preflightBeforeSave() {
+    // El sondeo automático ya mantiene estas marcas al día. Antes se
+    // descargaban la base principal, todos los espejos y los respaldos
+    // heredados antes de cada escritura, aunque nada remoto hubiera cambiado.
+    // Consultar solo metadatos hace rápido el guardado normal y conserva la
+    // mezcla completa cuando realmente hay una versión de otro dispositivo.
+    return Promise.all([_findPrimaryDBFile(), _findDeviceDBFiles()]).then(function(results) {
+      var primaryFile = results[0];
+      var mirrorFiles = results[1] || [];
+      var newestMirrorModifiedTime = mirrorFiles[0] && mirrorFiles[0].modifiedTime || '';
+      var primaryChanged = !!(primaryFile && primaryFile.modifiedTime
+        && _lastRemoteModifiedTime
+        && primaryFile.modifiedTime !== _lastRemoteModifiedTime);
+      var mirrorChanged = !!(newestMirrorModifiedTime && _lastMirrorModifiedTime
+        && newestMirrorModifiedTime !== _lastMirrorModifiedTime);
+      if (!primaryChanged && !mirrorChanged) return false;
+      setBadge('syncing', 'Integrando cambios de otro dispositivo…');
+      return _loadDB(true).then(function() { return true; });
+    }).catch(function(error) {
+      // Cada dispositivo mantiene su propio espejo antes de escribir la base
+      // principal. Si solo falla la comprobación, guardar el cambio actual es
+      // más seguro que dejarlo únicamente en la pestaña abierta.
+      console.warn('Comprobación previa de Drive omitida:', error);
+      return false;
+    });
+  }
+
   function _scheduleSave() {
     // Si el usuario edita justo mientras se descarga una actualización,
     // conservar la marca pendiente para subirla al terminar.
@@ -16673,17 +16723,17 @@ var GD = (function() {
     }
     _dbSaving = true;
     _dirty = false;
-    setBadge('syncing', 'Guardando…');
+    setBadge('syncing', 'Comprobando cambios…');
     var expectedRevision = '';
     var expectedPatientCount = 0;
     var expectedContentSignature = '';
     var savedDirtySnapshot = null;
     var savedMirrorFile = null;
     var mirrorWriteError = null;
-    // Volver a leer justo antes de escribir reduce la ventana de conflicto:
-    // si otro teléfono o computadora guardó desde la última comprobación,
-    // primero se unen sus registros y después se sube el resultado completo.
-    _loadDB(true).then(function() {
+    // Descargar y mezclar el contenido completo solo cuando los metadatos
+    // indiquen que otro dispositivo guardó una versión nueva.
+    _preflightBeforeSave().then(function() {
+      setBadge('syncing', 'Guardando…');
       saveLocalWithAutoBackup();
       var writeId = _dbIsAppData ? _dbFileId : null;
       var payload = _buildSavePayload();
