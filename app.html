@@ -15288,9 +15288,9 @@ var GD = (function() {
   // Drive no ofrece sockets en una app estática. Consultar cada dos segundos
   // permite que el segundo dispositivo reciba pronto los cambios confirmados.
   var AUTO_PULL_MS = 2000;
-  // Evitar que una respuesta lenta deje la interfaz indefinidamente en
-  // "Guardando…".
-  var DRIVE_REQUEST_TIMEOUT_MS = 12000;
+  // Dar tiempo suficiente a conexiones lentas y bases clínicas grandes sin
+  // dejar la interfaz indefinidamente en "Guardando…".
+  var DRIVE_REQUEST_TIMEOUT_MS = 90000;
 
   function _getDeviceId() {
     if (_deviceId) return _deviceId;
