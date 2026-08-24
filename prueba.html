@@ -3957,6 +3957,63 @@ body.user-custom-theme:not(.user-theme-dark-card) .ortho-field select:focus{
   border-color:var(--blue)!important;
   box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 16%,transparent)!important;
 }
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-select-box{
+  background:var(--user-card)!important;
+  color:#1d1d1f!important;
+  border-color:rgba(0,0,0,.08)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-select-title,
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card-name{
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-select-sub,
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card-spec{
+  color:#6e6e73!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card-ced{
+  color:#8e8e93!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card{
+  background:color-mix(in srgb,var(--user-card) 72%,#fff)!important;
+  color:#1d1d1f!important;
+  border-color:rgba(0,0,0,.12)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card:hover,
+body.user-custom-theme:not(.user-theme-dark-card) .doctor-card.active{
+  background:var(--blue-pale)!important;
+  border-color:var(--blue)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page .table-wrap,
+body.user-custom-theme:not(.user-theme-dark-card) #list-page table{
+  background:var(--user-card)!important;
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page thead tr{
+  background:rgba(118,118,128,.075)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page th{
+  color:#6e6e73!important;
+  border-color:rgba(0,0,0,.08)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page td{
+  color:#3a3a3c!important;
+  border-color:rgba(0,0,0,.07)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page td strong{
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page tbody tr:hover td{
+  background:rgba(118,118,128,.045)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page .search-wrap input,
+body.user-custom-theme:not(.user-theme-dark-card) #list-page .filter-sel{
+  background:#fff!important;
+  color:#1d1d1f!important;
+  border-color:rgba(0,0,0,.12)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) #list-page .search-wrap input::placeholder{
+  color:#8e8e93!important;
+}
 /* Los presets claros siempre deben usar etiquetas oscuras en los KPIs. Los
    estilos históricos de las tarjetas 1 y 4 forzaban blanco y en Rosa se
    perdían sobre el panel claro. */
@@ -10217,6 +10274,9 @@ function applyAppearance() {
   root.style.setProperty('--border-med', darkCard?'rgba(255,255,255,.16)':'rgba(0,0,0,.12)');
   document.body.classList.add('user-custom-theme');
   document.body.classList.toggle('user-theme-dark-card', darkCard);
+  /* Evitar mezclar un tema claro con reglas oscuras guardadas de una sesión
+     anterior. El brillo real de las tarjetas define el contraste global. */
+  document.documentElement.classList.toggle('dark', darkCard);
 }
 
 function fillAppearanceControls() {
@@ -15157,7 +15217,10 @@ var DARK_KEY = 'dental_dark_mode_v1';
 
 function initDarkMode() {
   var isDark = appStorage.getItem(DARK_KEY) === '1';
-  if (isDark) document.documentElement.classList.add('dark');
+  if (document.body && document.body.classList.contains('user-custom-theme')) {
+    isDark = document.body.classList.contains('user-theme-dark-card');
+  }
+  document.documentElement.classList.toggle('dark', isDark);
   var chk = document.getElementById('cfg-dark-mode');
   if (chk) {
     chk.checked = isDark;
@@ -15166,6 +15229,17 @@ function initDarkMode() {
 }
 
 function toggleDarkMode(on) {
+  if (document.body && document.body.classList.contains('user-custom-theme')) {
+    var themeIsDark = document.body.classList.contains('user-theme-dark-card');
+    document.documentElement.classList.toggle('dark', themeIsDark);
+    appStorage.setItem(DARK_KEY, themeIsDark ? '1' : '0');
+    var themeChk = document.getElementById('cfg-dark-mode');
+    if (themeChk) themeChk.checked = themeIsDark;
+    var themeLbl = document.getElementById('dark-mode-label');
+    if (themeLbl) themeLbl.textContent = themeIsDark ? 'Activado por el estilo' : 'Desactivado por el estilo';
+    if (on !== themeIsDark) showToast('El modo claro u oscuro se define con el estilo visual elegido', 'green');
+    return;
+  }
   if (on) {
     document.documentElement.classList.add('dark');
     appStorage.setItem(DARK_KEY, '1');
