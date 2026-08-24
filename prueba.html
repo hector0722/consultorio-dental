@@ -3887,6 +3887,76 @@ body.user-custom-theme .dashboard-hero{background:linear-gradient(135deg,var(--u
 body.user-custom-theme .dashboard-hero-photo::after{opacity:var(--user-overlay-opacity);}
 body.user-custom-theme .btn,body.user-custom-theme input,body.user-custom-theme select,body.user-custom-theme textarea{border-radius:var(--user-radius-sm)!important;}
 body.user-custom-theme .stat-card{border-radius:var(--user-radius-lg)!important;}
+/* El tema personalizado manda sobre el interruptor oscuro. Cuando las tarjetas
+   son claras, los controles secundarios nunca deben heredar texto blanco. */
+body.user-custom-theme:not(.user-theme-dark-card) .btn-ghost{
+  background:#f0f0f2!important;
+  color:#3a3a3c!important;
+  border:1px solid rgba(0,0,0,.06)!important;
+  opacity:1!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .btn-ghost:hover{
+  background:#e4e4e8!important;
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .btn-ghost:disabled{
+  background:#f2f2f4!important;
+  color:#6e6e73!important;
+  opacity:.72!important;
+  cursor:not-allowed;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .topbar h2{
+  background:rgba(118,118,128,.08)!important;
+  color:#6e6e73!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-box,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-header,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-tabs{
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table{
+  color:#3a3a3c!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table th{
+  color:#6e6e73!important;
+  background:rgba(118,118,128,.07)!important;
+  border-color:rgba(0,0,0,.08)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table td{
+  border-color:rgba(0,0,0,.08)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table td:first-child{
+  color:#1d1d1f!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table tr:nth-child(even) td,
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-table tbody tr:hover td{
+  background:rgba(118,118,128,.045)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-norm{
+  color:#6e6e73!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-input,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field input,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field textarea,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field select{
+  background:#fff!important;
+  color:#1d1d1f!important;
+  border-color:rgba(0,0,0,.14)!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-input::placeholder,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field input::placeholder,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field textarea::placeholder{
+  color:#8e8e93!important;
+}
+body.user-custom-theme:not(.user-theme-dark-card) .ceph-input:focus,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field input:focus,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field textarea:focus,
+body.user-custom-theme:not(.user-theme-dark-card) .ortho-field select:focus{
+  background:#fff!important;
+  color:#1d1d1f!important;
+  border-color:var(--blue)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 16%,transparent)!important;
+}
 /* Los presets claros siempre deben usar etiquetas oscuras en los KPIs. Los
    estilos históricos de las tarjetas 1 y 4 forzaban blanco y en Rosa se
    perdían sobre el panel claro. */
@@ -10146,6 +10216,7 @@ function applyAppearance() {
   root.style.setProperty('--border', darkCard?'rgba(255,255,255,.10)':'rgba(0,0,0,.08)');
   root.style.setProperty('--border-med', darkCard?'rgba(255,255,255,.16)':'rgba(0,0,0,.12)');
   document.body.classList.add('user-custom-theme');
+  document.body.classList.toggle('user-theme-dark-card', darkCard);
 }
 
 function fillAppearanceControls() {
