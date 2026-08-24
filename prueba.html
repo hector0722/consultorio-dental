@@ -7029,6 +7029,18 @@ function showDetail(id) {
   document.getElementById('topbar-title').textContent = 'Historia clínica';
   document.getElementById('btn-add').style.display = 'none';
   renderDetail(id);
+  // La galería usa un contenedor compartido entre expedientes. Limpiarlo al
+  // cambiar de paciente evita mostrar durante un instante las fotos anteriores.
+  _photoPatientId = id;
+  _photoViewPatientId = String(id);
+  _photoFilter = 'all';
+  var photoGrid = document.getElementById('photo-grid');
+  if (photoGrid) {
+    photoGrid.setAttribute('data-patient-id', String(id));
+    photoGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--ink-4);font-size:.82rem">Toca Fotos para cargar la galería de este paciente.</div>';
+  }
+  var comparePhotosBtn = document.getElementById('btn-compare');
+  if (comparePhotosBtn) comparePhotosBtn.style.display = 'none';
 }
 function showForm() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -19648,6 +19660,7 @@ function printRx(idx) {
 // ★ FOTOS CLÍNICAS EN GOOGLE DRIVE
 // ══════════════════════════════════════════════════════════
 var _photoPatientId = null;
+var _photoViewPatientId = '';
 var _photoMutationDepth = 0;
 var _photoRecoveryInFlight = {};
 var _photoRecoveryCheckedAt = {};
@@ -19791,6 +19804,7 @@ function openPhotoModule() {
   var p = db.patients.find(function(x){ return x.id == curId; });
   if (!p) return;
   _photoPatientId = p.id;
+  _photoViewPatientId = String(p.id);
   // Iniciar primero una sola consulta ligera de metadatos. La cuadrícula
   // espera esos enlaces brevemente y descarga miniaturas en vez de originales.
   recoverPatientPhotosFromDrive(p.id);
@@ -20113,7 +20127,7 @@ function recoverPatientPhotosFromDrive(patientId) {
       known[f.id] = true;
       added++;
     });
-    if (added) {
+    if (added && String(curId) === recoveryKey && _photoViewPatientId === recoveryKey) {
       renderPhotoGrid(currentPatient);
       showToast('✅ Se recuperaron ' + added + ' foto(s) que ya estaban en Drive', 'green');
     }
@@ -20176,7 +20190,12 @@ function setPhotoFilter(type, btn) {
 function renderPhotoGrid(p) {
   var grid = document.getElementById('photo-grid');
   var compareBtn = document.getElementById('btn-compare');
-  if (!grid) return;
+  if (!grid || !p) return;
+  var renderPatientId = String(p.id);
+  // Una recuperación tardía de otro expediente nunca puede repintar el
+  // contenedor que ahora pertenece al paciente visible.
+  if (String(curId) !== renderPatientId || _photoViewPatientId !== renderPatientId) return;
+  grid.setAttribute('data-patient-id', renderPatientId);
   var photos = (p && p.photos) || [];
   var filtered = _photoFilter === 'all' ? photos : photos.filter(function(ph){ return ph.type === _photoFilter; });
 
@@ -20199,8 +20218,10 @@ function renderPhotoGrid(p) {
 
   // Después de renderizar, cargar fotos de Drive en background
   setTimeout(function() {
-    document.querySelectorAll('#photo-grid img[data-drive-id]').forEach(function(img) {
-      loadDrivePhoto(img.getAttribute('data-drive-id'), img, false, p && p.id);
+    if (grid.getAttribute('data-patient-id') !== renderPatientId
+        || String(curId) !== renderPatientId) return;
+    grid.querySelectorAll('img[data-drive-id][data-patient-id="' + renderPatientId + '"]').forEach(function(img) {
+      loadDrivePhoto(img.getAttribute('data-drive-id'), img, false, renderPatientId);
     });
   }, 100);
 
@@ -20210,7 +20231,7 @@ function renderPhotoGrid(p) {
     var imgTag = imgSrc
       ? '<img src="' + imgSrc + '" alt="foto">'
       : ph.driveId
-        ? '<img src="" alt="foto" data-drive-id="' + ph.driveId + '" style="opacity:0.3">'
+        ? '<img src="" alt="foto" data-drive-id="' + ph.driveId + '" data-patient-id="' + renderPatientId + '" style="opacity:0.3">'
         : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🖼️</div>';
     return '<div class="photo-thumb" onclick="openLightbox(' + filtered.indexOf(ph) + ',\'' + (p.id) + '\')">' 
       + imgTag
@@ -20446,6 +20467,10 @@ function clearPhotoSessionCache() {
 
 function _setPhotoImage(imgEl, url) {
   if (!imgEl || !url) return;
+  var ownerId = imgEl.getAttribute && imgEl.getAttribute('data-patient-id');
+  if (ownerId && (!imgEl.isConnected || String(curId) !== String(ownerId))) return;
+  var ownerGrid = ownerId && imgEl.closest ? imgEl.closest('#photo-grid') : null;
+  if (ownerGrid && ownerGrid.getAttribute('data-patient-id') !== String(ownerId)) return;
   imgEl.src = url;
   imgEl.style.opacity = '1';
 }
