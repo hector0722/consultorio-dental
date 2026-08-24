@@ -894,16 +894,36 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 /* ━━━━ ORTODONCIA ━━━━ */
 .ortho-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);overflow-y:auto;padding:20px 0;}
 .ortho-overlay.open{display:flex;}
-.ortho-box{background:var(--card);border-radius:var(--r-xl);width:98%;max-width:1100px;box-shadow:var(--sh-xl);display:flex;flex-direction:column;margin:auto;}
-.ortho-header{padding:16px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;border-radius:var(--r-xl) var(--r-xl) 0 0;}
-.ortho-body{padding:18px 24px 28px;}
-.ortho-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:18px;}
-.ortho-tab{padding:9px 18px;border:none;background:transparent;font-family:inherit;font-size:.82rem;font-weight:600;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.ortho-box{background:var(--card);border-radius:var(--r-xl);width:98%;max-width:1180px;max-height:calc(100vh - 40px);overflow:hidden;box-shadow:var(--sh-xl);display:flex;flex-direction:column;margin:auto;}
+.ortho-header{padding:16px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--card);z-index:4;border-radius:var(--r-xl) var(--r-xl) 0 0;}
+.ortho-header-title{min-width:0;}
+.ortho-header-title h2{font-size:1rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ortho-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.ortho-save-state{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;color:var(--ink-4);white-space:nowrap;}
+.ortho-save-state::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);}
+.ortho-save-state.dirty{color:#a05800;}.ortho-save-state.dirty::before{background:var(--orange);}
+.ortho-body{padding:0 24px 28px;overflow-y:auto;overscroll-behavior:contain;}
+.ortho-overview{display:grid;grid-template-columns:minmax(210px,1.4fr) repeat(3,minmax(120px,.7fr));gap:10px;padding:16px 0 13px;}
+.ortho-overview-main,.ortho-overview-card{border:1px solid var(--border);border-radius:14px;padding:11px 13px;background:linear-gradient(145deg,var(--card),var(--bg));min-width:0;}
+.ortho-overview-main{display:flex;align-items:center;gap:12px;background:linear-gradient(145deg,var(--blue-pale),var(--card));border-color:var(--blue-mid);}
+.ortho-overview-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--blue);color:#fff;font-size:1.15rem;box-shadow:0 5px 12px rgba(0,113,227,.2);flex:0 0 auto;}
+.ortho-overview-label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-4);}
+.ortho-overview-value{font-size:.83rem;font-weight:800;color:var(--ink);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ortho-overview-sub{font-size:.68rem;color:var(--ink-3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ortho-status-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px;font-size:.67rem;font-weight:800;background:var(--blue-pale);color:var(--blue);margin-top:3px;}
+.ortho-status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+.ortho-status-pill.paused{background:var(--orange-bg);color:#a05800}.ortho-status-pill.finished{background:var(--green-bg);color:#248a3d}.ortho-status-pill.cancelled{background:var(--red-bg);color:var(--red)}
+.ortho-alert{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,149,0,.28);background:var(--orange-bg);color:#7a4b00;font-size:.75rem;line-height:1.45;margin-bottom:12px;}
+.ortho-alert.good{background:var(--green-bg);border-color:rgba(52,199,89,.28);color:#176d31;}
+.ortho-tabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin:0 -24px 18px;padding:0 24px;position:sticky;top:0;z-index:3;background:var(--card);overflow-x:auto;scrollbar-width:none;}
+.ortho-tabs::-webkit-scrollbar{display:none;}
+.ortho-tab{padding:11px 16px;border:none;background:transparent;font-family:inherit;font-size:.8rem;font-weight:650;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;}
 .ortho-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
 .ortho-tab:hover{color:var(--blue);}
 .ortho-panel{display:none;}.ortho-panel.active{display:block;}
 .ortho-section{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:14px;}
 .ortho-section-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.ortho-section-hint{font-size:.69rem;color:var(--ink-4);font-weight:500;text-transform:none;letter-spacing:0;margin-left:7px;}
 .ortho-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
 .ortho-field{display:flex;flex-direction:column;gap:4px;}
 .ortho-field label{font-size:.71rem;font-weight:600;color:var(--ink-3);}
@@ -924,6 +944,7 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .ceph-input:focus{outline:none;border-color:var(--blue);}
 .ortho-ctrl-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:8px;transition:box-shadow .15s;}
 .ortho-ctrl-card:hover{box-shadow:var(--sh-sm);}
+.ortho-ctrl-card.overdue{border-color:rgba(255,149,0,.38);box-shadow:inset 3px 0 0 var(--orange);}
 .ortho-ctrl-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .ortho-ctrl-date{font-size:.8rem;font-weight:700;color:var(--ink);}
 .ortho-ctrl-wire{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:980px;font-size:.68rem;font-weight:700;background:var(--blue-pale);color:var(--blue);border:1px solid var(--blue-mid);}
@@ -931,12 +952,30 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .ortho-progress-wrap{background:var(--bg);border-radius:var(--r-sm);height:8px;overflow:hidden;margin:6px 0;}
 .ortho-progress-bar{height:100%;border-radius:var(--r-sm);background:linear-gradient(90deg,var(--blue),#2997ff);transition:width .4s;}
 .angle-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.angle-card{border:2px solid var(--border);border-radius:var(--r-lg);padding:14px;text-align:center;cursor:pointer;transition:all .15s;}
+.angle-card{width:100%;border:2px solid var(--border);border-radius:var(--r-lg);padding:14px;text-align:center;cursor:pointer;transition:all .15s;background:var(--card);color:var(--ink);font-family:inherit;}
 .angle-card:hover{border-color:var(--blue);background:var(--blue-pale);}
 .angle-card.selected{border-color:var(--blue);background:var(--blue);color:#fff;}
 .angle-card .angle-class{font-size:1.3rem;font-weight:800;letter-spacing:-.03em;}
 .angle-card .angle-desc{font-size:.72rem;margin-top:4px;opacity:.8;}
 .angle-side-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+.ortho-control-actions{display:flex;gap:6px;align-items:center;}
+.ortho-icon-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.ortho-icon-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale);}
+.ortho-icon-btn.danger:hover{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+.ortho-metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+.ortho-metric{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 14px;min-width:0;}
+.ortho-metric-top{display:flex;justify-content:space-between;gap:8px;align-items:center;color:var(--ink-3);font-size:.68rem;font-weight:700;}
+.ortho-metric-value{font-size:1.25rem;font-weight:850;letter-spacing:-.03em;color:var(--ink);margin-top:5px;}
+.ortho-metric-sub{font-size:.67rem;color:var(--ink-4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ortho-mini-bar{height:5px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:7px;}.ortho-mini-bar>span{display:block;height:100%;border-radius:inherit;background:var(--blue);}
+.ortho-empty{padding:34px 14px;text-align:center;border:1px dashed var(--border-med);border-radius:var(--r-lg);color:var(--ink-3);background:var(--bg);}.ortho-empty strong{display:block;color:var(--ink-2);margin:6px 0 2px;}
+body.ortho-open{overflow:hidden;}
+@media(max-width:860px){
+  .ortho-overlay{padding:0}.ortho-box{width:100%;max-height:100vh;height:100vh;border-radius:0}.ortho-header{border-radius:0;padding:13px 15px}.ortho-body{padding:0 15px 22px}.ortho-tabs{margin-left:-15px;margin-right:-15px;padding-left:15px;padding-right:15px}.ortho-overview{grid-template-columns:1fr 1fr}.ortho-overview-main{grid-column:1/-1}.ortho-header-sub,.ortho-save-state{display:none}.ortho-metric-grid{grid-template-columns:1fr 1fr}.angle-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .ortho-header-title h2{font-size:.86rem}.ortho-header-actions .ortho-print-btn{display:none}.ortho-header-actions .btn{padding:7px 11px}.ortho-overview{gap:7px}.ortho-overview-card{padding:9px 10px}.ortho-tab{padding:10px 12px;font-size:.76rem}.ortho-section{padding:13px 12px}.ortho-grid{grid-template-columns:1fr}.ortho-field.w2{grid-column:auto}.angle-grid{grid-template-columns:1fr}.ortho-metric-grid{gap:7px}.ortho-metric{padding:11px 10px}.ortho-metric-value{font-size:1.05rem}
+}
 
 /* ━━━━ PERIODONTOGRAMA ━━━━ */
 .perio-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);overflow-y:auto;padding:20px 0;}
@@ -14480,6 +14519,8 @@ var CEPH_MEASURES = [
 ];
 
 var _orthoCurPatId = null;
+var _orthoDirty = false;
+var _orthoEditingControlId = null;
 
 function _orthoGetPatient() {
   return db.patients.find(function(x){ return x.id == _orthoCurPatId; });
@@ -14491,28 +14532,107 @@ function _orthoGetData() {
 }
 function _orthoSave() { saveDB(); }
 
+function _orthoDateLabel(value) {
+  if (!value) return '—';
+  var parts = String(value).split('-');
+  if (parts.length !== 3) return escapeHTML(value);
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function _orthoTodayISO() {
+  var d = new Date();
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+function _orthoMarkDirty() {
+  _orthoDirty = true;
+  var state = document.getElementById('ortho-save-state');
+  if (state) { state.textContent = 'Cambios pendientes'; state.classList.add('dirty'); }
+}
+
+function _orthoMarkSaved() {
+  _orthoDirty = false;
+  var state = document.getElementById('ortho-save-state');
+  if (state) { state.textContent = 'Guardado'; state.classList.remove('dirty'); }
+}
+
+function _orthoBindDirtyTracking() {
+  var overlay = document.getElementById('ortho-overlay');
+  if (!overlay || overlay.dataset.tracking === '1') return;
+  overlay.dataset.tracking = '1';
+  overlay.addEventListener('input', function(event) {
+    if (event.target && /^ort-/.test(event.target.id || '')) _orthoMarkDirty();
+  });
+  overlay.addEventListener('change', function(event) {
+    if (!event.target || !/^ort-/.test(event.target.id || '') || /^ort-ctrl-/.test(event.target.id)) return;
+    _orthoCollectFields();
+    renderOrthoOverview();
+  });
+}
+
+function renderOrthoOverview() {
+  var data = _orthoGetData();
+  var controls = data.controls || [];
+  var status = data.estado || 'Sin iniciar';
+  var statusClass = status === 'En pausa' ? ' paused' : status === 'Finalizado' ? ' finished' : status === 'Cancelado' ? ' cancelled' : '';
+  var latest = controls.slice().sort(function(a,b){ return String(b.fecha||'').localeCompare(String(a.fecha||'')); })[0];
+  var todayIso = _orthoTodayISO();
+  var scheduled = controls.filter(function(c){ return !!c.prox; }).sort(function(a,b){ return String(a.prox).localeCompare(String(b.prox)); });
+  var nextRecord = scheduled.find(function(c){ return c.prox >= todayIso; }) || scheduled[scheduled.length-1];
+  var next = nextRecord ? nextRecord.prox : '';
+  var overview = document.getElementById('ortho-overview');
+  if (overview) overview.innerHTML = ''
+    + '<div class="ortho-overview-main"><div class="ortho-overview-icon">🦷</div><div style="min-width:0"><div class="ortho-overview-label">Tratamiento</div><div class="ortho-status-pill'+statusClass+'">'+escapeHTML(status)+'</div><div class="ortho-overview-sub">'+escapeHTML(data.fase || data.aparato || 'Completa el plan clínico')+'</div></div></div>'
+    + '<div class="ortho-overview-card"><div class="ortho-overview-label">Último control</div><div class="ortho-overview-value">'+(latest ? _orthoDateLabel(latest.fecha) : 'Sin controles')+'</div><div class="ortho-overview-sub">'+(latest && latest.fase ? escapeHTML(latest.fase) : controls.length+' registrados')+'</div></div>'
+    + '<div class="ortho-overview-card"><div class="ortho-overview-label">Próxima cita</div><div class="ortho-overview-value">'+(next ? _orthoDateLabel(next) : 'No programada')+'</div><div class="ortho-overview-sub">'+escapeHTML(data.intervalo || 'Intervalo no definido')+'</div></div>'
+    + '<div class="ortho-overview-card"><div class="ortho-overview-label">Aparatología</div><div class="ortho-overview-value">'+escapeHTML(data.aparato || 'Por definir')+'</div><div class="ortho-overview-sub">'+escapeHTML(data.duracion || 'Duración no definida')+'</div></div>';
+
+  var alertEl = document.getElementById('ortho-followup-alert');
+  if (!alertEl) return;
+  if (status === 'Activo' && next) {
+    var today = new Date(); today.setHours(0,0,0,0);
+    var nextDate = new Date(next + 'T00:00:00');
+    var days = Math.round((nextDate - today) / 86400000);
+    if (days < 0) alertEl.innerHTML = '<div class="ortho-alert"><span>⚠️</span><div><strong>Seguimiento vencido.</strong> La cita programada fue hace '+Math.abs(days)+' día'+(Math.abs(days)===1?'':'s')+'. Conviene contactar al paciente y reprogramar.</div></div>';
+    else if (days <= 7) alertEl.innerHTML = '<div class="ortho-alert good"><span>📅</span><div><strong>Próximo control:</strong> '+_orthoDateLabel(next)+' · en '+days+' día'+(days===1?'':'s')+'.</div></div>';
+    else alertEl.innerHTML = '';
+  } else if (status === 'Activo' && !next) {
+    alertEl.innerHTML = '<div class="ortho-alert"><span>📌</span><div><strong>Tratamiento activo sin próxima cita.</strong> Registra la fecha en el control más reciente para mantener el seguimiento.</div></div>';
+  } else alertEl.innerHTML = '';
+}
+
 function openOrthoModule() {
   _orthoCurPatId = curId;
   var p = _orthoGetPatient(); if (!p) return;
   document.getElementById('ortho-patient-name').textContent = p.name;
   document.getElementById('ortho-overlay').classList.add('open');
+  document.body.classList.add('ortho-open');
+  _orthoEditingControlId = null;
   showOrthoTab('diagnostico', document.querySelector('.ortho-tab'));
   renderAngleGrids();
   renderCephTable();
   loadOrthoFields();
   renderOrthoControls();
   renderOrthoProgress();
+  renderOrthoOverview();
+  _orthoBindDirtyTracking();
+  _orthoMarkSaved();
+  cancelOrthoControlEdit();
 }
 
 function closeOrthoModule() {
+  if (_orthoDirty) saveOrthoData(true);
   document.getElementById('ortho-overlay').classList.remove('open');
+  document.body.classList.remove('ortho-open');
 }
 
 function showOrthoTab(id, btn) {
+  if (_orthoDirty) _orthoCollectFields();
   document.querySelectorAll('.ortho-panel').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.ortho-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.ortho-tab').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
   document.getElementById('ortho-tab-'+id).classList.add('active');
-  if (btn) btn.classList.add('active');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected','true'); }
   if (id === 'controles') renderOrthoControls();
   if (id === 'progreso')  renderOrthoProgress();
 }
@@ -14524,9 +14644,9 @@ function renderAngleGrids() {
     var el = document.getElementById('angle-'+side+'-grid');
     el.innerHTML = ANGLE_CLASSES.map(function(ac) {
       var sel = (data['angle_'+side] === ac.id) ? ' selected' : '';
-      return '<div class="angle-card'+sel+'" onclick="selectAngle(\''+side+'\',\''+ac.id+'\')">'
+      return '<button type="button" class="angle-card'+sel+'" aria-pressed="'+(sel?'true':'false')+'" onclick="selectAngle(\''+side+'\',\''+ac.id+'\')">'
         + '<div class="angle-class">'+ac.label+'</div>'
-        + '<div class="angle-desc">'+ac.desc+'</div></div>';
+        + '<div class="angle-desc">'+ac.desc+'</div></button>';
     }).join('');
   });
 }
@@ -14534,7 +14654,9 @@ function renderAngleGrids() {
 function selectAngle(side, classId) {
   var data = _orthoGetData();
   data['angle_'+side] = classId;
+  _orthoMarkDirty();
   renderAngleGrids();
+  renderOrthoOverview();
 }
 
 // ── Cefalometría ────────────────────────────────────────
@@ -14570,6 +14692,7 @@ function onCephInput(id, val) {
   var data = _orthoGetData();
   if (!data.ceph) data.ceph = {};
   data.ceph[id] = val;
+  _orthoMarkDirty();
   var m = CEPH_MEASURES.find(function(x){ return x.id === id; });
   if (!m) return;
   var el = document.getElementById('ceph-interp-'+id);
@@ -14582,9 +14705,10 @@ function onCephInput(id, val) {
 }
 
 // ── Load / Save fields ──────────────────────────────────
-var ORTHO_FIELDS = ['patron','biotipo','perfil','tercio','labio-sup','labio-inf','menton','nasolabial',
+var ORTHO_FIELDS = ['motivo','diagnostico','patron','biotipo','perfil','tercio','labio-sup','labio-inf','menton','nasolabial',
   'overjet','overbite','lm-sup','lm-inf','api-sup','api-inf','diastemas','spee','arco-sup','arco-inf',
-  'obs-modelos','cefalo-interp','aparato','prescripcion','torque-sup','extracciones','extrae-dientes',
+  'obs-modelos','canina-der','canina-izq','transversal','mordida-anterior','respiracion','deglucion','atm','higiene-inicial','habitos',
+  'cefalo-interp','estado','fase','prioridad','registros','consentimiento','intervalo','aparato','prescripcion','torque-sup','extracciones','extrae-dientes',
   'elasticos','stripping','expansion','tad','duracion','fecha-inicio','fecha-fin',
   'objetivos','mecanica','retencion'];
 
@@ -14592,14 +14716,14 @@ function loadOrthoFields() {
   var data = _orthoGetData();
   ORTHO_FIELDS.forEach(function(f) {
     var el = document.getElementById('ort-'+f);
-    if (el && data[f] !== undefined) el.value = data[f];
+    if (el) el.value = data[f] !== undefined ? data[f] : '';
   });
   // Load ceph interpretation
   var interpEl = document.getElementById('ort-cefalo-interp');
-  if (interpEl && data.cefalo_interp) interpEl.value = data.cefalo_interp;
+  if (interpEl && data.cefalo_interp && !data['cefalo-interp']) interpEl.value = data.cefalo_interp;
 }
 
-function saveOrthoData() {
+function _orthoCollectFields() {
   var p = _orthoGetPatient(); if (!p) return;
   if (!p.orthoData) p.orthoData = {};
   var data = p.orthoData;
@@ -14613,40 +14737,129 @@ function saveOrthoData() {
     var el = document.getElementById('ceph-'+m.id);
     if (el) data.ceph[m.id] = el.value;
   });
+  data.cefalo_interp = data['cefalo-interp'] || '';
+  return data;
+}
+
+function saveOrthoData(quiet) {
+  if (!_orthoCollectFields()) return;
   _orthoSave();
-  showToast('✅ Datos de ortodoncia guardados', 'green');
+  _orthoMarkSaved();
+  renderOrthoOverview();
+  renderOrthoProgress();
+  if (!quiet) showToast('✅ Expediente de ortodoncia guardado', 'green');
 }
 
 // ── Controls ────────────────────────────────────────────
+function suggestOrthoNextAppointment() {
+  var dateEl = document.getElementById('ort-ctrl-fecha');
+  var nextEl = document.getElementById('ort-ctrl-proxima');
+  if (!dateEl || !dateEl.value || !nextEl || nextEl.value) return;
+  var weeks = parseInt((_orthoGetData().intervalo || '4').match(/\d+/),10) || 4;
+  var suggested = new Date(dateEl.value+'T12:00:00');
+  suggested.setDate(suggested.getDate() + weeks*7);
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  nextEl.value = suggested.getFullYear()+'-'+pad(suggested.getMonth()+1)+'-'+pad(suggested.getDate());
+}
+
+function setOrthoControlToday(force) {
+  var el = document.getElementById('ort-ctrl-fecha');
+  if (el && (force || !el.value)) el.value = _orthoTodayISO();
+  suggestOrthoNextAppointment();
+}
+
+function _orthoControlFormData() {
+  return {
+    fecha: document.getElementById('ort-ctrl-fecha').value,
+    arcSup: document.getElementById('ort-ctrl-arco-sup').value.trim(),
+    arcInf: document.getElementById('ort-ctrl-arco-inf').value.trim(),
+    elast: document.getElementById('ort-ctrl-elasticos').value.trim(),
+    notas: document.getElementById('ort-ctrl-notas').value.trim(),
+    prox: document.getElementById('ort-ctrl-proxima').value,
+    coop: document.getElementById('ort-ctrl-coop').value,
+    fase: document.getElementById('ort-ctrl-fase').value,
+    higiene: document.getElementById('ort-ctrl-higiene').value,
+    dolor: document.getElementById('ort-ctrl-dolor').value,
+    incidencia: document.getElementById('ort-ctrl-incidencia').value
+  };
+}
+
+function _orthoClearControlForm() {
+  ['ort-ctrl-fecha','ort-ctrl-arco-sup','ort-ctrl-arco-inf','ort-ctrl-elasticos','ort-ctrl-notas','ort-ctrl-proxima','ort-ctrl-dolor'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['ort-ctrl-coop','ort-ctrl-fase','ort-ctrl-higiene','ort-ctrl-incidencia'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var phaseEl = document.getElementById('ort-ctrl-fase');
+  if (phaseEl && _orthoGetData().fase) phaseEl.value = _orthoGetData().fase;
+  setOrthoControlToday();
+}
+
 function addOrthoControl() {
-  var fecha  = document.getElementById('ort-ctrl-fecha').value;
-  var arcSup = document.getElementById('ort-ctrl-arco-sup').value.trim();
-  var arcInf = document.getElementById('ort-ctrl-arco-inf').value.trim();
-  var elast  = document.getElementById('ort-ctrl-elasticos').value.trim();
-  var notas  = document.getElementById('ort-ctrl-notas').value.trim();
-  var prox   = document.getElementById('ort-ctrl-proxima').value;
-  var coop   = document.getElementById('ort-ctrl-coop').value;
-  if (!fecha) { showToast('Selecciona la fecha del control', 'red'); return; }
+  var control = _orthoControlFormData();
+  if (!control.fecha) { showToast('Selecciona la fecha del control', 'red'); return; }
+  var pain = control.dolor === '' ? null : Number(control.dolor);
+  if (pain !== null && (pain < 0 || pain > 10)) { showToast('El dolor debe estar entre 0 y 10', 'red'); return; }
+  control.dolor = pain;
   var p = _orthoGetPatient(); if (!p) return;
   if (!p.orthoData) p.orthoData = {};
   if (!p.orthoData.controls) p.orthoData.controls = [];
-  p.orthoData.controls.push({ fecha, arcSup, arcInf, elast, notas, prox, coop, id: Date.now() });
+  if (_orthoEditingControlId !== null) {
+    var editIndex = p.orthoData.controls.findIndex(function(c){ return String(c.id) === String(_orthoEditingControlId); });
+    if (editIndex !== -1) {
+      control.id = p.orthoData.controls[editIndex].id;
+      p.orthoData.controls[editIndex] = control;
+    }
+  } else {
+    control.id = Date.now();
+    p.orthoData.controls.push(control);
+  }
   p.orthoData.controls.sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
   _orthoSave();
-  // Clear form
-  ['ort-ctrl-fecha','ort-ctrl-arco-sup','ort-ctrl-arco-inf','ort-ctrl-elasticos','ort-ctrl-notas','ort-ctrl-proxima'].forEach(function(id){
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('ort-ctrl-coop').value = '';
+  var wasEditing = _orthoEditingControlId !== null;
+  cancelOrthoControlEdit();
   renderOrthoControls();
-  showToast('✅ Control registrado', 'green');
+  renderOrthoProgress();
+  renderOrthoOverview();
+  _orthoMarkSaved();
+  showToast(wasEditing ? '✅ Control actualizado' : '✅ Control registrado', 'green');
 }
 
 function delOrthoControl(id) {
   var p = _orthoGetPatient(); if (!p || !p.orthoData || !p.orthoData.controls) return;
-  p.orthoData.controls = p.orthoData.controls.filter(function(c){ return c.id !== id; });
+  if (!confirm('¿Eliminar este control de ortodoncia?')) return;
+  p.orthoData.controls = p.orthoData.controls.filter(function(c){ return String(c.id) !== String(id); });
   _orthoSave();
   renderOrthoControls();
+  renderOrthoProgress();
+  renderOrthoOverview();
+  showToast('Control eliminado', 'green');
+}
+
+function editOrthoControl(id) {
+  var data = _orthoGetData();
+  var control = (data.controls || []).find(function(c){ return String(c.id) === String(id); });
+  if (!control) return;
+  _orthoEditingControlId = control.id;
+  var values = {
+    'ort-ctrl-fecha':control.fecha, 'ort-ctrl-arco-sup':control.arcSup, 'ort-ctrl-arco-inf':control.arcInf,
+    'ort-ctrl-elasticos':control.elast, 'ort-ctrl-notas':control.notas, 'ort-ctrl-proxima':control.prox,
+    'ort-ctrl-coop':control.coop, 'ort-ctrl-fase':control.fase, 'ort-ctrl-higiene':control.higiene,
+    'ort-ctrl-dolor':control.dolor === null || control.dolor === undefined ? '' : control.dolor,
+    'ort-ctrl-incidencia':control.incidencia
+  };
+  Object.keys(values).forEach(function(key){ var el = document.getElementById(key); if (el) el.value = values[key] || ''; });
+  var saveBtn = document.getElementById('ortho-control-save-btn'); if (saveBtn) saveBtn.textContent = '✓ Actualizar control';
+  var cancelBtn = document.getElementById('ortho-control-cancel-btn'); if (cancelBtn) cancelBtn.style.display = '';
+  var body = document.querySelector('.ortho-body'); if (body) body.scrollTo({top:0,behavior:'smooth'});
+}
+
+function cancelOrthoControlEdit() {
+  _orthoEditingControlId = null;
+  _orthoClearControlForm();
+  var saveBtn = document.getElementById('ortho-control-save-btn'); if (saveBtn) saveBtn.textContent = '✓ Agregar control';
+  var cancelBtn = document.getElementById('ortho-control-cancel-btn'); if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 function renderOrthoControls() {
@@ -14654,25 +14867,34 @@ function renderOrthoControls() {
   var controls = data.controls || [];
   var el = document.getElementById('ortho-controls-list');
   if (!controls.length) {
-    el.innerHTML = '<div class="empty" style="padding:30px 10px"><div class="empty-icon">📅</div><p>Sin controles registrados aún</p></div>';
+    el.innerHTML = '<div class="ortho-empty"><div style="font-size:1.5rem">📅</div><strong>Aún no hay controles</strong><span>Registra la primera activación para comenzar la línea de tiempo clínica.</span></div>';
     return;
   }
+  var todayIso = _orthoTodayISO();
+  var scheduled = controls.filter(function(c){ return !!c.prox; }).slice().sort(function(a,b){ return String(a.prox).localeCompare(String(b.prox)); });
+  var activeFollowup = scheduled.find(function(c){ return c.prox >= todayIso; }) || scheduled[scheduled.length-1];
   el.innerHTML = controls.map(function(c) {
     var coopColor = {Excelente:'#248a3d',Buena:'var(--blue)',Regular:'#a05800',Deficiente:'var(--red)'}[c.coop] || 'var(--ink-3)';
-    return '<div class="ortho-ctrl-card">'
+    var isOverdue = activeFollowup && String(activeFollowup.id) === String(c.id) && c.prox < todayIso;
+    var idArg = escapeHTML(JSON.stringify(String(c.id)));
+    return '<div class="ortho-ctrl-card'+(isOverdue?' overdue':'')+'">'
       + '<div class="ortho-ctrl-hd">'
-      + '<span class="ortho-ctrl-date">📅 '+c.fecha+'</span>'
-      + '<div style="display:flex;gap:6px;align-items:center">'
-      + (c.coop ? '<span style="font-size:.7rem;font-weight:700;color:'+coopColor+'">'+c.coop+'</span>' : '')
-      + '<button onclick="delOrthoControl('+c.id+')" style="background:none;border:none;cursor:pointer;color:var(--ink-4);font-size:.77rem">✕</button>'
+      + '<span class="ortho-ctrl-date">📅 '+_orthoDateLabel(c.fecha)+(c.fase?' · '+escapeHTML(c.fase):'')+'</span>'
+      + '<div class="ortho-control-actions">'
+      + (c.coop ? '<span style="font-size:.7rem;font-weight:700;color:'+coopColor+'">'+escapeHTML(c.coop)+'</span>' : '')
+      + '<button class="ortho-icon-btn" onclick=\'editOrthoControl('+idArg+')\' aria-label="Editar control">✎</button>'
+      + '<button class="ortho-icon-btn danger" onclick=\'delOrthoControl('+idArg+')\' aria-label="Eliminar control">✕</button>'
       + '</div></div>'
-      + (c.arcSup || c.arcInf ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px">'
-        + (c.arcSup ? '<span class="ortho-ctrl-wire">⬆ '+c.arcSup+'</span>' : '')
-        + (c.arcInf ? '<span class="ortho-ctrl-wire" style="background:var(--green-bg);color:#248a3d;border-color:rgba(52,199,89,.3)">⬇ '+c.arcInf+'</span>' : '')
-        + (c.elast  ? '<span class="ortho-ctrl-wire" style="background:var(--orange-bg);color:#a05800;border-color:rgba(255,149,0,.3)">🔗 '+c.elast+'</span>' : '')
+      + (c.arcSup || c.arcInf || c.elast || c.higiene || c.incidencia ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px">'
+        + (c.arcSup ? '<span class="ortho-ctrl-wire">⬆ '+escapeHTML(c.arcSup)+'</span>' : '')
+        + (c.arcInf ? '<span class="ortho-ctrl-wire" style="background:var(--green-bg);color:#248a3d;border-color:rgba(52,199,89,.3)">⬇ '+escapeHTML(c.arcInf)+'</span>' : '')
+        + (c.elast  ? '<span class="ortho-ctrl-wire" style="background:var(--orange-bg);color:#a05800;border-color:rgba(255,149,0,.3)">🔗 '+escapeHTML(c.elast)+'</span>' : '')
+        + (c.higiene ? '<span class="ortho-ctrl-wire" style="background:var(--bg);color:var(--ink-3);border-color:var(--border-med)">🪥 '+escapeHTML(c.higiene)+'</span>' : '')
+        + (c.incidencia ? '<span class="ortho-ctrl-wire" style="background:var(--red-bg);color:var(--red);border-color:rgba(255,59,48,.2)">⚠ '+escapeHTML(c.incidencia)+'</span>' : '')
         + '</div>' : '')
-      + (c.notas ? '<div class="ortho-ctrl-notes">'+c.notas+'</div>' : '')
-      + (c.prox  ? '<div style="font-size:.7rem;color:var(--ink-4);margin-top:4px">🗓 Próxima: '+c.prox+'</div>' : '')
+      + (c.notas ? '<div class="ortho-ctrl-notes">'+escapeHTML(c.notas).replace(/\n/g,'<br>')+'</div>' : '')
+      + (c.dolor !== null && c.dolor !== undefined && c.dolor !== '' ? '<div style="font-size:.7rem;color:var(--ink-3);margin-top:4px">Dolor reportado: '+escapeHTML(c.dolor)+'/10</div>' : '')
+      + (c.prox  ? '<div style="font-size:.7rem;color:'+(isOverdue?'#a05800':'var(--ink-4)')+';margin-top:4px">🗓 Próxima: '+_orthoDateLabel(c.prox)+(isOverdue?' · vencida':'')+'</div>' : '')
       + '</div>';
   }).join('');
 }
@@ -14681,28 +14903,29 @@ function renderOrthoControls() {
 function renderOrthoProgress() {
   var data = _orthoGetData();
   var el = document.getElementById('ortho-progress-panel');
+  if (!el) return;
   var inicio = data['fecha-inicio'];
   var fin    = data['fecha-fin'];
-  var controls = data.controls || [];
+  var controls = (data.controls || []).slice().sort(function(a,b){ return String(b.fecha||'').localeCompare(String(a.fecha||'')); });
 
   var progressHtml = '';
   if (inicio && fin) {
-    var dStart = new Date(inicio);
-    var dEnd   = new Date(fin);
+    var dStart = new Date(inicio+'T00:00:00');
+    var dEnd   = new Date(fin+'T00:00:00');
     var dNow   = new Date();
     var total  = dEnd - dStart;
-    var elapsed = Math.min(dNow - dStart, total);
+    var elapsed = Math.min(Math.max(dNow - dStart, 0), total);
     var pct    = total > 0 ? Math.max(0, Math.round(elapsed / total * 100)) : 0;
     var remaining = Math.max(0, Math.ceil((dEnd - dNow) / (1000*60*60*24*30)));
     progressHtml = '<div class="ortho-section" style="margin-bottom:14px">'
       + '<div class="ortho-section-title">Progreso del tratamiento</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
       + '<span style="font-size:.82rem;font-weight:700">'+pct+'% completado</span>'
-      + '<span style="font-size:.75rem;color:var(--ink-3)">'+remaining+' meses restantes aprox.</span>'
+      + '<span style="font-size:.75rem;color:var(--ink-3)">'+(dNow>dEnd?'Fecha estimada superada':remaining+' meses restantes aprox.')+'</span>'
       + '</div>'
       + '<div class="ortho-progress-wrap"><div class="ortho-progress-bar" style="width:'+pct+'%"></div></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--ink-4);margin-top:4px">'
-      + '<span>Inicio: '+inicio+'</span><span>Fin estimado: '+fin+'</span></div>'
+      + '<span>Inicio: '+_orthoDateLabel(inicio)+'</span><span>Fin estimado: '+_orthoDateLabel(fin)+'</span></div>'
       + '</div>';
   } else {
     progressHtml = '<div class="ortho-section" style="margin-bottom:14px">'
@@ -14711,15 +14934,34 @@ function renderOrthoProgress() {
       + '</div>';
   }
 
-  // Summary cards
-  var summaryHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px">'
-    + _orthoStatCard('📅','Controles realizados', controls.length)
-    + _orthoStatCard('😬','Clasificación D', data['angle_right'] ? data['angle_right'].replace('-',' ') : '—')
-    + _orthoStatCard('😬','Clasificación I', data['angle_left']  ? data['angle_left'].replace('-',' ')  : '—')
-    + _orthoStatCard('📐','ANB', data.ceph && data.ceph['anb'] ? data.ceph['anb']+'°' : '—')
-    + _orthoStatCard('🦷','Aparatología', data['aparato'] || '—')
-    + _orthoStatCard('⏱','Duración', data['duracion'] || '—')
+  var score = {Excelente:100, Buena:80, Regular:55, Deficiente:25};
+  var coopValues = controls.filter(function(c){ return score[c.coop] !== undefined; }).map(function(c){ return score[c.coop]; });
+  var hygieneValues = controls.filter(function(c){ return score[c.higiene] !== undefined; }).map(function(c){ return score[c.higiene]; });
+  var cooperation = coopValues.length ? Math.round(coopValues.reduce(function(a,b){return a+b;},0)/coopValues.length) : null;
+  var hygiene = hygieneValues.length ? Math.round(hygieneValues.reduce(function(a,b){return a+b;},0)/hygieneValues.length) : null;
+  var incidents = controls.filter(function(c){ return c.incidencia && c.incidencia !== 'Sin incidencias'; }).length;
+  var chronological = controls.slice().reverse();
+  var intervals = [];
+  chronological.forEach(function(c,i){ if (i) { var gap = (new Date(c.fecha+'T00:00:00') - new Date(chronological[i-1].fecha+'T00:00:00'))/86400000; if (gap >= 0 && gap < 365) intervals.push(gap); } });
+  var avgInterval = intervals.length ? Math.round(intervals.reduce(function(a,b){return a+b;},0)/intervals.length) : null;
+  var latest = controls[0];
+  var daysSince = latest ? Math.max(0,Math.floor((new Date()-new Date(latest.fecha+'T00:00:00'))/86400000)) : null;
+
+  var summaryHtml = '<div class="ortho-metric-grid">'
+    + _orthoMetric('📅','Controles',controls.length,latest?'Último hace '+daysSince+' días':'Sin actividad',Math.min(100,controls.length*10))
+    + _orthoMetric('🤝','Cooperación',cooperation===null?'—':cooperation+'%',coopValues.length?'Promedio de '+coopValues.length+' controles':'Sin valoración',cooperation||0)
+    + _orthoMetric('🪥','Higiene',hygiene===null?'—':hygiene+'%',hygieneValues.length?'Evolución registrada':'Sin valoración',hygiene||0)
+    + _orthoMetric('⏱','Ritmo',avgInterval===null?'—':avgInterval+' días',incidents+' incidencia'+(incidents===1?'':'s'),avgInterval===null?0:Math.max(0,100-Math.abs(avgInterval-28)*2))
     + '</div>';
+
+  var clinicalHtml = '<div class="ortho-section"><div class="ortho-section-title">Resumen clínico actual</div><div class="ortho-grid">'
+    + _orthoSummaryRow('Estado',data.estado||'Sin iniciar')
+    + _orthoSummaryRow('Fase',data.fase||'—')
+    + _orthoSummaryRow('Aparatología',data.aparato||'—')
+    + _orthoSummaryRow('Angle derecha',data.angle_right||'—')
+    + _orthoSummaryRow('Angle izquierda',data.angle_left||'—')
+    + _orthoSummaryRow('ANB',data.ceph&&data.ceph.anb!==undefined&&data.ceph.anb!==''?data.ceph.anb+'°':'—')
+    + '</div>'+(data.diagnostico?'<div style="font-size:.76rem;line-height:1.55;color:var(--ink-2);margin-top:11px;padding-top:10px;border-top:1px solid var(--border)"><strong>Diagnóstico:</strong> '+escapeHTML(data.diagnostico).replace(/\n/g,'<br>')+'</div>':'')+'</div>';
 
   // Timeline of controls
   var timelineHtml = '';
@@ -14727,31 +14969,35 @@ function renderOrthoProgress() {
     timelineHtml = '<div class="ortho-section"><div class="ortho-section-title">Línea de tiempo — Controles</div>'
       + '<div style="position:relative;padding-left:20px">'
       + '<div style="position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--border-med)"></div>'
-      + controls.slice().reverse().map(function(c, i) {
+      + controls.slice().reverse().map(function(c) {
           return '<div style="position:relative;margin-bottom:12px">'
             + '<div style="position:absolute;left:-16px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:var(--sh-sm)"></div>'
-            + '<div style="font-size:.78rem;font-weight:700;color:var(--ink)">'+c.fecha+'</div>'
-            + (c.arcSup ? '<div style="font-size:.73rem;color:var(--blue)">⬆ '+c.arcSup+(c.arcInf?' · ⬇ '+c.arcInf:'')+'</div>' : '')
-            + (c.notas  ? '<div style="font-size:.73rem;color:var(--ink-3);margin-top:2px">'+c.notas+'</div>' : '')
+            + '<div style="font-size:.78rem;font-weight:700;color:var(--ink)">'+_orthoDateLabel(c.fecha)+(c.fase?' · '+escapeHTML(c.fase):'')+'</div>'
+            + (c.arcSup || c.arcInf ? '<div style="font-size:.73rem;color:var(--blue)">'+(c.arcSup?'⬆ '+escapeHTML(c.arcSup):'')+(c.arcInf?' · ⬇ '+escapeHTML(c.arcInf):'')+'</div>' : '')
+            + (c.notas  ? '<div style="font-size:.73rem;color:var(--ink-3);margin-top:2px">'+escapeHTML(c.notas)+'</div>' : '')
             + '</div>';
         }).join('')
       + '</div></div>';
   }
 
-  el.innerHTML = progressHtml + summaryHtml + timelineHtml;
+  el.innerHTML = progressHtml + summaryHtml + clinicalHtml + timelineHtml;
 }
 
-function _orthoStatCard(icon, label, value) {
-  return '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;text-align:center">'
-    + '<div style="font-size:1.2rem">'+icon+'</div>'
-    + '<div style="font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:4px">'+label+'</div>'
-    + '<div style="font-size:.95rem;font-weight:800;color:var(--ink);margin-top:2px">'+value+'</div>'
-    + '</div>';
+function _orthoMetric(icon, label, value, sub, pct) {
+  return '<div class="ortho-metric"><div class="ortho-metric-top"><span>'+escapeHTML(label)+'</span><span>'+icon+'</span></div><div class="ortho-metric-value">'+escapeHTML(value)+'</div><div class="ortho-metric-sub">'+escapeHTML(sub)+'</div><div class="ortho-mini-bar"><span style="width:'+Math.max(0,Math.min(100,pct||0))+'%"></span></div></div>';
+}
+
+function _orthoSummaryRow(label, value) {
+  return '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px"><div class="ortho-overview-label">'+escapeHTML(label)+'</div><div style="font-size:.79rem;font-weight:750;color:var(--ink);margin-top:2px">'+escapeHTML(value)+'</div></div>';
 }
 
 // ── Print summary ───────────────────────────────────────
+function _orthoPrintText(value) {
+  return escapeHTML(value === undefined || value === null || value === '' ? '—' : value).replace(/\n/g,'<br>');
+}
+
 function printOrthoSummary() {
-  saveOrthoData();
+  saveOrthoData(true);
   var p = _orthoGetPatient();
   var name = p ? p.name : 'Paciente';
   var data = _orthoGetData();
@@ -14763,14 +15009,14 @@ function printOrthoSummary() {
     .map(function(m) {
       var v = parseFloat(data.ceph[m.id]);
       var status = v >= m.min && v <= m.max ? 'Normal' : (v < m.min-5 || v > m.max+5) ? 'Alterado' : 'Limítrofe';
-      return '<tr><td>'+m.label+'</td><td style="text-align:center">'+m.norm+'</td><td style="text-align:center;font-weight:700">'+data.ceph[m.id]+m.unit+'</td><td style="text-align:center">'+status+'</td></tr>';
+      return '<tr><td>'+_orthoPrintText(m.label)+'</td><td style="text-align:center">'+_orthoPrintText(m.norm)+'</td><td style="text-align:center;font-weight:700">'+_orthoPrintText(data.ceph[m.id]+m.unit)+'</td><td style="text-align:center">'+status+'</td></tr>';
     }).join('');
 
   var controls = (data.controls || []).map(function(c){
-    return '<tr><td>'+c.fecha+'</td><td>'+(c.arcSup||'—')+'</td><td>'+(c.arcInf||'—')+'</td><td>'+(c.notas||'—')+'</td></tr>';
+    return '<tr><td>'+_orthoPrintText(_orthoDateLabel(c.fecha))+'</td><td>'+_orthoPrintText(c.arcSup)+'</td><td>'+_orthoPrintText(c.arcInf)+'</td><td>'+_orthoPrintText(c.higiene)+'</td><td>'+_orthoPrintText(c.incidencia)+'</td><td>'+_orthoPrintText(c.notas)+'</td></tr>';
   }).join('');
 
-  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Ortodoncia — '+name+'</title>'
+  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Ortodoncia — '+_orthoPrintText(name)+'</title>'
     + '<style>body{font-family:-apple-system,sans-serif;padding:24px 32px;font-size:11px;color:#1d1d1f}'
     + '.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #1d1d1f;padding-bottom:8px;margin-bottom:14px}'
     + 'h3{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6e6e73;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #e0e0e5}'
@@ -14781,35 +15027,48 @@ function printOrthoSummary() {
     + 'th{background:#f5f5f7;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6e6e73;padding:5px 8px;border:1px solid #e0e0e5}'
     + 'td{padding:5px 8px;border:1px solid #e0e0e5}'
     + '@media print{body{padding:14px 20px}}</style></head><body>'
-    + '<div class="hdr"><div><strong style="font-size:13px">'+clinicName+'</strong><br><span style="color:#6e6e73">'+clinicSub+'</span></div>'
-    + '<div style="text-align:right;color:#6e6e73">Resumen ortodóncico · '+name+'<br>'+today+'</div></div>'
+    + '<div class="hdr"><div><strong style="font-size:13px">'+_orthoPrintText(clinicName)+'</strong><br><span style="color:#6e6e73">'+_orthoPrintText(clinicSub)+'</span></div>'
+    + '<div style="text-align:right;color:#6e6e73">Resumen ortodóncico · '+_orthoPrintText(name)+'<br>'+_orthoPrintText(today)+'</div></div>'
+
+    + '<h3>Estado y diagnóstico</h3>'
+    + '<div class="grid">'
+    + '<div class="row"><span class="lbl">Estado:</span><span class="val">'+_orthoPrintText(data.estado||'Sin iniciar')+'</span></div>'
+    + '<div class="row"><span class="lbl">Fase:</span><span class="val">'+_orthoPrintText(data.fase)+'</span></div>'
+    + '<div class="row"><span class="lbl">Aparatología:</span><span class="val">'+_orthoPrintText(data.aparato)+'</span></div>'
+    + '<div class="row"><span class="lbl">Duración:</span><span class="val">'+_orthoPrintText(data.duracion)+'</span></div></div>'
+    + (data.motivo ? '<p style="margin-top:8px;font-size:10px"><strong>Motivo:</strong> '+_orthoPrintText(data.motivo)+'</p>' : '')
+    + (data.diagnostico ? '<p style="margin-top:4px;font-size:10px"><strong>Diagnóstico:</strong> '+_orthoPrintText(data.diagnostico)+'</p>' : '')
 
     + '<h3>Clasificación de Angle</h3>'
     + '<div class="grid">'
-    + '<div class="row"><span class="lbl">Lado derecho:</span><span class="val">'+(data['angle_right']||'—')+'</span></div>'
-    + '<div class="row"><span class="lbl">Lado izquierdo:</span><span class="val">'+(data['angle_left']||'—')+'</span></div>'
+    + '<div class="row"><span class="lbl">Lado derecho:</span><span class="val">'+_orthoPrintText(data['angle_right'])+'</span></div>'
+    + '<div class="row"><span class="lbl">Lado izquierdo:</span><span class="val">'+_orthoPrintText(data['angle_left'])+'</span></div>'
     + '</div>'
 
     + '<h3>Análisis facial</h3>'
     + '<div class="grid">'
     + [['Patrón','patron'],['Biotipo','biotipo'],['Perfil','perfil'],['Overjet','overjet'],['Overbite','overbite'],['Apiñamiento sup','api-sup'],['Apiñamiento inf','api-inf']].map(function(f){
-        return '<div class="row"><span class="lbl">'+f[0]+':</span><span class="val">'+(data[f[1]]||'—')+'</span></div>';
+        return '<div class="row"><span class="lbl">'+f[0]+':</span><span class="val">'+_orthoPrintText(data[f[1]])+'</span></div>';
       }).join('')
     + '</div>'
+
+    + '<h3>Función y oclusión</h3><div class="grid">'
+    + [['Canina derecha','canina-der'],['Canina izquierda','canina-izq'],['Transversal','transversal'],['Mordida anterior','mordida-anterior'],['Respiración','respiracion'],['Deglución','deglucion'],['ATM','atm'],['Higiene inicial','higiene-inicial']].map(function(f){ return '<div class="row"><span class="lbl">'+f[0]+':</span><span class="val">'+_orthoPrintText(data[f[1]])+'</span></div>'; }).join('')+'</div>'
+    + (data.habitos ? '<p style="margin-top:7px;font-size:10px"><strong>Hábitos / riesgos:</strong> '+_orthoPrintText(data.habitos)+'</p>' : '')
 
     + (cephRows ? '<h3>Cefalometría</h3><table><thead><tr><th>Medida</th><th>Norma</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody>'+cephRows+'</tbody></table>' : '')
 
     + '<h3>Plan de tratamiento</h3>'
     + '<div class="grid">'
     + [['Aparatología','aparato'],['Extracciones','extracciones'],['Elásticos','elasticos'],['Duración','duracion'],['Inicio','fecha-inicio'],['Fin estimado','fecha-fin']].map(function(f){
-        return '<div class="row"><span class="lbl">'+f[0]+':</span><span class="val">'+(data[f[1]]||'—')+'</span></div>';
+        return '<div class="row"><span class="lbl">'+f[0]+':</span><span class="val">'+_orthoPrintText(data[f[1]])+'</span></div>';
       }).join('')
     + '</div>'
-    + (data['objetivos'] ? '<p style="margin-top:8px;font-size:10px"><strong>Objetivos:</strong> '+data['objetivos']+'</p>' : '')
-    + (data['mecanica']  ? '<p style="margin-top:4px;font-size:10px"><strong>Mecánica:</strong> '+data['mecanica']+'</p>' : '')
-    + (data['retencion'] ? '<p style="margin-top:4px;font-size:10px"><strong>Retención:</strong> '+data['retencion']+'</p>' : '')
+    + (data['objetivos'] ? '<p style="margin-top:8px;font-size:10px"><strong>Objetivos:</strong> '+_orthoPrintText(data['objetivos'])+'</p>' : '')
+    + (data['mecanica']  ? '<p style="margin-top:4px;font-size:10px"><strong>Mecánica:</strong> '+_orthoPrintText(data['mecanica'])+'</p>' : '')
+    + (data['retencion'] ? '<p style="margin-top:4px;font-size:10px"><strong>Retención:</strong> '+_orthoPrintText(data['retencion'])+'</p>' : '')
 
-    + (controls ? '<h3>Controles de ortodoncia</h3><table><thead><tr><th>Fecha</th><th>Arco sup</th><th>Arco inf</th><th>Observaciones</th></tr></thead><tbody>'+controls+'</tbody></table>' : '')
+    + (controls ? '<h3>Controles de ortodoncia</h3><table><thead><tr><th>Fecha</th><th>Arco sup</th><th>Arco inf</th><th>Higiene</th><th>Incidencia</th><th>Observaciones</th></tr></thead><tbody>'+controls+'</tbody></table>' : '')
 
     + '</body></html>';
 
@@ -15288,9 +15547,9 @@ var GD = (function() {
   // Drive no ofrece sockets en una app estática. Consultar cada dos segundos
   // permite que el segundo dispositivo reciba pronto los cambios confirmados.
   var AUTO_PULL_MS = 2000;
-  // Evitar que una respuesta lenta deje la interfaz indefinidamente en
-  // "Guardando…".
-  var DRIVE_REQUEST_TIMEOUT_MS = 12000;
+  // Dar tiempo suficiente a conexiones lentas y bases clínicas grandes sin
+  // dejar la interfaz indefinidamente en "Guardando…".
+  var DRIVE_REQUEST_TIMEOUT_MS = 90000;
 
   function _getDeviceId() {
     if (_deviceId) return _deviceId;
@@ -20538,7 +20797,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') closeMobileNav();
+  if (event.key === 'Escape') {
+    closeMobileNav();
+    var orthoOverlay = document.getElementById('ortho-overlay');
+    if (orthoOverlay && orthoOverlay.classList.contains('open')) closeOrthoModule();
+  }
 });
 
 window.addEventListener('resize', function() {
@@ -20948,30 +21211,46 @@ window.addEventListener('resize', function() {
 
 <!-- ORTODONCIA OVERLAY -->
 <div class="ortho-overlay" id="ortho-overlay" onclick="if(event.target===this)closeOrthoModule()">
-  <div class="ortho-box">
+  <div class="ortho-box" role="dialog" aria-modal="true" aria-labelledby="ortho-dialog-title">
     <div class="ortho-header">
-      <div>
-        <h2>😬 Módulo de Ortodoncia — <span id="ortho-patient-name">Paciente</span></h2>
-        <div style="font-size:.72rem;color:var(--ink-3);margin-top:2px">Análisis cefalométrico · Clasificación de Angle · Seguimiento de controles</div>
+      <div class="ortho-header-title">
+        <h2 id="ortho-dialog-title">Ortodoncia · <span id="ortho-patient-name">Paciente</span></h2>
+        <div class="ortho-header-sub" style="font-size:.72rem;color:var(--ink-3);margin-top:2px">Diagnóstico, planificación y seguimiento clínico en un solo lugar</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-success btn-sm" onclick="saveOrthoData()">💾 Guardar</button>
-        <button class="btn btn-ghost btn-sm" onclick="printOrthoSummary()">🖨️ Imprimir</button>
-        <button onclick="closeOrthoModule()" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+      <div class="ortho-header-actions">
+        <span class="ortho-save-state" id="ortho-save-state">Guardado</span>
+        <button class="btn btn-success btn-sm" id="ortho-save-btn" onclick="saveOrthoData()">💾 Guardar</button>
+        <button class="btn btn-ghost btn-sm ortho-print-btn" onclick="printOrthoSummary()">🖨️ Resumen</button>
+        <button class="ortho-icon-btn" onclick="closeOrthoModule()" aria-label="Cerrar módulo de ortodoncia">✕</button>
       </div>
     </div>
     <div class="ortho-body">
+      <div class="ortho-overview" id="ortho-overview" aria-live="polite"></div>
+      <div id="ortho-followup-alert" aria-live="polite"></div>
       <!-- Tabs -->
-      <div class="ortho-tabs">
-        <button class="ortho-tab active" onclick="showOrthoTab('diagnostico',this)">📋 Diagnóstico</button>
-        <button class="ortho-tab" onclick="showOrthoTab('cefalo',this)">📐 Cefalometría</button>
-        <button class="ortho-tab" onclick="showOrthoTab('plan',this)">📝 Plan de tx</button>
-        <button class="ortho-tab" onclick="showOrthoTab('controles',this)">📅 Controles</button>
-        <button class="ortho-tab" onclick="showOrthoTab('progreso',this)">📊 Progreso</button>
+      <div class="ortho-tabs" role="tablist" aria-label="Secciones de ortodoncia">
+        <button class="ortho-tab active" role="tab" aria-selected="true" onclick="showOrthoTab('diagnostico',this)">📋 Diagnóstico</button>
+        <button class="ortho-tab" role="tab" aria-selected="false" onclick="showOrthoTab('cefalo',this)">📐 Cefalometría</button>
+        <button class="ortho-tab" role="tab" aria-selected="false" onclick="showOrthoTab('plan',this)">📝 Plan</button>
+        <button class="ortho-tab" role="tab" aria-selected="false" onclick="showOrthoTab('controles',this)">📅 Controles</button>
+        <button class="ortho-tab" role="tab" aria-selected="false" onclick="showOrthoTab('progreso',this)">📊 Progreso</button>
       </div>
 
       <!-- TAB: DIAGNÓSTICO -->
       <div class="ortho-panel active" id="ortho-tab-diagnostico">
+        <div class="ortho-section">
+          <div class="ortho-section-title">Motivo y síntesis diagnóstica <span class="ortho-section-hint">La lectura rápida del caso</span></div>
+          <div class="ortho-grid">
+            <div class="ortho-field full">
+              <label>Motivo de consulta</label>
+              <textarea id="ort-motivo" rows="2" placeholder="Qué desea corregir el paciente y cuáles son sus expectativas…"></textarea>
+            </div>
+            <div class="ortho-field full">
+              <label>Diagnóstico ortodóncico integral</label>
+              <textarea id="ort-diagnostico" rows="3" placeholder="Síntesis esquelética, dental, funcional, periodontal y estética…"></textarea>
+            </div>
+          </div>
+        </div>
         <!-- Clasificación de Angle -->
         <div class="ortho-section">
           <div class="ortho-section-title">Clasificación de Angle — Relación molar</div>
@@ -21074,6 +21353,20 @@ window.addEventListener('resize', function() {
             </div>
           </div>
         </div>
+        <div class="ortho-section">
+          <div class="ortho-section-title">Evaluación funcional y transversal</div>
+          <div class="ortho-grid">
+            <div class="ortho-field"><label>Relación canina derecha</label><select id="ort-canina-der"><option value="">—</option><option>Clase I</option><option>Clase II</option><option>Clase III</option><option>No valorable</option></select></div>
+            <div class="ortho-field"><label>Relación canina izquierda</label><select id="ort-canina-izq"><option value="">—</option><option>Clase I</option><option>Clase II</option><option>Clase III</option><option>No valorable</option></select></div>
+            <div class="ortho-field"><label>Relación transversal</label><select id="ort-transversal"><option value="">—</option><option>Normal</option><option>Mordida cruzada posterior derecha</option><option>Mordida cruzada posterior izquierda</option><option>Mordida cruzada bilateral</option><option>Mordida en tijera</option></select></div>
+            <div class="ortho-field"><label>Mordida anterior</label><select id="ort-mordida-anterior"><option value="">—</option><option>Normal</option><option>Abierta</option><option>Profunda</option><option>Cruzada anterior</option><option>Borde a borde</option></select></div>
+            <div class="ortho-field"><label>Respiración</label><select id="ort-respiracion"><option value="">—</option><option>Nasal</option><option>Oral</option><option>Mixta</option><option>En evaluación</option></select></div>
+            <div class="ortho-field"><label>Deglución</label><select id="ort-deglucion"><option value="">—</option><option>Normal</option><option>Atípica / interposición lingual</option><option>En evaluación</option></select></div>
+            <div class="ortho-field"><label>ATM / función mandibular</label><select id="ort-atm"><option value="">—</option><option>Sin hallazgos</option><option>Chasquido</option><option>Dolor</option><option>Limitación</option><option>Desviación</option><option>En evaluación</option></select></div>
+            <div class="ortho-field"><label>Higiene inicial</label><select id="ort-higiene-inicial"><option value="">—</option><option>Excelente</option><option>Buena</option><option>Regular</option><option>Deficiente</option></select></div>
+            <div class="ortho-field full"><label>Hábitos y factores de riesgo</label><textarea id="ort-habitos" rows="2" placeholder="Succión digital, onicofagia, bruxismo, interposición lingual, salud periodontal, caries activas…"></textarea></div>
+          </div>
+        </div>
       </div>
 
       <!-- TAB: CEFALOMETRÍA -->
@@ -21092,6 +21385,17 @@ window.addEventListener('resize', function() {
 
       <!-- TAB: PLAN DE TX -->
       <div class="ortho-panel" id="ortho-tab-plan">
+        <div class="ortho-section">
+          <div class="ortho-section-title">Estado clínico del tratamiento</div>
+          <div class="ortho-grid">
+            <div class="ortho-field"><label>Estado</label><select id="ort-estado"><option value="">Sin iniciar</option><option>Activo</option><option>En pausa</option><option>Finalizado</option><option>Cancelado</option></select></div>
+            <div class="ortho-field"><label>Fase actual</label><select id="ort-fase"><option value="">—</option><option>Diagnóstico y registros</option><option>Alineación y nivelación</option><option>Corrección transversal</option><option>Cierre de espacios</option><option>Corrección sagital / vertical</option><option>Detalles y asentamiento</option><option>Retención</option></select></div>
+            <div class="ortho-field"><label>Prioridad clínica</label><select id="ort-prioridad"><option value="">Estándar</option><option>Alta</option><option>Interconsulta requerida</option></select></div>
+            <div class="ortho-field"><label>Registros completos</label><select id="ort-registros"><option value="">—</option><option>Sí</option><option>Parciales</option><option>Pendientes</option></select></div>
+            <div class="ortho-field"><label>Consentimiento firmado</label><input type="date" id="ort-consentimiento"></div>
+            <div class="ortho-field"><label>Intervalo de controles</label><select id="ort-intervalo"><option value="">4 semanas</option><option>3 semanas</option><option>5 semanas</option><option>6 semanas</option><option>8 semanas</option></select></div>
+          </div>
+        </div>
         <div class="ortho-section">
           <div class="ortho-section-title">Objetivos y aparatología</div>
           <div class="ortho-grid">
@@ -21166,7 +21470,7 @@ window.addEventListener('resize', function() {
           <div class="ortho-grid">
             <div class="ortho-field">
               <label>Fecha del control</label>
-              <input type="date" id="ort-ctrl-fecha">
+              <input type="date" id="ort-ctrl-fecha" onchange="suggestOrthoNextAppointment()">
             </div>
             <div class="ortho-field">
               <label>Arco superior</label>
@@ -21192,8 +21496,16 @@ window.addEventListener('resize', function() {
               <label>Cooperación paciente</label>
               <select id="ort-ctrl-coop"><option value="">—</option><option>Excelente</option><option>Buena</option><option>Regular</option><option>Deficiente</option></select>
             </div>
+            <div class="ortho-field"><label>Fase del tratamiento</label><select id="ort-ctrl-fase"><option value="">—</option><option>Alineación y nivelación</option><option>Corrección transversal</option><option>Cierre de espacios</option><option>Corrección sagital / vertical</option><option>Detalles y asentamiento</option><option>Retención</option></select></div>
+            <div class="ortho-field"><label>Higiene oral</label><select id="ort-ctrl-higiene"><option value="">—</option><option>Excelente</option><option>Buena</option><option>Regular</option><option>Deficiente</option></select></div>
+            <div class="ortho-field"><label>Dolor reportado (0–10)</label><input type="number" id="ort-ctrl-dolor" min="0" max="10" step="1" placeholder="0"></div>
+            <div class="ortho-field"><label>Incidencia</label><select id="ort-ctrl-incidencia"><option value="">Sin incidencias</option><option>Bracket desprendido</option><option>Arco desplazado / roto</option><option>Lesión de mucosa</option><option>Falta de cooperación</option><option>Higiene deficiente</option><option>Otra</option></select></div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="addOrthoControl()" style="margin-top:10px">✓ Agregar control</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-primary btn-sm" id="ortho-control-save-btn" onclick="addOrthoControl()">✓ Agregar control</button>
+            <button class="btn btn-ghost btn-sm" id="ortho-control-cancel-btn" onclick="cancelOrthoControlEdit()" style="display:none">Cancelar edición</button>
+            <button class="btn btn-ghost btn-sm" onclick="setOrthoControlToday(true)">Hoy</button>
+          </div>
         </div>
         <div id="ortho-controls-list"></div>
       </div>
