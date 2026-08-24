@@ -16468,6 +16468,8 @@ var GD = (function() {
   var _appInitialized = false;
   var _accountEmail = appStorage.getItem('dental_gd_email') || '';
   var _authInProgress = false;
+  var _authAttemptSeq = 0;
+  var _activeAuthAttempt = 0;
   // Drive no ofrece sockets en una app estática. Consultar cada dos segundos
   // permite que el segundo dispositivo reciba pronto los cambios confirmados.
   var AUTO_PULL_MS = 2000;
@@ -16626,7 +16628,10 @@ var GD = (function() {
   function signIn(silent) {
     silent = silent === true;
     if (_authInProgress) return;
+    var authAttempt = ++_authAttemptSeq;
+    _activeAuthAttempt = authAttempt;
     if (typeof google === 'undefined') {
+      _activeAuthAttempt = 0;
       hideAppLoading();
       if (silent) _showReconnectRequired('Reconecta para cargar tus datos');
       else showToast('Google no cargó. Revisa tu conexión.', 'red');
@@ -16639,6 +16644,10 @@ var GD = (function() {
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: function(resp) {
+        // Google puede responder tarde a un intento silencioso anterior. Esa
+        // respuesta ya no debe ocultar ni modificar la carga manual vigente.
+        if (authAttempt !== _activeAuthAttempt) return;
+        _activeAuthAttempt = 0;
         _authInProgress = false;
         if (resp.error) {
           hideAppLoading();
@@ -16652,6 +16661,9 @@ var GD = (function() {
         }
         _token = resp.access_token;
         _mode  = 'google';
+        // Al volver del selector de cuentas, restablecer explícitamente la
+        // pantalla de progreso antes de iniciar las lecturas de Drive.
+        showAppLoading('Cargando tu expediente', 'Verificando tu cuenta y el acceso a Google Drive…',1);
         appStorage.setItem(GD_MODE_KEY, 'google');
         appStorage.removeItem('dental_offline_enabled');
         appStorage.setItem('dental_gd_token_hint', '1');
@@ -16775,13 +16787,16 @@ var GD = (function() {
           // Algunos navegadores móviles bloquean la renovación silenciosa
           // sin devolver error. No dejar la pantalla indefinidamente en
           // "Conectando": ofrecer el botón de Google después de cinco segundos.
-          if (_authInProgress && !_token) {
+          if (authAttempt === _activeAuthAttempt && _authInProgress && !_token) {
+            _activeAuthAttempt = 0;
             _authInProgress = false;
             _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
           }
         }, 5000);
       }
     } catch(authError) {
+      if (authAttempt !== _activeAuthAttempt) return;
+      _activeAuthAttempt = 0;
       _authInProgress = false;
       hideAppLoading();
       if (silent) _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
@@ -18247,26 +18262,27 @@ var GD = (function() {
   }
 
   function _autoReconnect() {
-    // En tablet y teléfono el token vive poco tiempo y desaparece al cerrar
-    // la pestaña. Intentar renovarlo sin ventanas; si el navegador móvil lo
-    // bloquea, pedir un toque antes de mostrar datos vacíos como si se hubieran
-    // perdido. Google nunca entrega acceso silencioso a otra cuenta.
+    // Google Identity no garantiza una renovación realmente silenciosa. En
+    // Brave y otros navegadores el intento con prompt:'' abre el selector de
+    // cuentas y después puede expirar, provocando dos selectores consecutivos.
+    // Esperar a que Google esté listo y solicitar un único gesto del usuario.
     var attempts = 0;
-    function trySilentReconnect() {
+    function prepareReconnect() {
       if (_token || _authInProgress) return;
       if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
-        signIn(true);
+        _showReconnectRequired('Confirma tu cuenta de Google para cargar tus datos');
         return;
       }
       attempts += 1;
       if (attempts < 20) {
-        setTimeout(trySilentReconnect, 150);
+        setTimeout(prepareReconnect, 150);
       } else {
         _showReconnectRequired('Toca Continuar con Google para cargar tus datos');
       }
     }
-    setBadge('syncing', 'Recuperando datos de Drive…');
-    trySilentReconnect();
+    setBadge('syncing', 'Esperando confirmación de cuenta…');
+    updateAppLoading('Preparando el acceso seguro a Google…',1);
+    prepareReconnect();
   }
 
   function reconnect() {
