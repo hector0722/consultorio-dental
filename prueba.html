@@ -5242,7 +5242,7 @@ body.app-ready #dash-page.active > .card {
           </div>
           <div class="afc-field"><label>Fecha</label><input type="date" id="appt-date"></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-            <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00" oninput="_autoSetTimeEnd(this.value)" onchange="_autoSetTimeEnd(this.value)"></div>
+            <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00"></div>
             <div class="afc-field"><label>Hora fin</label><input type="time" id="appt-time-end" placeholder="--:--"></div>
           </div>
           <div class="afc-field"><label>Procedimiento</label><input type="text" id="appt-proc" placeholder="ej. Limpieza, Resina…"></div>
@@ -7147,12 +7147,19 @@ function goPage(id, el) {
   if (id === 'receipts-page' && typeof receiptsInit === 'function') receiptsInit();
   if (id === 'agenda-page') {
     populateApptSelect();
-    // Importar eventos nuevos de Calendar al abrir la agenda
+    // Mostrar de inmediato cambios recientes de Calendar y después hacer una
+    // revisión completa de respaldo sin detener la interfaz.
     setTimeout(function() {
-      if (typeof GCal !== 'undefined') GCal.importFromCalendar().catch(function(){});
-    }, 500);
+      if (typeof GCal !== 'undefined' && _agendaPageIsActive()) {
+        GCal.importFromCalendar({recent:true, force:true}).then(function() {
+          setTimeout(function() {
+            if (_agendaPageIsActive()) GCal.importFromCalendar().catch(function(){});
+          }, 800);
+        }).catch(function(){});
+      }
+    }, 150);
     if (!_selectedCalDay) _selectedCalDay = fmtDate(new Date());
-    renderCal();
+    setCalView(calView);
     showApptDayPanel(_selectedCalDay);
     var di = document.getElementById('appt-date');
     if (di && !di.value) di.value = _selectedCalDay;
@@ -8515,12 +8522,8 @@ function fmtShort(d){ return d.toLocaleDateString('es-MX',{day:'numeric',month:'
 function todayStr() { return fmtDate(new Date()); }
 
 function populateApptSelect() {
-  const sel = document.getElementById('appt-patient');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— Selecciona —</option>';
-  db.patients.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
-  if (cur) sel.value = cur;
-  // set default date to today
+  // El paciente se elige con el buscador; el campo appt-patient es oculto.
+  // Evitar construir cientos de <option> invisibles en cada entrada a Agenda.
   const di = document.getElementById('appt-date');
   if (!di.value) di.value = todayStr();
 }
@@ -8528,7 +8531,12 @@ function populateApptSelect() {
 // ══════════════════════════════════════════════════════════
 // ★ CALENDAR ENGINE  (Month + Week views)
 // ══════════════════════════════════════════════════════════
-var calView   = 'month';
+var calView   = (function(){
+  try {
+    var saved = appStorage.getItem('dental_calendar_view_v1');
+    return ['month','week','day'].indexOf(saved) !== -1 ? saved : 'month';
+  } catch(e) { return 'month'; }
+})();
 var calYear   = new Date().getFullYear();
 var calMonth  = new Date().getMonth();
 var calWeekOf = new Date();
@@ -8537,9 +8545,43 @@ var calDayOf  = fmtDate(new Date()); // current day in day view
 var DAYS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 var MONTHS_ES= ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var HOURS    = Array.from({length:13},(_,i)=>i+7); // 7am–7pm
+var _agendaRenderIndex = null;
+var _dayAutoScrolledFor = '';
+
+// Preparar una sola vez los accesos por fecha y paciente para cada dibujo.
+// Antes, cada celda del mes y cada hora de la semana recorrían toda la agenda.
+function _buildAgendaRenderIndex() {
+  var patientsById = Object.create(null);
+  (db.patients || []).forEach(function(patient) {
+    patientsById[String(patient.id)] = patient;
+  });
+  var appointments = (typeof _getFilteredAppts === 'function') ? _getFilteredAppts() : (db.appointments || []);
+  var appointmentsByDate = Object.create(null);
+  appointments.forEach(function(appt) {
+    var key = String(appt.date || '');
+    if (!appointmentsByDate[key]) appointmentsByDate[key] = [];
+    appointmentsByDate[key].push(appt);
+  });
+  Object.keys(appointmentsByDate).forEach(function(date) {
+    appointmentsByDate[date].sort(function(a,b) {
+      return String(a.time || '').localeCompare(String(b.time || ''));
+    });
+  });
+  return { patientsById:patientsById, appointmentsByDate:appointmentsByDate, appointments:appointments };
+}
+
+function _agendaIndex() {
+  return _agendaRenderIndex || (_agendaRenderIndex = _buildAgendaRenderIndex());
+}
+
+function _agendaPageIsActive() {
+  var page = document.getElementById('agenda-page');
+  return !!(page && page.classList.contains('active') && !document.hidden);
+}
 
 function setCalView(v) {
   calView = v;
+  try { appStorage.setItem('dental_calendar_view_v1', v); } catch(e) {}
   document.getElementById('cvt-month').classList.toggle('active', v==='month');
   document.getElementById('cvt-week').classList.toggle('active', v==='week');
   document.getElementById('cvt-day').classList.toggle('active', v==='day');
@@ -8581,6 +8623,7 @@ function calGoToday() {
 }
 
 function renderCal() {
+  _agendaRenderIndex = _buildAgendaRenderIndex();
   if (typeof _updateDoctorApptSelector === 'function') _updateDoctorApptSelector();
   var title = '';
   if (calView === 'month') {
@@ -8609,7 +8652,7 @@ function renderMonthView() {
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay  = new Date(calYear, calMonth+1, 0);
   const startDow = firstDay.getDay(); // 0=Sun
-  const appts    = db.appointments || [];
+  const agendaIdx = _agendaIndex();
 
   const cells = [];
   // Pad start
@@ -8629,10 +8672,10 @@ function renderMonthView() {
   body.innerHTML = cells.map(({d,other}) => {
     const ds      = fmtDate(d);
     const isToday = ds === today;
-    const dayAp   = appts.filter(a => a.date === ds).sort((a,b)=>a.time.localeCompare(b.time));
+    const dayAp   = agendaIdx.appointmentsByDate[ds] || [];
     const maxShow = 2;
     const blocks  = dayAp.slice(0,maxShow).map(a => {
-      const p   = db.patients.find(x=>x.id==a.patientId);
+      const p   = agendaIdx.patientsById[String(a.patientId)];
       const cls = a.status==='done'?'mc-done':a.status==='cancelled'?'mc-cancelled':'';
       var docColor = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
     // El color del doctor se usa como acento y se mezcla con la tarjeta. Antes
@@ -8686,7 +8729,8 @@ function renderDayView() {
   var container = document.getElementById('day-view-inner');
   if (!container) return;
   var ds      = calDayOf;
-  var appts   = (db.appointments||[]).filter(function(a){ return a.date === ds; });
+  var agendaIdx = _agendaIndex();
+  var appts   = agendaIdx.appointmentsByDate[ds] || [];
   var now     = new Date();
   var isToday = ds === fmtDate(now);
   var nowH    = now.getHours();
@@ -8710,7 +8754,7 @@ function renderDayView() {
     var nowPct = Math.round(nowM / 60 * 100);
 
     var apptBlocks = hourAppts.map(function(a) {
-      var p      = db.patients.find(function(x){ return x.id == a.patientId; });
+      var p      = agendaIdx.patientsById[String(a.patientId)];
       var min    = parseInt((a.time.split(':')[1])||0);
       var topPct = Math.round(min/60*100);
       var cls    = a.status==='done' ? 'dv-done' : a.status==='cancelled' ? 'dv-cancelled' : '';
@@ -8748,7 +8792,8 @@ function renderDayView() {
 
   container.innerHTML = header + '<div class="day-view-grid">' + rows + '</div>';
 
-  setTimeout(function() {
+  if (_dayAutoScrolledFor !== ds) setTimeout(function() {
+    _dayAutoScrolledFor = ds;
     var targetH = isToday ? Math.max(nowH - 1, 6) : 8;
     var HOURS2  = Array.from({length:17}, function(_,i){ return i+6; });
     var slots   = container.querySelectorAll('.dv-slot');
@@ -8778,7 +8823,7 @@ function getCalWeekDays(anchor) {
 function renderWeekView() {
   const days    = getCalWeekDays(calWeekOf);
   const today   = todayStr();
-  const appts   = db.appointments || [];
+  const agendaIdx = _agendaIndex();
   const nowH    = new Date().getHours();
   const nowM    = new Date().getMinutes();
 
@@ -8803,9 +8848,9 @@ function renderWeekView() {
     const slots = days.map(d => {
       const ds = fmtDate(d);
       // Find appts that start in this hour
-      const ha = appts.filter(a => a.date===ds && parseInt(a.time)===h);
+      const ha = (agendaIdx.appointmentsByDate[ds] || []).filter(a => parseInt(a.time)===h);
       const blocks = ha.map(a => {
-        const p   = db.patients.find(x=>x.id==a.patientId);
+        const p   = agendaIdx.patientsById[String(a.patientId)];
         const min = parseInt((a.time.split(':')[1]||0));
         const top = Math.round(min/60*100);
         const cls = a.status==='done'?'wca-done':a.status==='cancelled'?'wca-cancelled':'';
@@ -8918,11 +8963,12 @@ function renderUpcoming() {
   const ul = document.getElementById('upcoming-list');
   if (!ul) return;
   const today = todayStr();
-  const appts = (db.appointments||[]).filter(a=>a.date>=today&&a.status!=='cancelled')
+  const agendaIdx = _agendaIndex();
+  const appts = agendaIdx.appointments.filter(a=>a.date>=today&&a.status!=='cancelled')
     .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,7);
   if (!appts.length) { ul.innerHTML='<div class="empty" style="padding:14px"><p>Sin citas próximas</p></div>'; return; }
   ul.innerHTML = appts.map(a=>{
-    const p   = db.patients.find(x=>x.id==a.patientId);
+    const p   = agendaIdx.patientsById[String(a.patientId)];
     const dObj= new Date(a.date+'T12:00');
     const dl  = dObj.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'});
     return `<div class="today-appt" onclick="showApptDayPanel('${a.date}')">
@@ -8949,14 +8995,15 @@ function showApptDayPanel(dateStr) {
   // Recalcular hora fin desde hora inicio actual
   var timeEl = document.getElementById('appt-time');
   if (timeEl && timeEl.value) _autoSetTimeEnd(timeEl.value);
-  var appts = (db.appointments||[]).filter(function(a){return a.date===dateStr;}).sort(function(a,b){return a.time.localeCompare(b.time);});
+  var agendaIdx = _agendaIndex();
+  var appts = agendaIdx.appointmentsByDate[dateStr] || [];
   if (!appts.length) { list.innerHTML='<p style="font-size:.79rem;color:var(--ink-3)">Sin citas este día.</p>'; return; }
 
   var stMap = {pending:'Pendiente', done:'Completada', cancelled:'Cancelada'};
   var stIcon= {pending:'🟡', done:'✅', cancelled:'❌'};
 
   list.innerHTML = appts.map(function(a) {
-    var p      = db.patients.find(function(x){return x.id==a.patientId;});
+    var p      = agendaIdx.patientsById[String(a.patientId)];
     var nombre = p ? p.name : (a.calendarName || a.proc || 'Sin paciente');
     var proc   = (a.proc||'—') + (a.notes ? ' · '+a.notes : '');
     var status = (stIcon[a.status]||'') + ' ' + (stMap[a.status]||'');
@@ -18623,8 +18670,6 @@ var GD = (function() {
     if (gcalBtn) gcalBtn.style.display = 'flex';
     _updateSyncStatus();
     if (typeof showUpdateNoticeOnce === 'function') showUpdateNoticeOnce();
-    // Registrar primera sync
-    _calLastSync = new Date();
   }
   // Exponer setBadge para que GCal lo use
   window.setBadgeGD = setBadge;
@@ -18970,11 +19015,15 @@ function gdReconnectNow() { GD.reconnect(); }
 function gcalSync() {
   if (typeof GCal === 'undefined') { showToast('Conecta Google primero', 'red'); return; }
   showToast('⏳ Sincronizando con Google Calendar…', 'green');
-  GCal.syncAll();
-  _calLastSync = new Date();
-  _calSyncCountdown = _calSyncInterval;
-  _calCheckCountdown = _calCheckInterval;
-  _updateSyncStatus();
+  var syncResult = GCal.syncAll();
+  if (syncResult && typeof syncResult.then === 'function') {
+    syncResult.then(function() {
+      _calLastSync = new Date();
+      _calSyncCountdown = _calSyncInterval;
+      _calCheckCountdown = _calCheckInterval;
+      _updateSyncStatus();
+    });
+  }
 }
 function gdSaveNow()    {
   if (typeof GD !== 'undefined' && GD.syncNow) {
@@ -19133,6 +19182,10 @@ var GCal = (function() {
   var BASE    = 'https://www.googleapis.com/calendar/v3';
   var TZ      = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Mexico_City';
   var DENTAL_TAG = 'dental_app'; // marca para identificar eventos creados por la app
+  var _importInFlight = null;
+  var _syncAllInFlight = null;
+  var _lastImportAt = 0;
+  var _lastFullImportAt = 0;
 
   function _tok() {
     return (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
@@ -19276,7 +19329,30 @@ var GCal = (function() {
   }
 
   // ── Calendar → App (importar eventos externos) ───────────
-  function importFromCalendar() {
+  function importFromCalendar(options) {
+    options = options || {};
+    if (_importInFlight) return _importInFlight;
+    var minDelay = options.recent ? 6000 : 45000;
+    var lastRelevantImport = options.recent ? _lastImportAt : _lastFullImportAt;
+    // La revisión rápida puede ejecutarse cada pocos segundos; la revisión
+    // completa conserva una pausa mayor para evitar descargas repetidas.
+    if (!options.force && lastRelevantImport && Date.now() - lastRelevantImport < minDelay) {
+      return Promise.resolve(0);
+    }
+    _importInFlight = _importFromCalendarOnce(options).then(function(result) {
+      _lastImportAt = Date.now();
+      if (!options.recent) _lastFullImportAt = _lastImportAt;
+      if (typeof _calLastSync !== 'undefined') _calLastSync = new Date();
+      if (typeof _updateSyncStatus === 'function') _updateSyncStatus();
+      return result;
+    }).finally(function() {
+      _importInFlight = null;
+    });
+    return _importInFlight;
+  }
+
+  function _importFromCalendarOnce(options) {
+    options = options || {};
     if (!_tok()) return Promise.resolve(0);
 
     // IDs ya conocidos en la app (para detectar cambios también)
@@ -19291,11 +19367,28 @@ var GCal = (function() {
 
     var imported = 0;
     var updated  = 0;
+    var removed  = 0;
     var changed  = false;
 
     // Procesar una página de eventos
     function _processEvents(events) {
       events.forEach(function(ev) {
+        // showDeleted permite resolver borrados en la misma consulta y evita
+        // una segunda descarga completa únicamente para comprobarlos.
+        if (ev && ev.status === 'cancelled') {
+          var deletedAppt = apptByCalId[ev.id];
+          if (deletedAppt) {
+            markAppointmentDeleted(deletedAppt.id);
+            db.appointments = (db.appointments || []).filter(function(appt) {
+              return appt !== deletedAppt;
+            });
+            delete apptByCalId[ev.id];
+            delete knownCalIds[ev.id];
+            removed++;
+            changed = true;
+          }
+          return;
+        }
         var src = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.source;
         if (!ev.summary || !ev.start) return;
         var dateStr = _extractDate(ev.start.dateTime, ev.start.date);
@@ -19392,13 +19485,22 @@ var GCal = (function() {
     var windowEnd = new Date();
     windowEnd.setFullYear(windowEnd.getFullYear() + 3);
 
-    // Traer todos los eventos de la ventana con paginación.
+    // La revisión frecuente trae solo elementos modificados recientemente.
+    // La revisión completa mantiene la ventana histórica original.
     function _fetchPage(pageToken) {
-      var params = '/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=500'
-        + '&timeMin=' + encodeURIComponent(windowStart.toISOString())
-        + '&timeMax=' + encodeURIComponent(windowEnd.toISOString())
-        + '&fields=nextPageToken,items(id,summary,description,start,end,extendedProperties)'
-        + (pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : '');
+      var params;
+      if (options.recent) {
+        var recentSince = new Date(Date.now() - 10 * 60 * 1000);
+        params = '/calendars/primary/events?showDeleted=true&singleEvents=true&maxResults=250'
+          + '&updatedMin=' + encodeURIComponent(recentSince.toISOString())
+          + '&fields=nextPageToken,items(id,status,summary,description,start,end,extendedProperties)';
+      } else {
+        params = '/calendars/primary/events?showDeleted=true&singleEvents=true&orderBy=startTime&maxResults=500'
+          + '&timeMin=' + encodeURIComponent(windowStart.toISOString())
+          + '&timeMax=' + encodeURIComponent(windowEnd.toISOString())
+          + '&fields=nextPageToken,items(id,status,summary,description,start,end,extendedProperties)';
+      }
+      if (pageToken) params += '&pageToken=' + encodeURIComponent(pageToken);
 
       return _req('GET', params).then(function(data) {
         _processEvents((data && data.items) || []);
@@ -19415,6 +19517,7 @@ var GCal = (function() {
             showApptDayPanel(_selectedCalDay || new Date().toISOString().slice(0,10));
           }
           if (updated) showToast('✏️ ' + updated + ' cita(s) actualizadas desde Google Calendar', 'green');
+          if (removed) showToast('🗑️ ' + removed + ' cita(s) eliminadas desde Google Calendar', 'red');
         }
         return imported;
       });
@@ -19432,7 +19535,8 @@ var GCal = (function() {
 
   // ── Sync completo bidireccional ──────────────────────────
   function syncAll() {
-    if (!_tok()) return;
+    if (!_tok()) return Promise.resolve(0);
+    if (_syncAllInFlight) return _syncAllInFlight;
     setBadge('syncing', 'Sync Calendar…');
 
     // 1. Subir citas de la app que no tienen ID de Calendar
@@ -19440,23 +19544,27 @@ var GCal = (function() {
       return !a.calendarEventId && a.status !== 'cancelled';
     });
 
-    var i = 0;
-    function uploadNext() {
-      if (i >= toUpload.length) {
-        // 2. Importar eventos de Calendar que no están en la app
-        importFromCalendar().then(function(n) {
-          setBadge('synced', 'Sincronizado');
-          var msg = '✅ Calendar sincronizado';
-          if (toUpload.length) msg += ' · ' + toUpload.length + ' citas subidas';
-          if (n) msg += ' · ' + n + ' importadas';
-          showToast(msg, 'green');
-        });
-        return;
-      }
-      createEvent(toUpload[i]).then(function(){ i++; setTimeout(uploadNext, 200); })
-                              .catch(function(){ i++; setTimeout(uploadNext, 200); });
-    }
-    uploadNext();
+    var uploadChain = Promise.resolve();
+    toUpload.forEach(function(appt) {
+      uploadChain = uploadChain.then(function() { return createEvent(appt); });
+    });
+    _syncAllInFlight = uploadChain
+      .then(function() { return importFromCalendar({force:true}); })
+      .then(function(n) {
+        setBadge('synced', 'Sincronizado');
+        var msg = '✅ Calendar sincronizado';
+        if (toUpload.length) msg += ' · ' + toUpload.length + ' citas subidas';
+        if (n) msg += ' · ' + n + ' importadas';
+        showToast(msg, 'green');
+        return n;
+      })
+      .catch(function(error) {
+        setBadge('error', 'Calendar pendiente');
+        console.warn('GCal syncAll:', error && error.message ? error.message : error);
+        return 0;
+      })
+      .finally(function() { _syncAllInFlight = null; });
+    return _syncAllInFlight;
   }
 
   function setBadge(state, text) {
@@ -19604,8 +19712,8 @@ function checkCalendarDeletions() {
 
 
 // ── Indicador de sincronización con cuenta regresiva ────
-var _calSyncInterval   = 30; // cambios de fecha/hora visibles rápidamente
-var _calCheckInterval  = 60; // borrados confirmados una vez por minuto
+var _calSyncInterval   = 10;  // revisión ligera de cambios recientes mientras Agenda está visible
+var _calCheckInterval  = 600; // comprobación amplia de respaldo, ya que la sync normal incluye borrados
 var _calSyncCountdown  = _calSyncInterval;
 var _calCheckCountdown = _calCheckInterval;
 var _calLastSync       = null;
@@ -19635,21 +19743,25 @@ function _updateSyncStatus() {
 
   // Cuenta regresiva (el más próximo de los dos)
   var next = Math.min(_calSyncCountdown, _calCheckCountdown);
-  if (cdTxtEl) cdTxtEl.textContent = 'En ' + next + 's';
+  var nextLabel = next <= 1 ? 'Actualizando…' : 'En ' + next + 's';
+  if (cdTxtEl && cdTxtEl.textContent !== nextLabel) cdTxtEl.textContent = nextLabel;
   if (cdEl) {
-    cdEl.className = next <= 3 ? 'syncing' : '';
+    cdEl.className = next <= 1 ? 'syncing' : '';
   }
 }
 
 // Tick cada segundo
 setInterval(function() {
+  // No consumir red ni actualizar contadores cuando el usuario está en otro
+  // módulo o la pestaña está oculta. Al volver, Agenda hace una revisión breve.
+  if (!_agendaPageIsActive() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
   _calSyncCountdown--;
   _calCheckCountdown--;
 
   if (_calSyncCountdown <= 0) {
     _calSyncCountdown = _calSyncInterval;
     if (typeof GCal !== 'undefined' && typeof GD !== 'undefined' && GD._token && GD._token()) {
-      GCal.importFromCalendar().then(function(n) {
+      GCal.importFromCalendar({recent:true}).then(function(n) {
         _calLastSync = new Date();
         _updateSyncStatus();
       }).catch(function(){});
@@ -19663,6 +19775,18 @@ setInterval(function() {
 
   _updateSyncStatus();
 }, 1000);
+
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && _agendaPageIsActive() && typeof GCal !== 'undefined') {
+    GCal.importFromCalendar({recent:true, force:true}).then(function() {
+      // Si la pestaña estuvo oculta mucho tiempo, esta pasada completa recoge
+      // también cambios que queden fuera de la ventana rápida de 10 minutos.
+      setTimeout(function() {
+        if (_agendaPageIsActive()) GCal.importFromCalendar().catch(function(){});
+      }, 800);
+    }).catch(function(){});
+  }
+});
 
 // Mostrar indicador cuando se conecta Google
 var _origRefreshUI = null;
@@ -19678,8 +19802,8 @@ function updateBlockedTimes() {
   if (!selectedDate) return;
 
   // Citas existentes ese día
-  var dayAppts = (db.appointments || []).filter(function(a) {
-    return a.date === selectedDate && a.status !== 'cancelled';
+  var dayAppts = (_agendaIndex().appointmentsByDate[selectedDate] || []).filter(function(a) {
+    return a.status !== 'cancelled';
   });
 
   // Construir lista de horas bloqueadas (HH:00 y HH:30)
