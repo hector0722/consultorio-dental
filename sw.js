@@ -1,7 +1,12 @@
-const CACHE_NAME = 'programa-consultorio-dental-v4-20260807-invoice-workflow-v27';
+const CACHE_NAME = 'programa-consultorio-dental-v4-20260823-loading-shell-v29';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.add(new Request('./app.html', { cache: 'reload' })))
+      .catch(() => undefined)
+  );
 });
 
 self.addEventListener('activate', event => {
@@ -33,16 +38,26 @@ self.addEventListener('fetch', event => {
     ? new Request(request, { cache: 'no-store' })
     : request;
 
+  // Preparar una copia en cuanto llegan los encabezados, pero entregar la
+  // respuesta original al navegador sin esperar a que termine cache.put().
+  // Antes se retenía todo el HTML mientras se escribía la copia offline y la
+  // pestaña permanecía blanca varios segundos.
+  const preparedResponse = fetch(networkRequest).then(response => ({
+    response,
+    cacheCopy: response && response.ok ? response.clone() : null
+  }));
+
   event.respondWith(
-    fetch(networkRequest).then(response => {
-      if (response && response.ok) {
-        const copy = response.clone();
-        const cacheKey = isAppDocument ? './app.html' : request;
-        return caches.open(CACHE_NAME)
-          .then(cache => cache.put(cacheKey, copy))
-          .then(() => response);
-      }
-      return response;
-    }).catch(() => caches.match(request).then(cached => cached || caches.match('./app.html')))
+    preparedResponse
+      .then(result => result.response)
+      .catch(() => caches.match(request).then(cached => cached || caches.match('./app.html')))
+  );
+
+  event.waitUntil(
+    preparedResponse.then(result => {
+      if (!result.cacheCopy) return undefined;
+      const cacheKey = isAppDocument ? './app.html' : request;
+      return caches.open(CACHE_NAME).then(cache => cache.put(cacheKey, result.cacheCopy));
+    }).catch(() => undefined)
   );
 });

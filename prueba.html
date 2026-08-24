@@ -1682,7 +1682,7 @@ html.dark .topbar { background: rgba(28,28,30,0.92) !important; }
 
 /* ━━━ GOOGLE DRIVE LOGIN SCREEN ━━━ */
 #app-loading-screen {
-  position: fixed; inset: 0; z-index: 99998;
+  position: fixed; inset: 0; z-index: 2147483646;
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
   background:
@@ -1690,18 +1690,21 @@ html.dark .topbar { background: rgba(28,28,30,0.92) !important; }
     linear-gradient(180deg, #f8fafc 0%, #f2f5f8 100%);
   color: #1d1d1f;
   transition: opacity .24s ease, visibility .24s ease;
+  opacity:1; visibility:visible; pointer-events:auto;
 }
 #app-loading-screen.is-leaving { opacity: 0; visibility: hidden; }
+html.app-is-loading,html.app-is-loading body{overflow:hidden!important;}
+html.app-is-loading #app-loading-screen{display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
 .app-loading-card {
-  width: min(420px, 92vw); text-align: center;
-  padding: 38px 34px 32px; border-radius: 30px;
+  width: min(470px, 92vw); text-align: center;
+  padding: 34px 34px 28px; border-radius: 30px;
   background: rgba(255,255,255,.88);
   border: 1px solid rgba(255,255,255,.92);
   box-shadow: 0 30px 90px rgba(20,45,75,.14);
   backdrop-filter: blur(24px) saturate(150%);
 }
 .app-loading-icon {
-  width: 68px; height: 68px; margin: 0 auto 18px;
+  width: 68px; height: 68px; margin: 0 auto 16px;
   display: grid; place-items: center; border-radius: 21px;
   background: linear-gradient(145deg,#2997ff,#0066cc);
   box-shadow: 0 15px 36px rgba(0,113,227,.28);
@@ -1716,29 +1719,35 @@ html.dark .topbar { background: rgba(28,28,30,0.92) !important; }
   letter-spacing: -.035em; font-weight: 750;
 }
 .app-loading-message {
-  min-height: 42px; margin: 0; color: #6e6e73;
+  min-height: 40px; margin: 0; color: #6e6e73;
   font-size: .84rem; line-height: 1.55;
 }
 .app-loading-track {
-  width: 112px; height: 4px; margin: 24px auto 19px;
-  overflow: hidden; border-radius: 99px; background: rgba(0,113,227,.12);
+  width: 100%; height: 5px; margin: 20px auto 17px;
+  overflow: hidden; border-radius: 99px; background: rgba(0,113,227,.12);position:relative;
 }
-.app-loading-track::after {
-  content: ''; display: block; width: 46%; height: 100%; border-radius: inherit;
-  background: linear-gradient(90deg,#64b5ff,#0071e3);
-  animation: appLoadingSweep 1.1s ease-in-out infinite;
+.app-loading-progress {
+  display:block;width:18%;height:100%;border-radius:inherit;
+  background:linear-gradient(90deg,#64b5ff,#0071e3,#64b5ff);background-size:200% 100%;
+  transition:width .48s cubic-bezier(.22,.9,.3,1);animation:appLoadingGlow 1.2s linear infinite;
 }
 .app-loading-note {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 12px; border-radius: 999px;
   background: #eef7ff; color: #35627f; font-size: .7rem; font-weight: 650;
 }
-@keyframes appLoadingSweep {
-  0% { transform: translateX(-130%); }
-  100% { transform: translateX(285%); }
+.app-loading-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:0 0 17px;}
+.app-loading-step{display:flex;flex-direction:column;align-items:center;gap:5px;color:#9a9aa0;font-size:.58rem;font-weight:720;transition:color .2s;}
+.app-loading-step-dot{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#eef0f3;border:1px solid #dfe3e8;color:#9a9aa0;font-size:.55rem;font-weight:850;transition:all .25s;}
+.app-loading-step.active{color:#0071e3}.app-loading-step.active .app-loading-step-dot{background:#0071e3;border-color:#0071e3;color:#fff;box-shadow:0 0 0 5px rgba(0,113,227,.1)}
+.app-loading-step.done{color:#35627f}.app-loading-step.done .app-loading-step-dot{background:#dff5e7;border-color:#b7dfc3;color:#168a45}.app-loading-step.done .app-loading-step-dot::after{content:'✓'}.app-loading-step.done .app-loading-step-dot span{display:none}
+.app-loading-slow{display:none;margin:13px 0 0;padding:9px 11px;border-radius:11px;background:#fff8e8;border:1px solid rgba(217,119,6,.17);color:#8a5a08;font-size:.66rem;line-height:1.4;}
+.app-loading-slow.show{display:block;animation:proLoadingCardIn .28s ease both;}
+@keyframes appLoadingGlow {
+  from{background-position:100% 0}to{background-position:-100% 0}
 }
 @media (prefers-reduced-motion: reduce) {
-  .app-loading-track::after { animation: none; width: 100%; opacity: .72; }
+  .app-loading-progress { animation: none; }
 }
 
 #gd-login-screen {
@@ -3678,6 +3687,9 @@ html.dark .app-loading-card {
 }
 html.dark .app-loading-message { color: #a1a1a6 !important; }
 html.dark .app-loading-note { background: rgba(10,132,255,.14) !important; color: #9dccff !important; }
+html.dark .app-loading-step{color:#6e6e73}html.dark .app-loading-step.active{color:#64b5ff}html.dark .app-loading-step.done{color:#9dccff}
+html.dark .app-loading-step-dot{background:#2c2c2e;border-color:#3a3a3c;color:#8e8e93}html.dark .app-loading-step.done .app-loading-step-dot{background:rgba(52,199,89,.14);border-color:rgba(52,199,89,.3);color:#64d47f}
+html.dark .app-loading-slow{background:rgba(255,149,0,.11);border-color:rgba(255,149,0,.22);color:#ffc36b}
 html.dark .pass-box,
 html.dark .gd-login-box { background: rgba(28,28,30,.9) !important; }
 html.dark body > .no-print[style*="position:fixed"] {
@@ -4754,8 +4766,15 @@ body.app-ready #dash-page.active > .card {
     <div class="app-loading-kicker">Consultorio Dental</div>
     <h1 class="app-loading-title" id="app-loading-title">Preparando tu consultorio</h1>
     <p class="app-loading-message" id="app-loading-message">Conectando de forma segura con Google Drive…</p>
-    <div class="app-loading-track" aria-hidden="true"></div>
+    <div class="app-loading-track" aria-hidden="true"><span class="app-loading-progress" id="app-loading-progress"></span></div>
+    <div class="app-loading-steps" aria-label="Progreso de carga">
+      <div class="app-loading-step active" data-loading-step="1"><span class="app-loading-step-dot"><span>1</span></span><span>Cuenta</span></div>
+      <div class="app-loading-step" data-loading-step="2"><span class="app-loading-step-dot"><span>2</span></span><span>Expediente</span></div>
+      <div class="app-loading-step" data-loading-step="3"><span class="app-loading-step-dot"><span>3</span></span><span>Consultorio</span></div>
+      <div class="app-loading-step" data-loading-step="4"><span class="app-loading-step-dot"><span>4</span></span><span>Listo</span></div>
+    </div>
     <div class="app-loading-note"><span aria-hidden="true">☁️</span> Tus datos permanecen en Google Drive</div>
+    <div class="app-loading-slow" id="app-loading-slow">Drive está tardando un poco más de lo habitual. La aplicación sigue trabajando y no cerrará esta pantalla hasta recuperar tu expediente.</div>
   </div>
 </div>
 
@@ -6112,7 +6131,17 @@ body.app-ready #dash-page.active > .card {
 <script>
 // ═══ STARTUP LOADING SCREEN ═══
 var _appLoadingHideTimer = null;
-function showAppLoading(title, message) {
+var _appLoadingSlowTimer = null;
+var _appLoadingStep = 1;
+function setAppLoadingStep(step) {
+  step=Math.max(1,Math.min(4,parseInt(step,10)||1));_appLoadingStep=step;
+  var nodes=document.querySelectorAll('[data-loading-step]');
+  Array.prototype.forEach.call(nodes,function(node){
+    var n=parseInt(node.getAttribute('data-loading-step'),10);node.classList.toggle('done',n<step);node.classList.toggle('active',n===step);
+  });
+  var progress=document.getElementById('app-loading-progress'),widths={1:18,2:46,3:76,4:100};if(progress)progress.style.width=widths[step]+'%';
+}
+function showAppLoading(title, message, step) {
   var screen = document.getElementById('app-loading-screen');
   var titleEl = document.getElementById('app-loading-title');
   var messageEl = document.getElementById('app-loading-message');
@@ -6120,29 +6149,39 @@ function showAppLoading(title, message) {
     clearTimeout(_appLoadingHideTimer);
     _appLoadingHideTimer = null;
   }
+  if(_appLoadingSlowTimer)clearTimeout(_appLoadingSlowTimer);
   if (titleEl && title) titleEl.textContent = title;
   if (messageEl && message) messageEl.textContent = message;
+  document.documentElement.classList.add('app-is-loading');
   if (screen) {
     screen.classList.remove('is-leaving');
     screen.style.display = 'flex';
   }
+  setAppLoadingStep(step||_appLoadingStep||1);
+  var slow=document.getElementById('app-loading-slow');if(slow)slow.classList.remove('show');
+  _appLoadingSlowTimer=setTimeout(function(){var notice=document.getElementById('app-loading-slow');if(notice&&document.documentElement.classList.contains('app-is-loading'))notice.classList.add('show');},5200);
 }
-function updateAppLoading(message) {
+function updateAppLoading(message, step) {
   var screen = document.getElementById('app-loading-screen');
   var messageEl = document.getElementById('app-loading-message');
   if (screen && screen.style.display !== 'none' && messageEl && message) {
     messageEl.textContent = message;
   }
+  if(step)setAppLoadingStep(step);
 }
 function hideAppLoading(immediate) {
   var screen = document.getElementById('app-loading-screen');
   if (!screen) return;
   if (_appLoadingHideTimer) clearTimeout(_appLoadingHideTimer);
+  if(_appLoadingSlowTimer){clearTimeout(_appLoadingSlowTimer);_appLoadingSlowTimer=null;}
+  var slow=document.getElementById('app-loading-slow');if(slow)slow.classList.remove('show');
+  document.documentElement.classList.remove('app-is-loading');
   if (immediate) {
     screen.classList.remove('is-leaving');
     screen.style.display = 'none';
     return;
   }
+  setAppLoadingStep(4);
   screen.classList.add('is-leaving');
   _appLoadingHideTimer = setTimeout(function() {
     screen.style.display = 'none';
@@ -16001,7 +16040,7 @@ function initPWA() {
   // El Service Worker debe ser un archivo real del mismo dominio; los
   // navegadores rechazan silenciosamente registros desde URLs blob:.
   if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js?v=20260807-27', { updateViaCache:'none' }).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=20260823-29', { updateViaCache:'none' }).then(function(reg){
       // Revisar inmediatamente en cada apertura; algunos navegadores esperan
       // hasta 24 horas y dejan ejecutándose una versión anterior de la app.
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -16021,7 +16060,7 @@ function initPWA() {
     // Recargar una sola vez cuando una versión nueva del Service Worker toma
     // control. Esto evita seguir ejecutando app.html desde una caché antigua.
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      var refreshKey = 'dental_sw_refreshed_20260807_27';
+      var refreshKey = 'dental_sw_refreshed_20260823_29';
       if (sessionStorage.getItem(refreshKey)) return;
       sessionStorage.setItem(refreshKey, '1');
       location.reload();
@@ -16594,7 +16633,7 @@ var GD = (function() {
       return;
     }
     _authInProgress = true;
-    showAppLoading('Conectando con Google Drive', 'Esperando la confirmación segura de tu cuenta…');
+    showAppLoading('Conectando con Google Drive', 'Esperando la confirmación segura de tu cuenta…',1);
     setBadge('syncing', 'Conectando…');
     var tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
@@ -16639,34 +16678,34 @@ var GD = (function() {
         if (rm) rm.classList.remove('open');
         // Cargar desde Drive (bloquea guardados hasta terminar)
         _saving = true;
-        updateAppLoading('Verificando tu cuenta y el acceso a Drive…');
+        updateAppLoading('Verificando tu cuenta y el acceso a Drive…',1);
         setBadge('syncing', 'Verificando cuenta…');
         // Identidad y carpeta son consultas independientes. Ejecutarlas al
         // mismo tiempo reduce sensiblemente la espera al iniciar sesión.
         Promise.all([identifyAccount, _ensureFolder()])
           .then(function() {
-            updateAppLoading('Cargando pacientes, citas y notas clínicas…');
+            updateAppLoading('Cargando pacientes, citas y notas clínicas…',2);
             setBadge('syncing', 'Cargando pacientes…');
             return _loadDB();
           })
           .then(function() {
-            updateAppLoading('Cargando tratamientos y precios…');
+            updateAppLoading('Cargando tratamientos y precios…',2);
             setBadge('syncing', 'Cargando precios…');
             return _loadCatalog();
           })
           .then(function() {
-            updateAppLoading('Aplicando la configuración de tu consultorio…');
+            updateAppLoading('Aplicando la configuración de tu consultorio…',3);
             setBadge('syncing', 'Aplicando configuración…');
             return _loadCfg();
           })
           .then(function() {
-            updateAppLoading('Cargando portada, logotipo y fotografías…');
+            updateAppLoading('Cargando portada, logotipo y fotografías…',3);
             setBadge('syncing', 'Cargando portada…');
             return _loadHero();
           })
           .then(function() {
             if (typeof migrateLegacyInlineImagesToDrive !== 'function') return;
-            updateAppLoading('Verificando las fotografías guardadas en Drive…');
+            updateAppLoading('Verificando las fotografías guardadas en Drive…',3);
             setBadge('syncing', 'Migrando imágenes a Drive…');
             return migrateLegacyInlineImagesToDrive();
           })
@@ -16716,6 +16755,7 @@ var GD = (function() {
             // save() dejó la marca pendiente. Subirla ahora que terminó la
             // carga en vez de permitir que la descarga la silencie.
             if (_dirty && !_dbSaving) _scheduleSave();
+            updateAppLoading('Tu consultorio está listo.',4);
             hideAppLoading();
           })
           .catch(function(e) {
@@ -18150,7 +18190,7 @@ var GD = (function() {
 
   // ── Start ─────────────────────────────────────────────────
   function start() {
-    showAppLoading('Preparando tu consultorio', 'Revisando la conexión segura con Google Drive…');
+    showAppLoading('Preparando tu consultorio', 'Revisando la conexión segura con Google Drive…',1);
     // En la primera ejecución de esta versión se carga en memoria cualquier
     // copia heredada para migrarla y verificarla en Drive antes de retirarla.
     loadDB();
@@ -18195,7 +18235,7 @@ var GD = (function() {
       var ls = document.getElementById('gd-login-screen');
       if (ls) ls.style.display = 'none';
       setBadge('syncing', 'Conectando…');
-      updateAppLoading('Reconectando con la misma cuenta de Google…');
+      updateAppLoading('Reconectando con la misma cuenta de Google…',1);
       _autoReconnect();
     } else {
       _mode = 'google';
@@ -18529,7 +18569,7 @@ function initPassGate() {
   var screen = document.getElementById('pass-screen');
   if (appStorage.getItem(LICENSE_ACTIVE_KEY) === '1') {
     if (screen) screen.style.display = 'none';
-    showAppLoading('Preparando tu consultorio', 'Conectando de forma segura con Google Drive…');
+    showAppLoading('Preparando tu consultorio', 'Conectando de forma segura con Google Drive…',1);
     GD.start();
     return;
   }
