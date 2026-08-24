@@ -4930,30 +4930,31 @@ body.app-ready #dash-page.active > .card {
 <!-- ══ BARRA DE RECONEXIÓN (oculta, legacy) ══ -->
 <div id="gd-reconnect-bar" style="display:none"></div>
 
-<!-- ══ AVISO DE ACTUALIZACIÓN — aparece una sola vez ══ -->
+<!-- ══ AVISO DE ACTUALIZACIÓN ══ -->
 <div id="update-notice-overlay" style="display:none;position:fixed;inset:0;z-index:9700;background:rgba(8,12,20,.72);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:18px">
-  <div style="width:min(520px,96vw);max-height:90vh;overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--border-med);border-radius:26px;box-shadow:0 28px 80px rgba(0,0,0,.38);padding:28px 26px">
-    <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#34c759,#16863a);display:flex;align-items:center;justify-content:center;color:white;font-size:1.8rem;box-shadow:0 10px 24px rgba(52,199,89,.28);margin-bottom:18px">✓</div>
-    <div style="font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#248a3d;margin-bottom:6px">Actualización instalada</div>
-    <h2 style="font-size:1.35rem;line-height:1.2;margin:0 0 8px;color:var(--ink)">Una experiencia más segura, estable y profesional</h2>
-    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Actualizamos el almacenamiento, el inicio y la presentación visual del consultorio sin modificar tus expedientes.</p>
-    <div style="display:grid;gap:9px;margin-bottom:22px">
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🛡️</span><span style="font-size:.79rem;line-height:1.45"><strong>Modo solo Drive:</strong> los expedientes y fotografías ya no se guardan en el navegador; Drive verifica el contenido completo antes de mostrar “Sincronizado”.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.79rem;line-height:1.45"><strong>Inicio claro y protegido:</strong> ahora ves el progreso mientras se conectan tu cuenta, expedientes, configuración y fotografías.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.79rem;line-height:1.45"><strong>Portada estable:</strong> las actualizaciones automáticas conservan la fotografía y descargan una nueva únicamente cuando realmente cambió en Drive.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>👨‍⚕️</span><span style="font-size:.79rem;line-height:1.45"><strong>Doctor activo:</strong> la selección se mantiene al sincronizar y el selector ya no aparece por sí solo.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.79rem;line-height:1.45"><strong>Precios persistentes:</strong> los cambios del catálogo se guardan inmediatamente y una copia anterior de otro dispositivo ya no puede restaurarlos al recargar.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Presupuesto siempre limpio:</strong> al abrir el módulo comienza uno nuevo; únicamente se conserva cuando lo generas y lo guardas en el expediente del paciente.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.79rem;line-height:1.45"><strong>Plan por citas:</strong> divide opcionalmente el tratamiento en Cita 1, 2, 3… con descripción y precio; queda incluido al guardar, imprimir o reimprimir el presupuesto.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>💵</span><span style="font-size:.79rem;line-height:1.45"><strong>Caja protegida:</strong> ingresos y egresos se recuperan desde todas las copias de Drive por dispositivo; una copia vacía ya no puede ocultar movimientos anteriores.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🖼️</span><span style="font-size:.79rem;line-height:1.45"><strong>Logo en documentos:</strong> el logotipo configurado aparece en presupuestos, recetas, consentimientos, historias clínicas, indicaciones, odontogramas y reportes guardados como PDF.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾</span><span style="font-size:.79rem;line-height:1.45"><strong>Centro de recibos:</strong> agrupa varios tratamientos en un comprobante, consulta el historial completo y genera cortes semanales, quincenales, mensuales o personalizados en PDF y CSV.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🧾c</span><span style="font-size:.79rem;line-height:1.45"><strong>Control de facturación:</strong> guarda los datos CFDI 4.0 en el expediente, los completa al crear recibos y separa por facturar, facturados y pagos que no requieren factura en el corte del contador.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.79rem;line-height:1.45"><strong>Diseño más profesional:</strong> agregamos movimientos suaves, transiciones entre módulos y microinteracciones optimizadas para celular.</span></div>
-      <div style="display:flex;gap:10px;padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--border)"><span>🔄</span><span style="font-size:.79rem;line-height:1.45"><strong>Sincronización segura:</strong> combina cambios entre dispositivos sin borrar pacientes, notas, citas ni configuraciones válidas.</span></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="update-notice-title" style="position:relative;width:min(720px,96vw);max-height:90vh;overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--border-med);border-radius:28px;box-shadow:0 28px 80px rgba(0,0,0,.4);padding:28px 28px 24px">
+    <button type="button" onclick="closeUpdateNotice()" aria-label="Cerrar aviso" style="position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border-med);background:var(--bg);color:var(--ink-3);font:inherit;font-size:1rem;cursor:pointer">✕</button>
+    <div style="display:flex;align-items:center;gap:14px;padding-right:42px;margin-bottom:14px">
+      <div style="width:58px;height:58px;flex:0 0 auto;border-radius:18px;background:linear-gradient(145deg,#1689ff,#6257e8);display:flex;align-items:center;justify-content:center;color:white;font-size:1.7rem;box-shadow:0 10px 24px rgba(22,137,255,.28)">✨</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><span style="font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)">Nueva actualización</span><span style="font-size:.62rem;font-weight:800;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 7px;border-radius:999px">23 AGO 2026</span></div>
+        <h2 id="update-notice-title" style="font-size:1.42rem;line-height:1.2;margin:0;color:var(--ink)">Tu consultorio clínico ahora es mucho más completo</h2>
+      </div>
     </div>
-    <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:750;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido, continuar</button>
-    <div style="font-size:.65rem;text-align:center;color:var(--ink-4);margin-top:10px">Este mensaje aparecerá una sola vez para esta actualización.</div>
+    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Renovamos los módulos, las recetas, las fotografías y la conexión con Google. <strong style="color:var(--ink)">Tus expedientes anteriores se conservan.</strong></p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px;margin-bottom:20px">
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.77rem;line-height:1.45"><strong>Especialidades renovadas</strong><br><span style="color:var(--ink-3)">Ortodoncia, cefalometría, periodoncia, odontogramas y expedientes especializados más completos y visuales.</span></span></div>
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.77rem;line-height:1.45"><strong>Expediente multidisciplinario</strong><br><span style="color:var(--ink-3)">Todas las especialidades están en la ficha del paciente y la impresión reúne su resumen clínico.</span></span></div>
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>💊</span><span style="font-size:.77rem;line-height:1.45"><strong>Recetario clínico ampliado</strong><br><span style="color:var(--ink-3)">Protocolos odontológicos, vademécum, selección manual y calculadora pediátrica por peso.</span></span></div>
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.77rem;line-height:1.45"><strong>Fotografías por paciente</strong><br><span style="color:var(--ink-3)">Galerías separadas, carga anticipada y avisos claros mientras Drive descarga las miniaturas.</span></span></div>
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.77rem;line-height:1.45"><strong>Agenda más rápida</strong><br><span style="color:var(--ink-3)">Mejor lectura de citas y actualización rápida desde Google Calendar, incluido el celular.</span></span></div>
+      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.77rem;line-height:1.45"><strong>Drive más ágil y seguro</strong><br><span style="color:var(--ink-3)">Menos esperas, estados de guardado más claros y protección al intentar salir con cambios pendientes.</span></span></div>
+    </div>
+    <label for="update-notice-dont-show" style="display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:12px;border-radius:13px;background:color-mix(in srgb,var(--blue) 8%,var(--bg));border:1px solid color-mix(in srgb,var(--blue) 24%,var(--border));font-size:.78rem;cursor:pointer;user-select:none">
+      <input type="checkbox" id="update-notice-dont-show" style="width:18px;height:18px;accent-color:var(--blue);margin:0">
+      <span><strong>No volver a mostrar esta actualización</strong><br><span style="color:var(--ink-3);font-size:.7rem">La preferencia se guardará únicamente en este dispositivo.</span></span>
+    </label>
+    <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:780;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido, explorar mejoras</button>
   </div>
 </div>
 
@@ -16817,9 +16818,10 @@ function renderBdayList() {
 // El navegador mantiene el estado solo en memoria durante la sesión.
 // Cada dentista tiene su propio archivo en su Drive.
 // ══════════════════════════════════════════════════════════
-// AVISO DE ACTUALIZACIÓN — una vez por navegador y versión
+// AVISO DE ACTUALIZACIÓN — una vez por sesión o permanentemente si se elige
+// “No volver a mostrar” en este dispositivo.
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_07_invoice_workflow_v27';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_23_clinical_suite_v30';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -16851,16 +16853,20 @@ function showUpdateNoticeOnce() {
         || waitingForGoogle) return;
     if (overlay) {
       _updateNoticeShownThisSession = true;
+      var dontShow = document.getElementById('update-notice-dont-show');
+      if (dontShow) dontShow.checked = false;
       overlay.style.display = 'flex';
     }
   }, 900);
 }
 
 function closeUpdateNotice() {
-  _updateNoticeAcknowledged = true;
   _updateNoticeShownThisSession = true;
-  appStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
-  persistAuxStateToDrive();
+  var dontShow = document.getElementById('update-notice-dont-show');
+  if (dontShow && dontShow.checked) {
+    _updateNoticeAcknowledged = true;
+    appStorage.setItem('dental_seen_version', UPDATE_NOTICE_VERSION);
+  }
   var overlay = document.getElementById('update-notice-overlay');
   if (overlay) overlay.style.display = 'none';
 }
