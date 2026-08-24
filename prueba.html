@@ -978,16 +978,22 @@ body.ortho-open{overflow:hidden;}
 }
 
 /* ━━━━ PERIODONTOGRAMA ━━━━ */
-.perio-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);overflow-y:auto;padding:20px 0;}
+.perio-overlay{display:none;position:fixed;inset:0;background:rgba(10,12,18,.6);z-index:9160;align-items:center;justify-content:center;backdrop-filter:blur(10px) saturate(125%);padding:18px;}
 .perio-overlay.open{display:flex;}
-.perio-box{background:var(--card);border-radius:var(--r-xl);width:99%;max-width:1300px;box-shadow:var(--sh-xl);display:flex;flex-direction:column;margin:auto;}
-.perio-header{padding:16px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;border-radius:var(--r-xl) var(--r-xl) 0 0;}
-.perio-header h2{font-size:1rem;font-weight:700;letter-spacing:-.02em;}
-.perio-body{padding:16px 20px 28px;}
-.perio-session-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border);}
+.perio-box{background:var(--card);border:1px solid var(--border);border-radius:26px;width:min(1320px,98vw);height:min(900px,calc(100vh - 36px));box-shadow:0 32px 90px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;}
+.perio-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);z-index:2;flex:0 0 auto;}
+.perio-header h2{font-size:1rem;font-weight:850;letter-spacing:-.025em;}
+.perio-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+.perio-title-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#ecfff2,#dff5e7);border:1px solid rgba(22,138,69,.16);display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 7px 18px rgba(22,138,69,.12);}
+.perio-body{padding:16px 18px 24px;overflow-y:auto;overscroll-behavior:contain;}
+.perio-session-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:11px 12px;background:var(--bg);border-radius:14px;border:1px solid var(--border);}
 .perio-session-bar label{font-size:.75rem;font-weight:600;color:var(--ink-3);}
+.perio-session-bar input{color:var(--ink);}
+.perio-tabs{display:flex;gap:4px;margin-bottom:10px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--bg);width:max-content;}
+.perio-tab-btn{padding:7px 17px;border:1px solid transparent;background:transparent;color:var(--ink-3);font-family:inherit;font-size:.75rem;font-weight:750;cursor:pointer;border-radius:9px;}
+.perio-tab-btn.active{background:var(--card);color:var(--blue);border-color:var(--border-med);box-shadow:var(--sh-sm);}
 .perio-arch-label{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);text-align:center;margin:10px 0 6px;}
-.perio-table-wrap{overflow-x:auto;margin-bottom:4px;}
+.perio-table-wrap{overflow-x:auto;margin-bottom:4px;border:1px solid var(--border);border-radius:15px;background:var(--card);padding:8px;}
 .perio-table{border-collapse:collapse;width:100%;min-width:900px;}
 .perio-table th{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);padding:3px 2px;text-align:center;border:1px solid var(--border);background:var(--bg);white-space:nowrap;}
 .perio-table td{padding:1px 2px;border:1px solid var(--border);text-align:center;vertical-align:middle;}
@@ -1014,6 +1020,10 @@ body.ortho-open{overflow:hidden;}
 .perio-hist-stat{font-size:.7rem;color:var(--ink-3);}
 .perio-compare-bar{display:flex;gap:3px;align-items:flex-end;height:30px;}
 .perio-compare-col{background:var(--blue);border-radius:2px 2px 0 0;min-width:3px;transition:height .2s;}
+.perio-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding:10px 2px 0;border-top:1px solid var(--border);font-size:.67rem;color:var(--ink-3);}
+.perio-history-wrap{margin-top:15px;padding:13px;border:1px solid var(--border);border-radius:15px;background:var(--bg);}
+body.perio-open{overflow:hidden;}
+@media(max-width:760px){.perio-overlay{padding:0}.perio-box{width:100%;height:100%;border-radius:0}.perio-header{padding:12px 13px}.perio-title-icon{width:36px;height:36px}.perio-body{padding:12px}.perio-session-bar{align-items:stretch}.perio-session-bar input{width:100%;flex:1}.perio-session-bar label{width:100%}.perio-hist-stats{flex-wrap:wrap}}
 
 /* ━━━━ ODONTOGRAMA ━━━━ */
 .odo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
@@ -1159,6 +1169,79 @@ body.odo-open{overflow:hidden;}
 body.ped-open{overflow:hidden;}
 @media(max-width:940px){.ped-box{width:100%;height:100%;max-height:100vh;border-radius:0}.ped-overlay{padding:0}.ped-layout{grid-template-columns:1fr}.ped-side{border-left:0;border-top:1px solid var(--border)}.ped-casebar{grid-template-columns:1fr 1fr}.ped-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ped-header{padding:12px 13px}.ped-title-icon{width:36px;height:36px}.ped-header-actions .ped-print{display:none}.ped-body{padding:11px}.ped-summary-card{padding:9px 10px}.ped-casebar{grid-template-columns:1fr}.ped-main,.ped-side{padding:11px}.ped-toolbox{padding:9px}.ped-tool{padding:6px 8px}.ped-arch-card{padding-left:4px;padding-right:4px}.ped-tooth{width:46px}.ped-condition-grid{grid-template-columns:1fr}}
+
+/* ━━━━ CENTRO DE ESPECIALIDADES ━━━━ */
+.spec-overlay{display:none;position:fixed;inset:0;z-index:9180;background:rgba(10,12,18,.6);backdrop-filter:blur(10px) saturate(125%);align-items:center;justify-content:center;padding:18px;}
+.spec-overlay.open{display:flex;}
+.spec-box{width:min(1320px,98vw);height:min(860px,calc(100vh - 36px));background:var(--card);color:var(--ink);border:1px solid var(--border);border-radius:26px;box-shadow:0 32px 90px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;}
+.spec-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+.spec-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+.spec-title-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:linear-gradient(145deg,#eef8ff,#e9e5ff);border:1px solid rgba(94,92,230,.15);box-shadow:0 7px 18px rgba(94,92,230,.12);}
+.spec-title{font-size:1rem;font-weight:850;letter-spacing:-.025em;color:var(--ink);}
+.spec-subtitle{font-size:.72rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spec-head-actions{display:flex;align-items:center;gap:7px;}
+.spec-shell{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:0;flex:1;}
+.spec-sidebar{padding:13px 11px;background:color-mix(in srgb,var(--bg) 68%,var(--card));border-right:1px solid var(--border);overflow-y:auto;}
+.spec-nav-label{font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4);padding:9px 10px 5px;}
+.spec-nav-btn{width:100%;display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 9px;margin:2px 0;border:1px solid transparent;border-radius:11px;background:transparent;color:var(--ink-2);font-family:inherit;text-align:left;cursor:pointer;transition:background .15s,border-color .15s,transform .15s;}
+.spec-nav-btn:hover{background:var(--card);border-color:var(--border);transform:translateX(2px);}
+.spec-nav-btn.active{background:var(--card);border-color:var(--border-med);color:var(--ink);box-shadow:var(--sh-sm);}
+.spec-nav-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--spec-pale);color:var(--spec-color);font-size:.95rem;}
+.spec-nav-name{font-size:.7rem;font-weight:780;line-height:1.15;}
+.spec-nav-count{min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:var(--bg);color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;}
+.spec-content{overflow-y:auto;padding:18px 20px 24px;min-width:0;}
+.spec-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;}
+.spec-page-kicker{font-size:.61rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--spec-color,var(--blue));margin-bottom:3px;}
+.spec-page-title{font-size:1.22rem;font-weight:880;letter-spacing:-.035em;color:var(--ink);}
+.spec-page-desc{font-size:.73rem;color:var(--ink-3);margin-top:3px;line-height:1.45;max-width:680px;}
+.spec-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:14px;}
+.spec-summary-card{padding:12px 13px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(145deg,var(--card),var(--bg));}
+.spec-summary-label{font-size:.59rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-4);}
+.spec-summary-value{font-size:1.18rem;font-weight:880;letter-spacing:-.035em;color:var(--ink);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spec-summary-sub{font-size:.64rem;color:var(--ink-4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spec-dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.spec-module-card{position:relative;display:flex;flex-direction:column;min-height:160px;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--card);text-align:left;color:var(--ink);font-family:inherit;cursor:pointer;overflow:hidden;transition:transform .16s,border-color .16s,box-shadow .16s;}
+.spec-module-card::after{content:'';position:absolute;width:105px;height:105px;border-radius:50%;right:-38px;top:-42px;background:var(--spec-pale);opacity:.8;}
+.spec-module-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--spec-color) 45%,var(--border));box-shadow:0 12px 26px rgba(0,0,0,.09);}
+.spec-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;}
+.spec-card-icon{width:38px;height:38px;border-radius:12px;background:var(--spec-pale);color:var(--spec-color);display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+.spec-card-badge{font-size:.57rem;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--bg);color:var(--ink-4);}
+.spec-card-title{font-size:.84rem;font-weight:820;letter-spacing:-.015em;margin-top:11px;position:relative;z-index:1;}
+.spec-card-desc{font-size:.67rem;color:var(--ink-3);line-height:1.45;margin-top:4px;position:relative;z-index:1;flex:1;}
+.spec-card-foot{font-size:.64rem;color:var(--spec-color);font-weight:780;margin-top:9px;position:relative;z-index:1;}
+.spec-workspace{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(330px,.88fr);gap:12px;align-items:start;}
+.spec-panel{border:1px solid var(--border);border-radius:17px;background:var(--card);padding:14px;min-width:0;}
+.spec-panel-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.spec-panel-title{font-size:.72rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+.spec-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.spec-field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.spec-field.full{grid-column:1/-1;}
+.spec-field label{font-size:.61rem;font-weight:800;text-transform:uppercase;letter-spacing:.045em;color:var(--ink-3);}
+.spec-field input,.spec-field select,.spec-field textarea{width:100%;min-width:0;padding:8px 9px;border:1px solid var(--border-med);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit;font-size:.74rem;}
+.spec-field textarea{resize:vertical;line-height:1.45;}
+.spec-field input:focus,.spec-field select:focus,.spec-field textarea:focus{outline:none;border-color:var(--spec-color,var(--blue));box-shadow:0 0 0 3px color-mix(in srgb,var(--spec-color,var(--blue)) 14%,transparent);}
+.spec-form-actions{display:flex;gap:7px;align-items:center;margin-top:11px;}
+.spec-empty{text-align:center;padding:42px 16px;color:var(--ink-3);font-size:.73rem;line-height:1.5;}
+.spec-empty-icon{width:52px;height:52px;border-radius:17px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);font-size:1.35rem;margin:0 auto 9px;}
+.spec-entry{padding:11px 0;border-bottom:1px solid var(--border);}
+.spec-entry:first-child{padding-top:0}.spec-entry:last-child{border-bottom:0;padding-bottom:0}
+.spec-entry-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;}
+.spec-entry-title{font-size:.76rem;font-weight:820;color:var(--ink);}
+.spec-entry-meta{font-size:.62rem;color:var(--ink-4);margin-top:2px;}
+.spec-entry-status{font-size:.57rem;font-weight:820;padding:3px 7px;border-radius:999px;background:var(--spec-pale);color:var(--spec-color);white-space:nowrap;}
+.spec-entry-body{font-size:.68rem;color:var(--ink-3);line-height:1.45;margin-top:6px;}
+.spec-entry-actions{display:flex;gap:5px;margin-top:8px;}
+.spec-alert{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border-radius:11px;background:var(--orange-bg);border:1px solid rgba(255,149,0,.22);color:#8a5300;font-size:.68rem;line-height:1.4;margin-bottom:11px;}
+.spec-launch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;}
+.spec-launch-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:15px;background:var(--card);cursor:pointer;color:var(--ink);font-family:inherit;text-align:left;transition:transform .15s,border-color .15s;}
+.spec-launch-card:hover{transform:translateY(-2px);border-color:var(--blue);}
+.spec-launch-icon{width:42px;height:42px;border-radius:13px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto;}
+.spec-launch-title{font-size:.78rem;font-weight:820}.spec-launch-sub{font-size:.65rem;color:var(--ink-3);margin-top:2px;line-height:1.35}
+.btn-specialties{background:linear-gradient(135deg,#5e5ce6,#0071e3)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 5px 14px rgba(94,92,230,.2);}
+body.spec-open{overflow:hidden;}
+@media(max-width:1050px){.spec-dashboard-grid{grid-template-columns:1fr 1fr}.spec-workspace{grid-template-columns:1fr}.spec-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.spec-overlay{padding:0}.spec-box{width:100%;height:100%;border-radius:0}.spec-shell{grid-template-columns:1fr}.spec-sidebar{display:flex;gap:5px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px}.spec-nav-label{display:none}.spec-nav-btn{width:auto;min-width:max-content;grid-template-columns:28px auto;padding:6px 8px}.spec-nav-icon{width:28px;height:28px}.spec-nav-count{display:none}.spec-content{padding:13px}.spec-dashboard-grid,.spec-launch-grid{grid-template-columns:1fr}.spec-header{padding:12px 13px}.spec-head-actions .spec-print-btn{display:none}}
+@media(max-width:520px){.spec-summary{grid-template-columns:1fr 1fr}.spec-form-grid{grid-template-columns:1fr}.spec-field.full{grid-column:auto}.spec-page-head{display:block}.spec-page-head .btn{margin-top:9px}.spec-module-card{min-height:145px}}
 
 /* ━━━━ DAY VIEW ━━━━ */.day-view-grid { display: grid; grid-template-columns: 56px 1fr; }
 .dv-time { height: 64px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: flex-end; padding: 6px 8px 0; font-size: .65rem; color: var(--ink-4); font-weight: 600; letter-spacing: .02em; }
@@ -5496,6 +5579,7 @@ body.app-ready #dash-page.active > .card {
         </div>
         <div class="ph-actions no-print">
           <button class="btn btn-primary btn-sm" onclick="goToPatientBudget()">💰 Presupuesto</button>
+          <button class="btn btn-sm btn-specialties" onclick="openSpecialtiesHub()">✦ Especialidades</button>
           <button class="btn btn-ghost btn-sm" onclick="openOdontogram()">🦷 Odontograma</button>
           <button class="btn btn-ghost btn-sm" onclick="openOdontogramPed()">🧒 Odontograma pediátrico</button>
           <button class="btn btn-ghost btn-sm" onclick="openPeriodontogram()">📊 Periodontograma</button>
@@ -14719,6 +14803,7 @@ function openPeriodontogram() {
   var p = _perioGetPatient(); if (!p) return;
   document.getElementById('perio-patient-name').textContent = p.name;
   document.getElementById('perio-overlay').classList.add('open');
+  document.body.classList.add('perio-open');
   // Set today as default date
   document.getElementById('perio-session-date').value = fmtDate(new Date());
   document.getElementById('perio-session-note').value = '';
@@ -14732,20 +14817,20 @@ function openPeriodontogram() {
   _perioCurArch = 'upper';
   renderPerioTable();
   renderPerioHistory();
+  renderPerioSummary();
 }
 
 function closePeriodontogram() {
   document.getElementById('perio-overlay').classList.remove('open');
+  document.body.classList.remove('perio-open');
 }
 
 function showPerioArch(arch) {
   _perioCurArch = arch;
   document.getElementById('perio-arch-upper').style.display = arch === 'upper' ? '' : 'none';
   document.getElementById('perio-arch-lower').style.display = arch === 'lower' ? '' : 'none';
-  document.getElementById('perio-tab-upper').style.background = arch === 'upper' ? 'var(--blue)' : 'var(--bg)';
-  document.getElementById('perio-tab-upper').style.color = arch === 'upper' ? '#fff' : 'var(--ink-3)';
-  document.getElementById('perio-tab-lower').style.background = arch === 'lower' ? 'var(--blue)' : 'var(--bg)';
-  document.getElementById('perio-tab-lower').style.color = arch === 'lower' ? '#fff' : 'var(--ink-3)';
+  document.getElementById('perio-tab-upper').classList.toggle('active', arch === 'upper');
+  document.getElementById('perio-tab-lower').classList.toggle('active', arch === 'lower');
 }
 
 function newPerioSession() {
@@ -14753,6 +14838,7 @@ function newPerioSession() {
   document.getElementById('perio-session-date').value = fmtDate(new Date());
   document.getElementById('perio-session-note').value = '';
   renderPerioTable();
+  renderPerioSummary();
 }
 
 function savePerioSession() {
@@ -14787,6 +14873,7 @@ function savePerioSession() {
   else p.perioSessions.push(session);
   _perioSave();
   renderPerioHistory();
+  renderPerioSummary();
   showToast('✅ Sesión guardada — ' + date, 'green');
 }
 
@@ -14846,7 +14933,7 @@ function renderPerioArch(containerId, teeth, isUpper) {
       + teeth.map(function(fdi) {
           return pts.map(function(pt) {
             var checked = (_perioSessionData[fdi] || {})['bleed_'+pt] ? 'checked' : '';
-            return '<td style="background:rgba(255,59,48,.05)"><input class="perio-checkbox" id="p-bleed-'+fdi+'-'+pt+'" type="checkbox" ' + checked + ' title="Sangrado '+pt+'"></td>';
+            return '<td style="background:rgba(255,59,48,.05)"><input class="perio-checkbox" id="p-bleed-'+fdi+'-'+pt+'" type="checkbox" ' + checked + ' title="Sangrado '+pt+'" onchange="onPerioFlagChange('+fdi+',\'bleed_'+pt+'\',this.checked)"></td>';
           }).join('');
         }).join('') + '</tr>';
   }
@@ -14856,7 +14943,7 @@ function renderPerioArch(containerId, teeth, isUpper) {
       + teeth.map(function(fdi) {
           return pts.map(function(pt) {
             var checked = (_perioSessionData[fdi] || {})['sup_'+pt] ? 'checked' : '';
-            return '<td><input class="perio-checkbox" id="p-sup-'+fdi+'-'+pt+'" type="checkbox" ' + checked + ' title="Supuración '+pt+'" style="accent-color:#ff9500"></td>';
+            return '<td><input class="perio-checkbox" id="p-sup-'+fdi+'-'+pt+'" type="checkbox" ' + checked + ' title="Supuración '+pt+'" style="accent-color:#ff9500" onchange="onPerioFlagChange('+fdi+',\'sup_'+pt+'\',this.checked)"></td>';
           }).join('');
         }).join('') + '</tr>';
   }
@@ -14866,7 +14953,7 @@ function renderPerioArch(containerId, teeth, isUpper) {
       + teeth.map(function(fdi) {
           return pts.map(function(pt) {
             var val = (_perioSessionData[fdi] || {})['rec_'+pt] || '';
-            return '<td><input class="perio-input" id="p-rec-'+fdi+'-'+pt+'" type="number" min="0" max="15" value="' + val + '" placeholder="—" style="width:28px;color:var(--orange)"></td>';
+            return '<td><input class="perio-input" id="p-rec-'+fdi+'-'+pt+'" type="number" min="0" max="15" value="' + val + '" placeholder="—" style="width:28px;color:var(--orange)" oninput="onPerioRecInput(this,'+fdi+',\''+pt+'\')"></td>';
           }).join('');
         }).join('') + '</tr>';
   }
@@ -14955,6 +15042,39 @@ function onPerioInput(input, fdi, pt) {
   // Store live
   if (!_perioSessionData[fdi]) _perioSessionData[fdi] = {};
   _perioSessionData[fdi]['probe_'+pt] = input.value;
+  renderPerioSummary();
+}
+
+function onPerioFlagChange(fdi, key, checked) {
+  if (!_perioSessionData[fdi]) _perioSessionData[fdi] = {};
+  _perioSessionData[fdi][key] = checked;
+  renderPerioSummary();
+}
+
+function onPerioRecInput(input, fdi, pt) {
+  if (!_perioSessionData[fdi]) _perioSessionData[fdi] = {};
+  _perioSessionData[fdi]['rec_'+pt] = input.value;
+  var probe=parseFloat((document.getElementById('p-probe-'+fdi+'-'+pt)||{}).value)||0;
+  var rec=parseFloat(input.value)||0,nic=probe+rec,nicEl=document.getElementById('p-nic-'+fdi+'-'+pt);
+  if(nicEl){nicEl.textContent=nic>0?nic:'—';nicEl.className='perio-nic-cell'+(nic>=5?' bad':nic>=3?' warn':'');}
+}
+
+function renderPerioSummary() {
+  var probes=[],bleed=0,recorded=0,sites4=0,sites6=0;
+  Object.keys(_perioSessionData||{}).forEach(function(fdi){
+    var td=_perioSessionData[fdi]||{};
+    PERIO_POINTS_V.concat(PERIO_POINTS_L).forEach(function(pt){
+      var v=parseFloat(td['probe_'+pt])||0;
+      if(v>0){probes.push(v);recorded++;if(v>=4)sites4++;if(v>=6)sites6++;}
+      if(td['bleed_'+pt])bleed++;
+    });
+  });
+  var avg=probes.length?(probes.reduce(function(a,b){return a+b;},0)/probes.length).toFixed(1):'—';
+  var max=probes.length?Math.max.apply(null,probes):'—';
+  var pct=recorded?Math.round(bleed/recorded*100):0;
+  var sessions=_perioGetSessions().length,el=document.getElementById('perio-summary');if(!el)return;
+  function card(label,value,sub){return '<div class="ped-summary-card"><div class="ped-summary-top"><span>'+label+'</span><span>●</span></div><div class="ped-summary-value">'+value+'</div><div class="ped-summary-sub">'+sub+'</div></div>';}
+  el.innerHTML=card('Sondaje promedio',avg==='—'?'—':avg+' mm',recorded+' sitios capturados')+card('Profundidad máxima',max==='—'?'—':max+' mm',sites6+' sitios ≥6 mm')+card('Sangrado',pct+'%',bleed+' sitios positivos')+card('Seguimiento',sessions,sessions===1?'sesión guardada':'sesiones guardadas');
 }
 
 function renderPerioHistory() {
@@ -14992,6 +15112,7 @@ function loadPerioSession(idx) {
   document.getElementById('perio-session-date').value = sessions[idx].date;
   document.getElementById('perio-session-note').value = sessions[idx].note || '';
   renderPerioTable();
+  renderPerioSummary();
   showToast('Sesión del ' + sessions[idx].date + ' cargada', 'blue');
 }
 
@@ -15001,6 +15122,7 @@ function deletePerioSession(idx) {
   p.perioSessions.splice(idx, 1);
   _perioSave();
   renderPerioHistory();
+  renderPerioSummary();
 }
 
 function printPeriodontogram() {
@@ -21566,6 +21688,219 @@ function printOdontogramPed() {
 }
 
 
+// ══════════════════════════════════════════════════════════
+// ★ CENTRO DE ESPECIALIDADES — expediente multidisciplinario
+// ══════════════════════════════════════════════════════════
+var SPECIALTY_MODULES = [
+  {id:'endodoncia',icon:'🔬',label:'Endodoncia',color:'#dc2626',pale:'#fff1f0',desc:'Diagnóstico pulpar y apical, tratamiento de conductos y controles.',fields:[
+    {id:'pulpalDx',label:'Diagnóstico pulpar',type:'select',options:['Sin definir','Pulpa normal','Pulpitis reversible','Pulpitis irreversible sintomática','Pulpitis irreversible asintomática','Necrosis pulpar','Previamente tratado','Terapia iniciada']},
+    {id:'apicalDx',label:'Diagnóstico apical',type:'select',options:['Sin definir','Tejidos apicales normales','Periodontitis apical sintomática','Periodontitis apical asintomática','Absceso apical agudo','Absceso apical crónico','Osteítis condensante']},
+    {id:'canals',label:'Conductos localizados',type:'text',placeholder:'Ej. MV, DV, P / 4 conductos'},
+    {id:'isolation',label:'Aislamiento',type:'select',options:['Sin registrar','Absoluto','Relativo','No realizado']}
+  ]},
+  {id:'cirugia',icon:'⚕️',label:'Cirugía oral y maxilofacial',color:'#ea580c',pale:'#fff4e8',desc:'Planeación quirúrgica, extracciones complejas y seguimiento posoperatorio.',fields:[
+    {id:'procedureType',label:'Procedimiento',type:'select',options:['Valoración','Extracción simple','Extracción quirúrgica','Tercer molar','Frenilectomía','Biopsia','Cirugía preprotésica','Otro']},
+    {id:'asa',label:'Clasificación ASA',type:'select',options:['Sin clasificar','ASA I','ASA II','ASA III','ASA IV — requiere valoración']},
+    {id:'anesthesia',label:'Anestesia / sedación',type:'text',placeholder:'Técnica y anestésico'},
+    {id:'specimen',label:'Muestra a patología',type:'select',options:['No aplica','No enviada','Enviada','Resultado recibido']}
+  ]},
+  {id:'implantologia',icon:'⚙️',label:'Implantología',color:'#7c3aed',pale:'#f3effe',desc:'Sitio receptor, colocación, oseointegración y rehabilitación del implante.',fields:[
+    {id:'phase',label:'Fase clínica',type:'select',options:['Valoración','Planeación','Injerto','Colocación','Oseointegración','Segunda fase','Rehabilitación','Mantenimiento']},
+    {id:'system',label:'Sistema / marca',type:'text',placeholder:'Marca y conexión'},
+    {id:'dimensions',label:'Dimensiones',type:'text',placeholder:'Diámetro × longitud'},
+    {id:'torque',label:'Torque / estabilidad',type:'text',placeholder:'Ncm, ISQ u observación'}
+  ]},
+  {id:'protesis',icon:'🧩',label:'Rehabilitación y prótesis',color:'#2563eb',pale:'#eaf2ff',desc:'Prótesis fija, removible y total con control de etapas clínicas y laboratorio.',fields:[
+    {id:'prosthesisType',label:'Tipo de rehabilitación',type:'select',options:['Valoración','Corona','Puente fijo','Prótesis parcial removible','Prótesis total','Incrustación','Prótesis sobre implantes','Reparación']},
+    {id:'material',label:'Material',type:'select',options:['Sin definir','Zirconia','Disilicato de litio','Metal-cerámica','Cerámica feldespática','Resina','Acrílico','Metal']},
+    {id:'shade',label:'Color',type:'text',placeholder:'Ej. A2 / mapa de color'},
+    {id:'labStage',label:'Etapa / laboratorio',type:'text',placeholder:'Impresión, prueba, entrega…'}
+  ]},
+  {id:'restauradora',icon:'✨',label:'Restauradora y estética',color:'#0891b2',pale:'#e8fbff',desc:'Operatoria, adhesión, restauraciones directas y procedimientos estéticos.',fields:[
+    {id:'restorationType',label:'Procedimiento',type:'select',options:['Valoración','Resina directa','Incrustación','Carilla','Blanqueamiento','Reconstrucción','Sellador','Desgaste selectivo']},
+    {id:'material',label:'Material / sistema',type:'text',placeholder:'Marca, adhesivo, composite…'},
+    {id:'shade',label:'Color / opacidad',type:'text',placeholder:'Ej. A1 esmalte / A2 dentina'},
+    {id:'isolation',label:'Aislamiento',type:'select',options:['Sin registrar','Absoluto','Relativo','No realizado']}
+  ]},
+  {id:'medicinaoral',icon:'🔎',label:'Medicina y patología oral',color:'#be185d',pale:'#fff0f6',desc:'Documentación de lesiones, diagnóstico diferencial, biopsia y referencia.',fields:[
+    {id:'lesionType',label:'Tipo de lesión',type:'select',options:['Sin clasificar','Úlcera','Mácula','Placa','Nódulo','Vesícula / ampolla','Aumento de volumen','Pigmentación','Lesión blanca','Lesión roja','Otro']},
+    {id:'location',label:'Localización precisa',type:'text',placeholder:'Mucosa, lengua, paladar, hueso…'},
+    {id:'evolution',label:'Tiempo de evolución',type:'text',placeholder:'Días, semanas o meses'},
+    {id:'action',label:'Conducta diagnóstica',type:'select',options:['Observación','Fotografía y control','Tratamiento empírico','Biopsia incisional','Biopsia excisional','Estudio de imagen','Referencia']}
+  ]},
+  {id:'atm',icon:'◉',label:'ATM y dolor orofacial',color:'#4f46e5',pale:'#efefff',desc:'Dolor, función mandibular, músculos, hábitos y dispositivos oclusales.',fields:[
+    {id:'pain',label:'Dolor reportado',type:'text',placeholder:'Sitio, EVA 0–10 y patrón'},
+    {id:'opening',label:'Apertura máxima',type:'text',placeholder:'Milímetros y desviación'},
+    {id:'jointSounds',label:'Ruidos articulares',type:'select',options:['Sin ruidos','Chasquido derecho','Chasquido izquierdo','Chasquido bilateral','Crepitación','No valorable']},
+    {id:'device',label:'Dispositivo / conducta',type:'text',placeholder:'Férula, fisioterapia, referencia…'}
+  ]},
+  {id:'preventiva',icon:'🛡️',label:'Prevención e higiene',color:'#168a45',pale:'#eaf8ef',desc:'Riesgo, control de placa, educación, fluoruros y mantenimiento preventivo.',fields:[
+    {id:'hygiene',label:'Higiene oral',type:'select',options:['Excelente','Buena','Regular','Deficiente','No valorada']},
+    {id:'plaque',label:'Índice de placa',type:'text',placeholder:'Porcentaje o índice utilizado'},
+    {id:'fluoride',label:'Flúor / prevención',type:'text',placeholder:'Barniz, pasta, selladores, indicaciones…'},
+    {id:'interval',label:'Intervalo de mantenimiento',type:'select',options:['1 mes','3 meses','4 meses','6 meses','12 meses','Según riesgo']}
+  ]}
+];
+
+var SPECIALTY_EXISTING = [
+  {id:'odontograma',icon:'🦷',label:'Odontología general',color:'#0071e3',pale:'#eaf3ff',desc:'Odontograma adulto por superficies, hallazgos y notas.',open:'openOdontogram'},
+  {id:'periodoncia',icon:'📊',label:'Periodoncia',color:'#168a45',pale:'#eaf8ef',desc:'Sondaje de seis sitios, NIC, sangrado y comparativo.',open:'openPeriodontogram'},
+  {id:'ortodoncia',icon:'😬',label:'Ortodoncia',color:'#db2777',pale:'#fff0f7',desc:'Diagnóstico, cefalometría, plan y controles.',open:'openOrthoModule'},
+  {id:'odontopediatria',icon:'🧒',label:'Odontopediatría',color:'#d97706',pale:'#fff7e8',desc:'Odontograma temporal, riesgo y conducta pediátrica.',open:'openOdontogramPed'}
+];
+
+var _specPatId = null;
+var _specCurrent = 'dashboard';
+var _specEditingId = null;
+
+function _specPatient() { return db.patients.find(function(p){ return p.id == _specPatId; }); }
+function _specData() {
+  var p = _specPatient(); if (!p) return {};
+  if (!p.specialtyModules || typeof p.specialtyModules !== 'object') p.specialtyModules = {};
+  return p.specialtyModules;
+}
+function _specConfig(id) { return SPECIALTY_MODULES.find(function(m){ return m.id === id; }); }
+function _specExisting(id) { return SPECIALTY_EXISTING.find(function(m){ return m.id === id; }); }
+function _specRecords(id) {
+  var data = _specData(); if (!data[id]) data[id] = [];
+  if (!Array.isArray(data[id])) data[id] = [];
+  return data[id];
+}
+function _specDateLabel(v) {
+  if (!v) return '—'; var p = String(v).split('-'); return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : escapeHTML(v);
+}
+function _specStyle(m) { return '--spec-color:'+m.color+';--spec-pale:'+m.pale; }
+function _specLatest(records) { return records.slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); })[0]; }
+function _specAllRecords() {
+  var rows = [], data = _specData();
+  SPECIALTY_MODULES.forEach(function(m){ (data[m.id] || []).forEach(function(r){ rows.push({module:m,record:r}); }); });
+  return rows;
+}
+
+function openSpecialtiesHub() {
+  _specPatId = curId; var p = _specPatient(); if (!p) return;
+  _specCurrent = 'dashboard'; _specEditingId = null;
+  document.getElementById('spec-patient-name').textContent = p.name;
+  document.getElementById('spec-overlay').classList.add('open');
+  document.body.classList.add('spec-open');
+  renderSpecialtiesHub();
+}
+function closeSpecialtiesHub() {
+  var el = document.getElementById('spec-overlay'); if (el) el.classList.remove('open');
+  document.body.classList.remove('spec-open'); _specEditingId = null;
+}
+function specSelectModule(id) { _specCurrent = id; _specEditingId = null; renderSpecialtiesHub(); }
+
+function renderSpecialtiesHub() {
+  renderSpecialtiesNav();
+  var content = document.getElementById('spec-content'); if (!content) return;
+  if (_specCurrent === 'dashboard') renderSpecDashboard(content);
+  else if (_specExisting(_specCurrent)) renderSpecExisting(content,_specExisting(_specCurrent));
+  else renderSpecModule(content,_specConfig(_specCurrent));
+  var printBtn = document.getElementById('spec-print-btn'); if (printBtn) printBtn.disabled = !_specConfig(_specCurrent);
+}
+
+function renderSpecialtiesNav() {
+  var el = document.getElementById('spec-nav'); if (!el) return;
+  function button(m,count,existing){
+    return '<button type="button" class="spec-nav-btn'+(_specCurrent===m.id?' active':'')+'" style="'+_specStyle(m)+'" onclick="specSelectModule(\''+m.id+'\')"><span class="spec-nav-icon">'+m.icon+'</span><span class="spec-nav-name">'+escapeHTML(m.label)+'</span><span class="spec-nav-count">'+(existing?'↗':count)+'</span></button>';
+  }
+  var html = '<button type="button" class="spec-nav-btn'+(_specCurrent==='dashboard'?' active':'')+'" style="--spec-color:#5e5ce6;--spec-pale:#efefff" onclick="specSelectModule(\'dashboard\')"><span class="spec-nav-icon">✦</span><span class="spec-nav-name">Resumen clínico</span><span class="spec-nav-count">'+_specAllRecords().length+'</span></button>';
+  html += '<div class="spec-nav-label">Módulos integrados</div>'+SPECIALTY_EXISTING.map(function(m){ return button(m,0,true); }).join('');
+  html += '<div class="spec-nav-label">Especialidades</div>'+SPECIALTY_MODULES.map(function(m){ return button(m,_specRecords(m.id).length,false); }).join('');
+  el.innerHTML = html;
+}
+
+function _specExistingMetric(m) {
+  var p = _specPatient(); if (!p) return {value:0,label:'Sin registros'};
+  if (m.id === 'periodoncia') { var n=(p.perioSessions||[]).length; return {value:n,label:n===1?'sesión':'sesiones'}; }
+  if (m.id === 'ortodoncia') { var c=((p.orthoData||{}).controls||[]).length; return {value:c,label:(p.orthoData||{}).estado||'Sin iniciar'}; }
+  if (m.id === 'odontopediatria') { var pd=p.odontogramaPed||{}, pc=Object.keys(pd).filter(function(k){return /^\d+$/.test(k);}).length; return {value:pc,label:'dientes registrados'}; }
+  var od=p.odontogram||{}, oc=Object.keys(od).filter(function(k){return /^\d+$/.test(k);}).length; return {value:oc,label:'dientes registrados'};
+}
+function _specSummaryCard(label,value,sub) { return '<div class="spec-summary-card"><div class="spec-summary-label">'+escapeHTML(label)+'</div><div class="spec-summary-value">'+escapeHTML(String(value))+'</div><div class="spec-summary-sub">'+escapeHTML(sub)+'</div></div>'; }
+
+function renderSpecDashboard(el) {
+  var all=_specAllRecords(),today=fmtDate(new Date()),active=all.filter(function(x){return ['Alta','Referido'].indexOf(x.record.status)===-1;}).length,overdue=all.filter(function(x){return x.record.nextDate&&x.record.nextDate<today&&x.record.status!=='Alta';}).length,used=SPECIALTY_MODULES.filter(function(m){return _specRecords(m.id).length;}).length;
+  var last=all.slice().sort(function(a,b){return String(b.record.date||'').localeCompare(String(a.record.date||''));})[0];
+  var html='<div class="spec-page-head"><div><div class="spec-page-kicker">Expediente multidisciplinario</div><div class="spec-page-title">Panorama clínico</div><div class="spec-page-desc">Accede a cada especialidad desde un solo lugar y conserva su evolución dentro del expediente del paciente.</div></div></div>';
+  html+='<div class="spec-summary">'+_specSummaryCard('Registros',all.length,'en especialidades nuevas')+_specSummaryCard('Casos activos',active,'valoración o tratamiento')+_specSummaryCard('Seguimientos vencidos',overdue,overdue?'requieren revisión':'sin pendientes')+_specSummaryCard('Última evolución',last?_specDateLabel(last.record.date):'—',last?last.module.label:'sin registros')+'</div>';
+  if(overdue) html+='<div class="spec-alert"><span>⚠️</span><div><strong>'+overdue+' seguimiento'+(overdue===1?'':'s')+' pendiente'+(overdue===1?'':'s')+'.</strong> Revisa las próximas citas vencidas en los módulos correspondientes.</div></div>';
+  html+='<div class="spec-panel-head"><div class="spec-panel-title">Módulos clínicos integrados</div><span style="font-size:.64rem;color:var(--ink-4)">Conservan sus herramientas especializadas</span></div><div class="spec-launch-grid">'+SPECIALTY_EXISTING.map(function(m){var metric=_specExistingMetric(m);return '<button class="spec-launch-card" style="'+_specStyle(m)+'" onclick="specSelectModule(\''+m.id+'\')"><span class="spec-launch-icon" style="background:'+m.pale+'">'+m.icon+'</span><span><span class="spec-launch-title">'+escapeHTML(m.label)+'</span><span class="spec-launch-sub" style="display:block">'+escapeHTML(m.desc)+'</span><span class="spec-card-foot" style="display:block">'+metric.value+' · '+escapeHTML(metric.label)+'</span></span></button>';}).join('')+'</div>';
+  html+='<div class="spec-panel-head" style="margin-top:19px"><div class="spec-panel-title">Especialidades disponibles</div><span style="font-size:.64rem;color:var(--ink-4)">'+used+' con actividad</span></div><div class="spec-dashboard-grid">'+SPECIALTY_MODULES.map(function(m){var rec=_specRecords(m.id),latest=_specLatest(rec);return '<button class="spec-module-card" style="'+_specStyle(m)+'" onclick="specSelectModule(\''+m.id+'\')"><span class="spec-card-top"><span class="spec-card-icon">'+m.icon+'</span><span class="spec-card-badge">'+rec.length+' registro'+(rec.length===1?'':'s')+'</span></span><span class="spec-card-title">'+escapeHTML(m.label)+'</span><span class="spec-card-desc">'+escapeHTML(m.desc)+'</span><span class="spec-card-foot">'+(latest?'Última evolución: '+_specDateLabel(latest.date):'Abrir expediente →')+'</span></button>';}).join('')+'</div>';
+  el.innerHTML=html;
+}
+
+function renderSpecExisting(el,m) {
+  var metric=_specExistingMetric(m);
+  el.innerHTML='<div style="'+_specStyle(m)+'"><div class="spec-page-head"><div><div class="spec-page-kicker">Módulo clínico integrado</div><div class="spec-page-title">'+m.icon+' '+escapeHTML(m.label)+'</div><div class="spec-page-desc">'+escapeHTML(m.desc)+' Mantiene su captura avanzada y sus reportes originales.</div></div><button class="btn btn-primary" onclick="specLaunchExisting(\''+m.id+'\')">Abrir módulo →</button></div>'
+    +'<div class="spec-summary">'+_specSummaryCard('Actividad',metric.value,metric.label)+_specSummaryCard('Guardado','Drive','junto al expediente')+_specSummaryCard('Formato','Clínico','notación y campos propios')+_specSummaryCard('Reporte','Disponible','listo para impresión')+'</div>'
+    +'<div class="spec-panel"><div class="spec-empty"><div class="spec-empty-icon">'+m.icon+'</div><strong>'+escapeHTML(m.label)+'</strong><br>Este módulo tiene una interfaz especializada. Ábrelo para consultar, capturar o imprimir sus registros.<div style="margin-top:14px"><button class="btn btn-primary" onclick="specLaunchExisting(\''+m.id+'\')">Abrir '+escapeHTML(m.label)+'</button></div></div></div></div>';
+}
+function specLaunchExisting(id) {
+  var m=_specExisting(id); if(!m)return; closeSpecialtiesHub();
+  if(m.open==='openOdontogram')openOdontogram();
+  else if(m.open==='openPeriodontogram')openPeriodontogram();
+  else if(m.open==='openOrthoModule')openOrthoModule();
+  else if(m.open==='openOdontogramPed')openOdontogramPed();
+}
+
+function _specFieldHtml(field,value) {
+  value=value===undefined||value===null?'':String(value); var full=field.full?' full':'';
+  if(field.type==='select') return '<div class="spec-field'+full+'"><label>'+escapeHTML(field.label)+'</label><select id="spec-field-'+field.id+'">'+field.options.map(function(o){return '<option'+(o===value?' selected':'')+'>'+escapeHTML(o)+'</option>';}).join('')+'</select></div>';
+  return '<div class="spec-field'+full+'"><label>'+escapeHTML(field.label)+'</label><input id="spec-field-'+field.id+'" type="'+(field.type||'text')+'" value="'+escapeHTML(value)+'" placeholder="'+escapeHTML(field.placeholder||'')+'"></div>';
+}
+function _specStatusOptions(value) { return ['Valoración','Diagnóstico','En tratamiento','Seguimiento','Alta','Referido'].map(function(s){return '<option'+(s===value?' selected':'')+'>'+s+'</option>';}).join(''); }
+
+function renderSpecModule(el,m) {
+  if(!m){renderSpecDashboard(el);return;} var rec=_specRecords(m.id),latest=_specLatest(rec),today=fmtDate(new Date()),active=rec.filter(function(r){return ['Alta','Referido'].indexOf(r.status)===-1;}).length,overdue=rec.filter(function(r){return r.nextDate&&r.nextDate<today&&r.status!=='Alta';}).length;
+  var editing=_specEditingId?rec.find(function(r){return String(r.id)===String(_specEditingId);}):null;
+  var html='<div style="'+_specStyle(m)+'"><div class="spec-page-head"><div><div class="spec-page-kicker">Especialidad</div><div class="spec-page-title">'+m.icon+' '+escapeHTML(m.label)+'</div><div class="spec-page-desc">'+escapeHTML(m.desc)+'</div></div><button class="btn btn-ghost btn-sm" onclick="printSpecialtyModule()">🖨️ Imprimir evolución</button></div>';
+  html+='<div class="spec-summary">'+_specSummaryCard('Evoluciones',rec.length,'registros clínicos')+_specSummaryCard('Casos activos',active,'en atención')+_specSummaryCard('Seguimientos',overdue,overdue?'vencidos':'sin vencidos')+_specSummaryCard('Último registro',latest?_specDateLabel(latest.date):'—',latest?latest.status:'sin actividad')+'</div>';
+  if(overdue)html+='<div class="spec-alert"><span>📌</span><div>Hay '+overdue+' seguimiento'+(overdue===1?'':'s')+' con fecha vencida en esta especialidad.</div></div>';
+  html+='<div class="spec-workspace"><section class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">'+(editing?'Editar evolución':'Nueva evolución clínica')+'</div><span style="font-size:.62rem;color:var(--ink-4)">Los cambios se guardan en el expediente</span></div><div class="spec-form-grid">'
+    +_specFieldHtml({id:'date',label:'Fecha',type:'date'},editing?editing.date:today)
+    +_specFieldHtml({id:'site',label:'Diente / zona',type:'text',placeholder:'FDI, cuadrante o región'},editing?editing.site:'')
+    +'<div class="spec-field"><label>Estado clínico</label><select id="spec-field-status">'+_specStatusOptions(editing?editing.status:'Valoración')+'</select></div>'
+    +_specFieldHtml({id:'nextDate',label:'Próxima revisión',type:'date'},editing?editing.nextDate:'')
+    +m.fields.map(function(f){return _specFieldHtml(f,editing&&editing.fields?editing.fields[f.id]:'');}).join('')
+    +'<div class="spec-field full"><label>Diagnóstico / hallazgos</label><textarea id="spec-field-diagnosis" rows="3" placeholder="Hallazgos clínicos, radiográficos y diagnóstico…">'+escapeHTML(editing?editing.diagnosis||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Procedimiento realizado</label><textarea id="spec-field-procedure" rows="3" placeholder="Procedimiento, técnica, materiales y respuesta clínica…">'+escapeHTML(editing?editing.procedure||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Plan y seguimiento</label><textarea id="spec-field-plan" rows="2" placeholder="Siguiente etapa, indicaciones, interconsulta o estudios…">'+escapeHTML(editing?editing.plan||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Notas adicionales</label><textarea id="spec-field-notes" rows="2" placeholder="Observaciones relevantes…">'+escapeHTML(editing?editing.notes||'':'')+'</textarea></div></div>'
+    +'<div class="spec-form-actions"><button class="btn btn-primary btn-sm" onclick="saveSpecialtyRecord()">'+(editing?'✓ Guardar cambios':'＋ Agregar evolución')+'</button>'+(editing?'<button class="btn btn-ghost btn-sm" onclick="cancelSpecialtyEdit()">Cancelar</button>':'')+'</div></section>'
+    +'<aside class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">Evolución y seguimiento</div><span style="font-size:.62rem;color:var(--ink-4)">'+rec.length+' registro'+(rec.length===1?'':'s')+'</span></div><div id="spec-record-list">'+renderSpecialtyRecords(m,rec)+'</div></aside></div></div>';
+  el.innerHTML=html;
+}
+
+function renderSpecialtyRecords(m,records) {
+  if(!records.length)return '<div class="spec-empty"><div class="spec-empty-icon">'+m.icon+'</div><strong>Sin evoluciones registradas</strong><br>Agrega la primera nota clínica de esta especialidad.</div>';
+  return records.slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))||(b.stamp||0)-(a.stamp||0);}).map(function(r){
+    var body=r.diagnosis||r.procedure||r.plan||'Registro clínico';
+    return '<article class="spec-entry"><div class="spec-entry-top"><div><div class="spec-entry-title">'+escapeHTML(r.site||'Consulta de '+m.label)+'</div><div class="spec-entry-meta">'+_specDateLabel(r.date)+(r.nextDate?' · Próxima: '+_specDateLabel(r.nextDate):'')+'</div></div><span class="spec-entry-status">'+escapeHTML(r.status||'Valoración')+'</span></div><div class="spec-entry-body">'+escapeHTML(body).replace(/\n/g,'<br>')+'</div><div class="spec-entry-actions"><button class="btn btn-ghost btn-xs" onclick="editSpecialtyRecord('+r.id+')">✏️ Editar</button><button class="btn btn-ghost btn-xs" onclick="deleteSpecialtyRecord('+r.id+')">🗑️ Eliminar</button></div></article>';
+  }).join('');
+}
+
+function saveSpecialtyRecord() {
+  var m=_specConfig(_specCurrent);if(!m)return;var date=document.getElementById('spec-field-date').value,diagnosis=document.getElementById('spec-field-diagnosis').value.trim(),procedure=document.getElementById('spec-field-procedure').value.trim();
+  if(!date){showToast('Selecciona la fecha de la evolución','red');return;}
+  if(!diagnosis&&!procedure){showToast('Registra al menos el diagnóstico o el procedimiento','red');return;}
+  var fields={};m.fields.forEach(function(f){fields[f.id]=document.getElementById('spec-field-'+f.id).value;});
+  var record={id:_specEditingId||Date.now(),stamp:Date.now(),date:date,site:document.getElementById('spec-field-site').value.trim(),status:document.getElementById('spec-field-status').value,nextDate:document.getElementById('spec-field-nextDate').value,fields:fields,diagnosis:diagnosis,procedure:procedure,plan:document.getElementById('spec-field-plan').value.trim(),notes:document.getElementById('spec-field-notes').value.trim()};
+  var records=_specRecords(m.id),idx=records.findIndex(function(r){return String(r.id)===String(record.id);});if(idx>=0)records[idx]=record;else records.push(record);
+  saveDB();_specEditingId=null;renderSpecialtiesHub();showToast('Evolución de '+m.label+' guardada','green');
+}
+function editSpecialtyRecord(id){_specEditingId=id;renderSpecialtiesHub();var c=document.getElementById('spec-content');if(c)c.scrollTop=0;}
+function cancelSpecialtyEdit(){_specEditingId=null;renderSpecialtiesHub();}
+function deleteSpecialtyRecord(id){var m=_specConfig(_specCurrent),records=_specRecords(_specCurrent),idx=records.findIndex(function(r){return String(r.id)===String(id);});if(idx<0||!confirm('¿Eliminar esta evolución de '+m.label+'?'))return;records.splice(idx,1);saveDB();_specEditingId=null;renderSpecialtiesHub();showToast('Evolución eliminada','red');}
+
+function printSpecialtyModule() {
+  var m=_specConfig(_specCurrent),p=_specPatient();if(!m||!p){showToast('Selecciona una especialidad clínica','red');return;}var records=_specRecords(m.id).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+  var rows=records.map(function(r){var extra=m.fields.map(function(f){var v=(r.fields||{})[f.id];return v?'<div><b>'+escapeHTML(f.label)+':</b> '+escapeHTML(v)+'</div>':'';}).join('');return '<article><div class="row"><h3>'+escapeHTML(r.site||'Consulta')+'</h3><span>'+_specDateLabel(r.date)+' · '+escapeHTML(r.status||'')+'</span></div>'+extra+(r.diagnosis?'<h4>Diagnóstico / hallazgos</h4><p>'+escapeHTML(r.diagnosis).replace(/\n/g,'<br>')+'</p>':'')+(r.procedure?'<h4>Procedimiento</h4><p>'+escapeHTML(r.procedure).replace(/\n/g,'<br>')+'</p>':'')+(r.plan?'<h4>Plan y seguimiento</h4><p>'+escapeHTML(r.plan).replace(/\n/g,'<br>')+'</p>':'')+(r.nextDate?'<div class="next"><b>Próxima revisión:</b> '+_specDateLabel(r.nextDate)+'</div>':'')+'</article>';}).join('');
+  var html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+escapeHTML(m.label)+' · '+escapeHTML(p.name)+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#171717;padding:26px 32px;font-size:11px;max-width:850px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:2px solid #171717;padding-bottom:10px;margin-bottom:14px}.clinic{font-size:15px;font-weight:800}.muted{color:#666}.empty{padding:35px;text-align:center;color:#777;border:1px dashed #ccc;border-radius:10px}article{padding:12px 0;border-bottom:1px solid #ddd;page-break-inside:avoid}.row{display:flex;justify-content:space-between;gap:10px}.row h3{margin:0;font-size:12px}.row span{color:#666;font-size:9px}h4{font-size:8px;text-transform:uppercase;color:#777;letter-spacing:.05em;margin:8px 0 2px}p{margin:0;line-height:1.5}.next{margin-top:7px;padding:6px 8px;background:#f5f5f7;border-radius:6px}@media print{@page{size:letter;margin:12mm}body{padding:0}}</style></head><body><div class="head"><div><div class="clinic">'+escapeHTML((typeof cfg!=='undefined'&&cfg.name)||'Consultorio Dental')+'</div><div class="muted">'+escapeHTML((typeof cfg!=='undefined'&&cfg.sub)||'')+'</div></div><div style="text-align:right"><b>'+escapeHTML(m.label.toUpperCase())+'</b><br>'+escapeHTML(p.name)+'<br><span class="muted">'+new Date().toLocaleDateString('es-MX')+'</span></div></div>'+(rows||'<div class="empty">Sin evoluciones registradas.</div>')+'</body></html>';
+  var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();_printWindow(w);
+}
+
 // ── Forzar recarga completa desde Drive ──────────────────
 function forceReloadFromDrive() {
   if (typeof GD === 'undefined' || !GD._token || !GD._token()) {
@@ -21636,6 +21971,10 @@ document.addEventListener('keydown', function(event) {
     if (pedOverlay && pedOverlay.classList.contains('open')) closeOdontogramPed();
     var odoOverlay = document.getElementById('odo-overlay');
     if (odoOverlay && odoOverlay.classList.contains('open')) closeOdontogram();
+    var specOverlay = document.getElementById('spec-overlay');
+    if (specOverlay && specOverlay.classList.contains('open')) closeSpecialtiesHub();
+    var perioOverlay = document.getElementById('perio-overlay');
+    if (perioOverlay && perioOverlay.classList.contains('open')) closePeriodontogram();
   }
 });
 
@@ -22358,16 +22697,20 @@ window.addEventListener('resize', function() {
 <div class="perio-overlay" id="perio-overlay" onclick="if(event.target===this)closePeriodontogram()">
   <div class="perio-box">
     <div class="perio-header">
-      <div>
-        <h2>📊 Periodontograma — <span id="perio-patient-name">Paciente</span></h2>
-        <div style="font-size:.72rem;color:var(--ink-3);margin-top:2px">6 puntos por diente · NIC automático · Comparativo entre sesiones</div>
+      <div class="perio-title-wrap">
+        <div class="perio-title-icon">📊</div>
+        <div style="min-width:0">
+          <h2>Periodontograma</h2>
+          <div style="font-size:.72rem;color:var(--ink-3);margin-top:2px"><span id="perio-patient-name">Paciente</span> · 6 sitios por diente · NIC automático</div>
+        </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-ghost btn-sm" onclick="printPeriodontogram()">🖨️ Imprimir</button>
-        <button onclick="closePeriodontogram()" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+        <button class="btn btn-ghost btn-sm" onclick="printPeriodontogram()">🖨️ Resumen</button>
+        <button class="ortho-icon-btn" onclick="closePeriodontogram()" aria-label="Cerrar periodontograma">✕</button>
       </div>
     </div>
     <div class="perio-body">
+      <div class="ped-summary" id="perio-summary" aria-live="polite"></div>
       <!-- Session bar -->
       <div class="perio-session-bar">
         <label>Sesión:</label>
@@ -22377,15 +22720,15 @@ window.addEventListener('resize', function() {
         <button class="btn btn-ghost btn-sm" onclick="newPerioSession()">➕ Nueva sesión</button>
       </div>
       <!-- Arch tabs -->
-      <div style="display:flex;gap:0;margin-bottom:10px;border-bottom:2px solid var(--border)">
-        <button id="perio-tab-upper" onclick="showPerioArch('upper')" style="padding:8px 20px;border:none;background:var(--blue);color:#fff;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;border-radius:var(--r-sm) var(--r-sm) 0 0;margin-right:4px">Superior</button>
-        <button id="perio-tab-lower" onclick="showPerioArch('lower')" style="padding:8px 20px;border:none;background:var(--bg);color:var(--ink-3);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;border-radius:var(--r-sm) var(--r-sm) 0 0">Inferior</button>
+      <div class="perio-tabs">
+        <button class="perio-tab-btn active" id="perio-tab-upper" onclick="showPerioArch('upper')">Maxilar superior</button>
+        <button class="perio-tab-btn" id="perio-tab-lower" onclick="showPerioArch('lower')">Mandíbula inferior</button>
       </div>
       <!-- Tables -->
       <div id="perio-arch-upper" class="perio-table-wrap"></div>
       <div id="perio-arch-lower" class="perio-table-wrap" style="display:none"></div>
       <!-- Legend -->
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.7rem;color:var(--ink-3)">
+      <div class="perio-legend">
         <span><span style="display:inline-block;width:10px;height:10px;background:rgba(255,59,48,.18);border-radius:2px;margin-right:4px"></span>Sondaje ≥6 mm</span>
         <span><span style="display:inline-block;width:10px;height:10px;background:rgba(255,149,0,.15);border-radius:2px;margin-right:4px"></span>Sondaje 4–5 mm</span>
         <span>☑ Sangrado al sondaje</span>
@@ -22395,8 +22738,8 @@ window.addEventListener('resize', function() {
         <span>M = Movilidad (0/I/II/III)</span>
       </div>
       <!-- History -->
-      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:8px">Historial de sesiones</div>
+      <div class="perio-history-wrap">
+        <div class="ped-section-head"><div class="ped-section-title">Historial de sesiones</div><div class="ped-section-hint">Toca una sesión para compararla</div></div>
         <div id="perio-history-list"></div>
       </div>
     </div>
@@ -22948,6 +23291,29 @@ window.addEventListener('resize', function() {
     </div>
   </div>
 </div>
+<!-- ══ CENTRO DE ESPECIALIDADES ══ -->
+<div id="spec-overlay" class="spec-overlay" onclick="if(event.target===this)closeSpecialtiesHub()">
+  <section class="spec-box" role="dialog" aria-modal="true" aria-labelledby="spec-title">
+    <header class="spec-header">
+      <div class="spec-title-wrap">
+        <div class="spec-title-icon">✦</div>
+        <div style="min-width:0">
+          <h2 class="spec-title" id="spec-title">Centro de especialidades</h2>
+          <div class="spec-subtitle"><span id="spec-patient-name">Paciente</span> · Expediente clínico multidisciplinario</div>
+        </div>
+      </div>
+      <div class="spec-head-actions">
+        <button class="btn btn-ghost btn-sm spec-print-btn" id="spec-print-btn" onclick="printSpecialtyModule()" disabled>🖨️ Imprimir</button>
+        <button class="ortho-icon-btn" onclick="closeSpecialtiesHub()" aria-label="Cerrar centro de especialidades">✕</button>
+      </div>
+    </header>
+    <div class="spec-shell">
+      <aside class="spec-sidebar" id="spec-nav" aria-label="Especialidades"></aside>
+      <main class="spec-content" id="spec-content"></main>
+    </div>
+  </section>
+</div>
+
 <!-- ══ ODONTOGRAMA PEDIÁTRICO OVERLAY ══ -->
 <div id="odo-ped-overlay" class="ped-overlay" onclick="if(event.target===this)closeOdontogramPed()">
   <section class="ped-box" role="dialog" aria-modal="true" aria-labelledby="odo-ped-title">
