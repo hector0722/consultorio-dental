@@ -1439,6 +1439,66 @@ body.spec-open{overflow:hidden;}
 .rx-alert-orange { background: var(--orange-bg); color: #a05800;  border: 1px solid rgba(255,149,0,.25); }
 .rx-alert-green  { background: var(--green-bg);  color: #1a7a32;  border: 1px solid rgba(52,199,89,.25); }
 .rx-alert-blue   { background: var(--blue-pale); color: #004ea8;  border: 1px solid var(--blue-mid); }
+.rx-clinical-hero {
+  position:relative; overflow:hidden; margin-bottom:14px; padding:22px;
+  border:1px solid var(--border); border-radius:var(--r-lg);
+  background:linear-gradient(135deg,var(--card) 0%,var(--card) 66%,var(--blue-pale) 160%);
+  box-shadow:var(--sh-sm);
+}
+.rx-clinical-hero::after {
+  content:'℞'; position:absolute; right:22px; top:-24px; color:var(--blue);
+  font-family:Georgia,serif; font-size:8rem; font-weight:700; opacity:.07; pointer-events:none;
+}
+.rx-hero-kicker { font-size:.66rem;font-weight:850;text-transform:uppercase;letter-spacing:.1em;color:var(--blue); }
+.rx-hero-title { margin:5px 0 4px;font-size:1.4rem;font-weight:820;letter-spacing:-.035em;color:var(--ink); }
+.rx-hero-sub { max-width:780px;font-size:.78rem;line-height:1.55;color:var(--ink-3); }
+.rx-hero-metrics { display:flex;gap:8px;flex-wrap:wrap;margin-top:14px; }
+.rx-hero-metric { min-width:124px;padding:8px 11px;border:1px solid var(--border);border-radius:11px;background:var(--bg); }
+.rx-hero-metric strong { display:block;font-size:.82rem;color:var(--ink); }
+.rx-hero-metric span { font-size:.63rem;color:var(--ink-4); }
+.rx-stewardship {
+  display:flex;align-items:flex-start;gap:9px;margin-bottom:14px;padding:11px 13px;
+  border:1px solid rgba(255,149,0,.3);border-radius:12px;background:var(--orange-bg);
+  color:var(--ink-2);font-size:.75rem;line-height:1.5;
+}
+.rx-tools-grid { display:grid;grid-template-columns:minmax(280px,.9fr) minmax(360px,1.3fr);gap:12px;margin-bottom:14px; }
+.rx-tool-panel { border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card);padding:15px;box-shadow:var(--sh-sm); }
+.rx-tool-title { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-size:.8rem;font-weight:800;color:var(--ink); }
+.rx-safety-empty { padding:15px;border:1px dashed var(--border-med);border-radius:10px;color:var(--ink-4);font-size:.73rem;line-height:1.5;text-align:center; }
+.rx-safety-person { display:flex;gap:10px;align-items:center;margin-bottom:10px; }
+.rx-safety-avatar { width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--blue-pale);color:var(--blue);font-weight:850; }
+.rx-safety-name { font-size:.82rem;font-weight:800;color:var(--ink); }
+.rx-safety-meta { font-size:.68rem;color:var(--ink-4);margin-top:2px; }
+.rx-safety-flags { display:flex;gap:6px;flex-wrap:wrap; }
+.rx-safety-flag { padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:.66rem;font-weight:700;color:var(--ink-3); }
+.rx-safety-flag.danger { background:var(--red-bg);border-color:rgba(255,59,48,.25);color:var(--red); }
+.rx-safety-flag.warn { background:var(--orange-bg);border-color:rgba(255,149,0,.28);color:#a05800; }
+.rx-ped-form { display:grid;grid-template-columns:1.25fr .55fr .8fr auto;gap:8px;align-items:end; }
+.rx-ped-field label { display:block;margin:0 0 4px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4); }
+.rx-ped-field input,.rx-ped-field select,.rx-search {
+  width:100%;min-height:38px;padding:8px 10px;border:1px solid var(--border-med);border-radius:9px;
+  background:var(--bg);color:var(--ink);font:inherit;font-size:.76rem;
+}
+.rx-ped-result { display:none;margin-top:10px;padding:11px;border:1px solid var(--blue-mid);border-radius:10px;background:var(--blue-pale); }
+.rx-ped-dose { font-size:1rem;font-weight:850;color:var(--blue); }
+.rx-ped-details { margin-top:5px;font-size:.69rem;line-height:1.5;color:var(--ink-2); }
+.rx-search-wrap { position:relative;margin:0 0 12px; }
+.rx-search { padding-left:35px; }
+.rx-search-wrap::before { content:'⌕';position:absolute;left:12px;top:6px;font-size:1.15rem;color:var(--ink-4);z-index:1; }
+.rx-grid-empty { grid-column:1/-1;padding:34px;text-align:center;color:var(--ink-4);border:1px dashed var(--border-med);border-radius:var(--r-lg); }
+.rx-evidence { margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card); }
+.rx-evidence-title { font-size:.78rem;font-weight:800;color:var(--ink);margin-bottom:8px; }
+.rx-evidence-links { display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px; }
+.rx-evidence-links a { display:block;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--blue);font-size:.69rem;font-weight:650;text-decoration:none;line-height:1.35; }
+.rx-evidence-note { margin-top:9px;font-size:.64rem;line-height:1.5;color:var(--ink-4); }
+@media (max-width:900px) {
+  .rx-tools-grid { grid-template-columns:1fr; }
+  .rx-ped-form { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px) {
+  .rx-clinical-hero { padding:17px; }
+  .rx-ped-form { grid-template-columns:1fr; }
+}
 
 /* ━━━━ CONSENTIMIENTOS ━━━━ */
 .ci-card {
@@ -5387,11 +5447,27 @@ body.app-ready #dash-page.active > .card {
 
     <!-- RECETAS PAGE -->
     <div id="rx-page" class="page">
+      <section class="rx-clinical-hero">
+        <div class="rx-hero-kicker">Prescripción odontológica basada en evidencia</div>
+        <h2 class="rx-hero-title">Recetario clínico inteligente</h2>
+        <div class="rx-hero-sub">Protocolos editables para dolor, infección, cirugía y patología oral, con referencia pediátrica por peso. La selección final siempre requiere diagnóstico, historia médica, alergias, interacciones y juicio profesional.</div>
+        <div class="rx-hero-metrics">
+          <div class="rx-hero-metric"><strong id="rx-template-count">—</strong><span>protocolos y referencias</span></div>
+          <div class="rx-hero-metric"><strong>Adulto + pediatría</strong><span>dosis y límites máximos</span></div>
+          <div class="rx-hero-metric"><strong>ADA · AAPD · AHA</strong><span>guías clínicas consultadas</span></div>
+        </div>
+      </section>
+
+      <div class="rx-stewardship">
+        <span aria-hidden="true">🛡️</span>
+        <span><strong>Uso responsable:</strong> el dolor pulpar, la periodontitis apical y la mayoría de las extracciones no requieren antibiótico de rutina. Prioriza el tratamiento dental definitivo; considera antibiótico cuando exista propagación, fiebre, malestar o compromiso sistémico.</span>
+      </div>
+
       <!-- Selector de paciente para receta -->
       <div style="background:var(--card);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span style="font-size:.82rem;font-weight:600;color:var(--ink-3);white-space:nowrap">👤 Paciente para receta:</span>
         <div style="flex:1;min-width:200px;position:relative">
-          <input type="text" id="rx-patient-search" placeholder="Buscar paciente (opcional)…" autocomplete="off"
+          <input type="text" id="rx-patient-search" placeholder="Buscar y seleccionar paciente…" autocomplete="off"
             oninput="rxPatientSearch(this.value)"
             style="width:100%;padding:7px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--bg);color:var(--ink)">
           <div id="rx-patient-dropdown" style="position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border-med);border-radius:var(--r-sm);max-height:180px;overflow-y:auto;z-index:100;display:none;box-shadow:var(--sh-md)"></div>
@@ -5400,9 +5476,34 @@ body.app-ready #dash-page.active > .card {
         <button onclick="rxPatientClear()" style="background:none;border:none;color:var(--ink-4);cursor:pointer;font-size:.82rem;padding:4px 8px;border-radius:var(--r-sm)" title="Quitar selección">✕</button>
       </div>
 
+      <div class="rx-tools-grid">
+        <section class="rx-tool-panel">
+          <div class="rx-tool-title"><span>🩺 Verificación antes de prescribir</span><span style="font-size:.62rem;color:var(--ink-4);font-weight:650">EXPEDIENTE</span></div>
+          <div id="rx-patient-safety" class="rx-safety-empty">Selecciona un paciente para revisar automáticamente edad, peso, alergias, embarazo y antecedentes registrados.</div>
+        </section>
+        <section class="rx-tool-panel">
+          <div class="rx-tool-title"><span>👶 Calculadora pediátrica por peso</span><span style="font-size:.62rem;color:var(--ink-4);font-weight:650">REFERENCIA AAPD 2025</span></div>
+          <div class="rx-ped-form">
+            <div class="rx-ped-field"><label>Medicamento</label><select id="rx-ped-med" onchange="rxPedMedicationChanged()"></select></div>
+            <div class="rx-ped-field"><label>Peso (kg)</label><input id="rx-ped-weight" type="number" min="2" max="150" step="0.1" placeholder="ej. 22" oninput="calcPediatricDose()"></div>
+            <div class="rx-ped-field"><label>Presentación</label><select id="rx-ped-concentration" onchange="calcPediatricDose()"></select></div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="calcPediatricDose()">Calcular</button>
+          </div>
+          <div id="rx-ped-result" class="rx-ped-result"></div>
+          <div style="margin-top:8px;font-size:.62rem;line-height:1.45;color:var(--ink-4)">La dosis pediátrica no debe superar la dosis adulta. Verifica edad mínima, función renal/hepática, alergias, concentración comercial y redondeo medible antes de emitir la receta.</div>
+        </section>
+      </div>
+
+      <div class="rx-search-wrap">
+        <input class="rx-search" id="rx-search" type="search" placeholder="Buscar medicamento, protocolo o indicación…" oninput="rxSearch(this.value)">
+      </div>
+
       <!-- Filtro de categorías -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="rx-filter-row">
         <button class="btn btn-primary btn-sm rx-cat-btn" data-cat="all" onclick="rxFilter('all',this)">Todas</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="dolor" onclick="rxFilter('dolor',this)">💊 Dolor</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="infeccion" onclick="rxFilter('infeccion',this)">🦠 Infección</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="profilaxis" onclick="rxFilter('profilaxis',this)">🫀 Profilaxis</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="extraccion" onclick="rxFilter('extraccion',this)">Extracción</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="endodoncia" onclick="rxFilter('endodoncia',this)">Endodoncia</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="cirugia" onclick="rxFilter('cirugia',this)">Cirugía</button>
@@ -5411,14 +5512,30 @@ body.app-ready #dash-page.active > .card {
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="operatoria" onclick="rxFilter('operatoria',this)">Operatoria</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="embarazo" onclick="rxFilter('embarazo',this)">🤰 Embarazo</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="alergicos" onclick="rxFilter('alergicos',this)">⚠️ Alérgicos PNC</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Niños</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Pediatría</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="enjuague" onclick="rxFilter('enjuague',this)">Enjuagues</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="anestesia" onclick="rxFilter('anestesia',this)">Anestesia</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="mucosa" onclick="rxFilter('mucosa',this)">👄 Mucosa</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antifungico" onclick="rxFilter('antifungico',this)">Antifúngicos</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antiviral" onclick="rxFilter('antiviral',this)">Antivirales</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="prevencion" onclick="rxFilter('prevencion',this)">Flúor</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="implante" onclick="rxFilter('implante',this)">Implante</button>
         <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="vademecum" onclick="rxFilter('vademecum',this)">📖 Vademécum</button>
       </div>
 
       <div id="rx-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
+
+      <section class="rx-evidence">
+        <div class="rx-evidence-title">📚 Fuentes clínicas y fecha de revisión: agosto de 2026</div>
+        <div class="rx-evidence-links">
+          <a href="https://www.ada.org/resources/research/science/evidence-based-dental-research/pain-management-guideline" target="_blank" rel="noopener">ADA — manejo del dolor dental agudo, adultos y pediatría</a>
+          <a href="https://www.ada.org/resources/research/science/evidence-based-dental-research/antibiotics-for-dental-pain-and-swelling" target="_blank" rel="noopener">ADA/JADA — antibióticos para dolor e inflamación odontogénica</a>
+          <a href="https://www.aapd.org/globalassets/media/policies_guidelines/r_usefulmeds25.pdf" target="_blank" rel="noopener">AAPD 2025 — Useful Medications for Oral Conditions</a>
+          <a href="https://www.aapd.org/research/oral-health-policies--recommendations/use-of-antibiotic-therapy-for-pediatric-dental-patients/" target="_blank" rel="noopener">AAPD — antibioticoterapia en pacientes pediátricos</a>
+          <a href="https://www.ada.org/resources/ada-library/oral-health-topics/antibiotic-prophylaxis" target="_blank" rel="noopener">ADA/AHA — profilaxis de endocarditis antes de procedimientos dentales</a>
+          <a href="https://www.fda.gov/safety/medical-product-safety-information/nonsteroidal-anti-inflammatory-drugs-nsaids-drug-safety-communication-avoid-use-nsaids-pregnancy-20" target="_blank" rel="noopener">FDA — precaución con AINE desde la semana 20 del embarazo</a>
+        </div>
+        <div class="rx-evidence-note">Apoyo para profesionales, no sustituto del diagnóstico ni de la información oficial del producto. Las guías cambian; verifica ficha técnica, interacciones, normatividad local y condiciones individuales antes de prescribir.</div>
+      </section>
 
     </div>
 
@@ -12206,69 +12323,252 @@ function ciPrint(id, patientId) {
 // ★ BASE DE DATOS DE RECETAS
 // ══════════════════════════════════════════════════════════
 var RX_DB = [
-  { id:'rx-ext-simple', icon:'🦷', iconBg:'#e8f1fd', title:'Post-extracción simple', subtitle:'Diente erupcionado sin complicaciones', cats:['extraccion'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h por 3 días', note:'Con alimentos' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 5 días', note:'Completar ciclo' } ],
-    indicaciones:['Morder la gasa 30-45 min','No enjuagarse las primeras 24 h','Hielo en intervalos de 10 min por 4 h','Dieta blanda y fría el primer día','No fumar ni alcohol por 72 h'],
-    nota:'Consultar si hay sangrado abundante, fiebre >38°C o dolor que no cede.' },
-  { id:'rx-ext-muela', icon:'🦷', iconBg:'#e8f1fd', title:'Post-extracción muela del juicio', subtitle:'Terceros molares / cirugía simple', cats:['extraccion','cirugia'],
-    meds:[ { icon:'💊', name:'Ketorolaco 10 mg', dose:'1 tab c/8 h los primeros 2 días', note:'Máx 5 días' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 7 días', note:'' }, { icon:'💊', name:'Dexametasona 4 mg', dose:'1 tab c/12 h por 2 días', note:'Solo si hay inflamación significativa' } ],
-    indicaciones:['Hielo: 20 min con / 20 min sin, por 6 h','Dieta líquida fría el primer día, blanda los siguientes 5','No popote, no fumar, no esfuerzo físico por 72 h','Cita para puntos en 7 días'],
-    nota:'Inflamación máxima al 2-3er día. Acudir si hay sangrado, fiebre o parestesia.' },
-  { id:'rx-endo-simple', icon:'🔬', iconBg:'#f3e8ff', title:'Post-tratamiento de conductos', subtitle:'Endodoncia unirradicular o multirradicular', cats:['endodoncia'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h por 3-5 días', note:'Con alimentos' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 5-7 días (si hay infección activa)', note:'' } ],
-    indicaciones:['Sensibilidad a la masticación los primeros días es normal','Evitar masticar del lado tratado hasta restauración final','Tomar el medicamento aunque no haya dolor intenso'],
-    nota:'Llamar si el dolor se intensifica después del 3er día.' },
-  { id:'rx-perio-cirugia', icon:'🩺', iconBg:'#dcfce7', title:'Post-cirugía periodontal', subtitle:'Curetaje, gingivectomía, colgajo', cats:['periodoncia','cirugia'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h por 5 días', note:'' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 7 días', note:'' }, { icon:'🧴', name:'Clorhexidina 0.12%', dose:'30 seg 2 veces al día por 2 semanas', note:'No enjuagar con agua después' } ],
-    indicaciones:['No cepillar la zona operada por 24-48 h','Hielo en intervalos de 15 min las primeras 6 h','Dieta blanda, evitar alimentos duros o fibrosos','No fumar durante el tratamiento','Revisión en 7-10 días para retirar suturas'],
-    nota:'Sangrado leve normal las primeras horas. Si es abundante, presionar con gasa y consultar.' },
-  { id:'rx-op-resina', icon:'✨', iconBg:'#fef9c3', title:'Post-colocación de resina', subtitle:'Restauración directa con composite', cats:['operatoria'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h si hay dolor (máx 3 días)', note:'Solo si hay molestia' } ],
-    indicaciones:['Evitar café, té, vino las primeras 48 h','No morder objetos duros con el diente restaurado','Sensibilidad al frío/calor los primeros días es normal','Si el diente está alto al morder, avisar para ajuste'],
-    nota:'La sensibilidad postoperatoria cede en 1-2 semanas.' },
-  { id:'rx-ortho-inicio', icon:'😬', iconBg:'#dbeafe', title:'Inicio de ortodoncia', subtitle:'Colocación de brackets metálicos o cerámicos', cats:['ortodoncia'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h por 2-3 días al sentir dolor', note:'' } ],
-    indicaciones:['Dolor y presión normal los primeros 3-5 días','Dieta blanda los primeros días','Aplicar cera ortodóncica en brackets que irriten','Cepillar después de cada comida con cepillo de ortodoncia','Evitar: caramelos duros, chicle, palomitas, hielos, pan duro'],
-    nota:'Acudir si se desprende un bracket o hay alambre que lastima.' },
-  { id:'rx-ortho-control', icon:'😬', iconBg:'#dbeafe', title:'Post-activación de ortodoncia', subtitle:'Control mensual / cambio de arco', cats:['ortodoncia'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h los primeros 2 días si hay dolor', note:'' } ],
-    indicaciones:['Presión y sensibilidad post-activación es normal','Dieta blanda los primeros 2-3 días','Continuar con cera si hay rozadura'],
-    nota:'' },
-  { id:'rx-embarazo', icon:'🤰', iconBg:'#dcfce7', title:'Manejo dental en embarazo', subtitle:'2° trimestre preferente', cats:['embarazo'],
-    meds:[ { icon:'💊', name:'Paracetamol 500 mg', dose:'1-2 tab c/6-8 h si hay dolor', note:'EVITAR ibuprofeno y ketorolaco' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 5-7 días si infección', note:'Segura en embarazo' } ],
-    indicaciones:['Comunicar semanas de gestación y medicamentos actuales','2° trimestre (sem 14-26) más seguro para tratamientos electivos','Mantener higiene rigurosa — gingivitis del embarazo es común','Radiografías seguras con protección abdominal'],
-    nota:'Consultar con el obstetra ante dudas de medicación o procedimientos mayores.' },
-  { id:'rx-alergicos', icon:'⚠️', iconBg:'#fff7ed', title:'Paciente alérgico a penicilina', subtitle:'Alternativas antibióticas', cats:['alergicos'],
-    meds:[ { icon:'💊', name:'Clindamicina 300 mg', dose:'1 cáp c/8 h por 5-7 días', note:'Primera elección alternativa' }, { icon:'💊', name:'Azitromicina 500 mg', dose:'1 tab al día por 3-5 días', note:'Segunda opción' }, { icon:'💊', name:'Metronidazol 500 mg', dose:'1 tab c/8 h por 5-7 días', note:'Infecciones anaerobias; no en 1er trimestre' } ],
-    indicaciones:['Informar siempre la alergia al inicio de la consulta','Describir el tipo de reacción (rash, anafilaxia, etc.)'],
-    nota:'En alergia severa: tener epinefrina disponible y acudir a urgencias ante cualquier síntoma.' },
-  { id:'rx-ninos', icon:'👶', iconBg:'#fce7f3', title:'Post-extracción en niños', subtitle:'Dentición primaria y mixta', cats:['ninos','extraccion'],
-    meds:[ { icon:'💊', name:'Paracetamol 10-15 mg/kg', dose:'c/6-8 h según peso por 2-3 días', note:'Calcular dosis por peso' }, { icon:'💊', name:'Ibuprofeno 5-10 mg/kg', dose:'c/8 h con alimentos (>6 meses)', note:'Alternativa o combinación' } ],
-    indicaciones:['Mantener gasa mordida 30 min supervisando al niño','Líquidos fríos: paletas, yogur, helado','Vigilar que no se muerda el labio con anestesia'],
-    nota:'Llevar al niño si hay sangrado que no cede, fiebre o llanto inconsolable.' },
-  { id:'rx-enjuague', icon:'💧', iconBg:'#e0f2fe', title:'Enjuague con clorhexidina', subtitle:'Mantenimiento periodontal y post-quirúrgico', cats:['enjuague','periodoncia'],
-    meds:[ { icon:'🧴', name:'Clorhexidina 0.12%', dose:'30 ml durante 30 seg, 2 veces al día', note:'No enjuagar con agua después · Máx 2 semanas' } ],
-    indicaciones:['Usar después del cepillado','No ingerir','Puede causar tinción temporal — es reversible','No sustituye el cepillado'],
-    nota:'Para mantenimiento prolongado, alternar semanas con y sin clorhexidina.' },
-  { id:'rx-anestesia', icon:'💉', iconBg:'#f3e8ff', title:'Cuidados post-anestesia local', subtitle:'Lidocaína, articaína, mepivacaína', cats:['anestesia'],
+  { id:'rx-ext-simple', icon:'🦷', iconBg:'#e8f1fd', title:'Post-extracción simple', subtitle:'Analgesia no opioide · sin antibiótico rutinario', cats:['extraccion','dolor'], source:'ADA dolor agudo 2024',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tableta cada 6-8 h según dolor por 24-72 h', note:'Con alimentos; usar la menor dosis eficaz' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'1 tableta cada 6 h según dolor; puede combinarse con ibuprofeno', note:'Contar todas las fuentes de paracetamol' } ],
+    indicaciones:['Morder la gasa 30-45 min','No enjuagar, escupir, fumar ni usar popote durante 24 h','Hielo externo intermitente las primeras horas','Dieta blanda y fría el primer día'],
+    alert:{type:'blue',text:'Los antibióticos no se indican de rutina tras una extracción no complicada.'}, nota:'Evitar AINE en úlcera activa, insuficiencia renal, anticoagulación relevante, alergia o embarazo ≥20 semanas. Paracetamol: máximo absoluto 4 g/día en adultos sanos.' },
+  { id:'rx-ext-muela', icon:'🦷', iconBg:'#e8f1fd', title:'Cirugía de tercer molar', subtitle:'Dolor moderado-intenso · estrategia multimodal', cats:['extraccion','cirugia','dolor'], source:'ADA/JADA 2024',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400-600 mg + paracetamol 500 mg', dose:'Juntos cada 6 h durante las primeras 24 h; después, según dolor', note:'Primera línea cuando ambos son apropiados' }, { icon:'💊', name:'Paracetamol 500-1000 mg', dose:'Cada 6-8 h si los AINE están contraindicados', note:'No exceder 4 g/día sumando combinaciones' } ],
+    indicaciones:['Hielo externo intermitente durante 6 h','Dieta fría/blanda y reposo relativo','No fumar, alcohol, popote ni ejercicio intenso por 72 h','Control según complejidad y sutura'],
+    alert:{type:'orange',text:'No agregar opioide ni antibiótico “por si acaso”. Individualizar si la primera línea falla o existen signos de infección sistémica.'}, nota:'Acudir ante sangrado persistente, fiebre, disfagia, disnea, parestesia progresiva o dolor que aumenta después del tercer día.' },
+  { id:'rx-endo-simple', icon:'🔬', iconBg:'#f3e8ff', title:'Dolor endodóntico / post-conductos', subtitle:'Tratamiento local primero · analgesia de apoyo', cats:['endodoncia','dolor'], source:'ADA antibióticos 2019 + dolor 2024',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'Cada 6-8 h según dolor por el menor tiempo posible', note:'Puede combinarse con paracetamol si es necesario' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6 h según dolor', note:'Opción si AINE contraindicado' } ],
+    indicaciones:['Priorizar pulpotomía, pulpectomía, conductos o drenaje según diagnóstico','Evitar masticar del lado tratado hasta la restauración definitiva','Revalorar si el dolor aumenta o aparece inflamación'],
+    alert:{type:'red',text:'Pulpitis, periodontitis apical y absceso localizado sin fiebre/malestar generalmente NO requieren antibiótico.'}, nota:'Si existe fiebre, malestar o propagación, valorar el protocolo de infección odontogénica sistémica.' },
+  { id:'rx-perio-cirugia', icon:'🩺', iconBg:'#dcfce7', title:'Postoperatorio periodontal', subtitle:'Colgajo, gingivectomía o cirugía mucogingival', cats:['periodoncia','cirugia','dolor','enjuague'], source:'ADA dolor 2024 + AAPD medicamentos 2025',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'Cada 6-8 h según dolor por 24-72 h', note:'Si no hay contraindicación' }, { icon:'🧴', name:'Clorhexidina 0.12%', dose:'15 mL durante 30 s, 2 veces al día; escupir', note:'Usualmente 7-14 días cuando el cepillado de la zona esté limitado' } ],
+    indicaciones:['No cepillar directamente la zona operada durante el periodo indicado','No fumar','Dieta blanda y control de placa cuidadoso','Revisión según sutura y procedimiento'],
+    alert:{type:'blue',text:'El antibiótico sistémico no es automático: reservar para indicación clínica específica o riesgo individual.'}, nota:'La clorhexidina puede causar tinción y alteración transitoria del gusto; no ingerir.' },
+  { id:'rx-op-resina', icon:'✨', iconBg:'#fef9c3', title:'Sensibilidad post-restauración', subtitle:'Resina, incrustación o ajuste oclusal', cats:['operatoria','dolor'], source:'Manejo sintomático',
+    meds:[ { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6-8 h solo si hay molestia, por 1-2 días', note:'No sustituye la revisión si la mordida quedó alta' } ],
+    indicaciones:['Evitar alimentos extremadamente fríos o calientes si existe sensibilidad','No morder objetos duros con la restauración','Solicitar ajuste si duele al cerrar o masticar'],
+    nota:'Dolor espontáneo, nocturno o persistente requiere reevaluación pulpar; no indicar antibiótico solo por dolor.' },
+  { id:'rx-ortho-inicio', icon:'😬', iconBg:'#dbeafe', title:'Inicio de ortodoncia', subtitle:'Molestia por colocación de aparatología', cats:['ortodoncia','dolor'], source:'Analgesia sintomática',
+    meds:[ { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6-8 h según dolor durante 1-2 días', note:'Usar solo si es necesario' }, { icon:'🧴', name:'Cera ortodóncica', dose:'Aplicar sobre el bracket o alambre que irrite', note:'Secar previamente la zona' } ],
+    indicaciones:['Dieta blanda los primeros días','Cepillado después de cada comida','Evitar alimentos duros, pegajosos y morder hielo','Contactar si un alambre lesiona o se desprende un aditamento'],
+    nota:'Evitar automedicación prolongada; revisar úlceras que no mejoren al retirar el trauma.' },
+  { id:'rx-ortho-control', icon:'😬', iconBg:'#dbeafe', title:'Control de ortodoncia', subtitle:'Molestia breve después de activación', cats:['ortodoncia','dolor'], source:'Analgesia sintomática',
+    meds:[ { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6-8 h según dolor durante 24-48 h', note:'No usar si no hay molestia' } ],
+    indicaciones:['La presión y sensibilidad leves son esperables','Preferir dieta blanda por 24-48 h','Usar cera si existe rozadura localizada'],
+    nota:'Dolor intenso focal, movilidad inusual o aparatología rota requiere revisión.' },
+  { id:'rx-embarazo', icon:'🤰', iconBg:'#dcfce7', title:'Prescripción durante el embarazo', subtitle:'Resumen de seguridad y coordinación médica', cats:['embarazo','dolor','infeccion'], source:'ADA embarazo + FDA AINE',
+    meds:[ { icon:'💊', name:'Paracetamol', dose:'Usar la menor dosis eficaz y el menor tiempo posible', note:'Revisar función hepática y otras fuentes de paracetamol' }, { icon:'💊', name:'Amoxicilina / penicilina / cefalosporina', dose:'Solo cuando exista indicación antibiótica', note:'Opciones consideradas compatibles; individualizar' }, { icon:'💉', name:'Anestesia local con o sin epinefrina', dose:'Puede utilizarse en atención dental', note:'Ajustar a la dosis mínima eficaz' } ],
+    indicaciones:['Registrar semana de gestación y medicamentos actuales','La atención dental necesaria puede realizarse durante el embarazo','Coordinar con obstetricia ante comorbilidad, dudas o tratamientos complejos'],
+    alert:{type:'red',text:'Evitar AINE desde la semana 20 salvo indicación médica específica; después de la semana 30 deben evitarse.'}, nota:'No clasificar medicamentos solo con las antiguas letras de riesgo. Revisar ficha vigente y relación beneficio-riesgo.' },
+  { id:'rx-alergicos', icon:'⚠️', iconBg:'#fff7ed', title:'Alergia a penicilina: selección segura', subtitle:'Distinguir reacción inmediata de intolerancia', cats:['alergicos','infeccion','vademecum'], source:'ADA/AHA + AAPD 2025',
+    meds:[ { icon:'💊', name:'Cefalexina', dose:'Opción solo si NO hubo anafilaxia, angioedema ni urticaria con penicilina', note:'Ver dosis en vademécum / indicación específica' }, { icon:'💊', name:'Azitromicina', dose:'Alternativa en alergia inmediata cuando está indicada', note:'Precaución: QT prolongado e interacciones' }, { icon:'⚠️', name:'Clindamicina', dose:'Reservar para indicaciones seleccionadas', note:'Mayor riesgo de colitis por C. difficile; no usar para profilaxis de endocarditis' } ],
+    indicaciones:['Documentar fármaco, reacción, gravedad y fecha','Diferenciar náusea/diarrea de hipersensibilidad verdadera','Revisar interacciones y epidemiología local'],
+    alert:{type:'red',text:'Clindamicina ya no es la alternativa recomendada para profilaxis de endocarditis.'}, nota:'En una reacción alérgica activa con dificultad respiratoria, hipotensión o edema: activar atención de urgencia.' },
+  { id:'rx-ninos', icon:'👶', iconBg:'#fce7f3', title:'Dolor dental pediátrico', subtitle:'Extracción o dolor agudo en menores de 12 años', cats:['ninos','extraccion','dolor'], source:'ADA pediatría 2023 + AAPD 2025',
+    meds:[ { icon:'💊', name:'Paracetamol 10-15 mg/kg/dosis', dose:'Cada 4-6 h según necesidad', note:'Máx 75 mg/kg/día sin exceder dosis adulta' }, { icon:'💊', name:'Ibuprofeno 4-10 mg/kg/dosis', dose:'Cada 6-8 h según necesidad', note:'Máx 600 mg/dosis; evitar en menores de 6 meses' } ],
+    indicaciones:['Calcular siempre con peso actual en kg','Usar dispositivo oral graduado para líquidos','Vigilar mordedura de labio o mejilla mientras dure la anestesia','No usar aspirina en niños'],
+    alert:{type:'red',text:'Codeína y tramadol están contraindicados para dolor agudo en niños; los opioides no son primera línea.'}, nota:'Evitar ibuprofeno en deshidratación, enfermedad renal, sangrado digestivo o alergia a AINE.' },
+  { id:'rx-enjuague', icon:'💧', iconBg:'#e0f2fe', title:'Clorhexidina 0.12%', subtitle:'Gingivitis, periodontitis y apoyo posquirúrgico', cats:['enjuague','periodoncia','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Gluconato de clorhexidina 0.12%', dose:'15 mL durante 30 segundos, 2 veces al día y escupir', note:'Después del desayuno y antes de dormir; duración según indicación' } ],
+    indicaciones:['No ingerir','No sustituye cepillado ni control mecánico de placa','En niños que no pueden escupir, no indicar enjuague; valorar aplicación supervisada'],
+    nota:'Puede causar tinción, cálculo y alteración temporal del gusto. Preferir formulación sin alcohol en pediatría cuando corresponda.' },
+  { id:'rx-anestesia', icon:'💉', iconBg:'#f3e8ff', title:'Cuidados tras anestesia local', subtitle:'Instrucciones de seguridad, especialmente pediátricas', cats:['ninos','vademecum'], source:'Seguridad clínica',
     meds:[],
-    indicaciones:['Efecto dura 2-4 horas según el tipo','No ingerir alimentos calientes mientras persista el adormecimiento','Vigilar especialmente a niños para que no se muerdan','Si hay hematoma: aplicar hielo las primeras horas'],
-    nota:'Trismus leve post-inyección mandibular puede ocurrir 24-48 h; cede solo.' },
-  { id:'rx-implante', icon:'🔩', iconBg:'#fff1f2', title:'Post-colocación de implante', subtitle:'Fase quirúrgica', cats:['implante','cirugia'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tab c/8 h por 5 días', note:'' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cáp c/8 h por 7 días', note:'Iniciar día anterior si posible' }, { icon:'🧴', name:'Clorhexidina 0.12%', dose:'2 veces al día por 2 semanas', note:'' } ],
-    indicaciones:['Hielo las primeras 6-8 h en intervalos de 15 min','Dieta blanda por mínimo 2 semanas','No fumar — reduce drásticamente el éxito del implante','Revisión en 7-10 días para retirar puntos'],
-    nota:'Inflamación y equimosis facial normal hasta el 3er día. Acudir si hay dolor pulsátil, fiebre o movilidad del implante.' },
-  { id:'rx-vademecum-antibio', icon:'📋', iconBg:'#f0fdf4', title:'Antibióticos — referencia rápida', subtitle:'Dosificación adultos', cats:['vademecum'],
-    meds:[ { icon:'💊', name:'Amoxicilina 500 mg', dose:'500 mg c/8 h', note:'De elección en infecciones odontogénicas' }, { icon:'💊', name:'Amox + clavulanato 875/125', dose:'1 tab c/12 h', note:'Infecciones polimicrobianas' }, { icon:'💊', name:'Clindamicina 300 mg', dose:'300 mg c/8 h', note:'Alérgicos a penicilina' }, { icon:'💊', name:'Metronidazol 500 mg', dose:'500 mg c/8 h', note:'Anaerobios; combinar con amoxicilina' }, { icon:'💊', name:'Azitromicina 500 mg', dose:'500 mg/día × 3 días', note:'2a opción en alérgicos' } ],
-    indicaciones:[], nota:'Completar el ciclo siempre. Verificar alergias antes de prescribir.' },
-  { id:'rx-vademecum-analg', icon:'💊', iconBg:'#fef9c3', title:'Analgésicos — referencia rápida', subtitle:'Dosificación adultos', cats:['vademecum'],
-    meds:[ { icon:'💊', name:'Ibuprofeno 400-600 mg', dose:'c/8 h con alimentos · máx 2400 mg/día', note:'AINE de primera elección' }, { icon:'💊', name:'Ketorolaco 10 mg', dose:'c/8 h · máx 5 días', note:'No en embarazo ni úlcera péptica' }, { icon:'💊', name:'Paracetamol 500-1000 mg', dose:'c/6-8 h · máx 4 g/día', note:'De elección en embarazo y niños' }, { icon:'💊', name:'Dexametasona 4 mg', dose:'c/12 h por 2-3 días', note:'Antiinflamatorio potente' } ],
-    indicaciones:[], nota:'En gastropatía, agregar omeprazol 20 mg/día al usar AINEs.' },
+    indicaciones:['No comer ni beber líquidos calientes hasta recuperar sensibilidad','No morder, pellizcar ni succionar labio, lengua o mejilla','Supervisar estrechamente a niños y pacientes con discapacidad','Consultar ante lesión extensa, dificultad respiratoria o parestesia persistente'],
+    nota:'La dosis total del anestésico debe calcularse antes de infiltrar y considerar todos los cartuchos administrados.' },
+  { id:'rx-implante', icon:'🔩', iconBg:'#fff1f2', title:'Postoperatorio de implante', subtitle:'Control del dolor y cuidado local', cats:['implante','cirugia','dolor'], source:'Principios de analgesia ADA',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg + paracetamol 500 mg', dose:'Cada 6-8 h según dolor durante las primeras 24-72 h', note:'Si ambos son apropiados' }, { icon:'🧴', name:'Clorhexidina 0.12%', dose:'15 mL durante 30 s, 2 veces al día', note:'Usar solo el periodo indicado por el cirujano' } ],
+    indicaciones:['Hielo externo intermitente las primeras horas','Dieta blanda y no manipular la zona','No fumar','Control según estabilidad, injerto y sutura'],
+    alert:{type:'orange',text:'La profilaxis o el antibiótico posoperatorio debe individualizarse; no convertirlo automáticamente en un ciclo de 7 días.'}, nota:'Fiebre, supuración, sangrado persistente, dolor creciente o movilidad requieren revisión.' },
+  { id:'rx-vademecum-antibio', icon:'📋', iconBg:'#f0fdf4', title:'Antibacterianos sistémicos — adultos', subtitle:'Referencia de dosis; usar solo con indicación', cats:['vademecum','infeccion'], source:'ADA 2019 + AAPD 2025',
+    meds:[ { icon:'💊', name:'Amoxicilina', dose:'250-500 mg cada 8 h o 500-875 mg cada 12 h', note:'Primera línea frecuente cuando está indicada' }, { icon:'💊', name:'Amoxicilina/clavulanato', dose:'500-875 mg (componente amoxicilina) cada 12 h', note:'Elegir la menor carga de clavulanato eficaz' }, { icon:'💊', name:'Penicilina V potásica', dose:'500 mg cada 6 h', note:'Alternativa de primera línea ADA' }, { icon:'💊', name:'Azitromicina', dose:'500 mg día 1; 250 mg una vez al día días 2-5', note:'Alergia inmediata; revisar QT' }, { icon:'💊', name:'Metronidazol', dose:'500 mg cada 8 h como complemento en anaerobios seleccionados', note:'Evitar alcohol y revisar interacciones' }, { icon:'⚠️', name:'Clindamicina', dose:'300-450 mg cada 6-8 h', note:'Riesgo importante de C. difficile; no profilaxis de endocarditis' } ],
+    indicaciones:['Revaluar clínicamente en aproximadamente 3 días','En protocolos ADA para infección aguda, suspender 24 h después de resolver signos y síntomas','Ajustar a función renal/hepática, embarazo, alergias e interacciones'],
+    nota:'La duración depende del diagnóstico y respuesta; no usar antibióticos para dolor sin infección sistémica.' },
+  { id:'rx-vademecum-analg', icon:'💊', iconBg:'#fef9c3', title:'Analgésicos y antiinflamatorios — adultos', subtitle:'Referencia rápida para dolor dental agudo', cats:['vademecum','dolor'], source:'ADA 2024 + AAPD 2025',
+    meds:[ { icon:'💊', name:'Ibuprofeno', dose:'200-400 mg cada 4-6 h o 600-800 mg cada 6-8 h', note:'Máx 3200 mg/día bajo supervisión; usar menor dosis eficaz' }, { icon:'💊', name:'Paracetamol', dose:'325-650 mg cada 4-6 h o 1000 mg 3-4 veces al día', note:'Máx absoluto 4000 mg/día de todas las fuentes' }, { icon:'💊', name:'Naproxeno', dose:'500 mg inicial; luego 250-500 mg cada 12 h', note:'Máx 1250 mg día 1; después 1000 mg/día' }, { icon:'💊', name:'Ketorolaco', dose:'10 mg cada 6-8 h', note:'Máximo 40 mg/día y 5 días; alto riesgo GI/renal' } ],
+    indicaciones:['AINE solos o combinados con paracetamol son primera línea','Revisar anticoagulantes, enfermedad renal, úlcera, cardiopatía, asma por AINE y embarazo','No duplicar AINE ni productos que contengan paracetamol'],
+    nota:'No agregar omeprazol automáticamente: evaluar riesgo gastrointestinal, interacciones e indicación.' },
+
+  { id:'rx-infection-systemic', icon:'🦠', iconBg:'#fee2e2', title:'Infección odontogénica con compromiso sistémico', subtitle:'Fiebre, malestar o propagación · adulto inmunocompetente', cats:['infeccion','endodoncia','cirugia'], source:'Guía ADA/JADA 2019',
+    meds:[ { icon:'💊', name:'Amoxicilina 500 mg', dose:'Cada 8 h durante 3-7 días', note:'Revalorar en 3 días; suspender 24 h después de resolver signos/síntomas' }, { icon:'💊', name:'Penicilina V 500 mg', dose:'Cada 6 h durante 3-7 días', note:'Alternativa de primera línea' } ],
+    indicaciones:['Realizar tratamiento dental definitivo o drenaje sin demora','Evaluar extensión, vía aérea, trismus, disfagia y estado general','Derivar urgentemente si hay progresión, sepsis o espacios profundos'],
+    alert:{type:'red',text:'El antibiótico es coadyuvante, no reemplaza drenaje, endodoncia o extracción.'}, nota:'Si falla primera línea, reevaluar diagnóstico, adherencia y necesidad de ampliar cobertura conforme a guía y resistencia local.' },
+  { id:'rx-pericoronitis', icon:'🦷', iconBg:'#fff7ed', title:'Pericoronitis', subtitle:'Tratamiento local primero', cats:['infeccion','cirugia'], source:'Antibiotic stewardship',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'Cada 6-8 h según dolor', note:'Si no hay contraindicación' }, { icon:'🧴', name:'Clorhexidina 0.12%', dose:'15 mL durante 30 s, 2 veces al día y escupir', note:'Coadyuvante temporal' } ],
+    indicaciones:['Irrigar y desbridar bajo el opérculo','Eliminar trauma oclusal y mejorar higiene','Planear tratamiento definitivo cuando ceda la fase aguda'],
+    alert:{type:'orange',text:'Antibiótico sistémico solo si hay fiebre, celulitis, trismus significativo, propagación o inmunocompromiso.'}, nota:'Disfagia, disnea o progresión rápida requieren atención urgente.' },
+  { id:'rx-ie-prophylaxis', icon:'🫀', iconBg:'#ffe4e6', title:'Profilaxis de endocarditis infecciosa', subtitle:'Solo cardiopatías de mayor riesgo y procedimiento indicado', cats:['profilaxis','vademecum'], source:'AHA 2021 / ADA 2026',
+    meds:[ { icon:'💊', name:'Amoxicilina — adulto', dose:'2 g vía oral, dosis única 30-60 min antes', note:'Régimen estándar' }, { icon:'💊', name:'Cefalexina — adulto', dose:'2 g vía oral, dosis única 30-60 min antes', note:'NO usar si hubo anafilaxia, angioedema o urticaria por penicilina' }, { icon:'💊', name:'Azitromicina o claritromicina — adulto', dose:'500 mg vía oral, dosis única 30-60 min antes', note:'Alternativa en alergia inmediata' }, { icon:'💊', name:'Doxiciclina — adulto', dose:'100 mg vía oral, dosis única 30-60 min antes', note:'Alternativa seleccionada; revisar embarazo/edad' } ],
+    indicaciones:['Confirmar válvula/material protésico, endocarditis previa, cardiopatía congénita seleccionada o trasplante con valvulopatía','Indicar solo en procedimientos con manipulación gingival, región periapical o perforación de mucosa','Las prótesis articulares no implican profilaxis rutinaria'],
+    alert:{type:'red',text:'Clindamicina ya no se recomienda para profilaxis de endocarditis.'}, nota:'Si olvidó la dosis, la guía permite administrarla hasta 2 h después; documentar y confirmar la indicación.' },
+  { id:'rx-ped-antibiotics', icon:'🧸', iconBg:'#fce7f3', title:'Antibióticos pediátricos — referencia', subtitle:'Dosis por peso cuando existe indicación bacteriana', cats:['ninos','infeccion','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'💊', name:'Amoxicilina', dose:'20-40 mg/kg/día dividido cada 8 h O 25-45 mg/kg/día dividido cada 12 h', note:'Máx 500 mg/dosis c/8 h o 875 mg/dosis c/12 h' }, { icon:'💊', name:'Amoxicilina/clavulanato', dose:'25-45 mg/kg/día del componente amoxicilina, dividido cada 12 h', note:'Máx 875 mg/dosis; elegir menor clavulanato' }, { icon:'💊', name:'Azitromicina', dose:'10-12 mg/kg día 1; 5-6 mg/kg una vez al día días 2-5', note:'Máx 500 mg día 1' }, { icon:'💊', name:'Cefalexina', dose:'25-50 mg/kg/día dividido cada 6-12 h', note:'Máx 2000 mg/día en infección leve-moderada' }, { icon:'⚠️', name:'Clindamicina', dose:'20-30 mg/kg/día dividido cada 8 h', note:'Máx 450 mg/dosis; riesgo de C. difficile' } ],
+    indicaciones:['Usar peso actual y no exceder dosis adulta','Elegir presentación que permita medir con precisión','La pulpitis y el absceso localizado sin fiebre no requieren antibiótico sistémico'],
+    nota:'No usar tetraciclinas de rutina en menores de 8 años ni prescribir sin revisar alergias e interacciones.' },
+  { id:'rx-ped-ie', icon:'🫀', iconBg:'#fce7f3', title:'Profilaxis de endocarditis — pediatría', subtitle:'Dosis única por peso, solo en alto riesgo', cats:['ninos','profilaxis'], source:'AHA/AAPD',
+    meds:[ { icon:'💊', name:'Amoxicilina', dose:'50 mg/kg, dosis única 30-60 min antes', note:'Máx 2000 mg' }, { icon:'💊', name:'Cefalexina', dose:'50 mg/kg, dosis única 30-60 min antes', note:'Máx 2000 mg; evitar en alergia inmediata a penicilina' }, { icon:'💊', name:'Azitromicina o claritromicina', dose:'15 mg/kg, dosis única 30-60 min antes', note:'Máx 500 mg' } ],
+    indicaciones:['Confirmar cardiopatía de alto riesgo con cardiología cuando haya duda','Calcular con peso actual','Registrar fármaco, dosis y hora de administración'],
+    nota:'Clindamicina no se recomienda para esta profilaxis.' },
+  { id:'rx-candidiasis-adult', icon:'🍄', iconBg:'#ede9fe', title:'Candidiasis oral', subtitle:'Opciones tópicas y sistémicas', cats:['antifungico','mucosa','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Nistatina suspensión', dose:'400,000-600,000 U (4-6 mL) 4 veces al día por 7-14 días', note:'Mantener en boca y deglutir; continuar 48 h tras resolver; contiene azúcar con frecuencia' }, { icon:'💊', name:'Clotrimazol trocisco 10 mg', dose:'Disolver 1, 5 veces al día por 7-14 días', note:'Mayores de 3 años; no comer/beber 30 min' }, { icon:'💊', name:'Fluconazol', dose:'200 mg día 1; luego 100-200 mg una vez al día por 7-14 días', note:'Revisar interacciones, hígado y embarazo' } ],
+    indicaciones:['Identificar prótesis, antibióticos recientes, diabetes, xerostomía o inmunosupresión','Desinfectar prótesis y retirarla al dormir','Confirmar diagnóstico si no responde'],
+    nota:'Fluconazol inhibe enzimas hepáticas y presenta interacciones clínicamente relevantes.' },
+  { id:'rx-candidiasis-ped', icon:'🍼', iconBg:'#fce7f3', title:'Candidiasis oral pediátrica', subtitle:'Lactantes, niños y adolescentes', cats:['ninos','antifungico','mucosa'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Nistatina suspensión — lactante', dose:'200,000 U (2 mL) 4 veces al día; mitad en cada lado de la boca', note:'7-14 días' }, { icon:'🧴', name:'Nistatina suspensión — niño/adolescente', dose:'400,000-600,000 U (4-6 mL) 4 veces al día', note:'7-14 días y 48 h tras resolver' }, { icon:'💊', name:'Fluconazol', dose:'6-12 mg/kg/dosis una vez al día por 7-14 días', note:'Máx 400 mg/dosis; revisar interacciones' } ],
+    indicaciones:['Esterilizar chupones, tetinas y objetos que entren en boca','Valorar candidiasis mamaria simultánea durante lactancia','Preferir formulación sin azúcar cuando sea posible'],
+    nota:'Revalorar si persiste, recurre o existe inmunocompromiso.' },
+  { id:'rx-herpes-primary', icon:'🦠', iconBg:'#e0f2fe', title:'Gingivoestomatitis herpética primaria', subtitle:'Tratamiento temprano en casos seleccionados', cats:['antiviral','mucosa','ninos','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'💊', name:'Aciclovir — pediatría', dose:'20 mg/kg/dosis 4 veces al día por 5-7 días', note:'Máx 800 mg/dosis; iniciar temprano' }, { icon:'💊', name:'Aciclovir — adulto', dose:'400 mg 3 veces al día por 5-10 días', note:'Ajustar en enfermedad renal' } ],
+    indicaciones:['Mantener hidratación y control del dolor','Evitar contacto con lesiones y compartir utensilios','Valorar urgencia si no tolera líquidos o hay compromiso ocular'],
+    nota:'Uso sistémico para casos clínicamente seleccionados; revisar función renal e interacciones.' },
+  { id:'rx-herpes-labialis', icon:'💋', iconBg:'#fee2e2', title:'Herpes labial recurrente', subtitle:'Iniciar en pródromo o primeras horas', cats:['antiviral','mucosa','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'💊', name:'Valaciclovir ≥12 años / adulto', dose:'2000 mg cada 12 h por 1 día (2 dosis)', note:'Máx 4000 mg/día; iniciar al primer síntoma' }, { icon:'🧴', name:'Docosanol crema 10%', dose:'Capa fina 5 veces al día hasta 10 días', note:'≥12 años' }, { icon:'🧴', name:'Aciclovir crema 5%', dose:'Capa fina 5 veces al día por 4 días', note:'≥12 años' } ],
+    indicaciones:['Lavarse las manos antes y después','No manipular lesiones ni compartir bálsamos','Posponer procedimientos electivos con lesión activa extensa'],
+    nota:'Ajustar antivirales sistémicos en enfermedad renal y revisar embarazo.' },
+  { id:'rx-aphthous', icon:'👄', iconBg:'#fff7ed', title:'Úlcera aftosa / lesión inflamatoria no infecciosa', subtitle:'Tratamiento tópico de corta duración', cats:['mucosa','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Triamcinolona acetonida 0.1% pasta dental', dose:'Aplicar sobre la úlcera 2-4 veces al día después de alimentos y al acostarse', note:'Máx 14 días; no comer/beber 30 min' }, { icon:'🧴', name:'Dexametasona solución 0.5 mg/5 mL', dose:'Enjuagar 5 mL durante 2 min, 2-4 veces al día y escupir', note:'Adultos/adolescentes; uso oral off-label, máx 14 días' } ],
+    indicaciones:['Confirmar que no sea lesión traumática, viral, micótica o maligna','Retirar irritantes y mantener higiene suave','Documentar tamaño, sitio y evolución'],
+    alert:{type:'orange',text:'Úlcera que persiste más de 2 semanas, indurada, recurrente severa o con signos sistémicos requiere estudio.'}, nota:'Los corticoides tópicos pueden empeorar infecciones no diagnosticadas.' },
+  { id:'rx-fluoride', icon:'🛡️', iconBg:'#dcfce7', title:'Flúor de alta concentración', subtitle:'Prevención de caries en pacientes de riesgo', cats:['prevencion','ninos','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🪥', name:'Dentífrico fluorurado 0.5% (5000 ppm)', dose:'Cinta delgada en cepillo una vez al día, preferentemente por la noche', note:'6-16 años: escupir y enjuagar; >16/adulto: evitar enjuagar' }, { icon:'🧴', name:'Enjuague fluorurado 0.09% (900 ppm)', dose:'10 mL una vez por semana durante 1 min y escupir', note:'≥6 años; no comer/beber 30 min' } ],
+    indicaciones:['Indicar solo tras evaluar riesgo de caries y exposición total a flúor','Supervisar a quien pueda ingerir el producto','Mantener fuera del alcance de niños pequeños'],
+    nota:'No usar en pacientes incapaces de escupir sin una estrategia profesional supervisada.' },
+  { id:'rx-dry-socket', icon:'🦷', iconBg:'#fff7ed', title:'Alveolitis seca', subtitle:'Manejo local y analgesia', cats:['extraccion','dolor','cirugia'], source:'Principios de stewardship',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'Cada 6-8 h según dolor', note:'Si es apropiado' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6 h según dolor; puede combinarse', note:'Respetar máximo diario' } ],
+    indicaciones:['Irrigar suavemente el alvéolo y retirar detritos','Colocar apósito medicado si está indicado','Revisar y cambiar/retirar según evolución','Reforzar no fumar'],
+    alert:{type:'red',text:'La alveolitis seca sin infección diseminada no se trata con antibiótico sistémico.'}, nota:'Descartar cuerpo extraño, osteítis, infección propagada u otra causa de dolor.' },
+  { id:'rx-necrotizing-perio', icon:'🩸', iconBg:'#fee2e2', title:'Enfermedad periodontal necrosante', subtitle:'Desbridamiento, higiene y evaluación sistémica', cats:['periodoncia','infeccion','enjuague'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Clorhexidina 0.12%', dose:'15 mL durante 30 s, 2 veces al día y escupir', note:'Coadyuvante temporal' }, { icon:'💊', name:'Metronidazol — adulto', dose:'250-500 mg cada 8 h por 7 días', note:'Para casos seleccionados con signos sistémicos; evitar alcohol' } ],
+    indicaciones:['Desbridamiento cuidadoso y control de placa','Evaluar fiebre, linfadenopatía, inmunosupresión, nutrición y tabaquismo','Seguimiento estrecho y tratamiento periodontal definitivo'],
+    nota:'El antimicrobiano sistémico depende de extensión y signos generales; revisar warfarina, alcohol e interacciones.' },
+  { id:'rx-angular-cheilitis', icon:'👄', iconBg:'#ede9fe', title:'Queilitis angular', subtitle:'Tratamiento tópico según etiología', cats:['mucosa','antifungico','vademecum'], source:'AAPD medicamentos 2025',
+    meds:[ { icon:'🧴', name:'Clotrimazol crema 1%', dose:'Capa delgada en comisuras 2-4 veces al día por 7-14 días', note:'Todas las edades según guía' }, { icon:'🧴', name:'Nistatina crema/ungüento', dose:'Capa delgada 2-4 veces al día por 7-14 días', note:'Continuar hasta curación' } ],
+    indicaciones:['Controlar humedad, dimensión vertical y prótesis','Evaluar candidiasis intraoral, anemia, diabetes o deficiencias si es recurrente','Mantener barrera protectora y comisuras secas'],
+    nota:'Si predomina costra bacteriana o no responde, reconsiderar diagnóstico y cultivo/tratamiento.' },
 ];
 
 var _rxActiveCat  = 'all';
+var _rxSearchQuery = '';
 var _ciActiveCat  = 'all';
 var _indActiveCat = 'all';
+
+var RX_PEDIATRIC_DATA = {
+  paracetamol:{ label:'Paracetamol · dolor/fiebre', mode:'dose', min:10, max:15, interval:'cada 4-6 h según necesidad', maxSingle:1000, maxText:'Máx 75 mg/kg/día, sin exceder 4000 mg/24 h', note:'Riesgo de hepatotoxicidad; sumar todas las presentaciones con paracetamol.', concentrations:[['160 mg / 5 mL',160,5],['100 mg / mL',100,1]] },
+  ibuprofen:{ label:'Ibuprofeno · dolor/inflamación', mode:'dose', min:4, max:10, interval:'cada 6-8 h según necesidad', maxSingle:600, maxText:'Máx 600 mg por dosis; no exceder dosis adulta', note:'Evitar en menores de 6 meses, deshidratación, enfermedad renal, sangrado GI o alergia a AINE.', concentrations:[['100 mg / 5 mL',100,5],['200 mg / 5 mL',200,5]] },
+  amoxicillin:{ label:'Amoxicilina · infección indicada', mode:'day', min:25, max:45, divisions:2, interval:'cada 12 h', maxSingle:875, maxText:'Máx 875 mg por dosis', note:'El antibiótico no sustituye tratamiento dental o drenaje.', concentrations:[['250 mg / 5 mL',250,5],['400 mg / 5 mL',400,5]] },
+  amoxclav:{ label:'Amoxicilina/clavulanato · infección indicada', mode:'day', min:25, max:45, divisions:2, interval:'cada 12 h', maxSingle:875, maxText:'Máx 875 mg/dosis y 1750 mg/día del componente amoxicilina', note:'Calcular con el componente amoxicilina y preferir la menor exposición a clavulanato.', concentrations:[['400/57 mg / 5 mL',400,5],['600/42.9 mg / 5 mL',600,5]] },
+  azithromycin:{ label:'Azitromicina · alergia inmediata seleccionada', mode:'azithro', interval:'una vez al día', maxSingle:500, maxText:'Máx 500 mg el día 1', note:'Revisar QT prolongado, cardiopatía e interacciones.', concentrations:[['200 mg / 5 mL',200,5],['100 mg / 5 mL',100,5]] },
+  cephalexin:{ label:'Cefalexina · infección leve-moderada', mode:'day', min:25, max:50, divisions:2, interval:'cada 12 h', maxSingle:1000, maxText:'Máx 2000 mg/día en infección leve-moderada', note:'No usar si hubo anafilaxia, angioedema o urticaria por penicilina/ampicilina.', concentrations:[['250 mg / 5 mL',250,5],['500 mg / 5 mL',500,5]] },
+  clindamycin:{ label:'Clindamicina · indicación seleccionada', mode:'day', min:20, max:30, divisions:3, interval:'cada 8 h', maxSingle:450, maxText:'Máx 450 mg por dosis', note:'Riesgo importante de colitis por C. difficile; no usar para profilaxis de endocarditis.', concentrations:[['75 mg / 5 mL',75,5]] },
+  ieamox:{ label:'Amoxicilina · profilaxis endocarditis', mode:'single', min:50, max:50, interval:'dosis única 30-60 min antes', maxSingle:2000, maxText:'Máx 2000 mg', note:'Solo en cardiopatías de alto riesgo y procedimientos indicados.', concentrations:[['250 mg / 5 mL',250,5],['400 mg / 5 mL',400,5]] },
+  ieazithro:{ label:'Azitromicina · profilaxis endocarditis', mode:'single', min:15, max:15, interval:'dosis única 30-60 min antes', maxSingle:500, maxText:'Máx 500 mg', note:'Alternativa en alergia inmediata; revisar QT e interacciones.', concentrations:[['200 mg / 5 mL',200,5]] }
+};
+
+function rxEsc(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function rxRound(value) {
+  var rounded = Math.round(Number(value) * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function initRxClinicalTools() {
+  var count = document.getElementById('rx-template-count');
+  if (count) count.textContent = RX_DB.length;
+  var medSelect = document.getElementById('rx-ped-med');
+  if (medSelect && !medSelect.options.length) {
+    medSelect.innerHTML = Object.keys(RX_PEDIATRIC_DATA).map(function(key) {
+      return '<option value="' + key + '">' + rxEsc(RX_PEDIATRIC_DATA[key].label) + '</option>';
+    }).join('');
+    rxPedMedicationChanged();
+  }
+}
+
+function rxPedMedicationChanged() {
+  var medSelect = document.getElementById('rx-ped-med');
+  var concentrationSelect = document.getElementById('rx-ped-concentration');
+  if (!medSelect || !concentrationSelect) return;
+  var med = RX_PEDIATRIC_DATA[medSelect.value];
+  if (!med) return;
+  concentrationSelect.innerHTML = med.concentrations.map(function(c, index) {
+    return '<option value="' + index + '">' + rxEsc(c[0]) + '</option>';
+  }).join('');
+  calcPediatricDose();
+}
+
+function calcPediatricDose() {
+  var medSelect = document.getElementById('rx-ped-med');
+  var weightInput = document.getElementById('rx-ped-weight');
+  var concentrationSelect = document.getElementById('rx-ped-concentration');
+  var result = document.getElementById('rx-ped-result');
+  if (!medSelect || !weightInput || !concentrationSelect || !result) return;
+  var med = RX_PEDIATRIC_DATA[medSelect.value];
+  var weight = Number(weightInput.value);
+  if (!med || !weight || weight < 2 || weight > 150) {
+    result.style.display = 'none';
+    result.innerHTML = '';
+    return;
+  }
+  var concentration = med.concentrations[Number(concentrationSelect.value) || 0];
+  var mgPerMl = concentration[1] / concentration[2];
+  var low, high, headline, liquid;
+  if (med.mode === 'day') {
+    low = Math.min((weight * med.min) / med.divisions, med.maxSingle);
+    high = Math.min((weight * med.max) / med.divisions, med.maxSingle);
+    headline = rxRound(low) + (Math.abs(high-low) > .05 ? '–' + rxRound(high) : '') + ' mg por dosis';
+    liquid = rxRound(low / mgPerMl) + (Math.abs(high-low) > .05 ? '–' + rxRound(high / mgPerMl) : '') + ' mL por dosis';
+  } else if (med.mode === 'azithro') {
+    var day1 = Math.min(weight * 10, med.maxSingle);
+    var later = Math.min(weight * 5, 250);
+    headline = rxRound(day1) + ' mg día 1; ' + rxRound(later) + ' mg días 2-5';
+    liquid = rxRound(day1 / mgPerMl) + ' mL día 1; ' + rxRound(later / mgPerMl) + ' mL días 2-5';
+  } else {
+    low = Math.min(weight * med.min, med.maxSingle);
+    high = Math.min(weight * med.max, med.maxSingle);
+    headline = rxRound(low) + (Math.abs(high-low) > .05 ? '–' + rxRound(high) : '') + ' mg por dosis';
+    liquid = rxRound(low / mgPerMl) + (Math.abs(high-low) > .05 ? '–' + rxRound(high / mgPerMl) : '') + ' mL por dosis';
+  }
+  result.innerHTML = '<div class="rx-ped-dose">' + rxEsc(headline) + '</div>'
+    + '<div class="rx-ped-details"><strong>' + rxEsc(concentration[0]) + ':</strong> ' + rxEsc(liquid) + ' · ' + rxEsc(med.interval)
+    + '<br><strong>Límite:</strong> ' + rxEsc(med.maxText)
+    + '<br><strong>Precaución:</strong> ' + rxEsc(med.note) + '</div>';
+  result.style.display = 'block';
+}
+
+function renderRxPatientSafety(patient) {
+  var panel = document.getElementById('rx-patient-safety');
+  if (!panel) return;
+  if (!patient) {
+    panel.className = 'rx-safety-empty';
+    panel.innerHTML = 'Selecciona un paciente para revisar automáticamente edad, peso, alergias, embarazo y antecedentes registrados.';
+    return;
+  }
+  var age = patient.dob ? calcAge(patient.dob) : null;
+  var weight = Number(patient.weightKg);
+  var allergies = String(patient.allergies || '').trim();
+  var allergyPositive = allergies && !/^(no|ninguna|ninguno|n\/a|—)$/i.test(allergies);
+  var pregnant = /^(sí|si|embarazada|positivo)$/i.test(String(patient.isPregnant || '').trim());
+  var conditions = String(patient.medsCondition || '').trim();
+  var flags = [];
+  flags.push('<span class="rx-safety-flag ' + (allergyPositive ? 'danger' : '') + '">⚠️ Alergias: ' + rxEsc(allergyPositive ? allergies : 'sin registrar/negadas') + '</span>');
+  flags.push('<span class="rx-safety-flag ' + (!weight && age !== null && age < 18 ? 'warn' : '') + '">⚖️ Peso: ' + rxEsc(weight ? rxRound(weight) + ' kg' : 'no registrado') + '</span>');
+  if (pregnant) flags.push('<span class="rx-safety-flag danger">🤰 Embarazo registrado</span>');
+  if (conditions && !/^(no|ninguna|ninguno|sin enfermedades|n\/a|—)$/i.test(conditions)) {
+    flags.push('<span class="rx-safety-flag warn">🩺 ' + rxEsc(conditions.split('\n')[0]) + '</span>');
+  }
+  panel.className = '';
+  panel.innerHTML = '<div class="rx-safety-person"><div class="rx-safety-avatar">' + rxEsc(ini(patient.name)) + '</div>'
+    + '<div><div class="rx-safety-name">' + rxEsc(patient.name) + '</div><div class="rx-safety-meta">'
+    + rxEsc(age !== null && age !== undefined ? age + ' años' : 'Edad no registrada') + ' · Revisa medicamentos actuales e interacciones</div></div></div>'
+    + '<div class="rx-safety-flags">' + flags.join('') + '</div>';
+  if (weight) {
+    var weightInput = document.getElementById('rx-ped-weight');
+    if (weightInput) { weightInput.value = rxRound(weight); calcPediatricDose(); }
+  }
+}
+
+function rxSearch(value) {
+  _rxSearchQuery = String(value || '').trim().toLowerCase();
+  renderRxGrid();
+}
 
 function rxFilter(cat, btn) {
   _rxActiveCat = cat;
@@ -12281,26 +12581,48 @@ function rxFilter(cat, btn) {
 
 function renderRxGrid() {
   var grid = document.getElementById('rx-grid'); if (!grid) return;
-  var list = _rxActiveCat === 'all'
-    ? RX_DB
-    : RX_DB.filter(function(r){ return r.cats.indexOf(_rxActiveCat) !== -1; });
+  initRxClinicalTools();
+  var list = RX_DB.map(function(base, index){ return { rx:_getRx(index), index:index }; });
+  if (_rxActiveCat !== 'all') {
+    list = list.filter(function(item){ return (item.rx.cats || []).indexOf(_rxActiveCat) !== -1; });
+  }
+  if (_rxSearchQuery) {
+    list = list.filter(function(item) {
+      var rx = item.rx;
+      var haystack = [rx.title,rx.subtitle,rx.source,rx.nota]
+        .concat(rx.cats || [], rx.indicaciones || [])
+        .concat((rx.drugs || rx.meds || []).map(function(d){ return [d.name,d.dose,d.note].join(' '); }))
+        .join(' ').toLowerCase();
+      return haystack.indexOf(_rxSearchQuery) !== -1;
+    });
+  }
 
   var tagColorMap = {
     extraccion:'rx-tag-blue', endodoncia:'rx-tag-purple', cirugia:'rx-tag-red',
     ortodoncia:'rx-tag-blue', periodoncia:'rx-tag-green', operatoria:'rx-tag-blue',
     embarazo:'rx-tag-green', alergicos:'rx-tag-red', ninos:'rx-tag-purple',
     enjuague:'rx-tag-orange', anestesia:'rx-tag-orange',
-    implante:'rx-tag-red', vademecum:'rx-tag-purple'
+    implante:'rx-tag-red', vademecum:'rx-tag-purple', dolor:'rx-tag-orange',
+    infeccion:'rx-tag-red', profilaxis:'rx-tag-red', mucosa:'rx-tag-purple',
+    antifungico:'rx-tag-purple', antiviral:'rx-tag-blue', prevencion:'rx-tag-green'
   };
   var tagLabel = {
     extraccion:'Extracción', endodoncia:'Endodoncia', cirugia:'Cirugía',
     ortodoncia:'Ortodoncia', periodoncia:'Periodoncia', operatoria:'Operatoria',
     embarazo:'🤰 Embarazo', alergicos:'⚠️ Alérgico PNC', ninos:'👶 Niños',
     enjuague:'Enjuague', anestesia:'Anestesia',
-    implante:'Implante', vademecum:'📖 Vademécum'
+    implante:'Implante', vademecum:'📖 Vademécum', dolor:'Dolor',
+    infeccion:'Infección', profilaxis:'Profilaxis', mucosa:'Mucosa oral',
+    antifungico:'Antifúngico', antiviral:'Antiviral', prevencion:'Prevención'
   };
 
-  grid.innerHTML = list.map(function(rx) {
+  if (!list.length) {
+    grid.innerHTML = '<div class="rx-grid-empty">No encontré protocolos con esos filtros.</div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(function(item) {
+    var rx = item.rx;
     var tags = rx.cats.map(function(c){
       return '<span class="rx-tag '+(tagColorMap[c]||'rx-tag-blue')+'">'+(tagLabel[c]||c)+'</span>';
     }).join('');
@@ -12308,7 +12630,7 @@ function renderRxGrid() {
     var alertHtml = '';
     if (rx.alert) {
       var ac = { red:'rx-alert-red', orange:'rx-alert-orange', green:'rx-alert-green', blue:'rx-alert-blue' }[rx.alert.type] || 'rx-alert-blue';
-      alertHtml = '<div class="rx-alert-banner '+ac+'">'+rx.alert.text+'</div>';
+      alertHtml = '<div class="rx-alert-banner '+ac+'">'+rxEsc(rx.alert.text)+'</div>';
     }
 
     var drugsSource = rx.drugs || rx.meds || [];
@@ -12319,39 +12641,40 @@ function renderRxGrid() {
       return '<div class="rx-drug">'
         + '<div class="rx-drug-icon">' + icon + '</div>'
         + '<div style="flex:1">'
-        + '<div class="rx-drug-name">' + d.name + '</div>'
-        + '<div class="rx-drug-dose">' + dose + '</div>'
-        + (note ? '<div class="rx-drug-note">' + note + '</div>' : '')
+        + '<div class="rx-drug-name">' + rxEsc(d.name) + '</div>'
+        + '<div class="rx-drug-dose">' + rxEsc(dose) + '</div>'
+        + (note ? '<div class="rx-drug-note">' + rxEsc(note) + '</div>' : '')
         + '</div></div>';
     }).join('');
     var indsSource = rx.indicaciones || [];
     var indsHtml = indsSource.length
       ? '<div style="margin-top:6px;padding:6px 8px;background:var(--bg);border-radius:4px"><div style="font-size:.7rem;font-weight:700;color:var(--ink-3);margin-bottom:3px">Indicaciones</div><ul style="padding-left:14px;margin:0">'
-        + indsSource.map(function(i){ return '<li style="font-size:.71rem;color:var(--ink-3);margin-bottom:2px">'+i+'</li>'; }).join('')
+        + indsSource.map(function(i){ return '<li style="font-size:.71rem;color:var(--ink-3);margin-bottom:2px">'+rxEsc(i)+'</li>'; }).join('')
         + '</ul></div>' : '';
     var notaHtml = rx.nota
-      ? '<div style="font-size:.71rem;color:#a05800;margin-top:5px;padding:5px 8px;background:#fff8ee;border-radius:4px;border-left:3px solid #ff9500">⚠️ '+rx.nota+'</div>' : '';
+      ? '<div style="font-size:.71rem;color:var(--ink-2);margin-top:7px;padding:7px 9px;background:var(--orange-bg);border-radius:6px;border-left:3px solid var(--orange)">⚠️ '+rxEsc(rx.nota)+'</div>' : '';
 
     var isVad = rx.cats.indexOf('vademecum') !== -1;
-    var cardStyle = isVad ? ' style="border-color:rgba(124,58,237,.25);background:linear-gradient(135deg,var(--card) 92%,#f3effe)"' : '';
-    var titleStyle = isVad ? ' style="color:#7c3aed"' : '';
+    var cardStyle = isVad ? ' style="border-color:rgba(124,58,237,.4)"' : '';
+    var titleStyle = isVad ? ' style="color:#9b6cff"' : '';
 
-    var rxIdx = RX_DB.indexOf(rx);
+    var sourceHtml = rx.source ? '<div style="margin-top:8px;font-size:.62rem;color:var(--ink-4)">📚 ' + rxEsc(rx.source) + '</div>' : '';
+    var rxIdx = item.index;
     return '<div class="rx-card"'+cardStyle+'>'
       + '<div class="rx-card-header">'
       + '<div class="rx-icon" style="background:'+rx.iconBg+'">'+rx.icon+'</div>'
       + '<div style="flex:1">'
-      + '<div class="rx-title"'+titleStyle+'>'+rx.title+'</div>'
-      + '<div class="rx-subtitle">'+rx.subtitle+'</div>'
+      + '<div class="rx-title"'+titleStyle+'>'+rxEsc(rx.title)+'</div>'
+      + '<div class="rx-subtitle">'+rxEsc(rx.subtitle)+'</div>'
       + '</div>'
       + '<div style="display:flex;gap:5px;flex-shrink:0">'
       + '<button onclick="editRx('+rxIdx+')" style="background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:4px 9px;cursor:pointer;font-size:.72rem;color:var(--ink-3);font-family:inherit" title="Editar">✏️</button>'
-      + '<button onclick="printRx('+rxIdx+')" style="background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:4px 9px;cursor:pointer;font-size:.72rem;color:var(--ink-3);font-family:inherit" title="Imprimir">🖨️</button>'
+      + '<button onclick="prepareRxPrint('+rxIdx+')" style="background:none;border:1px solid var(--border-med);border-radius:var(--r-sm);padding:4px 9px;cursor:pointer;font-size:.72rem;color:var(--ink-3);font-family:inherit" title="Seleccionar e imprimir">🧾 Recetar</button>'
       + '</div>'
       + '</div>'
       + '<div class="rx-tags">'+tags+'</div>'
       + alertHtml
-      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+'</div>'
+      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+sourceHtml+'</div>'
       + '</div>';
   }).join('');
 }
@@ -12889,7 +13212,7 @@ function resetAllData() {
 
 // ── Toast de notificación ───────────────────────────────────
 function showToast(msg, type) {
-  var colors = { green:'#248a3d', red:'#ff3b30', blue:'#0071e3' };
+  var colors = { green:'#248a3d', red:'#ff3b30', blue:'#0071e3', orange:'#d97706' };
   var existing = document.getElementById('dental-toast');
   if (existing) existing.remove();
   var t = document.createElement('div');
@@ -19620,34 +19943,91 @@ function saveRxEdit() {
 // ══════════════════════════════════════════════════════════
 // ★ IMPRIMIR RECETA CON LOGO
 // ══════════════════════════════════════════════════════════
-function printRx(idx) {
+var _rxPrepareIdx = -1;
+
+function prepareRxPrint(idx) {
+  var rx = _getRx(idx);
+  if (!rx) return;
+  if (!_rxPatientId) {
+    showToast('⚠️ Selecciona el paciente antes de preparar la receta', 'orange');
+    var patientSearch = document.getElementById('rx-patient-search');
+    if (patientSearch) { patientSearch.focus(); patientSearch.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return;
+  }
+  var drugs = rx.drugs || rx.meds || [];
+  if (drugs.length <= 1) {
+    printRx(idx, drugs.length ? [0] : []);
+    return;
+  }
+  _rxPrepareIdx = idx;
+  var overlay = document.getElementById('rx-prepare-overlay');
+  var title = document.getElementById('rx-prepare-title');
+  var list = document.getElementById('rx-prepare-list');
+  if (!overlay || !list) return;
+  if (title) title.textContent = rx.title || 'Receta';
+  list.innerHTML = drugs.map(function(d, medIndex) {
+    return '<label style="display:flex;align-items:flex-start;gap:10px;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer">'
+      + '<input type="checkbox" class="rx-prepare-check" value="' + medIndex + '" style="margin-top:3px;width:17px;height:17px">'
+      + '<span><strong style="display:block;font-size:.8rem;color:var(--ink)">' + rxEsc(d.name || '') + '</strong>'
+      + '<span style="display:block;font-size:.7rem;color:var(--ink-3);margin-top:3px;line-height:1.4">' + rxEsc(d.dose || d.posologia || '')
+      + (d.note || d.notas ? ' · ' + rxEsc(d.note || d.notas) : '') + '</span></span></label>';
+  }).join('');
+  overlay.style.display = 'flex';
+}
+
+function closeRxPrepare() {
+  var overlay = document.getElementById('rx-prepare-overlay');
+  if (overlay) overlay.style.display = 'none';
+  _rxPrepareIdx = -1;
+}
+
+function confirmRxPrint() {
+  if (_rxPrepareIdx < 0) return;
+  var selected = Array.prototype.slice.call(document.querySelectorAll('.rx-prepare-check:checked'))
+    .map(function(input){ return Number(input.value); });
+  if (!selected.length) {
+    showToast('⚠️ Selecciona al menos un medicamento', 'orange');
+    return;
+  }
+  var idx = _rxPrepareIdx;
+  closeRxPrepare();
+  printRx(idx, selected);
+}
+
+function printRx(idx, selectedDrugIndexes) {
   var rx = _getRx(idx);
   var drugsSource = rx.drugs || rx.meds || [];
+  if (Array.isArray(selectedDrugIndexes)) {
+    drugsSource = drugsSource.filter(function(_, drugIndex){ return selectedDrugIndexes.indexOf(drugIndex) !== -1; });
+  }
   var drugsHTML = drugsSource.map(function(d) {
     return '<tr>'
-      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;font-weight:600">' + (d.name||'') + '</td>'
-      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;color:#555">' + (d.dose||d.posologia||'') + '</td>'
-      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;color:#888;font-size:11px">' + (d.note||d.notas||'') + '</td>'
+      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;font-weight:600">' + rxEsc(d.name||'') + '</td>'
+      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;color:#555">' + rxEsc(d.dose||d.posologia||'') + '</td>'
+      + '<td style="padding:8px 6px;border-bottom:1px solid #eee;color:#888;font-size:11px">' + rxEsc(d.note||d.notas||'') + '</td>'
       + '</tr>';
   }).join('');
 
   var indsHTML = (rx.indicaciones||[]).length
     ? '<div style="margin-top:16px;padding:12px;background:#f8f9fa;border-radius:6px">'
       + '<div style="font-weight:700;font-size:12px;margin-bottom:6px;color:#333">INDICACIONES</div>'
-      + (rx.indicaciones||[]).map(function(i){ return '<div style="font-size:12px;color:#555;margin-bottom:3px">• '+i+'</div>'; }).join('')
+      + (rx.indicaciones||[]).map(function(i){ return '<div style="font-size:12px;color:#555;margin-bottom:3px">• '+rxEsc(i)+'</div>'; }).join('')
       + '</div>' : '';
 
   var fecha = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
   var logoHtml = _logoHTML(50);
 
-  // Usar paciente seleccionado en recetas, o el activo
-  var rxPatientIdToUse = _rxPatientId || curId;
+  // Usar exclusivamente el paciente seleccionado en el recetario. Esto evita
+  // imprimir por accidente el último expediente abierto en otra sección.
+  var rxPatientIdToUse = _rxPatientId;
   var rxPatient = db.patients.find(function(x){ return x.id == rxPatientIdToUse; });
+  var rxPatientAge = rxPatient && rxPatient.dob ? calcAge(rxPatient.dob) : null;
   var patientBlock = rxPatient
     ? '<div style="margin-bottom:16px;padding:10px 14px;background:#f8f9fa;border-radius:6px;border-left:3px solid #333">'
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'
-      + '<div style="font-size:12px"><strong>Paciente:</strong> ' + rxPatient.name + '</div>'
-      + (rxPatient.dob ? '<div style="font-size:12px"><strong>Edad:</strong> ' + (new Date().getFullYear() - parseInt(rxPatient.dob)) + ' años</div>' : '')
+      + '<div style="font-size:12px"><strong>Paciente:</strong> ' + rxEsc(rxPatient.name) + '</div>'
+      + (rxPatientAge !== null && rxPatientAge !== undefined ? '<div style="font-size:12px"><strong>Edad:</strong> ' + rxEsc(rxPatientAge) + ' años</div>' : '')
+      + (rxPatient.weightKg ? '<div style="font-size:12px"><strong>Peso:</strong> ' + rxEsc(rxPatient.weightKg) + ' kg</div>' : '')
       + '</div></div>'
     : '<div style="margin-bottom:16px;padding:10px 14px;border:1px dashed #ccc;border-radius:6px">'
       + '<div style="font-size:12px;color:#666">Paciente: ___________________________ &nbsp;&nbsp; Edad: _______</div>'
@@ -19674,7 +20054,7 @@ function printRx(idx) {
     + '<div>Folio: RX-'+Date.now().toString().slice(-6)+'</div>'
     + '</div></div>'
     + patientBlock
-    + '<div style="font-size:14px;font-weight:700;margin-bottom:14px;text-align:center;letter-spacing:.03em">☤ ' + rx.title + '</div>'
+    + '<div style="font-size:14px;font-weight:700;margin-bottom:14px;text-align:center;letter-spacing:.03em">☤ ' + rxEsc(rx.title) + '</div>'
     + '<table><thead><tr><th>Medicamento</th><th>Dosis / Frecuencia</th><th>Notas</th></tr></thead><tbody>'
     + drugsHTML + '</tbody></table>'
     + indsHTML
@@ -20630,6 +21010,8 @@ function rxPatientSelect(id, name) {
   if (inp) inp.value = name;
   if (sel) sel.textContent = '✅ ' + name;
   if (dd)  dd.style.display = 'none';
+  var patient = db.patients.find(function(p){ return String(p.id) === String(id); });
+  renderRxPatientSafety(patient || null);
 }
 
 function rxPatientClear() {
@@ -20638,6 +21020,11 @@ function rxPatientClear() {
   var sel = document.getElementById('rx-patient-selected');
   if (inp) inp.value = '';
   if (sel) sel.textContent = '';
+  renderRxPatientSafety(null);
+  var weightInput = document.getElementById('rx-ped-weight');
+  var result = document.getElementById('rx-ped-result');
+  if (weightInput) weightInput.value = '';
+  if (result) { result.style.display = 'none'; result.innerHTML = ''; }
 }
 
 
@@ -23575,7 +23962,22 @@ window.addEventListener('resize', function() {
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="saveRxEdit()" style="flex:1;justify-content:center;border-radius:var(--r-sm)">💾 Guardar cambios</button>
-      <button class="btn btn-ghost" onclick="printRx(_rxEditIdx)" style="border-radius:var(--r-sm)">🖨️ Imprimir</button>
+      <button class="btn btn-ghost" onclick="closeRxEdit();prepareRxPrint(_rxEditIdx)" style="border-radius:var(--r-sm)">🧾 Preparar</button>
+    </div>
+  </div>
+</div>
+<!-- ══ MODAL PREPARAR RECETA ══ -->
+<div id="rx-prepare-overlay" style="display:none;position:fixed;inset:0;z-index:9250;background:rgba(0,0,0,.58);backdrop-filter:blur(5px);align-items:center;justify-content:center">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);padding:24px;max-width:560px;width:94%;max-height:86vh;overflow-y:auto;box-shadow:var(--sh-xl)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div><div style="font-size:1rem;font-weight:800;color:var(--ink)">🧾 Preparar receta</div><div id="rx-prepare-title" style="font-size:.72rem;color:var(--ink-4);margin-top:3px"></div></div>
+      <button onclick="closeRxPrepare()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ink-3)">✕</button>
+    </div>
+    <div style="padding:9px 11px;border-radius:9px;background:var(--orange-bg);border:1px solid rgba(255,149,0,.25);font-size:.7rem;line-height:1.45;color:var(--ink-2);margin-bottom:12px">Selecciona únicamente los medicamentos indicados para este paciente. Las opciones de una tarjeta pueden ser alternativas y no deben imprimirse todas automáticamente.</div>
+    <div id="rx-prepare-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" onclick="confirmRxPrint()" style="flex:1;justify-content:center;border-radius:var(--r-sm)">🖨️ Imprimir selección</button>
+      <button class="btn btn-ghost" onclick="closeRxPrepare()" style="border-radius:var(--r-sm)">Cancelar</button>
     </div>
   </div>
 </div>
@@ -23785,11 +24187,11 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Imprimir receta</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Busca al paciente con el buscador arriba, luego toca 🖨️ en cualquier receta. El PDF incluye automáticamente el nombre del paciente, tu logo, nombre, cédula, dirección y teléfono. Cumple con COFEPRIS.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Selecciona al paciente, toca <strong>🧾 Recetar</strong>, elige únicamente los medicamentos indicados y genera el documento. Incluye los datos profesionales configurados; verifica siempre los requisitos normativos locales vigentes.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Editar receta</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca ✏️ en cualquier receta para modificar medicamentos e indicaciones. El formato es: <strong>Nombre | Dosis | Nota</strong> (una por línea). Los cambios se guardan solo en tu dispositivo.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca ✏️ para adaptar medicamentos e indicaciones. El formato es: <strong>Nombre | Dosis | Nota</strong> (uno por línea). Los cambios personalizados se conservan con la configuración sincronizada.</div>
           </div>
         </div>
       </div>
