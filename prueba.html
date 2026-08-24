@@ -994,50 +994,80 @@ body.ortho-open{overflow:hidden;}
 /* ━━━━ PERIODONTOGRAMA ━━━━ */
 .perio-overlay{display:none;position:fixed;inset:0;background:rgba(10,12,18,.6);z-index:9160;align-items:center;justify-content:center;backdrop-filter:blur(10px) saturate(125%);padding:18px;}
 .perio-overlay.open{display:flex;}
-.perio-box{background:var(--card);border:1px solid var(--border);border-radius:26px;width:min(1320px,98vw);height:min(900px,calc(100vh - 36px));box-shadow:0 32px 90px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;}
-.perio-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);z-index:2;flex:0 0 auto;}
+.perio-box{background:var(--card);border:1px solid var(--border);border-radius:26px;width:min(1380px,98vw);height:min(940px,calc(100vh - 36px));box-shadow:0 32px 90px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;}
+.perio-header{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,color-mix(in srgb,#168a45 8%,var(--card)),var(--card) 42%);z-index:2;flex:0 0 auto;}
 .perio-header h2{font-size:1rem;font-weight:850;letter-spacing:-.025em;}
 .perio-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
 .perio-title-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#ecfff2,#dff5e7);border:1px solid rgba(22,138,69,.16);display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 7px 18px rgba(22,138,69,.12);}
-.perio-body{padding:16px 18px 24px;overflow-y:auto;overscroll-behavior:contain;}
-.perio-session-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:11px 12px;background:var(--bg);border-radius:14px;border:1px solid var(--border);}
+.perio-body{padding:16px 18px 26px;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(180deg,color-mix(in srgb,#168a45 2.5%,var(--card)),var(--card) 260px);}
+.perio-session-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0;padding:10px;background:color-mix(in srgb,var(--bg) 78%,var(--card));border-radius:13px;border:1px solid var(--border);}
 .perio-session-bar label{font-size:.75rem;font-weight:600;color:var(--ink-3);}
 .perio-session-bar input{color:var(--ink);}
-.perio-tabs{display:flex;gap:4px;margin-bottom:10px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--bg);width:max-content;}
-.perio-tab-btn{padding:7px 17px;border:1px solid transparent;background:transparent;color:var(--ink-3);font-family:inherit;font-size:.75rem;font-weight:750;cursor:pointer;border-radius:9px;}
-.perio-tab-btn.active{background:var(--card);color:var(--blue);border-color:var(--border-med);box-shadow:var(--sh-sm);}
+.perio-tabs{display:flex;gap:5px;margin:0;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--bg);width:max-content;}
+.perio-tab-btn{padding:8px 17px;border:1px solid transparent;background:transparent;color:var(--ink-3);font-family:inherit;font-size:.73rem;font-weight:780;cursor:pointer;border-radius:9px;}
+.perio-tab-btn.active{background:var(--card);color:#168a45;border-color:rgba(22,138,69,.25);box-shadow:0 4px 12px rgba(22,138,69,.11);}
 .perio-arch-label{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);text-align:center;margin:10px 0 6px;}
-.perio-table-wrap{overflow-x:auto;margin-bottom:4px;border:1px solid var(--border);border-radius:15px;background:var(--card);padding:8px;}
+.perio-table-wrap{overflow-x:auto;margin-bottom:4px;border:1px solid var(--border);border-radius:16px;background:var(--card);padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.035);}
 .perio-table{border-collapse:collapse;width:100%;min-width:900px;}
-.perio-table th{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);padding:3px 2px;text-align:center;border:1px solid var(--border);background:var(--bg);white-space:nowrap;}
-.perio-table td{padding:1px 2px;border:1px solid var(--border);text-align:center;vertical-align:middle;}
-.perio-label-cell{font-size:.62rem;font-weight:700;color:var(--ink-3);white-space:nowrap;padding:3px 6px;text-align:right;background:var(--bg);min-width:80px;}
-.perio-input{width:28px;height:22px;border:none;border-radius:3px;text-align:center;font-family:inherit;font-size:.72rem;font-weight:700;background:transparent;color:var(--ink);padding:0;}
-.perio-input:focus{outline:2px solid var(--blue);border-radius:3px;background:var(--blue-pale);}
+.perio-table th{font-size:.58rem;font-weight:780;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);padding:5px 2px;text-align:center;border:1px solid var(--border);background:var(--bg);white-space:nowrap;position:sticky;top:-8px;z-index:2;}
+.perio-table td{padding:2px;border:1px solid var(--border);text-align:center;vertical-align:middle;transition:background .12s;}
+.perio-table tbody tr:hover td{background:color-mix(in srgb,#168a45 5%,var(--card));}
+.perio-table td:nth-child(3n+2){border-left-width:2px;border-left-color:var(--border-med);}
+.perio-label-cell{font-size:.61rem;font-weight:760;color:var(--ink-3);white-space:nowrap;padding:4px 7px!important;text-align:right;background:var(--bg)!important;min-width:90px;position:sticky;left:-8px;z-index:3;box-shadow:4px 0 8px rgba(0,0,0,.025);}
+.perio-input{width:28px;height:24px;border:1px solid transparent;border-radius:6px;text-align:center;font-family:inherit;font-size:.7rem;font-weight:760;background:transparent;color:var(--ink);padding:0;}
+.perio-input:focus{outline:none;border-color:#168a45;border-radius:6px;background:color-mix(in srgb,#168a45 13%,var(--card));box-shadow:0 0 0 3px rgba(22,138,69,.12);}
 .perio-input.bleed{background:rgba(255,59,48,.12);color:var(--red);}
 .perio-input.deep-4{background:rgba(255,149,0,.15);color:#a05800;}
 .perio-input.deep-6{background:rgba(255,59,48,.18);color:var(--red);}
 .perio-checkbox{width:16px;height:16px;cursor:pointer;accent-color:var(--red);}
-.perio-fdi-cell{font-size:.65rem;font-weight:800;color:var(--blue);padding:2px 3px;background:var(--blue-pale);white-space:nowrap;}
+.perio-fdi-cell{font-size:.66rem;font-weight:850;color:#25a65b;padding:5px 3px!important;background:color-mix(in srgb,#168a45 13%,var(--card))!important;white-space:nowrap;}
+.perio-fdi-cell.quadrant-split{border-left:3px solid #168a45;}
 .perio-nic-cell{font-size:.65rem;font-weight:700;background:var(--bg);}
 .perio-nic-cell.warn{color:var(--orange);background:var(--orange-bg);}
 .perio-nic-cell.bad{color:var(--red);background:var(--red-bg);}
 .perio-furca-sel{font-size:.65rem;border:none;background:transparent;font-family:inherit;font-weight:600;color:var(--ink-3);width:36px;cursor:pointer;}
 .perio-mob-sel{font-size:.65rem;border:none;background:transparent;font-family:inherit;font-weight:600;color:var(--ink-3);width:30px;cursor:pointer;}
 .perio-divider-row td{background:var(--blue-pale);height:3px;padding:0;}
-.perio-history-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:background .12s;}
-.perio-history-item:hover{background:var(--blue-pale);}
-.perio-history-item.active{border-color:var(--blue);background:var(--blue-pale);}
+.perio-history-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;}
+.perio-history-item:hover{background:color-mix(in srgb,#168a45 9%,var(--card));border-color:rgba(22,138,69,.26);transform:translateY(-1px);}
+.perio-history-item.active{border-color:#168a45;background:color-mix(in srgb,#168a45 13%,var(--card));}
 .perio-hist-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .perio-hist-date{font-size:.8rem;font-weight:700;color:var(--ink);}
-.perio-hist-stats{display:flex;gap:8px;}
-.perio-hist-stat{font-size:.7rem;color:var(--ink-3);}
+.perio-hist-stats{display:flex;gap:6px;flex-wrap:wrap;}
+.perio-hist-stat{font-size:.64rem;color:var(--ink-3);padding:4px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--border);}
 .perio-compare-bar{display:flex;gap:3px;align-items:flex-end;height:30px;}
 .perio-compare-col{background:var(--blue);border-radius:2px 2px 0 0;min-width:3px;transition:height .2s;}
 .perio-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding:10px 2px 0;border-top:1px solid var(--border);font-size:.67rem;color:var(--ink-3);}
-.perio-history-wrap{margin-top:15px;padding:13px;border:1px solid var(--border);border-radius:15px;background:var(--bg);}
+.perio-history-wrap{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:16px;background:color-mix(in srgb,var(--bg) 76%,var(--card));}
+.perio-header-state{display:flex;align-items:center;gap:6px;font-size:.64rem;font-weight:760;color:#25a65b;padding:6px 9px;border-radius:999px;background:color-mix(in srgb,#168a45 12%,var(--card));border:1px solid rgba(22,138,69,.18);}
+.perio-header-state::before{content:'';width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 0 4px rgba(52,199,89,.12);}
+.perio-clinical-overview{display:grid;grid-template-columns:220px minmax(0,1fr);gap:12px;margin-bottom:13px;align-items:stretch;}
+.perio-risk-card{position:relative;overflow:hidden;padding:14px;border:1px solid rgba(22,138,69,.2);border-radius:17px;background:linear-gradient(150deg,color-mix(in srgb,#168a45 15%,var(--card)),var(--card) 68%);display:grid;grid-template-columns:82px 1fr;gap:11px;align-items:center;min-height:132px;}
+.perio-risk-card::after{content:'';position:absolute;width:110px;height:110px;border-radius:50%;right:-54px;top:-54px;background:rgba(22,138,69,.08);}
+.perio-risk-gauge{--perio-angle:0deg;width:78px;height:78px;border-radius:50%;background:conic-gradient(var(--perio-risk-color,#168a45) var(--perio-angle),var(--border) 0);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 7px 18px rgba(0,0,0,.08);}
+.perio-risk-gauge::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--card);}
+.perio-risk-gauge span{position:relative;font-size:1.05rem;font-weight:900;color:var(--perio-risk-color,#168a45);}
+.perio-risk-copy{position:relative;z-index:1;min-width:0}.perio-risk-kicker{font-size:.56rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4)}
+.perio-risk-title{font-size:.91rem;font-weight:880;letter-spacing:-.025em;color:var(--ink);margin-top:3px}.perio-risk-sub{font-size:.62rem;color:var(--ink-3);line-height:1.4;margin-top:3px}
+.perio-overview-main{display:flex;flex-direction:column;gap:9px;min-width:0;}
+.perio-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.perio-summary-card{position:relative;padding:10px 11px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(145deg,var(--card),var(--bg));overflow:hidden;}
+.perio-summary-icon{width:27px;height:27px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--perio-card-pale,#168a45) 34%,var(--card));font-size:.78rem;margin-bottom:5px;}
+.perio-summary-label{font-size:.54rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-4)}.perio-summary-value{font-size:1rem;font-weight:900;color:var(--ink);letter-spacing:-.03em}.perio-summary-sub{font-size:.57rem;color:var(--ink-4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perio-map-card{padding:12px;border:1px solid var(--border);border-radius:17px;background:var(--card);margin-bottom:12px;}
+.perio-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px;}
+.perio-section-kicker{font-size:.57rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em;color:#168a45}.perio-section-title{font-size:.8rem;font-weight:850;color:var(--ink);margin-top:2px}.perio-section-hint{font-size:.61rem;color:var(--ink-4);text-align:right;line-height:1.35}
+.perio-mouth-map{display:flex;flex-direction:column;gap:7px;overflow-x:auto;padding:2px 0 3px;}
+.perio-map-row{display:grid;grid-template-columns:repeat(16,minmax(42px,1fr));gap:4px;min-width:820px;}
+.perio-map-tooth{--tooth-color:#168a45;min-width:0;padding:6px 3px 5px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--ink-3);font:inherit;cursor:pointer;text-align:center;transition:transform .13s,border-color .13s,background .13s;}
+.perio-map-tooth:hover{transform:translateY(-2px);border-color:var(--tooth-color);background:var(--card)}.perio-map-tooth.qsplit{margin-left:7px}.perio-map-tooth.has-data{border-color:color-mix(in srgb,var(--tooth-color) 35%,var(--border));background:color-mix(in srgb,var(--tooth-color) 7%,var(--card));}
+.perio-map-fdi{display:block;font-size:.58rem;font-weight:850}.perio-map-value{display:block;font-size:.78rem;font-weight:900;color:var(--tooth-color);margin:2px 0}.perio-map-sites{display:flex;justify-content:center;gap:2px;height:4px}.perio-map-sites i{display:block;width:7px;border-radius:999px;background:var(--border-med)}.perio-map-sites i.on{background:var(--tooth-color)}
+.perio-chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px;}
+.perio-chart-title{font-size:.65rem;font-weight:800;color:var(--ink-3)}
 body.perio-open{overflow:hidden;}
-@media(max-width:760px){.perio-overlay{padding:0}.perio-box{width:100%;height:100%;border-radius:0}.perio-header{padding:12px 13px}.perio-title-icon{width:36px;height:36px}.perio-body{padding:12px}.perio-session-bar{align-items:stretch}.perio-session-bar input{width:100%;flex:1}.perio-session-bar label{width:100%}.perio-hist-stats{flex-wrap:wrap}}
+@media(max-width:900px){.perio-clinical-overview{grid-template-columns:1fr}.perio-risk-card{grid-template-columns:72px 1fr;min-height:auto}.perio-risk-gauge{width:68px;height:68px}.perio-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.perio-overlay{padding:0}.perio-box{width:100%;height:100%;border-radius:0}.perio-header{padding:12px 13px}.perio-title-icon{width:36px;height:36px}.perio-header-state{display:none}.perio-body{padding:12px}.perio-session-bar{align-items:stretch}.perio-session-bar input{width:100%;flex:1}.perio-session-bar label{width:100%}.perio-hist-stats{flex-wrap:wrap}.perio-chart-toolbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.perio-summary{grid-template-columns:1fr 1fr}.perio-summary-card{padding:9px}.perio-map-card{padding:10px}.perio-section-hint{display:none}}
 
 /* ━━━━ ODONTOGRAMA ━━━━ */
 .odo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
@@ -14972,11 +15002,17 @@ function savePerioSession() {
       if (td['bleed_'+pt]) bleedCount++;
     });
   });
+  var liveMetrics=_perioMetrics();
   session.stats = {
     avgProbe: allProbes.length ? (allProbes.reduce(function(a,b){return a+b},0)/allProbes.length).toFixed(1) : 0,
     maxProbe: allProbes.length ? Math.max.apply(null,allProbes) : 0,
     bleedPct: totalPoints ? Math.round(bleedCount/totalPoints*100) : 0,
-    sites: totalPoints
+    sites: totalPoints,
+    sites4:liveMetrics.sites4,
+    sites6:liveMetrics.sites6,
+    supuration:liveMetrics.sup,
+    maxNic:liveMetrics.maxNic,
+    riskScore:liveMetrics.score
   };
   if (existing >= 0) p.perioSessions[existing] = session;
   else p.perioSessions.push(session);
@@ -15020,8 +15056,8 @@ function renderPerioArch(containerId, teeth, isUpper) {
 
   // Build header row with FDI numbers
   var fdiHeader = '<tr><th class="perio-label-cell" style="text-align:right;font-size:.6rem">FDI</th>'
-    + teeth.map(function(fdi){
-        return '<th colspan="3" class="perio-fdi-cell">' + fdi + '</th>';
+    + teeth.map(function(fdi,index){
+        return '<th colspan="3" class="perio-fdi-cell'+(index===8?' quadrant-split':'')+'">' + fdi + '</th>';
       }).join('') + '</tr>';
 
   // Rows: Vestibular probe (3pts), Bleeding V, Supuration V, Recession V, NIC V, Furca/Mobility, NIC L, Recession L, Supuration L, Bleeding L, Lingual probe (3pts)
@@ -15088,11 +15124,11 @@ function renderPerioArch(containerId, teeth, isUpper) {
           var furcaVal = td.furca || '—';
           var mobVal   = td.mobility || '0';
           var furcaHtml = isMolar
-            ? '<select class="perio-furca-sel" id="p-furca-'+fdi+'" title="Furca"><option '+(furcaVal==='—'?'selected':'')+'>—</option><option '+(furcaVal==='I'?'selected':'')+'>I</option><option '+(furcaVal==='II'?'selected':'')+'>II</option><option '+(furcaVal==='III'?'selected':'')+'>III</option></select>'
+            ? '<select class="perio-furca-sel" id="p-furca-'+fdi+'" title="Furca" onchange="onPerioSelectChange('+fdi+',\'furca\',this.value)"><option '+(furcaVal==='—'?'selected':'')+'>—</option><option '+(furcaVal==='I'?'selected':'')+'>I</option><option '+(furcaVal==='II'?'selected':'')+'>II</option><option '+(furcaVal==='III'?'selected':'')+'>III</option></select>'
             : '<span style="font-size:.6rem;color:var(--ink-4)">—</span>';
           return '<td colspan="3" style="border-left:2px solid var(--border-med)">'
             + furcaHtml
-            + '<select class="perio-mob-sel" id="p-mob-'+fdi+'" title="Movilidad">'
+            + '<select class="perio-mob-sel" id="p-mob-'+fdi+'" title="Movilidad" onchange="onPerioSelectChange('+fdi+',\'mobility\',this.value)">'
             + ['0','I','II','III'].map(function(v){ return '<option '+(mobVal===v?'selected':'')+'>'+v+'</option>'; }).join('')
             + '</select></td>';
         }).join('') + '</tr>';
@@ -15160,30 +15196,74 @@ function onPerioFlagChange(fdi, key, checked) {
   renderPerioSummary();
 }
 
+function onPerioSelectChange(fdi,key,value) {
+  if(!_perioSessionData[fdi])_perioSessionData[fdi]={};
+  _perioSessionData[fdi][key]=value;
+  renderPerioSummary();
+}
+
 function onPerioRecInput(input, fdi, pt) {
   if (!_perioSessionData[fdi]) _perioSessionData[fdi] = {};
   _perioSessionData[fdi]['rec_'+pt] = input.value;
   var probe=parseFloat((document.getElementById('p-probe-'+fdi+'-'+pt)||{}).value)||0;
   var rec=parseFloat(input.value)||0,nic=probe+rec,nicEl=document.getElementById('p-nic-'+fdi+'-'+pt);
   if(nicEl){nicEl.textContent=nic>0?nic:'—';nicEl.className='perio-nic-cell'+(nic>=5?' bad':nic>=3?' warn':'');}
+  renderPerioSummary();
 }
 
-function renderPerioSummary() {
-  var probes=[],bleed=0,recorded=0,sites4=0,sites6=0;
+function _perioMetrics() {
+  var probes=[],bleed=0,sup=0,recorded=0,sites4=0,sites6=0,maxNic=0,affectedTeeth=0,perTooth={};
   Object.keys(_perioSessionData||{}).forEach(function(fdi){
-    var td=_perioSessionData[fdi]||{};
+    var td=_perioSessionData[fdi]||{},tooth={max:0,maxNic:0,bleed:0,sup:0,sites:0,alertSites:[]};
     PERIO_POINTS_V.concat(PERIO_POINTS_L).forEach(function(pt){
-      var v=parseFloat(td['probe_'+pt])||0;
-      if(v>0){probes.push(v);recorded++;if(v>=4)sites4++;if(v>=6)sites6++;}
-      if(td['bleed_'+pt])bleed++;
+      var v=parseFloat(td['probe_'+pt])||0,rec=parseFloat(td['rec_'+pt])||0,nic=v+rec,b=!!td['bleed_'+pt],s=!!td['sup_'+pt];
+      if(v>0){probes.push(v);recorded++;tooth.sites++;tooth.max=Math.max(tooth.max,v);if(v>=4)sites4++;if(v>=6)sites6++;}
+      if(nic>maxNic)maxNic=nic;if(nic>tooth.maxNic)tooth.maxNic=nic;
+      if(b){bleed++;tooth.bleed++;}if(s){sup++;tooth.sup++;}
+      tooth.alertSites.push(v>=4||b||s);
     });
+    if(tooth.max>=4||tooth.bleed||tooth.sup||tooth.maxNic>=3)affectedTeeth++;
+    perTooth[fdi]=tooth;
   });
   var avg=probes.length?(probes.reduce(function(a,b){return a+b;},0)/probes.length).toFixed(1):'—';
   var max=probes.length?Math.max.apply(null,probes):'—';
   var pct=recorded?Math.round(bleed/recorded*100):0;
-  var sessions=_perioGetSessions().length,el=document.getElementById('perio-summary');if(!el)return;
-  function card(label,value,sub){return '<div class="ped-summary-card"><div class="ped-summary-top"><span>'+label+'</span><span>●</span></div><div class="ped-summary-value">'+value+'</div><div class="ped-summary-sub">'+sub+'</div></div>';}
-  el.innerHTML=card('Sondaje promedio',avg==='—'?'—':avg+' mm',recorded+' sitios capturados')+card('Profundidad máxima',max==='—'?'—':max+' mm',sites6+' sitios ≥6 mm')+card('Sangrado',pct+'%',bleed+' sitios positivos')+card('Seguimiento',sessions,sessions===1?'sesión guardada':'sesiones guardadas');
+  var deepPct=recorded?Math.round(sites4/recorded*100):0,severePct=recorded?Math.round(sites6/recorded*100):0;
+  var score=recorded?Math.min(100,Math.round(pct*.42+deepPct*.38+severePct*.72+(sup?12:0))):0;
+  return {avg:avg,max:max,pct:pct,bleed:bleed,sup:sup,recorded:recorded,sites4:sites4,sites6:sites6,maxNic:maxNic,affectedTeeth:affectedTeeth,perTooth:perTooth,score:score};
+}
+
+function _perioMapTooth(fdi,index,metrics) {
+  var t=metrics.perTooth[fdi]||{max:0,bleed:0,sup:0,sites:0,alertSites:[]},color=t.sup||t.max>=6?'#dc2626':t.max>=4||t.bleed?'#d97706':t.sites?'#168a45':'#8e8e93';
+  var bars=(t.alertSites.length?t.alertSites:[false,false,false,false,false,false]).map(function(on){return '<i class="'+(on?'on':'')+'"></i>';}).join('');
+  return '<button type="button" class="perio-map-tooth'+(t.sites||t.bleed||t.sup?' has-data':'')+(index===8?' qsplit':'')+'" style="--tooth-color:'+color+'" onclick="focusPerioTooth('+fdi+')" aria-label="Diente '+fdi+', máxima '+(t.max||0)+' milímetros"><span class="perio-map-fdi">'+fdi+'</span><span class="perio-map-value">'+(t.max?t.max+' mm':'—')+'</span><span class="perio-map-sites">'+bars+'</span></button>';
+}
+
+function renderPerioMouthMap(metrics) {
+  var el=document.getElementById('perio-mouth-map');if(!el)return;
+  function row(teeth,label){return '<div><div style="font-size:.53rem;font-weight:800;color:var(--ink-4);text-transform:uppercase;letter-spacing:.07em;margin:0 0 4px 2px">'+label+'</div><div class="perio-map-row">'+teeth.map(function(fdi,index){return _perioMapTooth(fdi,index,metrics);}).join('')+'</div></div>';}
+  el.innerHTML=row(PERIO_UPPER,'Maxilar superior')+row(PERIO_LOWER,'Mandíbula inferior');
+}
+
+function focusPerioTooth(fdi) {
+  var upper=PERIO_UPPER.indexOf(fdi)!==-1;showPerioArch(upper?'upper':'lower');
+  setTimeout(function(){var first=document.getElementById('p-probe-'+fdi+'-'+(upper?'MV':'ML'));if(first){first.focus();if(first.scrollIntoView)first.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});}},40);
+}
+
+function renderPerioSummary() {
+  var m=_perioMetrics(),sessions=_perioGetSessions().length,el=document.getElementById('perio-summary');if(!el)return;
+  function card(icon,label,value,sub,pale){return '<div class="perio-summary-card" style="--perio-card-pale:'+pale+'"><div class="perio-summary-icon">'+icon+'</div><div class="perio-summary-label">'+label+'</div><div class="perio-summary-value">'+value+'</div><div class="perio-summary-sub">'+sub+'</div></div>';}
+  el.innerHTML=card('↕','Sondaje promedio',m.avg==='—'?'—':m.avg+' mm',m.recorded+' sitios capturados','#eaf8ef')+card('◉','Bolsas profundas',m.sites4,m.sites6+' sitios ≥6 mm','#fff4e5')+card('●','Sangrado',m.pct+'%',m.bleed+' sitios positivos','#fff0f0')+card('◌','Supuración / NIC',m.sup,m.maxNic?'NIC máximo '+m.maxNic+' mm':'sin NIC registrado','#f4efff');
+  var gauge=document.getElementById('perio-risk-gauge'),score=document.getElementById('perio-risk-score'),title=document.getElementById('perio-risk-title'),sub=document.getElementById('perio-risk-sub');
+  var color='#168a45',riskTitle='Compatible con estabilidad';
+  if(!m.recorded){color='#8e8e93';riskTitle='Sin capturar';}
+  else if(m.sites6||m.sup||m.score>=55){color='#dc2626';riskTitle='Prioridad periodontal alta';}
+  else if(m.sites4||m.pct>=10){color='#d97706';riskTitle='Requiere vigilancia';}
+  if(gauge){gauge.style.setProperty('--perio-angle',(m.score*3.6)+'deg');gauge.style.setProperty('--perio-risk-color',color);}
+  if(score)score.textContent=m.recorded?m.score+'%':'—';if(title)title.textContent=riskTitle;
+  if(sub)sub.textContent=m.recorded?(m.affectedTeeth+' dientes con hallazgos · '+m.sites4+' sitios ≥4 mm · '+m.pct+'% de sangrado'):'Ingresa los primeros sondajes para obtener una lectura clínica rápida.';
+  var sessionCount=document.getElementById('perio-session-count');if(sessionCount)sessionCount.textContent=sessions?(sessions+' sesión'+(sessions===1?'':'es')+' guardada'+(sessions===1?'':'s')):'Aún no hay comparativos';
+  renderPerioMouthMap(m);
 }
 
 function renderPerioHistory() {
@@ -15196,9 +15276,8 @@ function renderPerioHistory() {
   el.innerHTML = sessions.slice().reverse().map(function(s, ri) {
     var realIdx = sessions.length - 1 - ri;
     var st = s.stats || {};
-    var bars = [st.avgProbe||0, st.maxProbe||0, (st.bleedPct||0)/10];
-    var maxBar = Math.max.apply(null, bars) || 1;
-    return '<div class="perio-history-item" onclick="loadPerioSession(' + realIdx + ')">'
+    var severity=(st.maxProbe||0)>=6?'#dc2626':((st.maxProbe||0)>=4||(st.bleedPct||0)>=10?'#d97706':'#168a45');
+    return '<div class="perio-history-item" style="border-left:4px solid '+severity+'" onclick="loadPerioSession(' + realIdx + ')">'
       + '<div class="perio-hist-meta">'
       + '<span class="perio-hist-date">📅 ' + s.date + (s.note ? ' — ' + s.note : '') + '</span>'
       + '<div style="display:flex;gap:6px">'
@@ -15209,6 +15288,7 @@ function renderPerioHistory() {
       + '<span class="perio-hist-stat">Máx: <strong>' + (st.maxProbe||'—') + ' mm</strong></span>'
       + '<span class="perio-hist-stat">Sangrado: <strong>' + (st.bleedPct||0) + '%</strong></span>'
       + '<span class="perio-hist-stat">Sitios: <strong>' + (st.sites||0) + '</strong></span>'
+      + (st.sites4!==undefined?'<span class="perio-hist-stat">≥4 mm: <strong>'+st.sites4+'</strong></span>':'')
       + '</div>'
       + '</div>';
   }).join('');
@@ -15243,11 +15323,13 @@ function printPeriodontogram() {
   var clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub  : '';
   var upperHtml  = document.getElementById('perio-arch-upper').innerHTML;
   var lowerHtml  = document.getElementById('perio-arch-lower').innerHTML;
+  var metrics=_perioMetrics(),riskLabel=!metrics.recorded?'Sin capturar':(metrics.sites6||metrics.sup||metrics.score>=55?'Prioridad periodontal alta':(metrics.sites4||metrics.pct>=10?'Requiere vigilancia':'Compatible con estabilidad'));
 
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Periodontograma — ' + name + '</title>'
     + '<style>'
     + 'body{font-family:-apple-system,sans-serif;padding:20px 28px;font-size:11px;color:#1d1d1f}'
     + '.header{display:flex;justify-content:space-between;border-bottom:2px solid #1d1d1f;padding-bottom:8px;margin-bottom:14px}'
+    + '.summary{display:grid;grid-template-columns:1.3fr repeat(4,1fr);gap:7px;margin:0 0 14px}.stat{border:1px solid #d8d8dc;border-radius:8px;padding:8px}.stat.risk{background:#eef8f1;border-color:#b9dfc5}.stat small{display:block;color:#777;text-transform:uppercase;font-size:7px;letter-spacing:.05em}.stat b{display:block;font-size:12px;margin-top:3px}.stat span{display:block;color:#777;font-size:7px;margin-top:2px}'
     + 'table{border-collapse:collapse;width:100%;font-size:9px}'
     + 'th,td{border:1px solid #ccc;padding:2px 1px;text-align:center}'
     + '.perio-label-cell{text-align:right;font-weight:700;font-size:8px;color:#6e6e73;padding:2px 5px;background:#f5f5f7;white-space:nowrap}'
@@ -15265,11 +15347,12 @@ function printPeriodontogram() {
     + '</style></head><body>'
     + '<div class="header"><div><strong style="font-size:13px">' + clinicName + '</strong><br><span style="font-size:9px;color:#6e6e73">' + clinicSub + '</span></div>'
     + '<div style="text-align:right;font-size:9px;color:#6e6e73">Periodontograma · ' + name + '<br>' + date + '</div></div>'
+    + '<div class="summary"><div class="stat risk"><small>Panorama periodontal</small><b>'+riskLabel+'</b><span>'+metrics.affectedTeeth+' dientes con hallazgos · puntuación '+metrics.score+'%</span></div><div class="stat"><small>Sondaje promedio</small><b>'+(metrics.avg==='—'?'—':metrics.avg+' mm')+'</b><span>'+metrics.recorded+' sitios</span></div><div class="stat"><small>Profundidad máxima</small><b>'+(metrics.max==='—'?'—':metrics.max+' mm')+'</b><span>'+metrics.sites6+' sitios ≥6 mm</span></div><div class="stat"><small>Sangrado</small><b>'+metrics.pct+'%</b><span>'+metrics.bleed+' sitios positivos</span></div><div class="stat"><small>Supuración / NIC</small><b>'+metrics.sup+' / '+(metrics.maxNic||'—')+'</b><span>NIC máximo en mm</span></div></div>'
     + '<h3 style="margin-bottom:8px;font-size:11px">Maxilar Superior</h3>' + upperHtml
     + '<h3 style="margin:14px 0 8px;font-size:11px">Mandíbula Inferior</h3>' + lowerHtml
     + '</body></html>';
 
-  var w = window.open('', '_blank');
+  var w = window.open('', '_blank');if(!w){showToast('El navegador bloqueó la ventana de impresión','red');return;}
   w.document.write(html);
   w.document.close();
   _printWindow(w);
@@ -23005,24 +23088,38 @@ window.addEventListener('resize', function() {
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
+        <span class="perio-header-state">Evaluación activa</span>
         <button class="btn btn-ghost btn-sm" onclick="printPeriodontogram()">🖨️ Resumen</button>
         <button class="ortho-icon-btn" onclick="closePeriodontogram()" aria-label="Cerrar periodontograma">✕</button>
       </div>
     </div>
     <div class="perio-body">
-      <div class="ped-summary" id="perio-summary" aria-live="polite"></div>
-      <!-- Session bar -->
-      <div class="perio-session-bar">
-        <label>Sesión:</label>
-        <input type="date" id="perio-session-date" style="padding:5px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.8rem;background:var(--card)">
-        <input type="text" id="perio-session-note" placeholder="Nota de sesión (opcional)" style="flex:1;min-width:160px;padding:5px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.8rem;background:var(--card)">
-        <button class="btn btn-primary btn-sm" onclick="savePerioSession()">💾 Guardar sesión</button>
-        <button class="btn btn-ghost btn-sm" onclick="newPerioSession()">➕ Nueva sesión</button>
+      <div class="perio-clinical-overview">
+        <section class="perio-risk-card" id="perio-risk-card" aria-live="polite">
+          <div class="perio-risk-gauge" id="perio-risk-gauge"><span id="perio-risk-score">0</span></div>
+          <div class="perio-risk-copy"><div class="perio-risk-kicker">Panorama periodontal</div><div class="perio-risk-title" id="perio-risk-title">Sin capturar</div><div class="perio-risk-sub" id="perio-risk-sub">Ingresa los primeros sondajes para obtener una lectura clínica rápida.</div></div>
+        </section>
+        <div class="perio-overview-main">
+          <div class="perio-summary" id="perio-summary" aria-live="polite"></div>
+          <div class="perio-session-bar">
+            <label>Sesión:</label>
+            <input type="date" id="perio-session-date" style="padding:6px 9px;border:1px solid var(--border-med);border-radius:9px;font-family:inherit;font-size:.77rem;background:var(--card)">
+            <input type="text" id="perio-session-note" placeholder="Objetivo, fase o nota breve de esta sesión" style="flex:1;min-width:160px;padding:6px 9px;border:1px solid var(--border-med);border-radius:9px;font-family:inherit;font-size:.77rem;background:var(--card);color:var(--ink)">
+            <button class="btn btn-primary btn-sm" onclick="savePerioSession()">💾 Guardar sesión</button>
+            <button class="btn btn-ghost btn-sm" onclick="newPerioSession()">＋ Nueva</button>
+          </div>
+        </div>
       </div>
-      <!-- Arch tabs -->
-      <div class="perio-tabs">
-        <button class="perio-tab-btn active" id="perio-tab-upper" onclick="showPerioArch('upper')">Maxilar superior</button>
-        <button class="perio-tab-btn" id="perio-tab-lower" onclick="showPerioArch('lower')">Mandíbula inferior</button>
+      <section class="perio-map-card">
+        <div class="perio-section-head"><div><div class="perio-section-kicker">Distribución por diente</div><div class="perio-section-title">Mapa periodontal</div></div><div class="perio-section-hint">El color representa la mayor profundidad registrada.<br>Toca un diente para ir a su captura.</div></div>
+        <div class="perio-mouth-map" id="perio-mouth-map"></div>
+      </section>
+      <div class="perio-chart-toolbar">
+        <div><div class="perio-section-kicker">Registro de seis sitios</div><div class="perio-chart-title">Profundidad · Sangrado · Supuración · Recesión · NIC · Furca y movilidad</div></div>
+        <div class="perio-tabs">
+          <button class="perio-tab-btn active" id="perio-tab-upper" onclick="showPerioArch('upper')">↟ Maxilar superior</button>
+          <button class="perio-tab-btn" id="perio-tab-lower" onclick="showPerioArch('lower')">↡ Mandíbula inferior</button>
+        </div>
       </div>
       <!-- Tables -->
       <div id="perio-arch-upper" class="perio-table-wrap"></div>
@@ -23039,7 +23136,7 @@ window.addEventListener('resize', function() {
       </div>
       <!-- History -->
       <div class="perio-history-wrap">
-        <div class="ped-section-head"><div class="ped-section-title">Historial de sesiones</div><div class="ped-section-hint">Toca una sesión para compararla</div></div>
+        <div class="ped-section-head"><div><div class="perio-section-kicker">Evolución clínica</div><div class="ped-section-title">Historial de sesiones</div></div><div class="ped-section-hint" id="perio-session-count">Aún no hay comparativos</div></div>
         <div id="perio-history-list"></div>
       </div>
     </div>
