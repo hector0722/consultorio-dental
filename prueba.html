@@ -1398,6 +1398,7 @@ body.spec-open{overflow:hidden;}
   box-shadow: var(--sh-sm); transition: box-shadow .2s, transform .15s;
 }
 .rx-card:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
+.rx-card.is-open { grid-column: span 2; box-shadow: var(--sh-md); transform: none; }
 .rx-card-header {
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--border);
@@ -1411,6 +1412,18 @@ body.spec-open{overflow:hidden;}
 .rx-title { font-size: .9rem; font-weight: 700; letter-spacing: -.02em; color: var(--ink); margin-bottom: 3px; }
 .rx-subtitle { font-size: .72rem; color: var(--ink-3); line-height: 1.4; }
 .rx-tags { display: flex; gap: 5px; flex-wrap: wrap; padding: 8px 16px; border-bottom: 1px solid var(--border); }
+.rx-card-summary { display:flex;align-items:center;gap:10px;padding:10px 16px 12px; }
+.rx-card-med-preview { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:var(--ink-3); }
+.rx-card-toggle {
+  display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:6px 10px;
+  border:1px solid var(--border-med);border-radius:9px;background:var(--bg);
+  color:var(--ink-2);font:inherit;font-size:.68rem;font-weight:750;cursor:pointer;
+}
+.rx-card-toggle:hover { border-color:var(--blue);color:var(--blue); }
+.rx-card-toggle-icon { display:inline-block;font-size:.72rem;transition:transform .18s; }
+.rx-card.is-open .rx-card-toggle-icon { transform:rotate(180deg); }
+.rx-card-details { display:none;border-top:1px solid var(--border);padding-top:10px; }
+.rx-card.is-open .rx-card-details { display:block; }
 .rx-tag { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 980px; }
 .rx-tag-blue   { background: var(--blue-pale);  color: var(--blue); border: 1px solid var(--blue-mid); }
 .rx-tag-red    { background: var(--red-bg);      color: var(--red);  border: 1px solid rgba(255,59,48,.2); }
@@ -1485,6 +1498,15 @@ body.spec-open{overflow:hidden;}
 .rx-search-wrap { position:relative;margin:0 0 12px; }
 .rx-search { padding-left:35px; }
 .rx-search-wrap::before { content:'⌕';position:absolute;left:12px;top:6px;font-size:1.15rem;color:var(--ink-4);z-index:1; }
+.rx-filter-bar { display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px; }
+.rx-filter-primary { display:flex;gap:7px;flex-wrap:wrap; }
+.rx-specialty-filter {
+  min-height:34px;min-width:205px;padding:6px 30px 6px 10px;border:1px solid var(--border-med);
+  border-radius:9px;background:var(--card);color:var(--ink);font:inherit;font-size:.72rem;font-weight:700;
+}
+.rx-library-picker { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-bottom:7px; }
+.rx-library-picker select { width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);background:var(--bg);color:var(--ink);font:inherit;font-size:.76rem; }
+.rx-library-help { margin:0 0 7px;font-size:.66rem;line-height:1.4;color:var(--ink-4); }
 .rx-grid-empty { grid-column:1/-1;padding:34px;text-align:center;color:var(--ink-4);border:1px dashed var(--border-med);border-radius:var(--r-lg); }
 .rx-evidence { margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card); }
 .rx-evidence-title { font-size:.78rem;font-weight:800;color:var(--ink);margin-bottom:8px; }
@@ -1494,10 +1516,14 @@ body.spec-open{overflow:hidden;}
 @media (max-width:900px) {
   .rx-tools-grid { grid-template-columns:1fr; }
   .rx-ped-form { grid-template-columns:1fr 1fr; }
+  .rx-card.is-open { grid-column:auto; }
 }
 @media (max-width:560px) {
   .rx-clinical-hero { padding:17px; }
   .rx-ped-form { grid-template-columns:1fr; }
+  .rx-filter-primary { width:100%; }
+  .rx-specialty-filter { width:100%; }
+  .rx-library-picker { grid-template-columns:1fr; }
 }
 
 /* ━━━━ CONSENTIMIENTOS ━━━━ */
@@ -5498,28 +5524,33 @@ body.app-ready #dash-page.active > .card {
         <input class="rx-search" id="rx-search" type="search" placeholder="Buscar medicamento, protocolo o indicación…" oninput="rxSearch(this.value)">
       </div>
 
-      <!-- Filtro de categorías -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="rx-filter-row">
-        <button class="btn btn-primary btn-sm rx-cat-btn" data-cat="all" onclick="rxFilter('all',this)">Todas</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="dolor" onclick="rxFilter('dolor',this)">💊 Dolor</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="infeccion" onclick="rxFilter('infeccion',this)">🦠 Infección</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="profilaxis" onclick="rxFilter('profilaxis',this)">🫀 Profilaxis</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="extraccion" onclick="rxFilter('extraccion',this)">Extracción</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="endodoncia" onclick="rxFilter('endodoncia',this)">Endodoncia</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="cirugia" onclick="rxFilter('cirugia',this)">Cirugía</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ortodoncia" onclick="rxFilter('ortodoncia',this)">Ortodoncia</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="periodoncia" onclick="rxFilter('periodoncia',this)">Periodoncia</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="operatoria" onclick="rxFilter('operatoria',this)">Operatoria</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="embarazo" onclick="rxFilter('embarazo',this)">🤰 Embarazo</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="alergicos" onclick="rxFilter('alergicos',this)">⚠️ Alérgicos PNC</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Pediatría</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="enjuague" onclick="rxFilter('enjuague',this)">Enjuagues</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="mucosa" onclick="rxFilter('mucosa',this)">👄 Mucosa</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antifungico" onclick="rxFilter('antifungico',this)">Antifúngicos</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antiviral" onclick="rxFilter('antiviral',this)">Antivirales</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="prevencion" onclick="rxFilter('prevencion',this)">Flúor</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="implante" onclick="rxFilter('implante',this)">Implante</button>
-        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="vademecum" onclick="rxFilter('vademecum',this)">📖 Vademécum</button>
+      <!-- Filtros: accesos frecuentes + especialidad agrupada -->
+      <div class="rx-filter-bar" id="rx-filter-row">
+        <div class="rx-filter-primary">
+          <button class="btn btn-primary btn-sm rx-cat-btn" data-cat="all" onclick="rxFilter('all',this)">Todas</button>
+          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="dolor" onclick="rxFilter('dolor',this)">💊 Dolor</button>
+          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="infeccion" onclick="rxFilter('infeccion',this)">🦠 Infección</button>
+          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Pediatría</button>
+          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="profilaxis" onclick="rxFilter('profilaxis',this)">🫀 Profilaxis</button>
+          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="vademecum" onclick="rxFilter('vademecum',this)">📖 Vademécum</button>
+        </div>
+        <select id="rx-specialty-filter" class="rx-specialty-filter" onchange="rxSpecialtyFilter(this.value)" aria-label="Filtrar por especialidad">
+          <option value="">Filtrar por especialidad…</option>
+          <option value="extraccion">Extracción</option>
+          <option value="endodoncia">Endodoncia</option>
+          <option value="cirugia">Cirugía</option>
+          <option value="ortodoncia">Ortodoncia</option>
+          <option value="periodoncia">Periodoncia</option>
+          <option value="operatoria">Operatoria</option>
+          <option value="implante">Implantología</option>
+          <option value="embarazo">Embarazo</option>
+          <option value="alergicos">Alergia a penicilina</option>
+          <option value="enjuague">Enjuagues</option>
+          <option value="mucosa">Mucosa oral</option>
+          <option value="antifungico">Antifúngicos</option>
+          <option value="antiviral">Antivirales</option>
+          <option value="prevencion">Prevención y flúor</option>
+        </select>
       </div>
 
       <div id="rx-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
@@ -12323,14 +12354,14 @@ function ciPrint(id, patientId) {
 // ★ BASE DE DATOS DE RECETAS
 // ══════════════════════════════════════════════════════════
 var RX_DB = [
-  { id:'rx-ext-simple', icon:'🦷', iconBg:'#e8f1fd', title:'Post-extracción simple', subtitle:'Analgesia no opioide · sin antibiótico rutinario', cats:['extraccion','dolor'], source:'ADA dolor agudo 2024',
-    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tableta cada 6-8 h según dolor por 24-72 h', note:'Con alimentos; usar la menor dosis eficaz' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'1 tableta cada 6 h según dolor; puede combinarse con ibuprofeno', note:'Contar todas las fuentes de paracetamol' } ],
+  { id:'rx-ext-simple', icon:'🦷', iconBg:'#e8f1fd', title:'Post-extracción simple', subtitle:'Analgesia no opioide · antibiótico opcional si está indicado', cats:['extraccion','dolor','infeccion'], source:'ADA dolor agudo 2024 + antibióticos 2019',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'1 tableta cada 6-8 h según dolor por 24-72 h', note:'Con alimentos; usar la menor dosis eficaz' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'1 tableta cada 6 h según dolor; puede combinarse con ibuprofeno', note:'Contar todas las fuentes de paracetamol' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cápsula cada 8 h durante 3-7 días', note:'OPCIONAL: solo con fiebre, malestar, propagación/celulitis u otra indicación documentada; revalorar a los 3 días y suspender 24 h después de resolver signos y síntomas' } ],
     indicaciones:['Morder la gasa 30-45 min','No enjuagar, escupir, fumar ni usar popote durante 24 h','Hielo externo intermitente las primeras horas','Dieta blanda y fría el primer día'],
-    alert:{type:'blue',text:'Los antibióticos no se indican de rutina tras una extracción no complicada.'}, nota:'Evitar AINE en úlcera activa, insuficiencia renal, anticoagulación relevante, alergia o embarazo ≥20 semanas. Paracetamol: máximo absoluto 4 g/día en adultos sanos.' },
-  { id:'rx-ext-muela', icon:'🦷', iconBg:'#e8f1fd', title:'Cirugía de tercer molar', subtitle:'Dolor moderado-intenso · estrategia multimodal', cats:['extraccion','cirugia','dolor'], source:'ADA/JADA 2024',
-    meds:[ { icon:'💊', name:'Ibuprofeno 400-600 mg + paracetamol 500 mg', dose:'Juntos cada 6 h durante las primeras 24 h; después, según dolor', note:'Primera línea cuando ambos son apropiados' }, { icon:'💊', name:'Paracetamol 500-1000 mg', dose:'Cada 6-8 h si los AINE están contraindicados', note:'No exceder 4 g/día sumando combinaciones' } ],
+    alert:{type:'blue',text:'El antibiótico aparece como opción, pero no se indica de rutina. Selecciónalo al preparar la receta únicamente cuando exista una indicación clínica.'}, nota:'Evitar AINE en úlcera activa, insuficiencia renal, anticoagulación relevante, alergia o embarazo ≥20 semanas. Paracetamol: máximo absoluto 4 g/día en adultos sanos.' },
+  { id:'rx-ext-muela', icon:'🦷', iconBg:'#e8f1fd', title:'Cirugía de tercer molar', subtitle:'Dolor moderado-intenso · antibiótico opcional según el caso', cats:['extraccion','cirugia','dolor','infeccion'], source:'ADA/JADA 2024 + antibióticos 2019',
+    meds:[ { icon:'💊', name:'Ibuprofeno 400-600 mg + paracetamol 500 mg', dose:'Juntos cada 6 h durante las primeras 24 h; después, según dolor', note:'Primera línea cuando ambos son apropiados' }, { icon:'💊', name:'Paracetamol 500-1000 mg', dose:'Cada 6-8 h si los AINE están contraindicados', note:'No exceder 4 g/día sumando combinaciones' }, { icon:'💊', name:'Amoxicilina 500 mg', dose:'1 cápsula cada 8 h durante 3-7 días', note:'OPCIONAL: solo por infección con compromiso sistémico, propagación o indicación documentada; revalorar a los 3 días y suspender 24 h después de resolver signos y síntomas' } ],
     indicaciones:['Hielo externo intermitente durante 6 h','Dieta fría/blanda y reposo relativo','No fumar, alcohol, popote ni ejercicio intenso por 72 h','Control según complejidad y sutura'],
-    alert:{type:'orange',text:'No agregar opioide ni antibiótico “por si acaso”. Individualizar si la primera línea falla o existen signos de infección sistémica.'}, nota:'Acudir ante sangrado persistente, fiebre, disfagia, disnea, parestesia progresiva o dolor que aumenta después del tercer día.' },
+    alert:{type:'orange',text:'El antibiótico es seleccionable, no automático. Indicarlo solo cuando la valoración clínica lo justifique; no usarlo “por si acaso”.'}, nota:'Acudir ante sangrado persistente, fiebre, disfagia, disnea, parestesia progresiva o dolor que aumenta después del tercer día.' },
   { id:'rx-endo-simple', icon:'🔬', iconBg:'#f3e8ff', title:'Dolor endodóntico / post-conductos', subtitle:'Tratamiento local primero · analgesia de apoyo', cats:['endodoncia','dolor'], source:'ADA antibióticos 2019 + dolor 2024',
     meds:[ { icon:'💊', name:'Ibuprofeno 400 mg', dose:'Cada 6-8 h según dolor por el menor tiempo posible', note:'Puede combinarse con paracetamol si es necesario' }, { icon:'💊', name:'Paracetamol 500 mg', dose:'Cada 6 h según dolor', note:'Opción si AINE contraindicado' } ],
     indicaciones:['Priorizar pulpotomía, pulpectomía, conductos o drenaje según diagnóstico','Evitar masticar del lado tratado hasta la restauración definitiva','Revalorar si el dolor aumenta o aparece inflamación'],
@@ -12575,8 +12606,43 @@ function rxFilter(cat, btn) {
   document.querySelectorAll('.rx-cat-btn').forEach(function(b){
     b.classList.remove('btn-primary'); b.classList.add('btn-ghost');
   });
-  btn.classList.add('btn-primary'); btn.classList.remove('btn-ghost');
+  if (btn) { btn.classList.add('btn-primary'); btn.classList.remove('btn-ghost'); }
+  var specialty = document.getElementById('rx-specialty-filter');
+  if (specialty) specialty.value = '';
   renderRxGrid();
+}
+
+function rxSpecialtyFilter(cat) {
+  if (!cat) {
+    var allBtn = document.querySelector('.rx-cat-btn[data-cat="all"]');
+    rxFilter('all', allBtn);
+    return;
+  }
+  _rxActiveCat = cat;
+  document.querySelectorAll('.rx-cat-btn').forEach(function(b){
+    b.classList.remove('btn-primary'); b.classList.add('btn-ghost');
+  });
+  renderRxGrid();
+}
+
+function toggleRxCard(button) {
+  var card = button ? button.closest('.rx-card') : null;
+  if (!card) return;
+  var willOpen = !card.classList.contains('is-open');
+  document.querySelectorAll('#rx-grid .rx-card.is-open').forEach(function(openCard) {
+    if (openCard === card) return;
+    openCard.classList.remove('is-open');
+    var openButton = openCard.querySelector('.rx-card-toggle');
+    if (openButton) {
+      openButton.setAttribute('aria-expanded','false');
+      var openLabel = openButton.querySelector('[data-rx-toggle-label]');
+      if (openLabel) openLabel.textContent = 'Ver protocolo';
+    }
+  });
+  card.classList.toggle('is-open', willOpen);
+  button.setAttribute('aria-expanded', String(willOpen));
+  var label = button.querySelector('[data-rx-toggle-label]');
+  if (label) label.textContent = willOpen ? 'Ocultar' : 'Ver protocolo';
 }
 
 function renderRxGrid() {
@@ -12634,6 +12700,10 @@ function renderRxGrid() {
     }
 
     var drugsSource = rx.drugs || rx.meds || [];
+    var drugPreview = drugsSource.length
+      ? drugsSource.slice(0, 3).map(function(d){ return d.name || ''; }).filter(Boolean).join(' · ')
+        + (drugsSource.length > 3 ? ' · +' + (drugsSource.length - 3) : '')
+      : 'Indicaciones clínicas sin medicamentos';
     var drugsHtml = drugsSource.map(function(d) {
       var dose = d.dose || d.posologia || '';
       var note = d.note || d.notas || '';
@@ -12673,8 +12743,10 @@ function renderRxGrid() {
       + '</div>'
       + '</div>'
       + '<div class="rx-tags">'+tags+'</div>'
-      + alertHtml
-      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+sourceHtml+'</div>'
+      + '<div class="rx-card-summary"><div class="rx-card-med-preview" title="'+rxEsc(drugPreview)+'">'+rxEsc(drugPreview)+'</div>'
+      + '<button type="button" class="rx-card-toggle" aria-expanded="false" onclick="toggleRxCard(this)"><span data-rx-toggle-label>Ver protocolo</span><span class="rx-card-toggle-icon">⌄</span></button></div>'
+      + '<div class="rx-card-details">'+alertHtml
+      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+sourceHtml+'</div></div>'
       + '</div>';
   }).join('');
 }
@@ -19895,6 +19967,7 @@ function _printWindow(w) {
 // ★ EDITAR RECETAS
 // ══════════════════════════════════════════════════════════
 var _rxEditIdx = -1;
+var _rxEditDrugLibrary = [];
 // Guardar ediciones personalizadas de recetas (no modifica RX_DB original)
 var _rxCustomEdits = (function() {
   try { return JSON.parse(appStorage.getItem('dental_rx_edits_v1') || '{}'); } catch(e) { return {}; }
@@ -19905,9 +19978,62 @@ function _getRx(idx) {
   return _rxCustomEdits[idx] ? Object.assign({}, RX_DB[idx], _rxCustomEdits[idx]) : RX_DB[idx];
 }
 
+function initRxEditDrugLibrary() {
+  var select = document.getElementById('rx-edit-library-select');
+  if (!select) return;
+  var seen = {};
+  _rxEditDrugLibrary = [];
+  RX_DB.forEach(function(rx) {
+    if ((rx.cats || []).indexOf('vademecum') === -1) return;
+    (rx.drugs || rx.meds || []).forEach(function(drug) {
+      var dose = drug.dose || drug.posologia || '';
+      var note = drug.note || drug.notas || '';
+      var key = String(drug.name || '').toLowerCase() + '|' + String(dose).toLowerCase();
+      if (!drug.name || seen[key]) return;
+      seen[key] = true;
+      _rxEditDrugLibrary.push({
+        group: rx.title || 'Vademécum',
+        name: drug.name,
+        dose: dose,
+        note: note
+      });
+    });
+  });
+  _rxEditDrugLibrary.sort(function(a,b) {
+    return (a.group + a.name).localeCompare(b.group + b.name, 'es');
+  });
+  select.innerHTML = '<option value="">Elegir del vademécum…</option>'
+    + _rxEditDrugLibrary.map(function(drug, index) {
+      return '<option value="' + index + '">' + rxEsc(drug.group + ' — ' + drug.name) + '</option>';
+    }).join('');
+}
+
+function addRxDrugFromLibrary() {
+  var select = document.getElementById('rx-edit-library-select');
+  var textarea = document.getElementById('rx-edit-drugs');
+  if (!select || !textarea || select.value === '') {
+    showToast('Elige un medicamento del vademécum', 'orange');
+    return;
+  }
+  var drug = _rxEditDrugLibrary[Number(select.value)];
+  if (!drug) return;
+  var line = [drug.name, drug.dose, drug.note].join(' | ');
+  var currentLines = textarea.value.split('\n').map(function(value){ return value.trim(); }).filter(Boolean);
+  if (currentLines.some(function(value){ return value.toLowerCase() === line.toLowerCase(); })) {
+    showToast('Ese medicamento ya está en la receta', 'orange');
+    return;
+  }
+  textarea.value = (textarea.value.trim() ? textarea.value.trim() + '\n' : '') + line;
+  textarea.focus();
+  textarea.scrollTop = textarea.scrollHeight;
+  select.value = '';
+  showToast('Medicamento agregado; puedes ajustar la dosis o la nota', 'green');
+}
+
 function editRx(idx) {
   _rxEditIdx = idx;
   var rx = _getRx(idx);
+  initRxEditDrugLibrary();
   document.getElementById('rx-edit-title').value = rx.title || '';
   var drugsSource = rx.drugs || rx.meds || [];
   document.getElementById('rx-edit-drugs').value = drugsSource.map(function(d) {
@@ -23953,7 +24079,14 @@ window.addEventListener('resize', function() {
       <input type="text" id="rx-edit-title" style="width:100%;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.88rem;background:var(--bg);color:var(--ink)">
     </div>
     <div style="margin-bottom:12px">
-      <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:4px">Medicamentos (uno por línea: Nombre | Dosis | Nota)</label>
+      <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:6px">Medicamentos</label>
+      <div class="rx-library-picker">
+        <select id="rx-edit-library-select" aria-label="Elegir medicamento del vademécum">
+          <option value="">Elegir del vademécum…</option>
+        </select>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addRxDrugFromLibrary()" style="justify-content:center;border-radius:var(--r-sm)">+ Agregar</button>
+      </div>
+      <div class="rx-library-help">Puedes agregar una opción del vademécum y ajustarla, o capturarla manualmente abajo. Formato: Nombre | Dosis | Nota.</div>
       <textarea id="rx-edit-drugs" rows="8" style="width:100%;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.8rem;resize:vertical;background:var(--bg);color:var(--ink)" placeholder="Ibuprofeno 400mg | 1 cada 8h x 3 días | Con alimentos"></textarea>
     </div>
     <div style="margin-bottom:16px">
