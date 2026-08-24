@@ -18534,7 +18534,17 @@ var GD = (function() {
     setTimeout(pullWhenSaveFinishes, 250);
   }
 
-  function _hasPending() { return !!(_token && (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _catalogDirty || _catalogSaving || _heroDirty || _heroSaving)); }
+  function _hasPending() {
+    // No depender del token: si Google venció o se perdió la conexión justo
+    // después de una captura, el aviso de cierre sigue siendo indispensable.
+    return !!(
+      _dirty || _dbSaving
+      || _cfgDirty || _cfgSaving
+      || _catalogDirty || _catalogSaving
+      || _heroDirty || _heroSaving
+      || (typeof _photoMutationActive === 'function' && _photoMutationActive())
+    );
+  }
   function getToken() { return _token; }
   return {
     signIn, skip, save, saveNow, syncNow, saveCfg, saveCatalog, saveHeroImage,
@@ -18627,8 +18637,18 @@ window.addEventListener('beforeunload', function(e) {
   if (typeof saveLocalWithAutoBackup === 'function') saveLocalWithAutoBackup();
   if (typeof GD !== 'undefined' && GD._hasPending && GD._hasPending()) {
     e.preventDefault();
-    e.returnValue = '¿Salir? Puede haber cambios sin guardar en Drive.';
+    // Los navegadores modernos muestran su propio texto por seguridad. Asignar
+    // returnValue activa los diálogos de compatibilidad y permite Cancelar.
+    e.returnValue = '';
+    return '';
   }
+});
+
+// Safari/iOS puede omitir beforeunload al cerrar una pestaña o bloquear el
+// teléfono. pagehide no puede detener la salida, pero garantiza la copia local
+// de rescate antes de que el navegador congele la página.
+window.addEventListener('pagehide', function() {
+  if (typeof saveLocalWithAutoBackup === 'function') saveLocalWithAutoBackup();
 });
 
 // Guardar al cambiar de aplicación, bloquear el teléfono o recuperar internet.
