@@ -7029,18 +7029,27 @@ function showDetail(id) {
   document.getElementById('topbar-title').textContent = 'Historia clínica';
   document.getElementById('btn-add').style.display = 'none';
   renderDetail(id);
-  // La galería usa un contenedor compartido entre expedientes. Limpiarlo al
-  // cambiar de paciente evita mostrar durante un instante las fotos anteriores.
+  // La galería usa un contenedor compartido entre expedientes. Cada carga queda
+  // ligada al paciente visible para poder iniciarla automáticamente sin que una
+  // respuesta tardía de otro expediente reemplace sus fotografías.
   _photoPatientId = id;
   _photoViewPatientId = String(id);
   _photoFilter = 'all';
+  document.querySelectorAll('.photo-filter-chip').forEach(function(btn, index) {
+    btn.classList.toggle('active', index === 0);
+  });
   var photoGrid = document.getElementById('photo-grid');
   if (photoGrid) {
     photoGrid.setAttribute('data-patient-id', String(id));
-    photoGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--ink-4);font-size:.82rem">Toca Fotos para cargar la galería de este paciente.</div>';
+    photoGrid.innerHTML = '';
   }
-  var comparePhotosBtn = document.getElementById('btn-compare');
-  if (comparePhotosBtn) comparePhotosBtn.style.display = 'none';
+  var photoPatient = db.patients.find(function(p) { return String(p.id) === String(id); });
+  if (photoPatient) {
+    // Primero consulta los metadatos una sola vez; renderPhotoGrid espera esa
+    // consulta y utiliza miniaturas, por lo que la galería aparece sola y rápido.
+    recoverPatientPhotosFromDrive(photoPatient.id);
+    renderPhotoGrid(photoPatient);
+  }
 }
 function showForm() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
