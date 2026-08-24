@@ -24239,18 +24239,43 @@ window.addEventListener('resize', function() {
   </div>
 </div>
 <!-- ══ MODAL AYUDA / TUTORIAL ══ -->
+<style>
+  #help-overlay .help-window{color:var(--ink)}
+  #help-overlay #help-content>[id^="h-"]{scroll-margin-top:12px}
+  #help-overlay #help-search::placeholder{color:rgba(255,255,255,.76);opacity:1}
+  html.dark #help-overlay #help-content [style*="background:var(--blue-pale)"],
+  body.user-theme-dark-card #help-overlay #help-content [style*="background:var(--blue-pale)"]{
+    background:color-mix(in srgb,var(--blue) 16%,var(--card))!important;
+    border-color:color-mix(in srgb,var(--blue) 42%,var(--border))!important
+  }
+  html.dark #help-overlay #help-content [style*="background:var(--green-bg)"],
+  body.user-theme-dark-card #help-overlay #help-content [style*="background:var(--green-bg)"]{
+    background:color-mix(in srgb,var(--green) 13%,var(--card))!important
+  }
+  html.dark #help-overlay #help-content [style*="background:#fff8e1"],
+  body.user-theme-dark-card #help-overlay #help-content [style*="background:#fff8e1"]{
+    background:color-mix(in srgb,#f59e0b 13%,var(--card))!important;
+    border-color:color-mix(in srgb,#f59e0b 48%,var(--border))!important
+  }
+  html.dark #help-overlay #help-content [style*="background:#fff8e1"] *,
+  body.user-theme-dark-card #help-overlay #help-content [style*="background:#fff8e1"] *{color:var(--ink-2)!important}
+  html.dark #help-overlay #help-content [style*="background:linear-gradient(135deg,var(--blue-pale)"],
+  body.user-theme-dark-card #help-overlay #help-content [style*="background:linear-gradient(135deg,var(--blue-pale)"]{
+    background:color-mix(in srgb,var(--blue) 12%,var(--card))!important
+  }
+</style>
 <div id="help-overlay" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
-  <div style="background:var(--card);border-radius:var(--r-xl);max-width:680px;width:94%;margin:auto;box-shadow:var(--sh-xl);overflow:hidden">
+  <div class="help-window" role="dialog" aria-modal="true" aria-labelledby="help-title" style="background:var(--card);border-radius:var(--r-xl);max-width:760px;width:94%;margin:auto;box-shadow:var(--sh-xl);overflow:hidden">
 
     <!-- Header -->
     <div style="background:linear-gradient(135deg,var(--blue),#5e5ce6);padding:28px 28px 20px;color:#fff;position:relative">
       <button onclick="closeHelp()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">✕</button>
       <div style="font-size:1.5rem;margin-bottom:6px">🦷 Consultorio Dental</div>
-      <div style="font-size:1rem;font-weight:700;margin-bottom:4px">Guía de uso completa</div>
-      <div style="font-size:.8rem;opacity:.85">Todo lo que necesitas saber para usar el programa</div>
+      <div id="help-title" style="font-size:1rem;font-weight:700;margin-bottom:4px">Guía de uso completa</div>
+      <div style="font-size:.8rem;opacity:.9">Actualizada con las nuevas herramientas clínicas</div>
       <div style="margin-top:16px;position:relative">
         <span style="position:absolute;left:13px;top:10px;color:rgba(255,255,255,.8)">⌕</span>
-        <input id="help-search" type="search" oninput="filterHelp(this.value)" placeholder="Buscar: presupuesto, producción, saldo, respaldo…" style="width:100%;padding:10px 14px 10px 36px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:.8rem;outline:none" />
+        <input id="help-search" type="search" oninput="filterHelp(this.value)" placeholder="Buscar: especialidades, Calendar, fotos, vademécum…" style="width:100%;padding:10px 14px 10px 36px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(20,24,32,.72);color:#fff;font:inherit;font-size:.8rem;outline:none" />
       </div>
     </div>
 
@@ -24258,6 +24283,7 @@ window.addEventListener('resize', function() {
     <div style="display:flex;flex-wrap:wrap;gap:6px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg)">
       <a href="#h-inicio" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🚀 Inicio</a>
       <a href="#h-pacientes" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">👥 Pacientes</a>
+      <a href="#h-especialidades" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🦷 Especialidades</a>
       <a href="#h-agenda" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">📅 Agenda</a>
       <a href="#h-presupuestos" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💰 Presupuestos</a>
       <a href="#h-recetas" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">💊 Recetas</a>
@@ -24287,7 +24313,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">2. Configura tu perfil</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Ve a ⚙️ <strong>Configuración</strong> (esquina inferior izquierda) y llena tu nombre, especialidad, cédula, dirección y teléfono del consultorio. Estos datos aparecen en todos tus documentos impresos.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Ve a ⚙️ <strong>Configuración</strong> (esquina superior derecha) y llena tu nombre, especialidad, cédula, dirección y teléfono del consultorio. Estos datos aparecen en todos tus documentos impresos.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">3. Agrega tu logo</div>
@@ -24312,11 +24338,34 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Historia clínica</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca <strong>"Ver"</strong> en cualquier paciente para abrir su expediente completo: higiene oral, signos vitales, notas de evolución, fotografías, motivo de consulta, plan de tratamiento, pagos y presupuestos. Todo se puede imprimir en PDF.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca <strong>"Ver"</strong> para abrir el expediente. La barra del paciente reúne Resumen clínico, Odontograma, Odontopediatría, Periodoncia, Ortodoncia y las demás especialidades. <strong>Volver</strong> regresa directamente a la lista de pacientes.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Fotografías clínicas</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el expediente toca <strong>"+ Agregar foto"</strong>. Puedes seleccionar varias fotos a la vez y clasificarlas. Los archivos se guardan únicamente en Google Drive; el navegador conserva solo sus referencias.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el expediente toca <strong>"+ Agregar foto"</strong>. Cada paciente conserva únicamente su propia galería. Las miniaturas se solicitan a Drive al abrir el expediente; si comienzan oscuras, espera unos segundos mientras termina la descarga según tu conexión.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESPECIALIDADES -->
+      <div id="h-especialidades" style="margin-bottom:28px">
+        <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px">🦷 <span>Especialidades y expediente multidisciplinario</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Acceso desde la ficha del paciente</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Todas las áreas clínicas aparecen juntas en la barra del expediente. El número de cada botón indica cuántos registros existen. <strong>Resumen clínico</strong> muestra el panorama multidisciplinario y <strong>Imprimir expediente</strong> reúne la historia clínica con un resumen de los módulos.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Odontogramas y Periodoncia</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6"><strong>Odontograma</strong> registra condiciones por pieza o superficie; <strong>Odontopediatría</strong> usa dentición temporal, riesgo y conducta; <strong>Periodoncia</strong> captura seis sitios por diente, sangrado, supuración, recesión, NIC, furca y movilidad, además de conservar sesiones comparables.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Ortodoncia y cefalometría</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">El módulo de Ortodoncia incluye diagnóstico, clasificación de Angle, análisis facial y esquelético, cefalometría con interpretación, plan clínico, controles y progreso. Usa <strong>Guardar</strong> antes de cerrar y <strong>Resumen</strong> para imprimir.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Otras áreas especializadas</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">También puedes documentar Endodoncia, Cirugía oral y maxilofacial, Implantología, Rehabilitación y prótesis, Restauradora y estética, Medicina y patología oral, ATM y dolor orofacial, y Prevención e higiene. Cada módulo conserva herramientas, evolución y seguimiento propios.</div>
           </div>
         </div>
       </div>
@@ -24341,7 +24390,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Sincronización con Google Calendar</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Las citas se sincronizan automáticamente con tu Google Calendar cada 30 segundos. Si agregas o editas un evento en Google Calendar, aparece aquí en menos de un minuto. Si lo borras en Calendar, también se borra aquí.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Las citas creadas o modificadas en el consultorio se envían a Google inmediatamente. Mientras Agenda está abierta, revisa cambios recientes de Calendar cada <strong>10 segundos</strong>. Al abrir Agenda o regresar a la pestaña se revisa de inmediato; esto también incluye citas creadas desde Google Calendar en el celular.</div>
           </div>
         </div>
       </div>
@@ -24391,11 +24440,19 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Imprimir receta</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Selecciona al paciente, toca <strong>🧾 Recetar</strong>, elige únicamente los medicamentos indicados y genera el documento. Incluye los datos profesionales configurados; verifica siempre los requisitos normativos locales vigentes.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Selecciona al paciente para revisar edad, peso, alergias, embarazo y antecedentes registrados. Elige un protocolo, revisa dosis e indicaciones, toca <strong>🧾 Recetar</strong> y genera el documento con tus datos profesionales.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
-            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Editar receta</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca ✏️ para adaptar medicamentos e indicaciones. El formato es: <strong>Nombre | Dosis | Nota</strong> (uno por línea). Los cambios personalizados se conservan con la configuración sincronizada.</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Protocolos y antibióticos</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Filtra por dolor, infección, pediatría, profilaxis o especialidad. En extracción el antibiótico es opcional y debe añadirse solo cuando exista una indicación clínica. Cada tarjeta muestra medicamentos, concentraciones, pauta, advertencias y cuidados.</div>
+          </div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Vademécum y edición manual</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Toca ✏️ para modificar un protocolo. Puedes elegir un medicamento del <strong>Vademécum</strong>, que completa sus datos de referencia, o usar la opción manual para escribir nombre, concentración, dosis, frecuencia, duración e indicaciones propias.</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Calculadora pediátrica por peso</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Selecciona medicamento y presentación, captura el peso en kilogramos y toca <strong>Calcular</strong>. El resultado es una referencia clínica: confirma concentración comercial, edad, alergias, función renal o hepática y dosis máxima antes de prescribir.</div>
           </div>
         </div>
       </div>
@@ -24405,8 +24462,8 @@ window.addEventListener('resize', function() {
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">📄 Historia clínica y documentos</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Historia clínica editable</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar o editar un paciente toca <strong>⚙️ Personalizar historia</strong>. Puedes ocultar campos originales, crear secciones, agregar campos de texto, número, fecha o Sí/No y acomodarlos con ↑ y ↓. La plantilla se usa para todos los pacientes, pero cada paciente conserva sus propias respuestas.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Imprimir historia clínica</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el formulario usa <strong>🖨️ Imprimir</strong>. En el expediente usa <strong>🖨️ Imprimir HC</strong> para generar el documento completo con identificación, antecedentes, signos vitales, diagnóstico, evolución, pagos, campos personalizados y firmas. En la ventana de impresión elige “Guardar como PDF” si deseas un archivo.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Odontograma, periodontograma y ortodoncia</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Dentro del expediente abre el estudio correspondiente. Marca piezas o superficies, registra hallazgos y guarda. El odontograma pediátrico se usa para dentición temporal. Cada estudio dispone de impresión o resumen clínico.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Imprimir expediente completo</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la ficha usa <strong>🖨️ Imprimir expediente</strong>. El documento incluye identificación, historia clínica, antecedentes, evolución y un resumen de todas las especialidades con actividad. Los botones de resumen dentro de cada módulo imprimen únicamente esa área.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Guardado de módulos clínicos</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Abre el módulo desde la barra del paciente, registra los datos y usa su botón <strong>Guardar</strong> o <strong>Guardar sesión</strong>. Los indicadores numéricos y el Resumen clínico se actualizan con los registros existentes; los datos anteriores no se reemplazan por abrir un módulo nuevo.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Consentimientos e indicaciones</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Consentimientos</strong> selecciona procedimiento y paciente, revisa el texto e imprime para firma. Puedes editar riesgos, alternativas y cuidados. En <strong>Indicaciones</strong> elige la hoja postoperatoria, personalízala y envíala o imprímela.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Notas de evolución y signos vitales</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Desde el expediente registra fecha, presión, frecuencia cardiaca, temperatura, diagnóstico, procedimiento, nota y plan. Las notas quedan ordenadas cronológicamente y aparecen en la impresión de la historia clínica.</div></div>
         </div>
@@ -24453,7 +24510,11 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Indicadores de sincronización</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Arriba a la derecha: ☁️ <strong>Drive conectado</strong> = la cuenta está activa y el autoguardado funciona · ↻ <strong>Recibiendo cambios</strong> = se encontró información nueva de otro dispositivo · ⚠️ <strong>Error</strong> = hace falta reconectar. Usa <strong>Sincronizar</strong> cuando quieras comprobar manualmente.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Arriba a la derecha: ☁️ <strong>Drive conectado</strong> = la cuenta está activa · ⏳ <strong>Guardando</strong> = todavía se están enviando cambios · ↻ <strong>Recibiendo cambios</strong> = se encontró información nueva · ⚠️ <strong>Error</strong> = hace falta revisar la conexión. Usa <strong>Sincronizar</strong> para una comprobación manual.</div>
+          </div>
+          <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Antes de cerrar la aplicación</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Espera a que termine <strong>Guardando</strong>. Si intentas cerrar o recargar mientras existe un envío pendiente, el navegador mostrará una advertencia para evitar que abandones la página antes de completar el guardado.</div>
           </div>
         </div>
       </div>
@@ -24474,7 +24535,8 @@ window.addEventListener('resize', function() {
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">🛟 Solución de problemas</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:4px">No dice “Drive conectado”</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">Toca el indicador y confirma la misma cuenta de Google. Si aparece un error, no cierres la página: pulsa Sincronizar o vuelve a conectar para enviar los cambios pendientes.</div></div>
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">No aparecen pacientes o citas</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Comprueba que entraste con la misma cuenta de Google. Pulsa Guardar/Sync y espera hasta un minuto. Revisa filtros de ciudad, alertas y doctor; un filtro activo puede ocultar registros.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">No aparecen pacientes o citas</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Comprueba que entraste con la misma cuenta de Google. En Pacientes revisa los filtros activos. Para una cita creada en Google Calendar, abre Agenda: la revisión empieza inmediatamente y continúa cada 10 segundos mientras permanezca abierta.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">La miniatura de una foto aparece negra</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">La fotografía pertenece al paciente correcto, pero Drive aún está descargando la vista previa. Espera unos segundos sin cambiar de paciente; el tiempo depende de la conexión y del tamaño de la imagen. Si no aparece, toca <strong>Fotos</strong> o vuelve a abrir el expediente.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Sin conexión a Drive</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">La aplicación no ofrece modo offline. Reconecta la misma cuenta de Google para cargar y guardar; no cierres la pestaña si hay un cambio pendiente.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Respaldo manual y recuperación</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En Configuración usa <strong>Exportar mis datos</strong> para descargar JSON. Para recuperar, usa <strong>Importar datos desde respaldo</strong> y selecciona un archivo exportado por esta app. Conserva varias copias fechadas antes de actualizar o borrar información.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Impresión cortada o extraña</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En el diálogo selecciona tamaño Carta o A4, escala 90–100 %, orientación adecuada y márgenes predeterminados. Desactiva encabezados y pies del navegador si aparecen URL y fecha.</div></div>
@@ -24494,7 +24556,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Seleccionar doctor activo</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al abrir la app con 2+ doctores aparece el selector <strong>"¿Quién está atendiendo?"</strong>. El doctor activo aparece abajo en el sidebar. Tócalo para cambiarlo. Todas las citas y notas quedan firmadas con el doctor activo.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Si todavía no existe una selección para la sesión, aparece <strong>"¿Quién está atendiendo?"</strong>. Después el doctor activo se conserva al sincronizar y aparece en el selector superior. Tócalo para cambiarlo. Las citas y notas quedan vinculadas con el doctor activo.</div>
           </div>
           <div style="background:var(--blue-pale);border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--blue)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Filtrar por doctor</div>
@@ -24535,9 +24597,11 @@ window.addEventListener('resize', function() {
         <div style="font-size:.85rem;font-weight:800;color:var(--ink);margin-bottom:10px">💡 Consejos rápidos</div>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:.76rem;color:var(--ink-2);line-height:1.6">
           <div>• En Google Calendar agrega eventos como <strong>"Nombre Paciente 6141234567"</strong> para vincular automáticamente al paciente y tener su WhatsApp disponible.</div>
+          <div>• Si creas la cita desde el celular, abre Agenda en el consultorio para recibirla inmediatamente o dentro de la siguiente revisión de 10 segundos.</div>
           <div>• El buscador de pacientes encuentra por nombre, HC, ciudad y condición médica.</div>
           <div>• Puedes instalar el programa como app en tu celular: en Safari toca ⬆️ → "Agregar a pantalla de inicio".</div>
-          <div>• Las fotos se guardan en Drive. Necesitas estar conectado a Google para verlas.</div>
+          <div>• Las fotos se guardan en Drive. Una miniatura oscura normalmente significa que todavía se está descargando.</div>
+          <div>• No cierres ni recargues mientras el indicador diga <strong>Guardando</strong>.</div>
           <div>• El número HC de cada paciente aparece en todos sus documentos impresos.</div>
         </div>
       </div>
@@ -24546,7 +24610,7 @@ window.addEventListener('resize', function() {
 
     <!-- Footer -->
     <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:.72rem;color:var(--ink-4)">Consultorio Dental v5.3 · @SoyHectorAcostaMx</span>
+      <span style="font-size:.72rem;color:var(--ink-4)">Guía actualizada · 24 ago 2026 · @SoyHectorAcostaMx</span>
       <button onclick="closeHelp()" class="btn btn-primary" style="border-radius:var(--r-sm);padding:7px 20px">Entendido ✓</button>
     </div>
 
