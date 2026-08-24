@@ -7018,8 +7018,9 @@ function goPage(id, el) {
   }
 }
 function showList() {
-  goPage('dash-page', document.querySelector('[onclick*="dash-page"]'));
-  renderDashboard();
+  // "Volver" desde una historia clínica regresa al origen natural del
+  // expediente: la lista de pacientes, conservando búsqueda y filtros.
+  goPage('list-page', document.querySelector('[onclick*="list-page"]'));
 }
 function showDetail(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -16606,6 +16607,7 @@ var GD = (function() {
       if (!_snapshotCurrentAccount(previousId)) {
         throw new Error('No hay espacio para proteger los datos de la cuenta anterior');
       }
+      if (typeof clearPhotoSessionCache === 'function') clearPhotoSessionCache();
       _clearAccountLocalData();
       _restoreAccountSnapshot(nextId);
       // Ninguna marca de la cuenta anterior debe hacer que el caché vacío
@@ -18475,6 +18477,7 @@ var GD = (function() {
     _deviceDbFileId = null; _lastMirrorModifiedTime = '';
     _cfgFileId = null; _catalogFileId = null; _heroFileId = null;
     _heroImageFileId = null; _logoImageFileId = null;
+    if (typeof clearPhotoSessionCache === 'function') clearPhotoSessionCache();
     _setRuntimeImage('hero', null);
     _setRuntimeImage('logo', null);
     _mode = 'google';
@@ -19647,6 +19650,9 @@ function printRx(idx) {
 var _photoPatientId = null;
 var _photoMutationDepth = 0;
 var _photoRecoveryInFlight = {};
+var _photoRecoveryCheckedAt = {};
+var _photoFolderCache = {};
+var _photoThumbnailLinks = {};
 
 function _photoMutationActive() {
   return _photoMutationDepth > 0;
@@ -19785,14 +19791,16 @@ function openPhotoModule() {
   var p = db.patients.find(function(x){ return x.id == curId; });
   if (!p) return;
   _photoPatientId = p.id;
+  // Iniciar primero una sola consulta ligera de metadatos. La cuadrícula
+  // espera esos enlaces brevemente y descarga miniaturas en vez de originales.
+  recoverPatientPhotosFromDrive(p.id);
   renderPhotoGrid(p);
   var section = document.getElementById('photo-section');
   if (section && section.scrollIntoView) {
     section.scrollIntoView({ behavior:'smooth', block:'start' });
   }
-  // También recupera las referencias de fotos que sí llegaron a Drive en una
-  // carga anterior, pero no alcanzaron a guardarse en el JSON del expediente.
-  recoverPatientPhotosFromDrive(p.id);
+  // La reconciliación queda limitada por paciente para no volver a listar la
+  // misma carpeta cada vez que se toca el botón Fotos.
 }
 
 var _bulkFiles   = [];
@@ -20038,6 +20046,9 @@ function _uploadPhotoToDrive(file, type, callback, quiet) {
         driveId: f.id,
         dataUrl: null  // NO base64 — se carga desde Drive con token
       };
+      // La foto ya está en memoria; reutilizarla evita descargarla de Drive
+      // inmediatamente después de terminar la subida.
+      if (!_photoCache[f.id]) _photoCache[f.id] = URL.createObjectURL(file);
       if (!currentPatient.photos.some(function(ph){ return ph.driveId === f.id; })) {
         currentPatient.photos.push(photo);
       }
@@ -20063,6 +20074,10 @@ function recoverPatientPhotosFromDrive(patientId) {
   if (!tok || !p) return Promise.resolve(0);
   var recoveryKey = String(patientId);
   if (_photoRecoveryInFlight[recoveryKey]) return _photoRecoveryInFlight[recoveryKey];
+  if (_photoRecoveryCheckedAt[recoveryKey]
+      && Date.now() - _photoRecoveryCheckedAt[recoveryKey] < 300000) {
+    return Promise.resolve(0);
+  }
 
   _beginPhotoMutation();
   var folderName = getPatientPhotoFolderName(p);
@@ -20070,7 +20085,7 @@ function recoverPatientPhotosFromDrive(patientId) {
     if (!folderId) return [];
     var q = "'" + folderId + "' in parents and trashed=false";
     var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&pageSize=1000&orderBy=createdTime&fields=files(id,name,mimeType,createdTime)';
+      + '&pageSize=1000&orderBy=createdTime&fields=files(id,name,mimeType,createdTime,thumbnailLink)';
     return fetch(url, { headers: { Authorization: 'Bearer ' + tok } }).then(function(r) {
       if (!r.ok) throw new Error('Drive listar fotos HTTP ' + r.status);
       return r.json();
@@ -20083,6 +20098,7 @@ function recoverPatientPhotosFromDrive(patientId) {
     currentPatient.photos.forEach(function(ph) { if (ph.driveId) known[ph.driveId] = true; });
     var added = 0;
     files.forEach(function(f, index) {
+      if (f && f.id && f.thumbnailLink) _photoThumbnailLinks[f.id] = f.thumbnailLink;
       if (!f || !f.id || known[f.id] || String(f.mimeType || '').indexOf('image/') !== 0) return;
       var match = String(f.name || '').match(/^\d{4}-\d{2}-\d{2}_(antes|despues|intraoral|extraoral|rx)_(.*)$/);
       var dateMatch = String(f.name || '').match(/^(\d{4}-\d{2}-\d{2})_/);
@@ -20107,6 +20123,7 @@ function recoverPatientPhotosFromDrive(patientId) {
     return 0;
   }).then(function(added) {
     _endPhotoMutation();
+    _photoRecoveryCheckedAt[recoveryKey] = Date.now();
     delete _photoRecoveryInFlight[recoveryKey];
     if (added) saveDB();
     return added;
@@ -20119,6 +20136,7 @@ function recoverPatientPhotosFromDrive(patientId) {
 function _getDriveFolder(folderName) {
   var tok = GD._token();
   if (!tok) return Promise.resolve(null);
+  if (_photoFolderCache[folderName]) return Promise.resolve(_photoFolderCache[folderName]);
   var q = "name='" + folderName + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
   return fetch('https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id)', {
     headers: { Authorization: 'Bearer ' + tok }
@@ -20126,7 +20144,10 @@ function _getDriveFolder(folderName) {
     if (!r.ok) throw new Error('Drive carpeta HTTP ' + r.status);
     return r.json();
   }).then(function(data) {
-    if (data.files && data.files.length > 0) return data.files[0].id;
+    if (data.files && data.files.length > 0) {
+      _photoFolderCache[folderName] = data.files[0].id;
+      return data.files[0].id;
+    }
     // Crear carpeta
     return fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
@@ -20135,7 +20156,10 @@ function _getDriveFolder(folderName) {
     }).then(function(r) {
       if (!r.ok) throw new Error('Drive crear carpeta HTTP ' + r.status);
       return r.json();
-    }).then(function(f) { return f.id; });
+    }).then(function(f) {
+      if (f && f.id) _photoFolderCache[folderName] = f.id;
+      return f.id;
+    });
   });
 }
 
@@ -20176,7 +20200,7 @@ function renderPhotoGrid(p) {
   // Después de renderizar, cargar fotos de Drive en background
   setTimeout(function() {
     document.querySelectorAll('#photo-grid img[data-drive-id]').forEach(function(img) {
-      loadDrivePhoto(img.getAttribute('data-drive-id'), img);
+      loadDrivePhoto(img.getAttribute('data-drive-id'), img, false, p && p.id);
     });
   }, 100);
 
@@ -20225,7 +20249,7 @@ function _updateLightbox() {
     img.src = ph.dataUrl;
   } else if (ph.driveId) {
     img.src = '';
-    loadDrivePhoto(ph.driveId, img);
+    loadDrivePhoto(ph.driveId, img, true);
   } else {
     img.src = '';
   }
@@ -20294,7 +20318,7 @@ function openCompareMode() {
   function getSrc(ph, imgEl) {
     if (ph.dataUrl) return ph.dataUrl;
     if (ph.driveId && imgEl) {
-      setTimeout(function() { loadDrivePhoto(ph.driveId, imgEl); }, 50);
+      setTimeout(function() { loadDrivePhoto(ph.driveId, imgEl, true); }, 50);
     }
     return '';
   }
@@ -20396,17 +20420,40 @@ function resyncPaymentsToCaja() {
 }
 
 
-// ── Cargar foto desde Drive como blob (evita expiración de token en URL) ──
-var _photoCache = {}; // cache de blob URLs
+// ── Cargar fotos desde Drive ──────────────────────────────
+// La cuadrícula usa la miniatura generada por Drive; el original se descarga
+// únicamente al abrir el visor o el comparador. Las promesas compartidas evitan
+// pedir dos veces el mismo archivo si la galería se redibuja durante la carga.
+var _photoCache = {};          // originales como blob URLs, solo esta sesión
+var _photoThumbCache = {};     // miniaturas como blob URLs, solo esta sesión
+var _photoLoadInFlight = {};
+var _photoFullInFlight = {};
 
-function loadDrivePhoto(driveId, imgEl) {
-  if (!driveId || !imgEl) return;
-  // Si ya está en cache, usar directo
-  if (_photoCache[driveId]) { imgEl.src = _photoCache[driveId]; return; }
-  var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
-  if (!tok) { imgEl.style.opacity = '0.3'; return; }
-  imgEl.style.opacity = '0.5';
-  fetch('https://www.googleapis.com/drive/v3/files/' + driveId + '?alt=media', {
+function clearPhotoSessionCache() {
+  [_photoCache, _photoThumbCache].forEach(function(cache) {
+    Object.keys(cache || {}).forEach(function(id) {
+      if (/^blob:/i.test(cache[id] || '')) URL.revokeObjectURL(cache[id]);
+    });
+  });
+  _photoCache = {};
+  _photoThumbCache = {};
+  _photoLoadInFlight = {};
+  _photoFullInFlight = {};
+  _photoThumbnailLinks = {};
+  _photoFolderCache = {};
+  _photoRecoveryCheckedAt = {};
+}
+
+function _setPhotoImage(imgEl, url) {
+  if (!imgEl || !url) return;
+  imgEl.src = url;
+  imgEl.style.opacity = '1';
+}
+
+function _loadFullPhotoUrl(driveId, tok) {
+  if (_photoCache[driveId]) return Promise.resolve(_photoCache[driveId]);
+  if (_photoFullInFlight[driveId]) return _photoFullInFlight[driveId];
+  var job = fetch('https://www.googleapis.com/drive/v3/files/' + driveId + '?alt=media', {
     headers: { Authorization: 'Bearer ' + tok }
   }).then(function(r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -20414,8 +20461,68 @@ function loadDrivePhoto(driveId, imgEl) {
   }).then(function(blob) {
     var url = URL.createObjectURL(blob);
     _photoCache[driveId] = url;
-    imgEl.src = url;
-    imgEl.style.opacity = '1';
+    delete _photoFullInFlight[driveId];
+    return url;
+  }).catch(function(error) {
+    delete _photoFullInFlight[driveId];
+    throw error;
+  });
+  _photoFullInFlight[driveId] = job;
+  return job;
+}
+
+function _loadPhotoThumbUrl(driveId, tok) {
+  if (_photoThumbCache[driveId]) return Promise.resolve(_photoThumbCache[driveId]);
+  var key = 'thumb:' + driveId;
+  if (_photoLoadInFlight[key]) return _photoLoadInFlight[key];
+  var thumbnailLink = _photoThumbnailLinks[driveId] || '';
+  var job = (thumbnailLink
+    ? fetch(thumbnailLink, {
+        headers: { Authorization: 'Bearer ' + tok },
+        cache: 'default'
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Miniatura HTTP ' + r.status);
+        return r.blob();
+      }).then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        _photoThumbCache[driveId] = url;
+        return url;
+      })
+    : _loadFullPhotoUrl(driveId, tok)
+  ).catch(function() {
+    // Algunos navegadores bloquean thumbnailLink por CORS. En ese caso se usa
+    // el original una sola vez, compartiendo la descarga con el visor.
+    return _loadFullPhotoUrl(driveId, tok);
+  }).then(function(url) {
+    delete _photoLoadInFlight[key];
+    return url;
+  }).catch(function(error) {
+    delete _photoLoadInFlight[key];
+    throw error;
+  });
+  _photoLoadInFlight[key] = job;
+  return job;
+}
+
+function loadDrivePhoto(driveId, imgEl, fullSize, patientId) {
+  if (!driveId || !imgEl) return;
+  var tok = (typeof GD !== 'undefined' && GD._token) ? GD._token() : null;
+  if (!tok) { imgEl.style.opacity = '0.3'; return; }
+  var readyUrl = fullSize ? _photoCache[driveId] : (_photoThumbCache[driveId] || _photoCache[driveId]);
+  if (readyUrl) { _setPhotoImage(imgEl, readyUrl); return; }
+  imgEl.style.opacity = '0.45';
+
+  // En la cuadrícula esperar la consulta única de la carpeta para aprovechar
+  // thumbnailLink. Sin esta espera se descargaba inmediatamente cada original.
+  var recoveryPatientId = patientId !== undefined && patientId !== null
+    ? patientId : _photoPatientId;
+  var recovery = !fullSize && _photoRecoveryInFlight[String(recoveryPatientId)];
+  Promise.resolve(recovery).catch(function(){ return 0; }).then(function() {
+    return fullSize
+      ? _loadFullPhotoUrl(driveId, tok)
+      : _loadPhotoThumbUrl(driveId, tok);
+  }).then(function(url) {
+    _setPhotoImage(imgEl, url);
   }).catch(function(e) {
     console.warn('loadDrivePhoto error:', e);
     imgEl.style.opacity = '0.2';
