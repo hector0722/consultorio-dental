@@ -349,6 +349,20 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
   flex-wrap: wrap; align-items: center;
 }
 .ph-actions .btn { white-space: nowrap; }
+.patient-modules-bar{width:calc(100% - 68px);margin-left:68px;padding-top:12px;border-top:1px solid var(--border);}
+.patient-modules-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.patient-modules-title{display:flex;align-items:center;gap:7px;font-size:.63rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+.patient-modules-hint{font-size:.61rem;color:var(--ink-4);}
+.patient-modules-list{display:flex;flex-wrap:wrap;gap:6px;}
+.patient-module-pill{--module-color:var(--blue);--module-pale:var(--blue-pale);display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 9px;border:1px solid var(--border-med);border-radius:10px;background:var(--card);color:var(--ink-2);font:inherit;font-size:.67rem;font-weight:760;cursor:pointer;white-space:nowrap;transition:transform .14s,border-color .14s,background .14s;}
+.patient-module-pill:hover{transform:translateY(-2px);border-color:var(--module-color);background:var(--module-pale);color:var(--module-color);}
+.patient-module-pill.summary{background:linear-gradient(135deg,#5e5ce6,#0071e3);border-color:transparent;color:#fff;box-shadow:0 5px 13px rgba(94,92,230,.18);}
+.patient-module-icon{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--module-pale);color:var(--module-color);font-size:.72rem;}
+.patient-module-pill.summary .patient-module-icon{background:rgba(255,255,255,.18);color:#fff;}
+.patient-module-count{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--bg);color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:850;}
+.patient-module-pill.has-data .patient-module-count{background:var(--module-pale);color:var(--module-color);}
+.patient-module-pill.summary .patient-module-count{background:rgba(255,255,255,.18);color:#fff;}
+@media(max-width:760px){.patient-modules-bar{width:100%;margin-left:0}.patient-modules-list{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}.patient-modules-list::-webkit-scrollbar{display:none}.patient-modules-hint{display:none}}
 
 .alerts-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .alert-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 980px; font-size: .76rem; font-weight: 600; }
@@ -5632,16 +5646,15 @@ body.app-ready #dash-page.active > .card {
         </div>
         <div class="ph-actions no-print">
           <button class="btn btn-primary btn-sm" onclick="goToPatientBudget()">💰 Presupuesto</button>
-          <button class="btn btn-sm btn-specialties" onclick="openSpecialtiesHub()">✦ Especialidades</button>
-          <button class="btn btn-ghost btn-sm" onclick="openOdontogram()">🦷 Odontograma</button>
-          <button class="btn btn-ghost btn-sm" onclick="openOdontogramPed()">🧒 Odontograma pediátrico</button>
-          <button class="btn btn-ghost btn-sm" onclick="openPeriodontogram()">📊 Periodontograma</button>
-          <button class="btn btn-ghost btn-sm" onclick="openOrthoModule()">😬 Ortodoncia</button>
           <button class="btn btn-success btn-sm" onclick="openWA()">💬 WhatsApp</button>
           <button class="btn btn-ghost btn-sm" onclick="openAviso()">🔒 Aviso priv.</button>
-          <button class="btn btn-ghost btn-sm" onclick="printHistoriaClinica()">🖨️ Imprimir HC</button>
+          <button class="btn btn-ghost btn-sm" onclick="printHistoriaClinica()">🖨️ Imprimir expediente</button>
           <button class="btn btn-ghost btn-sm" onclick="openPhotoModule()">📸 Fotos</button>
           <button class="btn btn-ghost btn-sm" onclick="editCurrent()">✏️ Editar</button>
+        </div>
+        <div class="patient-modules-bar no-print">
+          <div class="patient-modules-head"><div class="patient-modules-title">✦ Módulos clínicos del paciente</div><div class="patient-modules-hint">Acceso directo · el número indica registros existentes</div></div>
+          <div class="patient-modules-list" id="patient-modules-list"></div>
         </div>
       </div>
       <div class="detail-grid" style="margin-bottom:14px">
@@ -9997,6 +10010,7 @@ function renderDetail(id) {
   renderTxp(p);
   renderPatientBudgetInDetail(p.id);
   populateTxpSelect();
+  if (typeof renderPatientModulesBar === 'function') renderPatientModulesBar(p);
 }
 
 
@@ -11649,8 +11663,38 @@ function printHistoriaClinica() {
     return '<tr><td>'+c.fecha+'</td><td>'+(c.arcSup||'—')+'</td><td>'+(c.arcInf||'—')+'</td><td>'+(c.notas||'—')+'</td></tr>';
   }).join('');
 
+  // Resumen multidisciplinario: conserva la HC como documento principal y
+  // agrega el estado de todos los módulos clínicos del paciente.
+  function hcText(value){return escapeHTML(value===undefined||value===null||value===''?'—':String(value)).replace(/\n/g,'<br>');}
+  function hcConditionLabel(id,list){var c=(list||[]).find(function(x){return x.id===id;});return c?c.label:id;}
+  function hcSurfaceSummary(tooth,conditions,pediatric){
+    var surfaces=['O','V','L','M','D'],groups={},whole=tooth.whole||'sano';
+    surfaces.forEach(function(s){var id=pediatric?(tooth[s]||'sano'):((tooth.surfaces&&Object.prototype.hasOwnProperty.call(tooth.surfaces,s))?tooth.surfaces[s]:whole);if(id==='sano')return;if(!groups[id])groups[id]=[];groups[id].push(s);});
+    return Object.keys(groups).map(function(id){return hcConditionLabel(id,conditions)+' ('+groups[id].join(', ')+')';}).join(' · ');
+  }
+  var adultData=p.odontogram||{},adultFindings=[];
+  Object.keys(adultData).filter(function(k){return /^\d+$/.test(k);}).sort().forEach(function(k){var t=adultData[k]||{},f=hcSurfaceSummary(t,typeof ODO_CONDITIONS!=='undefined'?ODO_CONDITIONS:[],false);if(f||t.note)adultFindings.push({tooth:k,text:f,note:t.note||''});});
+  var pedData=p.odontogramaPed||{},pedFindings=[];
+  Object.keys(pedData).filter(function(k){return /^\d+$/.test(k);}).sort().forEach(function(k){var t=pedData[k]||{},f=hcSurfaceSummary(t,typeof ODO_PED_CONDITIONS!=='undefined'?ODO_PED_CONDITIONS:[],true);if(f||t.note)pedFindings.push({tooth:k,text:f,note:t.note||''});});
+  var perioSessions=p.perioSessions||[],lastPerio=perioSessions[perioSessions.length-1],perioStats=lastPerio&&lastPerio.stats||{};
+  var orthoData=p.orthoData||{},specialtyData=p.specialtyModules||{},moduleRows=[];
+  function addModuleRow(name,activity,last,status){moduleRows.push('<tr><td><strong>'+hcText(name)+'</strong></td><td>'+hcText(activity)+'</td><td>'+hcText(last)+'</td><td>'+hcText(status)+'</td></tr>');}
+  addModuleRow('Odontología general',adultFindings.length+' dientes con hallazgos',adultFindings.length?adultFindings.map(function(x){return 'FDI '+x.tooth;}).join(', '):'Sin hallazgos','Odontograma adulto');
+  addModuleRow('Odontopediatría',pedFindings.length+' dientes con hallazgos',pedFindings.length?pedFindings.map(function(x){return 'FDI '+x.tooth;}).join(', '):'Sin hallazgos','Odontograma temporal');
+  addModuleRow('Periodoncia',perioSessions.length+' sesiones',lastPerio?lastPerio.date:'Sin evaluación',lastPerio?('Prom. '+(perioStats.avgProbe||'—')+' mm · Sangrado '+(perioStats.bleedPct||0)+'%'):'Sin registros');
+  addModuleRow('Ortodoncia',((orthoData.controls||[]).length)+' controles',orthoData['fecha-inicio']||orthoData.estado||'Sin iniciar',orthoData.fase||orthoData.aparato||'Sin registros');
+  if(typeof SPECIALTY_MODULES!=='undefined')SPECIALTY_MODULES.forEach(function(m){var records=Array.isArray(specialtyData[m.id])?specialtyData[m.id]:[],latest=records.slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));})[0];addModuleRow(m.label,records.length+' evoluciones',latest?latest.date:'Sin registros',latest?((latest.status||'')+(latest.site?' · '+latest.site:'')):'Sin actividad');});
+  var adultFindingRows=adultFindings.map(function(x){return '<tr><td><strong>FDI '+hcText(x.tooth)+'</strong></td><td>'+hcText(x.text)+'</td><td>'+hcText(x.note)+'</td></tr>';}).join('');
+  var pedFindingRows=pedFindings.map(function(x){return '<tr><td><strong>FDI '+hcText(x.tooth)+'</strong></td><td>'+hcText(x.text)+'</td><td>'+hcText(x.note)+'</td></tr>';}).join('');
+  var specialtyEvolutionRows=[];
+  if(typeof SPECIALTY_MODULES!=='undefined')SPECIALTY_MODULES.forEach(function(m){var records=Array.isArray(specialtyData[m.id])?specialtyData[m.id]:[],latest=records.slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));})[0];if(!latest)return;specialtyEvolutionRows.push('<tr><td><strong>'+hcText(m.label)+'</strong><br><span style="font-size:8.5px;color:#666">'+hcText(latest.date)+' · '+hcText(latest.status)+'</span></td><td>'+hcText(latest.site)+'</td><td>'+hcText(latest.diagnosis||latest.procedure)+'</td><td>'+hcText(latest.plan)+(latest.nextDate?'<br><strong>Próxima:</strong> '+hcText(latest.nextDate):'')+'</td></tr>');});
+  var multidisciplinaryPrintHTML='<h2>VIII. Resumen clínico multidisciplinario</h2><table><tr><th>Módulo</th><th>Actividad</th><th>Último registro / hallazgo</th><th>Estado</th></tr>'+moduleRows.join('')+'</table>'
+    +(adultFindingRows?'<h2>Hallazgos del odontograma adulto</h2><table><tr><th>Diente</th><th>Condiciones</th><th>Nota clínica</th></tr>'+adultFindingRows+'</table>':'')
+    +(pedFindingRows?'<h2>Hallazgos del odontograma pediátrico</h2><table><tr><th>Diente</th><th>Condiciones</th><th>Nota clínica</th></tr>'+pedFindingRows+'</table>':'')
+    +(specialtyEvolutionRows.length?'<h2>Últimas evoluciones por especialidad</h2><table><tr><th>Especialidad</th><th>Diente / zona</th><th>Hallazgos o procedimiento</th><th>Plan</th></tr>'+specialtyEvolutionRows.join('')+'</table>':'');
+
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    + '<title>Historia Clínica — '+p.name+'</title>'
+    + '<title>Expediente Clínico Integral — '+p.name+'</title>'
     + '<style>'
     + '*{box-sizing:border-box;margin:0;padding:0;}'
     + 'body{font-family:"Times New Roman",Times,serif;color:#000;font-size:11px;line-height:1.55;padding:20px 28px;}'
@@ -11660,6 +11704,7 @@ function printHistoriaClinica() {
     + '.nom-ref{text-align:center;font-size:9px;margin-bottom:10px;}'
     + 'table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10.5px;}'
     + 'td{border:1px solid #888;padding:3px 7px;vertical-align:top;}'
+    + 'th{border:1px solid #777;padding:4px 7px;background:#e9e9e9;font-size:9px;text-transform:uppercase;letter-spacing:.035em;text-align:left;}'
     + '.lbl{font-weight:bold;background:#f0f0f0;width:26%;white-space:nowrap;}'
     + '.section{border:1px solid #bbb;padding:7px 10px;margin-bottom:8px;border-radius:2px;font-size:10.5px;min-height:30px;}'
     + '.footer{margin-top:14px;padding-top:6px;border-top:2px solid #000;display:flex;justify-content:space-between;font-size:9px;}'
@@ -11688,7 +11733,7 @@ function printHistoriaClinica() {
     +     '<strong>Folio:</strong> '+(p.expediente||p.hcNumber||'HC-'+String(p.id).slice(-4))
     +   '</div>'
     + '</div>'
-    + '<div class="doc-title">Historia Clínica Odontológica</div>'
+    + '<div class="doc-title">Expediente Clínico Odontológico Integral</div>'
     + '<div class="nom-ref">NOM-004-SSA3-2012 (Expediente Clínico) · NOM-168-SSA1-1998</div>'
 
     // I. IDENTIFICACIÓN
@@ -11756,8 +11801,11 @@ function printHistoriaClinica() {
           + '</table>'
         : '<div class="section">&nbsp;<br>&nbsp;<br>&nbsp;</div>')
 
-    // VIII. ORTODONCIA (si tiene datos)
-    + (p.orthoData && p.orthoData['angle_right'] ? '<h2>VIII. Hallazgos ortodóncicos</h2>'
+    // VIII. RESUMEN DE TODOS LOS MÓDULOS
+    + multidisciplinaryPrintHTML
+
+    // IX. ORTODONCIA (si tiene datos)
+    + (p.orthoData && (p.orthoData['angle_right'] || p.orthoData.estado || (p.orthoData.controls||[]).length) ? '<h2>IX. Hallazgos ortodóncicos</h2>'
         + '<table>'
         + row2('Clasificación derecha', p.orthoData['angle_right']||'—', 'Clasificación izquierda', p.orthoData['angle_left']||'—')
         + row2('Overjet', p.orthoData['overjet']?p.orthoData['overjet']+' mm':'—', 'Overbite', p.orthoData['overbite']?p.orthoData['overbite']+' mm':'—')
@@ -11766,9 +11814,9 @@ function printHistoriaClinica() {
         + (orthoControls ? '<table><tr><th style="background:#f0f0f0">Fecha</th><th style="background:#f0f0f0">Arco sup</th><th style="background:#f0f0f0">Arco inf</th><th style="background:#f0f0f0">Observaciones</th></tr>'+orthoControls+'</table>' : '')
         : '')
 
-    // NOTAS DE EVOLUCIÓN (todas)
+    // X. NOTAS DE EVOLUCIÓN (todas)
     + (p.signosVitales && p.signosVitales.length
-        ? '<h2>'+(p.orthoData&&p.orthoData['angle_right']?'IX':'VIII')+'. Notas de evolución</h2>'
+        ? '<h2>X. Notas de evolución general</h2>'
           + '<table><tr><th style="background:#f0f0f0;font-size:9px">Fecha/Hora</th><th style="background:#f0f0f0;font-size:9px">Signos vitales</th><th style="background:#f0f0f0;font-size:9px">Dx/Procedimiento</th><th style="background:#f0f0f0;font-size:9px">Plan</th></tr>'
           + p.signosVitales.map(function(sv){
               var vit = [sv.ta?'TA:'+sv.ta:'',sv.fc?'FC:'+sv.fc:'',sv.temp?'T°:'+sv.temp:''].filter(Boolean).join(' ');
@@ -11778,7 +11826,7 @@ function printHistoriaClinica() {
         : '')
 
     // PAGOS
-    + '<h2>'+(p.orthoData && p.orthoData['angle_right'] ? 'X' : 'IX')+'. Registro de pagos (últimos 5)</h2>'
+    + '<h2>XI. Registro de pagos (últimos 5)</h2>'
     + (payRows ? '<table><tr><th style="background:#f0f0f0">Fecha</th><th style="background:#f0f0f0">Tipo</th><th style="background:#f0f0f0">Concepto</th><th style="background:#f0f0f0;text-align:right">Monto</th></tr>'+payRows
         + '<tr><td colspan="3" style="font-weight:bold;text-align:right">Saldo:</td><td style="font-weight:bold;text-align:right">'+fmt$(Math.abs(balance))+(balance<0?' (pendiente)':' (a favor)')+'</td></tr></table>'
         : '<div class="section">Sin movimientos registrados.</div>')
@@ -21843,6 +21891,25 @@ function _specAllRecords() {
   var rows = [], data = _specData();
   SPECIALTY_MODULES.forEach(function(m){ (data[m.id] || []).forEach(function(r){ rows.push({module:m,record:r}); }); });
   return rows;
+}
+
+function _patientModuleNumericCount(obj){return Object.keys(obj||{}).filter(function(k){return /^\d+$/.test(k);}).length;}
+function openPatientSpecialty(id){openSpecialtiesHub();specSelectModule(id);}
+function renderPatientModulesBar(patient){
+  var el=document.getElementById('patient-modules-list');if(!el||!patient)return;
+  var specialtyData=patient.specialtyModules||{},specialtyTotal=0;
+  SPECIALTY_MODULES.forEach(function(m){specialtyTotal+=(specialtyData[m.id]||[]).length;});
+  var integrated=[
+    {id:'odontograma',icon:'🦷',label:'Odontograma',color:'#0071e3',pale:'#eaf3ff',count:_patientModuleNumericCount(patient.odontogram),action:'openOdontogram()'},
+    {id:'odontopediatria',icon:'🧒',label:'Odontopediatría',color:'#d97706',pale:'#fff7e8',count:_patientModuleNumericCount(patient.odontogramaPed),action:'openOdontogramPed()'},
+    {id:'periodoncia',icon:'📊',label:'Periodoncia',color:'#168a45',pale:'#eaf8ef',count:(patient.perioSessions||[]).length,action:'openPeriodontogram()'},
+    {id:'ortodoncia',icon:'😬',label:'Ortodoncia',color:'#db2777',pale:'#fff0f7',count:((patient.orthoData||{}).controls||[]).length,action:'openOrthoModule()'}
+  ];
+  var integratedTotal=integrated.reduce(function(n,m){return n+m.count;},0);
+  var html='<button type="button" class="patient-module-pill summary" onclick="openSpecialtiesHub()"><span class="patient-module-icon">✦</span>Resumen clínico<span class="patient-module-count">'+(integratedTotal+specialtyTotal)+'</span></button>';
+  html+=integrated.map(function(m){return '<button type="button" class="patient-module-pill'+(m.count?' has-data':'')+'" style="--module-color:'+m.color+';--module-pale:'+m.pale+'" onclick="'+m.action+'"><span class="patient-module-icon">'+m.icon+'</span>'+escapeHTML(m.label)+'<span class="patient-module-count">'+m.count+'</span></button>';}).join('');
+  html+=SPECIALTY_MODULES.map(function(m){var count=(specialtyData[m.id]||[]).length;return '<button type="button" class="patient-module-pill'+(count?' has-data':'')+'" style="--module-color:'+m.color+';--module-pale:'+m.pale+'" onclick="openPatientSpecialty(\''+m.id+'\')"><span class="patient-module-icon">'+m.icon+'</span>'+escapeHTML(m.label)+'<span class="patient-module-count">'+count+'</span></button>';}).join('');
+  el.innerHTML=html;
 }
 
 function openSpecialtiesHub() {
