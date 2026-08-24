@@ -752,10 +752,21 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .month-cell.selected-cell .mc-num{background:var(--blue);color:#fff;}
 .mc-num{font-size:.85rem;font-weight:700;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px;}
 .month-cell.today-cell .mc-num{background:var(--blue);color:#fff;}
-.mc-appt{background:var(--blue-pale);border-left:2px solid var(--blue);border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:.65rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:background .1s;max-width:100%;display:block;}
-.mc-appt:hover{background:var(--blue-mid);}
-.mc-appt.mc-done{background:var(--green-bg);border-color:var(--green);}
-.mc-appt.mc-cancelled{background:var(--red-bg);border-color:var(--red);opacity:.6;}
+.mc-appt{
+  --appt-accent:var(--blue);
+  background:var(--blue-pale);
+  background:color-mix(in srgb,var(--appt-accent) 16%,var(--card));
+  border-left:3px solid var(--appt-accent);border-radius:5px;
+  padding:3px 6px;margin-bottom:3px;font-size:.65rem;font-weight:750;
+  color:#17324d!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  cursor:pointer;transition:background .1s,max-width .1s;max-width:100%;display:block;
+  line-height:1.35;text-shadow:none!important;
+}
+.mc-appt:hover{background:color-mix(in srgb,var(--appt-accent) 24%,var(--card));}
+.mc-appt-time{font-weight:850;color:var(--appt-accent);margin-right:4px;}
+.mc-appt-name{color:inherit;}
+.mc-appt.mc-done{--appt-accent:var(--green);opacity:1;}
+.mc-appt.mc-cancelled{--appt-accent:var(--red);opacity:.82;text-decoration:line-through;}
 .mc-more{font-size:.65rem;color:var(--blue);font-weight:700;padding:1px 4px;cursor:pointer;}
 /* Week grid */
 .week-cal{display:grid;grid-template-columns:52px repeat(7,1fr);}
@@ -792,6 +803,13 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .adi-name{font-size:.81rem;font-weight:600;}
 .adi-proc{font-size:.71rem;color:var(--ink-3);}
 .adi-actions{display:flex;gap:4px;flex-shrink:0;}
+.appt-day-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;color:var(--ink);}
+.appt-day-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;}
+.appt-day-time{font-size:.73rem;font-weight:800;color:var(--blue);white-space:nowrap;padding-top:1px;}
+.appt-day-name{font-size:.83rem;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-proc{font-size:.72rem;color:var(--ink-3);margin-top:2px;line-height:1.45;overflow-wrap:anywhere;}
+.appt-day-status{font-size:.68rem;color:var(--ink-3);margin-top:3px;line-height:1.4;}
+.appt-day-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
 /* ━━━━ PAYMENTS ━━━━ */
 .pay-item{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .pay-date{font-size:.71rem;color:var(--ink-3);min-width:72px;}
@@ -3664,6 +3682,14 @@ html.dark .month-cell.selected-cell {
   box-shadow: inset 0 0 0 2px #0a84ff, 0 0 18px rgba(10,132,255,.16) !important;
 }
 html.dark .month-cell.selected-cell .mc-num { background:#0a84ff !important;color:#fff !important; }
+html.dark .mc-appt,
+body.user-theme-dark-card .mc-appt {
+  color:#f5f5f7!important;
+}
+html.dark .mc-appt-time,
+body.user-theme-dark-card .mc-appt-time {
+  color:color-mix(in srgb,var(--appt-accent) 72%,#fff)!important;
+}
 html.dark .wc-slot,
 html.dark .wc-time-label { border-color: rgba(255,255,255,.08) !important; }
 
@@ -8439,9 +8465,13 @@ function renderMonthView() {
       const p   = db.patients.find(x=>x.id==a.patientId);
       const cls = a.status==='done'?'mc-done':a.status==='cancelled'?'mc-cancelled':'';
       var docColor = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
-    var mcStyle = docColor ? `border-left-color:${docColor};background:${docColor}22` : '';
+    // El color del doctor se usa como acento y se mezcla con la tarjeta. Antes
+    // se colocaba un fondo claro directo y, en temas oscuros, heredaba texto
+    // blanco: por eso el nombre parecía desaparecer.
+    var mcStyle = docColor ? `--appt-accent:${docColor}` : '';
     var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
-    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${a.time} ${a.doctorName||''}">${a.time} ${p?p.name.split(' ')[0]:a.calendarName||a.proc||'Cita'}</div>`;
+    var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
+    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${a.time} ${a.doctorName||''}"><span class="mc-appt-time">${a.time}</span><span class="mc-appt-name">${shortName}</span></div>`;
     }).join('');
     const more = dayAp.length > maxShow
       ? `<div class="mc-more" onclick="event.stopPropagation();showApptDayPanel('${ds}')">+${dayAp.length-maxShow} más</div>` : '';
@@ -8778,16 +8808,16 @@ function showApptDayPanel(dateStr) {
         + ' Enviar WhatsApp</button>';
     }
 
-    return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px">'
-      + '<div style="display:flex;align-items:flex-start;gap:8px">'
-      +   '<span style="font-size:.77rem;font-weight:700;color:var(--blue);min-width:44px;flex-shrink:0;padding-top:1px">'+timeLabel+'</span>'
-      +   '<div style="flex:1;min-width:0">'
-      +     '<div style="font-size:.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
-      +     '<div style="font-size:.72rem;color:var(--ink-3);margin-top:1px">'+proc+'</div>'
-      +     '<div style="font-size:.68rem;color:var(--ink-3);margin-top:2px">'+status+(a.doctorName?' · 👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' '):'')+'</div>'
+    return '<div class="appt-day-card">'
+      + '<div class="appt-day-card-head">'
+      +   '<span class="appt-day-time">'+timeLabel+'</span>'
+      +   '<div style="min-width:0">'
+      +     '<div class="appt-day-name">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
+      +     '<div class="appt-day-proc">'+proc+'</div>'
+      +     '<div class="appt-day-status">'+status+(a.doctorName?' · 👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' '):'')+'</div>'
       +   '</div>'
-      +   '<div style="display:flex;gap:4px;flex-shrink:0">'+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
       + '</div>'
+      + '<div class="appt-day-actions">'+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
       + waBtnHtml
       + '</div>';
   }).join('');
