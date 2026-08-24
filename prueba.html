@@ -1398,7 +1398,6 @@ body.spec-open{overflow:hidden;}
   box-shadow: var(--sh-sm); transition: box-shadow .2s, transform .15s;
 }
 .rx-card:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
-.rx-card.is-open { grid-column: span 2; box-shadow: var(--sh-md); transform: none; }
 .rx-card-header {
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--border);
@@ -1412,18 +1411,6 @@ body.spec-open{overflow:hidden;}
 .rx-title { font-size: .9rem; font-weight: 700; letter-spacing: -.02em; color: var(--ink); margin-bottom: 3px; }
 .rx-subtitle { font-size: .72rem; color: var(--ink-3); line-height: 1.4; }
 .rx-tags { display: flex; gap: 5px; flex-wrap: wrap; padding: 8px 16px; border-bottom: 1px solid var(--border); }
-.rx-card-summary { display:flex;align-items:center;gap:10px;padding:10px 16px 12px; }
-.rx-card-med-preview { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:var(--ink-3); }
-.rx-card-toggle {
-  display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:6px 10px;
-  border:1px solid var(--border-med);border-radius:9px;background:var(--bg);
-  color:var(--ink-2);font:inherit;font-size:.68rem;font-weight:750;cursor:pointer;
-}
-.rx-card-toggle:hover { border-color:var(--blue);color:var(--blue); }
-.rx-card-toggle-icon { display:inline-block;font-size:.72rem;transition:transform .18s; }
-.rx-card.is-open .rx-card-toggle-icon { transform:rotate(180deg); }
-.rx-card-details { display:none;border-top:1px solid var(--border);padding-top:10px; }
-.rx-card.is-open .rx-card-details { display:block; }
 .rx-tag { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 980px; }
 .rx-tag-blue   { background: var(--blue-pale);  color: var(--blue); border: 1px solid var(--blue-mid); }
 .rx-tag-red    { background: var(--red-bg);      color: var(--red);  border: 1px solid rgba(255,59,48,.2); }
@@ -1498,12 +1485,6 @@ body.spec-open{overflow:hidden;}
 .rx-search-wrap { position:relative;margin:0 0 12px; }
 .rx-search { padding-left:35px; }
 .rx-search-wrap::before { content:'⌕';position:absolute;left:12px;top:6px;font-size:1.15rem;color:var(--ink-4);z-index:1; }
-.rx-filter-bar { display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px; }
-.rx-filter-primary { display:flex;gap:7px;flex-wrap:wrap; }
-.rx-specialty-filter {
-  min-height:34px;min-width:205px;padding:6px 30px 6px 10px;border:1px solid var(--border-med);
-  border-radius:9px;background:var(--card);color:var(--ink);font:inherit;font-size:.72rem;font-weight:700;
-}
 .rx-library-picker { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-bottom:7px; }
 .rx-library-picker select { width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);background:var(--bg);color:var(--ink);font:inherit;font-size:.76rem; }
 .rx-library-help { margin:0 0 7px;font-size:.66rem;line-height:1.4;color:var(--ink-4); }
@@ -1516,13 +1497,10 @@ body.spec-open{overflow:hidden;}
 @media (max-width:900px) {
   .rx-tools-grid { grid-template-columns:1fr; }
   .rx-ped-form { grid-template-columns:1fr 1fr; }
-  .rx-card.is-open { grid-column:auto; }
 }
 @media (max-width:560px) {
   .rx-clinical-hero { padding:17px; }
   .rx-ped-form { grid-template-columns:1fr; }
-  .rx-filter-primary { width:100%; }
-  .rx-specialty-filter { width:100%; }
   .rx-library-picker { grid-template-columns:1fr; }
 }
 
@@ -5524,33 +5502,28 @@ body.app-ready #dash-page.active > .card {
         <input class="rx-search" id="rx-search" type="search" placeholder="Buscar medicamento, protocolo o indicación…" oninput="rxSearch(this.value)">
       </div>
 
-      <!-- Filtros: accesos frecuentes + especialidad agrupada -->
-      <div class="rx-filter-bar" id="rx-filter-row">
-        <div class="rx-filter-primary">
-          <button class="btn btn-primary btn-sm rx-cat-btn" data-cat="all" onclick="rxFilter('all',this)">Todas</button>
-          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="dolor" onclick="rxFilter('dolor',this)">💊 Dolor</button>
-          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="infeccion" onclick="rxFilter('infeccion',this)">🦠 Infección</button>
-          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Pediatría</button>
-          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="profilaxis" onclick="rxFilter('profilaxis',this)">🫀 Profilaxis</button>
-          <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="vademecum" onclick="rxFilter('vademecum',this)">📖 Vademécum</button>
-        </div>
-        <select id="rx-specialty-filter" class="rx-specialty-filter" onchange="rxSpecialtyFilter(this.value)" aria-label="Filtrar por especialidad">
-          <option value="">Filtrar por especialidad…</option>
-          <option value="extraccion">Extracción</option>
-          <option value="endodoncia">Endodoncia</option>
-          <option value="cirugia">Cirugía</option>
-          <option value="ortodoncia">Ortodoncia</option>
-          <option value="periodoncia">Periodoncia</option>
-          <option value="operatoria">Operatoria</option>
-          <option value="implante">Implantología</option>
-          <option value="embarazo">Embarazo</option>
-          <option value="alergicos">Alergia a penicilina</option>
-          <option value="enjuague">Enjuagues</option>
-          <option value="mucosa">Mucosa oral</option>
-          <option value="antifungico">Antifúngicos</option>
-          <option value="antiviral">Antivirales</option>
-          <option value="prevencion">Prevención y flúor</option>
-        </select>
+      <!-- Filtro de categorías -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="rx-filter-row">
+        <button class="btn btn-primary btn-sm rx-cat-btn" data-cat="all" onclick="rxFilter('all',this)">Todas</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="dolor" onclick="rxFilter('dolor',this)">💊 Dolor</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="infeccion" onclick="rxFilter('infeccion',this)">🦠 Infección</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="profilaxis" onclick="rxFilter('profilaxis',this)">🫀 Profilaxis</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="extraccion" onclick="rxFilter('extraccion',this)">Extracción</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="endodoncia" onclick="rxFilter('endodoncia',this)">Endodoncia</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="cirugia" onclick="rxFilter('cirugia',this)">Cirugía</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ortodoncia" onclick="rxFilter('ortodoncia',this)">Ortodoncia</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="periodoncia" onclick="rxFilter('periodoncia',this)">Periodoncia</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="operatoria" onclick="rxFilter('operatoria',this)">Operatoria</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="embarazo" onclick="rxFilter('embarazo',this)">🤰 Embarazo</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="alergicos" onclick="rxFilter('alergicos',this)">⚠️ Alérgicos PNC</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="ninos" onclick="rxFilter('ninos',this)">👶 Pediatría</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="enjuague" onclick="rxFilter('enjuague',this)">Enjuagues</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="mucosa" onclick="rxFilter('mucosa',this)">👄 Mucosa</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antifungico" onclick="rxFilter('antifungico',this)">Antifúngicos</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="antiviral" onclick="rxFilter('antiviral',this)">Antivirales</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="prevencion" onclick="rxFilter('prevencion',this)">Flúor</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="implante" onclick="rxFilter('implante',this)">Implante</button>
+        <button class="btn btn-ghost btn-sm rx-cat-btn" data-cat="vademecum" onclick="rxFilter('vademecum',this)">📖 Vademécum</button>
       </div>
 
       <div id="rx-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
@@ -12607,42 +12580,7 @@ function rxFilter(cat, btn) {
     b.classList.remove('btn-primary'); b.classList.add('btn-ghost');
   });
   if (btn) { btn.classList.add('btn-primary'); btn.classList.remove('btn-ghost'); }
-  var specialty = document.getElementById('rx-specialty-filter');
-  if (specialty) specialty.value = '';
   renderRxGrid();
-}
-
-function rxSpecialtyFilter(cat) {
-  if (!cat) {
-    var allBtn = document.querySelector('.rx-cat-btn[data-cat="all"]');
-    rxFilter('all', allBtn);
-    return;
-  }
-  _rxActiveCat = cat;
-  document.querySelectorAll('.rx-cat-btn').forEach(function(b){
-    b.classList.remove('btn-primary'); b.classList.add('btn-ghost');
-  });
-  renderRxGrid();
-}
-
-function toggleRxCard(button) {
-  var card = button ? button.closest('.rx-card') : null;
-  if (!card) return;
-  var willOpen = !card.classList.contains('is-open');
-  document.querySelectorAll('#rx-grid .rx-card.is-open').forEach(function(openCard) {
-    if (openCard === card) return;
-    openCard.classList.remove('is-open');
-    var openButton = openCard.querySelector('.rx-card-toggle');
-    if (openButton) {
-      openButton.setAttribute('aria-expanded','false');
-      var openLabel = openButton.querySelector('[data-rx-toggle-label]');
-      if (openLabel) openLabel.textContent = 'Ver protocolo';
-    }
-  });
-  card.classList.toggle('is-open', willOpen);
-  button.setAttribute('aria-expanded', String(willOpen));
-  var label = button.querySelector('[data-rx-toggle-label]');
-  if (label) label.textContent = willOpen ? 'Ocultar' : 'Ver protocolo';
 }
 
 function renderRxGrid() {
@@ -12700,10 +12638,6 @@ function renderRxGrid() {
     }
 
     var drugsSource = rx.drugs || rx.meds || [];
-    var drugPreview = drugsSource.length
-      ? drugsSource.slice(0, 3).map(function(d){ return d.name || ''; }).filter(Boolean).join(' · ')
-        + (drugsSource.length > 3 ? ' · +' + (drugsSource.length - 3) : '')
-      : 'Indicaciones clínicas sin medicamentos';
     var drugsHtml = drugsSource.map(function(d) {
       var dose = d.dose || d.posologia || '';
       var note = d.note || d.notas || '';
@@ -12743,10 +12677,8 @@ function renderRxGrid() {
       + '</div>'
       + '</div>'
       + '<div class="rx-tags">'+tags+'</div>'
-      + '<div class="rx-card-summary"><div class="rx-card-med-preview" title="'+rxEsc(drugPreview)+'">'+rxEsc(drugPreview)+'</div>'
-      + '<button type="button" class="rx-card-toggle" aria-expanded="false" onclick="toggleRxCard(this)"><span data-rx-toggle-label>Ver protocolo</span><span class="rx-card-toggle-icon">⌄</span></button></div>'
-      + '<div class="rx-card-details">'+alertHtml
-      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+sourceHtml+'</div></div>'
+      + alertHtml
+      + '<div class="rx-body">'+drugsHtml+indsHtml+notaHtml+sourceHtml+'</div>'
       + '</div>';
   }).join('');
 }
@@ -20002,10 +19934,19 @@ function initRxEditDrugLibrary() {
   _rxEditDrugLibrary.sort(function(a,b) {
     return (a.group + a.name).localeCompare(b.group + b.name, 'es');
   });
-  select.innerHTML = '<option value="">Elegir del vademécum…</option>'
-    + _rxEditDrugLibrary.map(function(drug, index) {
-      return '<option value="' + index + '">' + rxEsc(drug.group + ' — ' + drug.name) + '</option>';
-    }).join('');
+  var optionsHtml = '<option value="">Elegir del vademécum…</option>';
+  var activeGroup = '';
+  _rxEditDrugLibrary.forEach(function(drug, index) {
+    if (drug.group !== activeGroup) {
+      if (activeGroup) optionsHtml += '</optgroup>';
+      activeGroup = drug.group;
+      optionsHtml += '<optgroup label="' + rxEsc(activeGroup) + '">';
+    }
+    var doseLabel = drug.dose ? ' — ' + drug.dose : '';
+    optionsHtml += '<option value="' + index + '">' + rxEsc(drug.name + doseLabel) + '</option>';
+  });
+  if (activeGroup) optionsHtml += '</optgroup>';
+  select.innerHTML = optionsHtml;
 }
 
 function addRxDrugFromLibrary() {
