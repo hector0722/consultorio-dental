@@ -1053,6 +1053,79 @@ body.ortho-open{overflow:hidden;}
 .odo-surf-btn:hover{border-color:var(--blue);color:var(--blue);}
 .odo-surf-btn.has-cond{font-weight:700;}
 
+/* ━━━━ ODONTOGRAMA PEDIÁTRICO ━━━━ */
+.ped-overlay{display:none;position:fixed;inset:0;z-index:9200;background:rgba(10,12,18,.58);backdrop-filter:blur(10px) saturate(125%);align-items:center;justify-content:center;padding:18px;}
+.ped-overlay.open{display:flex;}
+.ped-box{width:min(1220px,98vw);max-height:calc(100vh - 36px);overflow:hidden;background:var(--card);color:var(--ink);border:1px solid var(--border);border-radius:26px;box-shadow:0 32px 90px rgba(0,0,0,.28);display:flex;flex-direction:column;}
+.ped-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card);flex:0 0 auto;}
+.ped-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+.ped-title-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:linear-gradient(145deg,#fff1f7,#ffe1ed);border:1px solid rgba(219,39,119,.15);box-shadow:0 7px 18px rgba(219,39,119,.12);flex:0 0 auto;}
+.ped-title{font-size:1rem;font-weight:850;letter-spacing:-.025em;color:var(--ink);}
+.ped-subtitle{font-size:.72rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ped-header-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto;}
+.ped-body{overflow-y:auto;padding:16px 18px 22px;overscroll-behavior:contain;}
+.ped-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px;}
+.ped-summary-card{padding:11px 13px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(145deg,var(--card),var(--bg));min-width:0;}
+.ped-summary-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+.ped-summary-value{font-size:1.22rem;font-weight:850;letter-spacing:-.035em;color:var(--ink);margin-top:3px;}
+.ped-summary-sub{font-size:.65rem;color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ped-casebar{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:9px;padding:11px 12px;margin-bottom:12px;border:1px solid var(--border);border-radius:15px;background:var(--bg);}
+.ped-field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.ped-field label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);}
+.ped-field select,.ped-field input,.ped-field textarea{width:100%;min-width:0;padding:7px 9px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--ink);font-family:inherit;font-size:.75rem;}
+.ped-field select:focus,.ped-field input:focus,.ped-field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 14%,transparent);}
+.ped-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:var(--card);}
+.ped-main{padding:15px;min-width:0;}
+.ped-side{padding:15px;border-left:1px solid var(--border);background:color-mix(in srgb,var(--bg) 58%,var(--card));overflow-y:auto;}
+.ped-toolbox{padding:11px 12px;border:1px solid var(--border);border-radius:14px;background:var(--bg);margin-bottom:13px;}
+.ped-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.ped-section-title{font-size:.65rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+.ped-section-hint{font-size:.66rem;color:var(--ink-4);}
+.ped-tools{display:flex;gap:6px;flex-wrap:wrap;}
+.ped-tool{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid var(--border-med);border-radius:999px;background:var(--card);color:var(--ink-2);font-family:inherit;font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.ped-tool-dot{width:9px;height:9px;border-radius:3px;border:1px solid currentColor;flex:0 0 auto;}
+.ped-tool:hover{transform:translateY(-1px);border-color:var(--blue);}
+.ped-tool.active{background:var(--ink);border-color:var(--ink);color:var(--card);box-shadow:0 5px 14px rgba(0,0,0,.14);}
+.ped-arch-card{padding:13px 10px 11px;border:1px solid var(--border);border-radius:16px;background:var(--card);margin-bottom:10px;overflow-x:auto;}
+.ped-arch-title{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px;color:var(--ink-3);font-size:.64rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;}
+.ped-arch-title::before,.ped-arch-title::after{content:'';height:1px;max-width:90px;flex:1;background:var(--border);}
+.ped-arch-row{display:flex;align-items:center;justify-content:center;gap:5px;min-width:590px;}
+.ped-midline{width:1px;height:58px;background:var(--border-med);margin:0 5px;position:relative;flex:0 0 auto;}
+.ped-midline::after{content:'Línea media';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);font-size:.45rem;color:var(--ink-4);white-space:nowrap;background:var(--card);padding:2px;}
+.ped-tooth{width:50px;height:68px;position:relative;padding:4px;border:1.5px solid var(--border-med);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.ped-tooth:hover{transform:translateY(-3px);border-color:var(--blue);box-shadow:0 8px 18px rgba(0,0,0,.1);}
+.ped-tooth.selected{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 17%,transparent),0 8px 18px rgba(0,0,0,.1);}
+.ped-tooth.affected::after{content:'';position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px var(--card);}
+.ped-tooth-number{font-size:.61rem;font-weight:850;color:var(--ink-2);line-height:1;}
+.ped-tooth-kind{font-size:.47rem;font-weight:750;color:var(--ink-4);line-height:1;}
+.ped-mini-surfaces{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);grid-template-areas:'V V V' 'M O D' 'L L L';gap:1px;width:35px;height:35px;padding:2px;border-radius:9px;background:var(--bg);border:1px solid var(--border);}
+.ped-mini-surface{border-radius:2px;border:1px solid var(--ped-stroke);background:var(--ped-fill);}
+.ped-mini-surface[data-s='V']{grid-area:V}.ped-mini-surface[data-s='M']{grid-area:M}.ped-mini-surface[data-s='O']{grid-area:O}.ped-mini-surface[data-s='D']{grid-area:D}.ped-mini-surface[data-s='L']{grid-area:L}
+.ped-legend{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px;padding-top:11px;border-top:1px solid var(--border);}
+.ped-legend-item{display:inline-flex;align-items:center;gap:5px;font-size:.64rem;color:var(--ink-3);font-weight:650;}
+.ped-legend-dot{width:10px;height:10px;border-radius:3px;border:1px solid transparent;}
+.ped-side-empty{text-align:center;padding:34px 12px;color:var(--ink-3);font-size:.75rem;line-height:1.55;}
+.ped-side-empty-icon{width:54px;height:54px;margin:0 auto 10px;border-radius:18px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.45rem;}
+.ped-selected-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:11px;}
+.ped-selected-number{font-size:1.12rem;font-weight:900;letter-spacing:-.04em;color:var(--ink);}
+.ped-selected-meta{font-size:.66rem;color:var(--ink-3);margin-top:1px;}
+.ped-surface-map{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,44px);grid-template-areas:'V V V' 'M O D' 'L L L';gap:5px;justify-content:center;margin:11px 0 13px;}
+.ped-surface-btn{border:1.5px solid var(--ped-stroke);background:var(--ped-fill);color:var(--ped-text);border-radius:9px;font-family:inherit;font-size:.61rem;font-weight:850;cursor:pointer;transition:transform .14s,box-shadow .14s;}
+.ped-surface-btn[data-s='V']{grid-area:V}.ped-surface-btn[data-s='M']{grid-area:M}.ped-surface-btn[data-s='O']{grid-area:O}.ped-surface-btn[data-s='D']{grid-area:D}.ped-surface-btn[data-s='L']{grid-area:L}
+.ped-surface-btn:hover{transform:scale(1.03)}.ped-surface-btn.active{box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent);border-color:var(--blue);}
+.ped-condition-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 12px;}
+.ped-condition-btn{display:flex;align-items:center;gap:7px;padding:7px 8px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--ink-2);font-family:inherit;font-size:.67rem;font-weight:700;text-align:left;cursor:pointer;}
+.ped-condition-btn:hover,.ped-condition-btn.active{border-color:var(--blue);background:var(--blue-pale);color:var(--ink);}
+.ped-condition-swatch{width:13px;height:13px;border-radius:4px;flex:0 0 auto;}
+.ped-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0;}
+.ped-note{min-height:70px;resize:vertical;}
+.ped-findings{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);}
+.ped-finding{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border);}
+.ped-finding:last-child{border-bottom:0}.ped-finding-tooth{font-size:.72rem;font-weight:850;color:var(--blue)}.ped-finding-text{font-size:.68rem;color:var(--ink-3);line-height:1.45}
+body.ped-open{overflow:hidden;}
+@media(max-width:940px){.ped-box{width:100%;height:100%;max-height:100vh;border-radius:0}.ped-overlay{padding:0}.ped-layout{grid-template-columns:1fr}.ped-side{border-left:0;border-top:1px solid var(--border)}.ped-casebar{grid-template-columns:1fr 1fr}.ped-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.ped-header{padding:12px 13px}.ped-title-icon{width:36px;height:36px}.ped-header-actions .ped-print{display:none}.ped-body{padding:11px}.ped-summary-card{padding:9px 10px}.ped-casebar{grid-template-columns:1fr}.ped-main,.ped-side{padding:11px}.ped-toolbox{padding:9px}.ped-tool{padding:6px 8px}.ped-arch-card{padding-left:4px;padding-right:4px}.ped-tooth{width:46px}.ped-condition-grid{grid-template-columns:1fr}}
+
 /* ━━━━ DAY VIEW ━━━━ */.day-view-grid { display: grid; grid-template-columns: 56px 1fr; }
 .dv-time { height: 64px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: flex-end; padding: 6px 8px 0; font-size: .65rem; color: var(--ink-4); font-weight: 600; letter-spacing: .02em; }
 .dv-slot { height: 64px; border-bottom: 1px solid var(--border); position: relative; cursor: pointer; transition: background .1s; }
@@ -20879,6 +20952,266 @@ function printOdontogramPed() {
   _printWindow(w);
 }
 
+// ── Odontograma pediátrico clínico — interfaz avanzada ─────────────
+var ODO_PED_CONDITIONS = [
+  {id:'sano',label:'Sano',short:'Sano',color:'#edf6ff',stroke:'#8fc1f4',text:'#1769aa'},
+  {id:'caries',label:'Caries activa',short:'Caries',color:'#ff4d4f',stroke:'#d92d32',text:'#fff'},
+  {id:'obturacion',label:'Restauración',short:'Rest.',color:'#39c76f',stroke:'#228f4b',text:'#fff'},
+  {id:'sellador',label:'Sellador',short:'Sell.',color:'#8ac926',stroke:'#588516',text:'#173500'},
+  {id:'corona-acero',label:'Corona de acero',short:'Acero',color:'#d9dde5',stroke:'#697386',text:'#29303b'},
+  {id:'pulpotomia',label:'Pulpotomía',short:'Pulpot.',color:'#ffb020',stroke:'#b56f00',text:'#4d2e00'},
+  {id:'pulpectomia',label:'Pulpectomía',short:'Pulpect.',color:'#9b6bf2',stroke:'#6941c6',text:'#fff'},
+  {id:'extraccion',label:'Extracción indicada',short:'Extraer',color:'#25262b',stroke:'#111216',text:'#fff'},
+  {id:'ausente',label:'Ausente',short:'Ausente',color:'#f2f2f4',stroke:'#9b9ba1',text:'#66666c'},
+  {id:'erupcion',label:'En erupción',short:'Erupción',color:'#dff7f2',stroke:'#27a78e',text:'#126b59'},
+  {id:'exfoliacion',label:'Movilidad / exfoliación',short:'Exfol.',color:'#fff0d8',stroke:'#e58a00',text:'#8a5100'},
+  {id:'fractura',label:'Fractura',short:'Fract.',color:'#ffd9d7',stroke:'#dc2626',text:'#a11212'}
+];
+
+var _odoPedActiveSurface = 'O';
+var _odoPedUndoSnapshot = null;
+var _odoPedNoteTimer = null;
+
+function _odoPedCondition(id) {
+  return ODO_PED_CONDITIONS.find(function(c){ return c.id === id; })
+    || ODO_CONDITIONS.find(function(c){ return c.id === id; })
+    || ODO_PED_CONDITIONS[0];
+}
+
+function _odoPedToday() {
+  var d=new Date(), pad=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function _odoPedGetData() {
+  var id = _odoPedCurPatId !== null ? _odoPedCurPatId : curId;
+  var p = db.patients.find(function(x){ return x.id == id; });
+  if (!p) return {};
+  if (!p.odontogramaPed || typeof p.odontogramaPed !== 'object') p.odontogramaPed = {};
+  return p.odontogramaPed;
+}
+
+function _odoPedSaveData(data) {
+  var p = db.patients.find(function(x){ return x.id == _odoPedCurPatId; });
+  if (!p) return;
+  data._updatedAt = Date.now();
+  p.odontogramaPed = data;
+  saveDB();
+}
+
+function _odoPedGetTooth(data, num) {
+  if (!data[num] || typeof data[num] !== 'object') data[num] = {O:'sano',V:'sano',L:'sano',M:'sano',D:'sano',note:''};
+  ['O','V','L','M','D'].forEach(function(s){ if (!data[num][s]) data[num][s]='sano'; });
+  if (data[num].note === undefined) data[num].note='';
+  return data[num];
+}
+
+function _odoPedRemember(data) {
+  try { _odoPedUndoSnapshot = JSON.parse(JSON.stringify(data)); } catch(e) { _odoPedUndoSnapshot = null; }
+  var btn=document.getElementById('odo-ped-undo-btn'); if(btn) btn.disabled=!_odoPedUndoSnapshot;
+}
+
+function undoOdoPed() {
+  if (!_odoPedUndoSnapshot) return;
+  var p=db.patients.find(function(x){return x.id==_odoPedCurPatId;}); if(!p)return;
+  var current=p.odontogramaPed;
+  p.odontogramaPed=_odoPedUndoSnapshot;
+  _odoPedUndoSnapshot=current;
+  saveDB();
+  renderOdoPed();
+  showToast('Cambio deshecho', 'green');
+}
+
+function _odoPedToothKind(num) {
+  return {1:'Inc. central',2:'Inc. lateral',3:'Canino',4:'1.er molar',5:'2.º molar'}[Number(num)%10] || 'Temporal';
+}
+
+function _odoPedToothAffected(t) {
+  return ['O','V','L','M','D'].some(function(s){return (t[s]||'sano')!=='sano';}) || !!String(t.note||'').trim();
+}
+
+function _odoPedPrimaryCondition(t) {
+  var priority=['caries','fractura','pulpotomia','pulpectomia','extraccion','corona-acero','obturacion','sellador','exfoliacion','erupcion','ausente'];
+  var found=priority.find(function(id){return ['O','V','L','M','D'].some(function(s){return t[s]===id;});});
+  return _odoPedCondition(found || 'sano');
+}
+
+function openOdontogramPed() {
+  var p=db.patients.find(function(x){return x.id==curId;});
+  if(!p){showToast('Selecciona un paciente primero','red');return;}
+  _odoPedCurPatId=curId;
+  _odoPedSurfTooth=null;
+  _odoPedActiveSurface='O';
+  _odoPedUndoSnapshot=null;
+  document.getElementById('odo-ped-patient-name').textContent=p.name;
+  document.getElementById('odo-ped-overlay').classList.add('open');
+  document.body.classList.add('ped-open');
+  renderOdoPed();
+}
+
+function closeOdontogramPed() {
+  odoPedFlushNote(false);
+  document.getElementById('odo-ped-overlay').classList.remove('open');
+  document.body.classList.remove('ped-open');
+}
+
+function renderOdoPedTools() {
+  var el=document.getElementById('odo-ped-tools'); if(!el)return;
+  el.innerHTML=ODO_PED_CONDITIONS.map(function(c){
+    return '<button type="button" class="ped-tool'+(_odoPedCurTool===c.id?' active':'')+'" onclick="setOdoPedTool(\''+c.id+'\')" aria-pressed="'+(_odoPedCurTool===c.id?'true':'false')+'"><span class="ped-tool-dot" style="background:'+c.color+';border-color:'+c.stroke+'"></span>'+escapeHTML(c.short)+'</button>';
+  }).join('');
+}
+
+function setOdoPedTool(id) {
+  _odoPedCurTool=id;
+  renderOdoPedTools();
+  if(_odoPedSurfTooth) renderOdoPedSurfPanel(_odoPedGetData());
+}
+
+function _odoPedMiniSurfaces(t) {
+  return '<span class="ped-mini-surfaces">'+['V','M','O','D','L'].map(function(s){var c=_odoPedCondition(t[s]);return '<span class="ped-mini-surface" data-s="'+s+'" style="--ped-fill:'+c.color+';--ped-stroke:'+c.stroke+'"></span>';}).join('')+'</span>';
+}
+
+function _odoPedBuildArch(teeth,label) {
+  var data=_odoPedGetData();
+  var html='<section class="ped-arch-card"><div class="ped-arch-title">'+label+'</div><div class="ped-arch-row">';
+  teeth.forEach(function(num,index){
+    if(index===5) html+='<span class="ped-midline" aria-hidden="true"></span>';
+    var t=_odoPedGetTooth(data,num), primary=_odoPedPrimaryCondition(t), affected=_odoPedToothAffected(t), selected=String(_odoPedSurfTooth)===String(num);
+    html+='<button type="button" class="ped-tooth'+(affected?' affected':'')+(selected?' selected':'')+'" onclick="odoPedToothClick('+num+')" aria-pressed="'+(selected?'true':'false')+'" title="Diente temporal '+num+' · '+escapeHTML(primary.label)+'">'
+      +'<span class="ped-tooth-number">'+num+'</span><span class="ped-tooth-kind">'+_odoPedToothKind(num)+'</span>'+_odoPedMiniSurfaces(t)+'</button>';
+  });
+  return html+'</div></section>';
+}
+
+function renderOdoPed() {
+  var data=_odoPedGetData();
+  renderOdoPedTools();
+  var grid=document.getElementById('odo-ped-grid');
+  if(grid) grid.innerHTML=_odoPedBuildArch(ODO_PED_UPPER,'Superior · maxilar')+_odoPedBuildArch(ODO_PED_LOWER,'Inferior · mandíbula');
+  var legend=document.getElementById('odo-ped-legend');
+  if(legend) legend.innerHTML=ODO_PED_CONDITIONS.map(function(c){return '<span class="ped-legend-item"><span class="ped-legend-dot" style="background:'+c.color+';border-color:'+c.stroke+'"></span>'+escapeHTML(c.label)+'</span>';}).join('');
+  renderOdoPedMeta(data);
+  renderOdoPedSummary(data);
+  renderOdoPedFindings(data);
+  renderOdoPedSurfPanel(data);
+  var undo=document.getElementById('odo-ped-undo-btn'); if(undo)undo.disabled=!_odoPedUndoSnapshot;
+}
+
+function renderOdoPedMeta(data) {
+  var meta=data._meta||{};
+  var values={'odo-ped-stage':meta.stage||'Temporal completa','odo-ped-risk':meta.risk||'','odo-ped-frankl':meta.frankl||'','odo-ped-date':meta.date||_odoPedToday()};
+  Object.keys(values).forEach(function(id){var el=document.getElementById(id);if(el)el.value=values[id];});
+}
+
+function odoPedSaveMeta() {
+  var data=_odoPedGetData(); _odoPedRemember(data);
+  data._meta={
+    stage:document.getElementById('odo-ped-stage').value,
+    risk:document.getElementById('odo-ped-risk').value,
+    frankl:document.getElementById('odo-ped-frankl').value,
+    date:document.getElementById('odo-ped-date').value
+  };
+  _odoPedSaveData(data); renderOdoPedSummary(data);
+}
+
+function renderOdoPedSummary(data) {
+  var teeth=ODO_PED_UPPER.concat(ODO_PED_LOWER), affected=0, caries=0, treated=0, surfaces=0;
+  var treatedIds=['obturacion','sellador','corona-acero','pulpotomia','pulpectomia'];
+  teeth.forEach(function(num){var t=_odoPedGetTooth(data,num);if(_odoPedToothAffected(t))affected++;if(['O','V','L','M','D'].some(function(s){return t[s]==='caries';}))caries++;if(['O','V','L','M','D'].some(function(s){return treatedIds.indexOf(t[s])!==-1;}))treated++;surfaces+=['O','V','L','M','D'].filter(function(s){return t[s]!=='sano';}).length;});
+  var risk=(data._meta&&data._meta.risk)||'Sin valorar';
+  var el=document.getElementById('odo-ped-summary');if(!el)return;
+  el.innerHTML=_odoPedSummaryCard('🦷','Piezas registradas',affected,'de 20 temporales')+_odoPedSummaryCard('🔴','Caries activas',caries,caries?'requieren atención':'sin caries marcadas')+_odoPedSummaryCard('✅','Tratadas',treated,'restauradas o con terapia')+_odoPedSummaryCard('🛡️','Riesgo',risk,surfaces+' superficies señaladas');
+}
+
+function _odoPedSummaryCard(icon,label,value,sub) {
+  return '<div class="ped-summary-card"><div class="ped-summary-top"><span>'+escapeHTML(label)+'</span><span>'+icon+'</span></div><div class="ped-summary-value">'+escapeHTML(value)+'</div><div class="ped-summary-sub">'+escapeHTML(sub)+'</div></div>';
+}
+
+function odoPedToothClick(num) {
+  odoPedFlushNote(false);
+  _odoPedSurfTooth=num; _odoPedActiveSurface='O'; renderOdoPed();
+}
+
+function renderOdoPedSurfPanel(data) {
+  var el=document.getElementById('odo-ped-surf-panel');if(!el)return;
+  if(!_odoPedSurfTooth){el.innerHTML='<div class="ped-side-empty"><div class="ped-side-empty-icon">🦷</div><strong>Selecciona un diente</strong><br>Toca cualquier pieza para registrar superficies, tratamiento y notas.</div>';return;}
+  var num=_odoPedSurfTooth,t=_odoPedGetTooth(data,num),activeCond=_odoPedCondition(t[_odoPedActiveSurface]);
+  var html='<div class="ped-selected-head"><div><div class="ped-selected-number">Diente '+num+'</div><div class="ped-selected-meta">'+_odoPedToothKind(num)+' temporal · FDI</div></div><span class="ped-tool-dot" style="width:18px;height:18px;background:'+_odoPedPrimaryCondition(t).color+';border-color:'+_odoPedPrimaryCondition(t).stroke+'"></span></div>';
+  html+='<div class="ped-section-head"><div class="ped-section-title">Superficies</div><div class="ped-section-hint">Activa: '+escapeHTML(ODO_SURF_LABELS[_odoPedActiveSurface])+'</div></div>';
+  html+='<div class="ped-surface-map">'+['V','M','O','D','L'].map(function(s){var c=_odoPedCondition(t[s]);return '<button type="button" class="ped-surface-btn'+(_odoPedActiveSurface===s?' active':'')+'" data-s="'+s+'" style="--ped-fill:'+c.color+';--ped-stroke:'+c.stroke+';--ped-text:'+c.text+'" onclick="odoPedSurfaceClick(\''+s+'\')" title="'+escapeHTML(ODO_SURF_LABELS[s])+' · '+escapeHTML(c.label)+'">'+s+'<br><span style="font-size:.48rem">'+escapeHTML(c.short)+'</span></button>';}).join('')+'</div>';
+  html+='<div class="ped-section-title">Condición para '+escapeHTML(ODO_SURF_LABELS[_odoPedActiveSurface])+'</div><div class="ped-condition-grid">'+ODO_PED_CONDITIONS.map(function(c){return '<button type="button" class="ped-condition-btn'+(activeCond.id===c.id?' active':'')+'" onclick="odoPedChooseCondition(\''+c.id+'\')"><span class="ped-condition-swatch" style="background:'+c.color+';border:1px solid '+c.stroke+'"></span>'+escapeHTML(c.short)+'</button>';}).join('')+'</div>';
+  html+='<div class="ped-actions"><button type="button" class="btn btn-primary btn-sm" onclick="odoPedApplyWhole()" title="Aplicar la condición rápida a todas las superficies">Aplicar a todo</button><button type="button" class="btn btn-ghost btn-sm" onclick="odoPedResetTooth()">Limpiar diente</button></div>';
+  html+='<div class="ped-field"><label>Nota clínica del diente</label><textarea class="ped-note" id="odo-ped-note" placeholder="Hallazgos, plan, conducta o seguimiento…" oninput="odoPedSetNote('+num+',this.value)" onblur="odoPedFlushNote(true)">'+escapeHTML(t.note||'')+'</textarea></div>';
+  el.innerHTML=html;
+}
+
+function odoPedSurfaceClick(surf) {
+  _odoPedActiveSurface=surf;
+  odoPedSetSurf(_odoPedSurfTooth,surf,_odoPedCurTool);
+}
+
+function odoPedChooseCondition(condId) {
+  _odoPedCurTool=condId;
+  odoPedSetSurf(_odoPedSurfTooth,_odoPedActiveSurface,condId);
+}
+
+function odoPedSetSurf(num,surf,condId) {
+  if(!num)return;
+  var data=_odoPedGetData();_odoPedRemember(data);var t=_odoPedGetTooth(data,num);t[surf]=condId;t.updatedAt=Date.now();_odoPedSaveData(data);renderOdoPed();
+}
+
+function odoPedApplyWhole() {
+  if(!_odoPedSurfTooth)return;
+  var data=_odoPedGetData();_odoPedRemember(data);var t=_odoPedGetTooth(data,_odoPedSurfTooth);['O','V','L','M','D'].forEach(function(s){t[s]=_odoPedCurTool;});t.updatedAt=Date.now();_odoPedSaveData(data);renderOdoPed();showToast('Condición aplicada al diente '+_odoPedSurfTooth,'green');
+}
+
+function odoPedResetTooth() {
+  if(!_odoPedSurfTooth||!confirm('¿Limpiar todas las superficies y la nota del diente '+_odoPedSurfTooth+'?'))return;
+  var data=_odoPedGetData();_odoPedRemember(data);delete data[_odoPedSurfTooth];_odoPedSaveData(data);renderOdoPed();
+}
+
+function odoPedSetNote(num,val) {
+  var data=_odoPedGetData(),t=_odoPedGetTooth(data,num);t.note=val;t.updatedAt=Date.now();
+  clearTimeout(_odoPedNoteTimer);_odoPedNoteTimer=setTimeout(function(){_odoPedSaveData(data);_odoPedNoteTimer=null;renderOdoPedSummary(data);renderOdoPedFindings(data);},650);
+}
+
+function odoPedFlushNote(refresh) {
+  if(!_odoPedNoteTimer)return;
+  clearTimeout(_odoPedNoteTimer);_odoPedNoteTimer=null;var data=_odoPedGetData();_odoPedSaveData(data);if(refresh){renderOdoPedSummary(data);renderOdoPedFindings(data);}
+}
+
+function _odoPedFindingForTooth(t) {
+  var groups={};['O','V','L','M','D'].forEach(function(s){var id=t[s]||'sano';if(id==='sano')return;if(!groups[id])groups[id]=[];groups[id].push(s);});
+  return Object.keys(groups).map(function(id){return _odoPedCondition(id).label+' ('+groups[id].join(', ')+')';}).join(' · ');
+}
+
+function renderOdoPedFindings(data) {
+  var rows=[];ODO_PED_UPPER.concat(ODO_PED_LOWER).forEach(function(num){var t=_odoPedGetTooth(data,num),finding=_odoPedFindingForTooth(t);if(finding||String(t.note||'').trim())rows.push({num:num,finding:finding,note:String(t.note||'').trim()});});
+  var count=document.getElementById('odo-ped-findings-count');if(count)count.textContent=rows.length+' diente'+(rows.length===1?'':'s');
+  var el=document.getElementById('odo-ped-findings');if(!el)return;
+  el.innerHTML=rows.length?rows.map(function(r){return '<div class="ped-finding"><div class="ped-finding-tooth">FDI '+r.num+'</div><div class="ped-finding-text">'+(r.finding?escapeHTML(r.finding):'')+(r.note?'<div style="margin-top:2px;color:var(--ink-2)">'+escapeHTML(r.note)+'</div>':'')+'</div></div>';}).join(''):'<div style="font-size:.72rem;color:var(--ink-4);padding:8px 0">Sin hallazgos registrados.</div>';
+}
+
+function _odoPedPrintText(v){return escapeHTML(v===undefined||v===null||v===''?'—':v).replace(/\n/g,'<br>');}
+
+function printOdontogramPed() {
+  odoPedFlushNote(false);
+  var p=db.patients.find(function(x){return x.id==_odoPedCurPatId;});if(!p)return;
+  var data=_odoPedGetData(),meta=data._meta||{},today=new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  function toothBox(num){var t=_odoPedGetTooth(data,num);return '<div class="tooth"><b>'+num+'</b><div class="surfs">'+['V','M','O','D','L'].map(function(s){var c=_odoPedCondition(t[s]);return '<i class="s '+s+'" style="background:'+c.color+';border-color:'+c.stroke+'"></i>';}).join('')+'</div></div>';}
+  function arch(teeth,label){return '<h3>'+label+'</h3><div class="arch">'+teeth.map(toothBox).join('')+'</div>';}
+  var findings=[];ODO_PED_UPPER.concat(ODO_PED_LOWER).forEach(function(num){var t=_odoPedGetTooth(data,num),f=_odoPedFindingForTooth(t);if(f||t.note)findings.push('<tr><td><b>'+num+'</b></td><td>'+_odoPedPrintText(f)+'</td><td>'+_odoPedPrintText(t.note)+'</td></tr>');});
+  var legend=ODO_PED_CONDITIONS.map(function(c){return '<span><i style="background:'+c.color+';border-color:'+c.stroke+'"></i>'+_odoPedPrintText(c.label)+'</span>';}).join('');
+  var html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Odontograma pediátrico · '+_odoPedPrintText(p.name)+'</title><style>'
+    +'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#151515;padding:24px 30px;font-size:10px;max-width:900px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:2px solid #151515;padding-bottom:9px;margin-bottom:12px}.clinic{font-size:15px;font-weight:800}.muted{color:#666}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.meta div{border:1px solid #ddd;border-radius:7px;padding:7px}.meta b{display:block;font-size:8px;color:#777;text-transform:uppercase;margin-bottom:2px}h3{text-align:center;font-size:9px;letter-spacing:.06em;color:#666;text-transform:uppercase;margin:13px 0 6px}.arch{display:flex;justify-content:center;gap:5px}.tooth{width:50px;border:1px solid #bbb;border-radius:7px;padding:4px;text-align:center}.tooth b{font-size:9px}.surfs{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,8px);grid-template-areas:"V V V" "M O D" "L L L";gap:1px;margin-top:3px}.s{display:block;border:1px solid}.s.V{grid-area:V}.s.M{grid-area:M}.s.O{grid-area:O}.s.D{grid-area:D}.s.L{grid-area:L}.legend{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0;border-top:1px solid #ddd;padding-top:8px}.legend span{display:flex;align-items:center;gap:4px}.legend i{width:9px;height:9px;border:1px solid;border-radius:2px}table{width:100%;border-collapse:collapse;margin-top:9px}th,td{border:1px solid #ddd;padding:6px;text-align:left}th{background:#f5f5f7;color:#666;font-size:8px;text-transform:uppercase}@media print{@page{size:letter;margin:10mm}body{padding:0}}</style></head><body>'
+    +'<div class="head"><div><div class="clinic">'+_odoPedPrintText(cfg.name||'Consultorio Dental')+'</div><div class="muted">'+_odoPedPrintText(cfg.sub||'')+'</div></div><div style="text-align:right"><b>ODONTOGRAMA PEDIÁTRICO</b><br>'+_odoPedPrintText(p.name)+'<br><span class="muted">'+_odoPedPrintText(today)+'</span></div></div>'
+    +'<div class="meta"><div><b>Dentición</b>'+_odoPedPrintText(meta.stage||'Temporal completa')+'</div><div><b>Riesgo de caries</b>'+_odoPedPrintText(meta.risk||'Sin valorar')+'</div><div><b>Conducta</b>'+_odoPedPrintText(meta.frankl||'Sin valorar')+'</div><div><b>Revisión</b>'+_odoPedPrintText(meta.date||_odoPedToday())+'</div></div>'
+    +arch(ODO_PED_UPPER,'Superior · maxilar')+arch(ODO_PED_LOWER,'Inferior · mandíbula')+'<div class="legend">'+legend+'</div>'
+    +(findings.length?'<h3>Hallazgos clínicos</h3><table><thead><tr><th>Diente</th><th>Condiciones</th><th>Nota clínica</th></tr></thead><tbody>'+findings.join('')+'</tbody></table>':'')+'</body></html>';
+  var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();_printWindow(w);
+}
+
 
 // ── Forzar recarga completa desde Drive ──────────────────
 function forceReloadFromDrive() {
@@ -20946,6 +21279,8 @@ document.addEventListener('keydown', function(event) {
     closeMobileNav();
     var orthoOverlay = document.getElementById('ortho-overlay');
     if (orthoOverlay && orthoOverlay.classList.contains('open')) closeOrthoModule();
+    var pedOverlay = document.getElementById('odo-ped-overlay');
+    if (pedOverlay && pedOverlay.classList.contains('open')) closeOdontogramPed();
   }
 });
 
@@ -22243,37 +22578,52 @@ window.addEventListener('resize', function() {
   </div>
 </div>
 <!-- ══ ODONTOGRAMA PEDIÁTRICO OVERLAY ══ -->
-<div id="odo-ped-overlay" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
-  <div style="background:var(--card);border-radius:var(--r-xl);max-width:820px;width:96%;margin:auto;box-shadow:var(--sh-xl);overflow:hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--border)">
-      <div>
-        <h2 style="font-size:1rem;font-weight:800;color:var(--ink);margin:0">🧒 Odontograma Pediátrico</h2>
-        <div id="odo-ped-patient-name" style="font-size:.78rem;color:var(--ink-3);margin-top:2px"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost btn-sm" onclick="printOdontogramPed()">🖨️ Imprimir</button>
-        <button class="btn btn-ghost btn-sm" onclick="closeOdontogramPed()">✕ Cerrar</button>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 280px;gap:0;min-height:400px">
-      <!-- Odontograma -->
-      <div style="padding:20px;border-right:1px solid var(--border);overflow-y:auto">
-        <div id="odo-ped-grid"></div>
-        <!-- Leyenda -->
-        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
-          <div style="font-size:.68rem;font-weight:700;color:var(--ink-3);margin-bottom:8px">LEYENDA</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px" id="odo-ped-legend"></div>
+<div id="odo-ped-overlay" class="ped-overlay" onclick="if(event.target===this)closeOdontogramPed()">
+  <section class="ped-box" role="dialog" aria-modal="true" aria-labelledby="odo-ped-title">
+    <header class="ped-header">
+      <div class="ped-title-wrap">
+        <div class="ped-title-icon">🧒</div>
+        <div style="min-width:0">
+          <h2 class="ped-title" id="odo-ped-title">Odontograma pediátrico</h2>
+          <div class="ped-subtitle"><span id="odo-ped-patient-name"></span> · Dentición temporal FDI</div>
         </div>
       </div>
-      <!-- Panel superficies -->
-      <div style="padding:16px;overflow-y:auto;max-height:600px">
-        <div style="font-size:.72rem;font-weight:700;color:var(--ink-3);margin-bottom:10px">SUPERFICIES</div>
-        <div id="odo-ped-surf-panel">
-          <p style="font-size:.78rem;color:var(--ink-3);text-align:center;padding:20px">Toca un diente para ver sus superficies</p>
-        </div>
+      <div class="ped-header-actions">
+        <button class="btn btn-ghost btn-sm" id="odo-ped-undo-btn" onclick="undoOdoPed()" disabled>↶ Deshacer</button>
+        <button class="btn btn-ghost btn-sm ped-print" onclick="printOdontogramPed()">🖨️ Resumen</button>
+        <button class="ortho-icon-btn" onclick="closeOdontogramPed()" aria-label="Cerrar odontograma pediátrico">✕</button>
+      </div>
+    </header>
+    <div class="ped-body">
+      <div class="ped-summary" id="odo-ped-summary" aria-live="polite"></div>
+      <div class="ped-casebar">
+        <div class="ped-field"><label>Etapa de dentición</label><select id="odo-ped-stage" onchange="odoPedSaveMeta()"><option>Temporal completa</option><option>Mixta inicial</option><option>Mixta tardía</option><option>Erupción atípica</option></select></div>
+        <div class="ped-field"><label>Riesgo de caries</label><select id="odo-ped-risk" onchange="odoPedSaveMeta()"><option value="">Sin valorar</option><option>Bajo</option><option>Moderado</option><option>Alto</option><option>Extremo</option></select></div>
+        <div class="ped-field"><label>Conducta de Frankl</label><select id="odo-ped-frankl" onchange="odoPedSaveMeta()"><option value="">Sin valorar</option><option>Frankl I — definitivamente negativo</option><option>Frankl II — negativo</option><option>Frankl III — positivo</option><option>Frankl IV — definitivamente positivo</option></select></div>
+        <div class="ped-field"><label>Última revisión</label><input type="date" id="odo-ped-date" onchange="odoPedSaveMeta()"></div>
+      </div>
+      <div class="ped-layout">
+        <main class="ped-main">
+          <div class="ped-toolbox">
+            <div class="ped-section-head"><div class="ped-section-title">Condición rápida</div><div class="ped-section-hint">Selecciona una condición y después una superficie</div></div>
+            <div class="ped-tools" id="odo-ped-tools"></div>
+          </div>
+          <div id="odo-ped-grid"></div>
+          <div class="ped-legend" id="odo-ped-legend"></div>
+          <div class="ped-findings">
+            <div class="ped-section-head"><div class="ped-section-title">Hallazgos registrados</div><div class="ped-section-hint" id="odo-ped-findings-count">0 dientes</div></div>
+            <div id="odo-ped-findings"></div>
+          </div>
+        </main>
+        <aside class="ped-side">
+          <div class="ped-section-title">Editor del diente</div>
+          <div id="odo-ped-surf-panel">
+            <div class="ped-side-empty"><div class="ped-side-empty-icon">🦷</div><strong>Selecciona un diente</strong><br>Toca cualquier pieza para registrar superficies, tratamiento y notas.</div>
+          </div>
+        </aside>
       </div>
     </div>
-  </div>
+  </section>
 </div>
 
 <!-- Privacy Policy Link -->
