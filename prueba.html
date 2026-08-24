@@ -1053,6 +1053,40 @@ body.ortho-open{overflow:hidden;}
 .odo-surf-btn:hover{border-color:var(--blue);color:var(--blue);}
 .odo-surf-btn.has-cond{font-weight:700;}
 
+/* ━━━━ ODONTOGRAMA ADULTO — espacio clínico renovado ━━━━ */
+.odo-overlay{z-index:9150;background:rgba(10,12,18,.58);backdrop-filter:blur(10px) saturate(125%);padding:18px;}
+.odo-box{width:min(1320px,98vw);max-width:none;max-height:calc(100vh - 36px);overflow:hidden;border:1px solid var(--border);border-radius:26px;box-shadow:0 32px 90px rgba(0,0,0,.28);}
+.odo-header{position:static;padding:16px 20px;gap:18px;flex:0 0 auto;}
+.odo-body{overflow-y:auto;padding:16px 18px 22px;overscroll-behavior:contain;}
+.adult-odo-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+.adult-odo-title-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:linear-gradient(145deg,#eaf5ff,#dcecff);border:1px solid rgba(0,113,227,.15);box-shadow:0 7px 18px rgba(0,113,227,.12);flex:0 0 auto;}
+.adult-odo-title{font-size:1rem!important;font-weight:850!important;letter-spacing:-.025em!important;color:var(--ink);}
+.adult-odo-subtitle{font-size:.72rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.adult-odo-header-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto;}
+.adult-odo-arch-card{padding:13px 10px 11px;border:1px solid var(--border);border-radius:16px;background:var(--card);margin-bottom:10px;overflow-x:auto;}
+.adult-odo-arch-title{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px;color:var(--ink-3);font-size:.64rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;}
+.adult-odo-arch-title::before,.adult-odo-arch-title::after{content:'';height:1px;max-width:100px;flex:1;background:var(--border);}
+.adult-odo-arch-row{display:flex;align-items:center;justify-content:center;gap:4px;min-width:790px;}
+.adult-odo-midline{width:1px;height:61px;background:var(--blue-mid);margin:0 5px;position:relative;flex:0 0 auto;}
+.adult-odo-midline::after{content:'Línea media';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);font-size:.43rem;color:var(--ink-4);white-space:nowrap;background:var(--card);padding:2px;}
+.adult-odo-tooth{width:43px;height:70px;position:relative;padding:4px 3px;border:1.5px solid var(--border-med);border-radius:11px;background:var(--card);color:var(--ink);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;}
+.adult-odo-tooth:hover{transform:translateY(-3px);border-color:var(--blue);box-shadow:0 8px 18px rgba(0,0,0,.1);}
+.adult-odo-tooth.selected{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 17%,transparent),0 8px 18px rgba(0,0,0,.1);}
+.adult-odo-tooth.affected::after{content:'';position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px var(--card);}
+.adult-odo-tooth-number{font-size:.59rem;font-weight:850;color:var(--ink-2);line-height:1;}
+.adult-odo-tooth-kind{font-size:.44rem;font-weight:750;color:var(--ink-4);line-height:1;white-space:nowrap;max-width:38px;overflow:hidden;text-overflow:ellipsis;}
+.adult-odo-tooth .ped-mini-surfaces{width:33px;height:33px;}
+.adult-odo-orient{font-size:.62rem;color:var(--ink-4);text-align:center;margin:-4px 0 8px;}
+.adult-odo-history{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);}
+.adult-odo-history-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:.67rem;}
+.adult-odo-history-row:last-child{border-bottom:0;}
+.adult-odo-history-cond{color:var(--ink-2);line-height:1.35;}
+.adult-odo-history-date{color:var(--ink-4);font-size:.62rem;white-space:nowrap;}
+.adult-odo-history .odo-hist-del{width:24px;height:24px;border-radius:7px;}
+body.odo-open{overflow:hidden;}
+@media(max-width:1000px){.odo-box{width:100%;height:100%;max-height:100vh;border-radius:0}.odo-overlay{padding:0}.odo-body .ped-layout{grid-template-columns:1fr}.odo-body .ped-side{border-left:0;border-top:1px solid var(--border)}.odo-body .ped-casebar{grid-template-columns:1fr 1fr}.odo-body .ped-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.odo-header{padding:12px 13px}.adult-odo-title-icon{width:36px;height:36px}.adult-odo-header-actions .adult-odo-print{display:none}.odo-body{padding:11px}.odo-body .ped-casebar{grid-template-columns:1fr}.odo-body .ped-main,.odo-body .ped-side{padding:11px}.adult-odo-history-row{grid-template-columns:36px 1fr auto}.adult-odo-history-date{display:none}}
+
 /* ━━━━ ODONTOGRAMA PEDIÁTRICO ━━━━ */
 .ped-overlay{display:none;position:fixed;inset:0;z-index:9200;background:rgba(10,12,18,.58);backdrop-filter:blur(10px) saturate(125%);align-items:center;justify-content:center;padding:18px;}
 .ped-overlay.open{display:flex;}
@@ -14334,6 +14368,325 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── Experiencia clínica renovada del odontograma adulto ──
+var _odoAdultActiveSurface = 'O';
+var _odoAdultUndoSnapshot = null;
+var _odoAdultNoteTimer = null;
+var _odoAdultNoteEditing = false;
+
+function _odoAdultToday() { return fmtDate(new Date()); }
+function _odoAdultCondition(id) {
+  return ODO_CONDITIONS.find(function(c){ return c.id === id; }) || ODO_CONDITIONS[0];
+}
+function _odoAdultTooth(data, num) { return data[num] || {}; }
+function _odoAdultEffective(t, surf) {
+  return (t.surfaces && Object.prototype.hasOwnProperty.call(t.surfaces, surf)) ? t.surfaces[surf] : (t.whole || 'sano');
+}
+function _odoAdultAffected(t) {
+  return ODO_SURFACES.some(function(s){ return _odoAdultEffective(t, s) !== 'sano'; }) || !!String(t.note || '').trim();
+}
+function _odoAdultPrimary(t) {
+  var ids = ODO_SURFACES.map(function(s){ return _odoAdultEffective(t, s); }).filter(function(id){ return id !== 'sano'; });
+  return _odoAdultCondition(ids[0] || 'sano');
+}
+function _odoAdultRemember(data) {
+  _odoAdultUndoSnapshot = JSON.stringify(data || _odoGetData());
+  var b = document.getElementById('odo-undo-btn'); if (b) b.disabled = false;
+}
+function _odoAdultSaveData(data) {
+  var p = db.patients.find(function(x){ return x.id == _odoCurPatId; });
+  if (!p) return;
+  p.odontogram = data;
+  saveDB();
+}
+function _odoAdultHistory(t, surf, cond, prev) {
+  if (!t.history) t.history = [];
+  t.history.push({ date:_odoAdultToday(), stamp:Date.now(), surf:surf, cond:cond, prev:prev });
+}
+function _odoAdultQuadrant(num) {
+  var q = Math.floor(Number(num) / 10);
+  return ({1:'Superior derecho',2:'Superior izquierdo',3:'Inferior izquierdo',4:'Inferior derecho'})[q] || 'Dentición permanente';
+}
+function _odoAdultOrientation(num) {
+  var q = Math.floor(Number(num) / 10), mesialRight = q === 1 || q === 4;
+  return { mesialRight:mesialRight, left:mesialRight ? 'D' : 'M', right:mesialRight ? 'M' : 'D' };
+}
+function _odoAdultText(v) {
+  return escapeHTML(v === undefined || v === null || v === '' ? '—' : String(v)).replace(/\n/g, '<br>');
+}
+
+function openOdontogram() {
+  _odoCurPatId = curId;
+  var p = db.patients.find(function(x){ return x.id == curId; });
+  if (!p) return;
+  _odoSurfTooth = null;
+  _odoAdultActiveSurface = 'O';
+  _odoAdultUndoSnapshot = null;
+  document.getElementById('odo-patient-name').textContent = p.name;
+  document.getElementById('odo-overlay').classList.add('open');
+  document.body.classList.add('odo-open');
+  renderOdontogram();
+}
+
+function closeOdontogram() {
+  odoAdultFlushNote(false);
+  var overlay = document.getElementById('odo-overlay'); if (overlay) overlay.classList.remove('open');
+  document.body.classList.remove('odo-open');
+  _odoSurfTooth = null;
+}
+
+function closeOdoSurfPanel() { /* El editor ahora es fijo y no necesita cerrarse. */ }
+
+function renderOdontogram() {
+  var data = _odoGetData();
+  renderOdoToolbar();
+  renderOdoArches();
+  renderOdoLegend();
+  renderOdoMeta(data);
+  renderOdoSummary(data);
+  renderOdoFindings(data);
+  renderOdoHistory();
+  renderOdoSurfPanel(data);
+  var undo = document.getElementById('odo-undo-btn'); if (undo) undo.disabled = !_odoAdultUndoSnapshot;
+}
+
+function renderOdoToolbar() {
+  var tb = document.getElementById('odo-toolbar'); if (!tb) return;
+  tb.innerHTML = ODO_CONDITIONS.map(function(c){
+    return '<button type="button" class="ped-tool'+(c.id === _odoCurTool ? ' active' : '')+'" onclick="setOdoTool(\''+c.id+'\')" aria-pressed="'+(c.id === _odoCurTool ? 'true' : 'false')+'"><span class="ped-tool-dot" style="background:'+c.color+';border-color:'+c.stroke+'"></span>'+escapeHTML(c.label)+'</button>';
+  }).join('');
+}
+
+function setOdoTool(id) {
+  _odoCurTool = id;
+  renderOdoToolbar();
+  if (_odoSurfTooth) renderOdoSurfPanel(_odoGetData());
+}
+
+function _odoAdultMiniSurfaces(num, t) {
+  var orient = _odoAdultOrientation(num);
+  return '<span class="ped-mini-surfaces">'+['V','M','O','D','L'].map(function(s){
+    var c = _odoAdultCondition(_odoAdultEffective(t, s));
+    var area = s === 'M' ? (orient.mesialRight ? 'D' : 'M') : (s === 'D' ? (orient.mesialRight ? 'M' : 'D') : s);
+    return '<span class="ped-mini-surface" data-s="'+s+'" style="grid-area:'+area+';--ped-fill:'+c.color+';--ped-stroke:'+c.stroke+'"></span>';
+  }).join('')+'</span>';
+}
+
+function _odoAdultBuildArch(teeth) {
+  var data = _odoGetData(), html = '';
+  teeth.forEach(function(num, index){
+    if (index === 8) html += '<span class="adult-odo-midline" aria-hidden="true"></span>';
+    var t = _odoAdultTooth(data, num), affected = _odoAdultAffected(t), selected = String(_odoSurfTooth) === String(num), primary = _odoAdultPrimary(t);
+    html += '<button type="button" class="adult-odo-tooth'+(affected?' affected':'')+(selected?' selected':'')+'" onclick="handleOdoClick('+num+',event)" aria-pressed="'+(selected?'true':'false')+'" title="Diente '+num+' · '+escapeHTML(getToothName(num))+' · '+escapeHTML(primary.label)+'">'
+      +'<span class="adult-odo-tooth-number">'+num+'</span><span class="adult-odo-tooth-kind">'+escapeHTML(getToothName(num))+'</span>'+_odoAdultMiniSurfaces(num,t)+'</button>';
+  });
+  return html;
+}
+
+function renderOdoArches() {
+  var upper = document.getElementById('odo-upper'), lower = document.getElementById('odo-lower');
+  if (upper) upper.innerHTML = _odoAdultBuildArch(ODO_UPPER);
+  if (lower) lower.innerHTML = _odoAdultBuildArch(ODO_LOWER);
+}
+
+function handleOdoClick(fdi, event) {
+  if (event) event.stopPropagation();
+  odoAdultFlushNote(false);
+  _odoSurfTooth = fdi;
+  _odoAdultActiveSurface = 'O';
+  renderOdontogram();
+}
+
+function renderOdoLegend() {
+  var el = document.getElementById('odo-legend'); if (!el) return;
+  el.innerHTML = ODO_CONDITIONS.map(function(c){
+    return '<span class="ped-legend-item"><span class="ped-legend-dot" style="background:'+c.color+';border-color:'+c.stroke+'"></span>'+escapeHTML(c.label)+'</span>';
+  }).join('');
+}
+
+function renderOdoMeta(data) {
+  var meta = data._meta || {};
+  var values = {'odo-stage':meta.stage || 'Permanente','odo-risk':meta.risk || '','odo-perio-status':meta.perioStatus || '','odo-date':meta.date || _odoAdultToday()};
+  Object.keys(values).forEach(function(id){ var el = document.getElementById(id); if (el) el.value = values[id]; });
+}
+
+function odoSaveMeta() {
+  var data = _odoGetData(); _odoAdultRemember(data);
+  data._meta = {
+    stage:document.getElementById('odo-stage').value,
+    risk:document.getElementById('odo-risk').value,
+    perioStatus:document.getElementById('odo-perio-status').value,
+    date:document.getElementById('odo-date').value
+  };
+  _odoAdultSaveData(data); renderOdoSummary(data);
+}
+
+function _odoAdultSummaryCard(icon, label, value, sub) {
+  return '<div class="ped-summary-card"><div class="ped-summary-top"><span>'+escapeHTML(label)+'</span><span>'+icon+'</span></div><div class="ped-summary-value">'+escapeHTML(String(value))+'</div><div class="ped-summary-sub">'+escapeHTML(sub)+'</div></div>';
+}
+
+function renderOdoSummary(data) {
+  var teeth = ODO_UPPER.concat(ODO_LOWER), affected = 0, caries = 0, treated = 0, missing = 0, surfaces = 0;
+  var treatedIds = ['obturacion','corona','endodoncia','implante','carilla','sellador'];
+  teeth.forEach(function(num){
+    var t = _odoAdultTooth(data,num), ids = ODO_SURFACES.map(function(s){ return _odoAdultEffective(t,s); });
+    if (_odoAdultAffected(t)) affected++;
+    if (ids.indexOf('caries') !== -1) caries++;
+    if (ids.some(function(id){ return treatedIds.indexOf(id) !== -1; })) treated++;
+    if (ids.some(function(id){ return id === 'ausente' || id === 'extraccion'; })) missing++;
+    surfaces += ids.filter(function(id){ return id !== 'sano'; }).length;
+  });
+  var el = document.getElementById('odo-summary'); if (!el) return;
+  el.innerHTML = _odoAdultSummaryCard('🦷','Con hallazgos',affected,'de 32 piezas permanentes')
+    + _odoAdultSummaryCard('🔴','Caries activas',caries,caries ? 'piezas que requieren atención' : 'sin caries marcadas')
+    + _odoAdultSummaryCard('✅','Tratadas',treated,'restauración o terapia registrada')
+    + _odoAdultSummaryCard('◌','Ausentes / extracción',missing,surfaces+' superficies señaladas');
+}
+
+function _odoAdultSurfaceButton(num, t, surf, area) {
+  var cond = _odoAdultCondition(_odoAdultEffective(t,surf));
+  var label = surf === 'L' ? (Number(num) < 30 ? 'Palat.' : 'Lingual') : ODO_SURF_LABELS[surf].split('/')[0];
+  return '<button type="button" class="ped-surface-btn'+(_odoAdultActiveSurface === surf ? ' active' : '')+'" data-s="'+surf+'" style="grid-area:'+area+';--ped-fill:'+cond.color+';--ped-stroke:'+cond.stroke+';--ped-text:'+cond.text+'" onclick="odoAdultSurfaceClick(\''+surf+'\')" title="'+escapeHTML(ODO_SURF_LABELS[surf])+' · '+escapeHTML(cond.label)+'">'+surf+'<br><span style="font-size:.48rem">'+escapeHTML(label)+'</span></button>';
+}
+
+function renderOdoSurfPanel(data) {
+  var el = document.getElementById('odo-surf-panel'); if (!el) return;
+  if (!_odoSurfTooth) {
+    el.innerHTML = '<div class="ped-side-empty"><div class="ped-side-empty-icon">🦷</div><strong>Selecciona un diente</strong><br>Toca cualquier pieza para registrar superficies, tratamiento y notas.</div>';
+    return;
+  }
+  var num = _odoSurfTooth, t = _odoAdultTooth(data,num), orient = _odoAdultOrientation(num), activeCond = _odoAdultCondition(_odoAdultEffective(t,_odoAdultActiveSurface)), primary = _odoAdultPrimary(t);
+  var html = '<div class="ped-selected-head"><div><div class="ped-selected-number">Diente '+num+'</div><div class="ped-selected-meta">'+escapeHTML(getToothName(num))+' · '+escapeHTML(_odoAdultQuadrant(num))+'</div></div><span class="ped-tool-dot" style="width:18px;height:18px;background:'+primary.color+';border-color:'+primary.stroke+'"></span></div>';
+  html += '<div class="ped-section-head"><div class="ped-section-title">Superficies</div><div class="ped-section-hint">Activa: '+escapeHTML(ODO_SURF_LABELS[_odoAdultActiveSurface])+'</div></div>';
+  html += '<div class="adult-odo-orient">← '+(orient.left === 'M' ? 'Mesial' : 'Distal')+' · '+(orient.right === 'M' ? 'Mesial' : 'Distal')+' →</div>';
+  html += '<div class="ped-surface-map">'
+    + _odoAdultSurfaceButton(num,t,'V','V')
+    + _odoAdultSurfaceButton(num,t,orient.left,'M')
+    + _odoAdultSurfaceButton(num,t,'O','O')
+    + _odoAdultSurfaceButton(num,t,orient.right,'D')
+    + _odoAdultSurfaceButton(num,t,'L','L') + '</div>';
+  html += '<div class="ped-section-title">Condición para '+escapeHTML(ODO_SURF_LABELS[_odoAdultActiveSurface])+'</div><div class="ped-condition-grid">'+ODO_CONDITIONS.map(function(c){
+    return '<button type="button" class="ped-condition-btn'+(activeCond.id === c.id ? ' active' : '')+'" onclick="odoAdultChooseCondition(\''+c.id+'\')"><span class="ped-condition-swatch" style="background:'+c.color+';border:1px solid '+c.stroke+'"></span>'+escapeHTML(c.label)+'</button>';
+  }).join('')+'</div>';
+  html += '<div class="ped-actions"><button type="button" class="btn btn-primary btn-sm" onclick="applyOdoWhole('+num+')">Aplicar a todo</button><button type="button" class="btn btn-ghost btn-sm" onclick="odoAdultResetTooth()">Limpiar diente</button></div>';
+  html += '<div class="ped-field"><label>Nota clínica del diente</label><textarea class="ped-note" id="odo-note" placeholder="Hallazgos, tratamiento indicado o seguimiento…" oninput="odoAdultSetNote('+num+',this.value)" onblur="odoAdultFlushNote(true)">'+escapeHTML(t.note || '')+'</textarea></div>';
+  el.innerHTML = html;
+}
+
+function odoAdultSurfaceClick(surf) {
+  _odoAdultActiveSurface = surf;
+  applyOdoSurface(_odoSurfTooth,surf);
+}
+
+function odoAdultChooseCondition(condId) {
+  _odoCurTool = condId;
+  applyOdoSurface(_odoSurfTooth,_odoAdultActiveSurface);
+}
+
+function applyOdoSurface(fdi, surf) {
+  if (!fdi) return;
+  var data = _odoGetData(); _odoAdultRemember(data);
+  if (!data[fdi]) data[fdi] = {};
+  var t = data[fdi]; if (!t.surfaces) t.surfaces = {};
+  var prev = _odoAdultEffective(t,surf);
+  t.surfaces[surf] = _odoCurTool;
+  t.updatedAt = Date.now();
+  _odoAdultHistory(t,surf,_odoCurTool,prev);
+  _odoAdultSaveData(data); renderOdontogram();
+}
+
+function applyOdoWhole(fdi) {
+  if (!fdi) return;
+  var data = _odoGetData(); _odoAdultRemember(data);
+  if (!data[fdi]) data[fdi] = {};
+  var t = data[fdi], prev = t.whole || 'sano';
+  t.whole = _odoCurTool; t.surfaces = {}; t.updatedAt = Date.now();
+  _odoAdultHistory(t,'todo',_odoCurTool,prev);
+  _odoAdultSaveData(data); renderOdontogram(); showToast('Condición aplicada al diente '+fdi,'green');
+}
+
+function odoAdultResetTooth() {
+  if (!_odoSurfTooth || !confirm('¿Limpiar todas las superficies y la nota del diente '+_odoSurfTooth+'?')) return;
+  var data = _odoGetData(); _odoAdultRemember(data); delete data[_odoSurfTooth];
+  _odoAdultSaveData(data); renderOdontogram();
+}
+
+function odoAdultSetNote(num, value) {
+  var data = _odoGetData();
+  if (!_odoAdultNoteEditing) { _odoAdultRemember(data); _odoAdultNoteEditing = true; }
+  if (!data[num]) data[num] = {};
+  data[num].note = value; data[num].updatedAt = Date.now();
+  clearTimeout(_odoAdultNoteTimer);
+  _odoAdultNoteTimer = setTimeout(function(){ _odoAdultSaveData(data); _odoAdultNoteTimer = null; renderOdoSummary(data); renderOdoFindings(data); },650);
+}
+
+function odoAdultFlushNote(refresh) {
+  if (_odoAdultNoteTimer) { clearTimeout(_odoAdultNoteTimer); _odoAdultNoteTimer = null; _odoAdultSaveData(_odoGetData()); }
+  _odoAdultNoteEditing = false;
+  if (refresh) { var data = _odoGetData(); renderOdoSummary(data); renderOdoFindings(data); }
+}
+
+function _odoAdultFinding(t) {
+  var groups = {};
+  ODO_SURFACES.forEach(function(s){ var id = _odoAdultEffective(t,s); if (id === 'sano') return; if (!groups[id]) groups[id] = []; groups[id].push(s); });
+  return Object.keys(groups).map(function(id){ return _odoAdultCondition(id).label+' ('+groups[id].join(', ')+')'; }).join(' · ');
+}
+
+function renderOdoFindings(data) {
+  var rows = [];
+  ODO_UPPER.concat(ODO_LOWER).forEach(function(num){ var t = _odoAdultTooth(data,num), finding = _odoAdultFinding(t), note = String(t.note || '').trim(); if (finding || note) rows.push({num:num,finding:finding,note:note}); });
+  var count = document.getElementById('odo-findings-count'); if (count) count.textContent = rows.length+' diente'+(rows.length === 1 ? '' : 's');
+  var el = document.getElementById('odo-findings'); if (!el) return;
+  el.innerHTML = rows.length ? rows.map(function(r){ return '<div class="ped-finding"><div class="ped-finding-tooth">FDI '+r.num+'</div><div class="ped-finding-text">'+(r.finding ? escapeHTML(r.finding) : '')+(r.note ? '<div style="margin-top:2px;color:var(--ink-2)">'+escapeHTML(r.note)+'</div>' : '')+'</div></div>'; }).join('') : '<div style="font-size:.72rem;color:var(--ink-4);padding:8px 0">Sin hallazgos registrados.</div>';
+}
+
+function renderOdoHistory() {
+  var data = _odoGetData(), rows = [];
+  ODO_UPPER.concat(ODO_LOWER).forEach(function(fdi){
+    var t = data[fdi]; if (!t || !t.history) return;
+    t.history.forEach(function(h,hi){ rows.push({fdi:fdi,h:h,hi:hi}); });
+  });
+  rows.sort(function(a,b){ return (b.h.stamp || Date.parse(b.h.date) || 0) - (a.h.stamp || Date.parse(a.h.date) || 0); });
+  var el = document.getElementById('odo-history-list'); if (!el) return;
+  if (!rows.length) { el.innerHTML = '<div style="font-size:.72rem;color:var(--ink-4);padding:8px 0">Sin cambios registrados.</div>'; return; }
+  el.innerHTML = rows.slice(0,20).map(function(r){
+    var c = _odoAdultCondition(r.h.cond), surf = r.h.surf === 'todo' ? 'Todo el diente' : (ODO_SURF_LABELS[r.h.surf] || r.h.surf);
+    return '<div class="adult-odo-history-row"><span class="ped-finding-tooth">FDI '+r.fdi+'</span><span class="adult-odo-history-cond"><span class="ped-legend-dot" style="display:inline-block;vertical-align:-2px;margin-right:5px;background:'+c.color+';border-color:'+c.stroke+'"></span>'+escapeHTML(c.label)+' · '+escapeHTML(surf)+'</span><span class="adult-odo-history-date">'+escapeHTML(r.h.date || '')+'</span><button class="odo-hist-del" onclick="delOdoHistory('+r.fdi+','+r.hi+')" title="Eliminar del historial">✕</button></div>';
+  }).join('');
+}
+
+function delOdoHistory(fdi, hi) {
+  var data = _odoGetData(); if (!data[fdi] || !data[fdi].history) return;
+  _odoAdultRemember(data); data[fdi].history.splice(hi,1); _odoAdultSaveData(data); renderOdontogram();
+}
+
+function undoOdontogram() {
+  if (!_odoAdultUndoSnapshot) return;
+  var p = db.patients.find(function(x){ return x.id == _odoCurPatId; }); if (!p) return;
+  p.odontogram = JSON.parse(_odoAdultUndoSnapshot); _odoAdultUndoSnapshot = null; saveDB(); renderOdontogram(); showToast('Último cambio deshecho','green');
+}
+
+function printOdontogram() {
+  odoAdultFlushNote(false);
+  var p = db.patients.find(function(x){ return x.id == _odoCurPatId; }); if (!p) return;
+  var data = _odoGetData(), meta = data._meta || {}, today = new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  function toothBox(num){
+    var t = _odoAdultTooth(data,num), orient = _odoAdultOrientation(num);
+    return '<div class="tooth"><b>'+num+'</b><div class="surfs">'+ODO_SURFACES.map(function(s){ var c = _odoAdultCondition(_odoAdultEffective(t,s)), area = s === 'M' ? (orient.mesialRight ? 'D' : 'M') : (s === 'D' ? (orient.mesialRight ? 'M' : 'D') : s); return '<i class="s" style="grid-area:'+area+';background:'+c.color+';border-color:'+c.stroke+'"></i>'; }).join('')+'</div></div>';
+  }
+  function arch(teeth,label){ return '<h3>'+label+'</h3><div class="arch">'+teeth.map(toothBox).join('')+'</div>'; }
+  var findings = [];
+  ODO_UPPER.concat(ODO_LOWER).forEach(function(num){ var t = _odoAdultTooth(data,num), f = _odoAdultFinding(t); if (f || t.note) findings.push('<tr><td><b>'+num+'</b></td><td>'+_odoAdultText(f)+'</td><td>'+_odoAdultText(t.note)+'</td></tr>'); });
+  var legend = ODO_CONDITIONS.map(function(c){ return '<span><i style="background:'+c.color+';border-color:'+c.stroke+'"></i>'+_odoAdultText(c.label)+'</span>'; }).join('');
+  var html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Odontograma · '+_odoAdultText(p.name)+'</title><style>'
+    +'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#151515;padding:22px 26px;font-size:10px;max-width:1020px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:2px solid #151515;padding-bottom:9px;margin-bottom:12px}.clinic{font-size:15px;font-weight:800}.muted{color:#666}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.meta div{border:1px solid #ddd;border-radius:7px;padding:7px}.meta b{display:block;font-size:8px;color:#777;text-transform:uppercase;margin-bottom:2px}h3{text-align:center;font-size:9px;letter-spacing:.06em;color:#666;text-transform:uppercase;margin:12px 0 6px}.arch{display:flex;justify-content:center;gap:3px}.tooth{width:42px;border:1px solid #bbb;border-radius:6px;padding:3px;text-align:center}.tooth b{font-size:8px}.surfs{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,7px);grid-template-areas:"V V V" "M O D" "L L L";gap:1px;margin-top:3px}.s{display:block;border:1px solid;border-radius:1px}.legend{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;border-top:1px solid #ddd;padding-top:8px}.legend span{display:flex;align-items:center;gap:4px}.legend i{width:9px;height:9px;border:1px solid;border-radius:2px}table{width:100%;border-collapse:collapse;margin-top:9px}th,td{border:1px solid #ddd;padding:6px;text-align:left}th{background:#f5f5f7;color:#666;font-size:8px;text-transform:uppercase}@media print{@page{size:letter landscape;margin:9mm}body{padding:0}}</style></head><body>'
+    +'<div class="head"><div><div class="clinic">'+_odoAdultText((typeof cfg !== 'undefined' && cfg.name) || 'Consultorio Dental')+'</div><div class="muted">'+_odoAdultText((typeof cfg !== 'undefined' && cfg.sub) || '')+'</div></div><div style="text-align:right"><b>ODONTOGRAMA ADULTO</b><br>'+_odoAdultText(p.name)+'<br><span class="muted">'+_odoAdultText(today)+'</span></div></div>'
+    +'<div class="meta"><div><b>Dentición</b>'+_odoAdultText(meta.stage || 'Permanente')+'</div><div><b>Riesgo de caries</b>'+_odoAdultText(meta.risk || 'Sin valorar')+'</div><div><b>Estado periodontal</b>'+_odoAdultText(meta.perioStatus || 'Sin valorar')+'</div><div><b>Revisión</b>'+_odoAdultText(meta.date || _odoAdultToday())+'</div></div>'
+    +arch(ODO_UPPER,'Superior · maxilar')+arch(ODO_LOWER,'Inferior · mandíbula')+'<div class="legend">'+legend+'</div>'
+    +(findings.length ? '<h3>Hallazgos clínicos</h3><table><thead><tr><th>Diente</th><th>Condiciones</th><th>Nota clínica</th></tr></thead><tbody>'+findings.join('')+'</tbody></table>' : '')+'</body></html>';
+  var w = window.open('','_blank'); if (!w) return; w.document.write(html); w.document.close(); _printWindow(w);
+}
+
 
 // ══════════════════════════════════════════════════════════
 // ★ PERIODONTOGRAMA COMPLETO
@@ -21281,6 +21634,8 @@ document.addEventListener('keydown', function(event) {
     if (orthoOverlay && orthoOverlay.classList.contains('open')) closeOrthoModule();
     var pedOverlay = document.getElementById('odo-ped-overlay');
     if (pedOverlay && pedOverlay.classList.contains('open')) closeOdontogramPed();
+    var odoOverlay = document.getElementById('odo-overlay');
+    if (odoOverlay && odoOverlay.classList.contains('open')) closeOdontogram();
   }
 });
 
@@ -22050,46 +22405,62 @@ window.addEventListener('resize', function() {
 
 <!-- ODONTOGRAMA OVERLAY -->
 <div class="odo-overlay" id="odo-overlay" onclick="if(event.target===this)closeOdontogram()">
-  <div class="odo-box">
-    <div class="odo-header">
-      <div>
-        <h2>🦷 Odontograma — <span id="odo-patient-name">Paciente</span></h2>
-        <div style="font-size:.73rem;color:var(--ink-3);margin-top:2px">Notación FDI · Haz clic en cualquier diente para registrar condición</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-ghost btn-sm" onclick="printOdontogram()">🖨️ Imprimir</button>
-        <button onclick="closeOdontogram()" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
-      </div>
-    </div>
-    <div class="odo-body">
-      <!-- Toolbar -->
-      <div class="odo-toolbar" id="odo-toolbar"></div>
-      <!-- Arches -->
-      <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border)">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);text-align:center;margin-bottom:8px">SUPERIOR — Maxilar</div>
-        <div class="odo-arch" id="odo-upper"></div>
-        <div style="display:flex;justify-content:center;margin:10px 0">
-          <div style="height:1px;width:80%;background:var(--border-med)"></div>
+  <section class="odo-box" role="dialog" aria-modal="true" aria-labelledby="odo-title">
+    <header class="odo-header">
+      <div class="adult-odo-title-wrap">
+        <div class="adult-odo-title-icon">🦷</div>
+        <div style="min-width:0">
+          <h2 class="adult-odo-title" id="odo-title">Odontograma adulto</h2>
+          <div class="adult-odo-subtitle"><span id="odo-patient-name">Paciente</span> · Dentición permanente · Notación FDI</div>
         </div>
-        <div class="odo-arch" id="odo-lower"></div>
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);text-align:center;margin-top:8px">INFERIOR — Mandíbula</div>
       </div>
-      <!-- Legend -->
-      <div class="odo-legend" id="odo-legend"></div>
-      <!-- History -->
-      <div class="odo-history">
-        <div class="odo-history-title">Historial de condiciones registradas</div>
-        <div id="odo-history-list"></div>
+      <div class="adult-odo-header-actions">
+        <button class="btn btn-ghost btn-sm" id="odo-undo-btn" onclick="undoOdontogram()" disabled>↶ Deshacer</button>
+        <button class="btn btn-ghost btn-sm adult-odo-print" onclick="printOdontogram()">🖨️ Resumen</button>
+        <button class="ortho-icon-btn" onclick="closeOdontogram()" aria-label="Cerrar odontograma">✕</button>
+      </div>
+    </header>
+    <div class="odo-body">
+      <div class="ped-summary" id="odo-summary" aria-live="polite"></div>
+      <div class="ped-casebar">
+        <div class="ped-field"><label>Tipo de dentición</label><select id="odo-stage" onchange="odoSaveMeta()"><option>Permanente</option><option>Mixta tardía</option><option>Con prótesis</option><option>Con implantes</option></select></div>
+        <div class="ped-field"><label>Riesgo de caries</label><select id="odo-risk" onchange="odoSaveMeta()"><option value="">Sin valorar</option><option>Bajo</option><option>Moderado</option><option>Alto</option><option>Extremo</option></select></div>
+        <div class="ped-field"><label>Estado periodontal</label><select id="odo-perio-status" onchange="odoSaveMeta()"><option value="">Sin valorar</option><option>Compatible con salud</option><option>Gingivitis</option><option>Periodontitis</option><option>En tratamiento</option><option>Interconsulta indicada</option></select></div>
+        <div class="ped-field"><label>Última revisión</label><input type="date" id="odo-date" onchange="odoSaveMeta()"></div>
+      </div>
+      <div class="ped-layout">
+        <main class="ped-main">
+          <div class="ped-toolbox">
+            <div class="ped-section-head"><div class="ped-section-title">Condición rápida</div><div class="ped-section-hint">Selecciona una condición y después una superficie</div></div>
+            <div class="ped-tools" id="odo-toolbar"></div>
+          </div>
+          <div class="adult-odo-arch-card">
+            <div class="adult-odo-arch-title">Superior · maxilar</div>
+            <div class="adult-odo-arch-row" id="odo-upper"></div>
+          </div>
+          <div class="adult-odo-arch-card">
+            <div class="adult-odo-arch-title">Inferior · mandíbula</div>
+            <div class="adult-odo-arch-row" id="odo-lower"></div>
+          </div>
+          <div class="ped-legend" id="odo-legend"></div>
+          <div class="ped-findings">
+            <div class="ped-section-head"><div class="ped-section-title">Hallazgos clínicos</div><div class="ped-section-hint" id="odo-findings-count">0 dientes</div></div>
+            <div id="odo-findings"></div>
+          </div>
+          <div class="adult-odo-history">
+            <div class="ped-section-head"><div class="ped-section-title">Últimos cambios</div><div class="ped-section-hint">Registro cronológico</div></div>
+            <div id="odo-history-list"></div>
+          </div>
+        </main>
+        <aside class="ped-side">
+          <div class="ped-section-title">Editor del diente</div>
+          <div id="odo-surf-panel">
+            <div class="ped-side-empty"><div class="ped-side-empty-icon">🦷</div><strong>Selecciona un diente</strong><br>Toca cualquier pieza para registrar superficies, tratamiento y notas.</div>
+          </div>
+        </aside>
       </div>
     </div>
-  </div>
-</div>
-<!-- Surface picker panel -->
-<div class="odo-surface-panel" id="odo-surf-panel" style="display:none">
-  <div class="odo-surface-title" id="odo-surf-title">Diente —</div>
-  <div id="odo-orient-label" style="font-size:.6rem;color:var(--ink-4);text-align:center;margin-bottom:4px"></div>
-  <div class="odo-surface-grid" id="odo-surf-grid"></div>
-  <button onclick="closeOdoSurfPanel()" style="width:100%;padding:5px;border:none;background:none;cursor:pointer;font-size:.75rem;color:var(--ink-4)">Cerrar</button>
+  </section>
 </div>
 
 
