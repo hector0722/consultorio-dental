@@ -16470,9 +16470,10 @@ var GD = (function() {
   var _authInProgress = false;
   var _authAttemptSeq = 0;
   var _activeAuthAttempt = 0;
-  // Drive no ofrece sockets en una app estática. Consultar cada dos segundos
-  // permite que el segundo dispositivo reciba pronto los cambios confirmados.
-  var AUTO_PULL_MS = 2000;
+  // Drive no ofrece sockets en una app estática. Ocho segundos mantiene otros
+  // dispositivos actualizados sin saturar la conexión con cuatro consultas de
+  // metadatos cada dos segundos. Al volver a la pestaña se revisa de inmediato.
+  var AUTO_PULL_MS = 8000;
   // Dar tiempo suficiente a conexiones lentas y bases clínicas grandes sin
   // dejar la interfaz indefinidamente en "Guardando…".
   var DRIVE_REQUEST_TIMEOUT_MS = 90000;
@@ -16601,7 +16602,7 @@ var GD = (function() {
     if (!b) return;
     b.style.display = 'flex';
     b.className = state;
-    var icons = { synced:'✅', syncing:'⏳', error:'⚠️', offline:'💾' };
+    var icons = { synced:'☁️', syncing:'↻', error:'⚠️', offline:'💾' };
     if (i) i.innerHTML = icons[state] || '';
     if (t) {
       var accountSuffix = state !== 'offline' && _accountEmail
@@ -16701,30 +16702,16 @@ var GD = (function() {
             return _loadDB();
           })
           .then(function() {
-            updateAppLoading('Cargando tratamientos y precios…',2);
-            setBadge('syncing', 'Cargando precios…');
-            return _loadCatalog();
+            // Catálogo y configuración son archivos distintos. Cargarlos al
+            // mismo tiempo evita dos esperas consecutivas en cada acceso.
+            updateAppLoading('Aplicando precios y configuración…',3);
+            setBadge('syncing', 'Preparando consultorio…');
+            return Promise.all([_loadCatalog(), _loadCfg()]);
           })
           .then(function() {
-            updateAppLoading('Aplicando la configuración de tu consultorio…',3);
-            setBadge('syncing', 'Aplicando configuración…');
-            return _loadCfg();
-          })
-          .then(function() {
-            updateAppLoading('Cargando portada, logotipo y fotografías…',3);
-            setBadge('syncing', 'Cargando portada…');
-            return _loadHero();
-          })
-          .then(function() {
-            if (typeof migrateLegacyInlineImagesToDrive !== 'function') return;
-            updateAppLoading('Verificando las fotografías guardadas en Drive…',3);
-            setBadge('syncing', 'Migrando imágenes a Drive…');
-            return migrateLegacyInlineImagesToDrive();
-          })
-          .then(function() {
-            // La primera ejecución solo-Drive siempre hace un guardado
-            // verificado antes de retirar las copias antiguas del navegador.
-            if (!appStorage.isReady()) _dirty = true;
+            // Pacientes, citas, notas, precios y configuración ya están listos.
+            // La portada, logotipo y migraciones visuales pueden continuar en
+            // segundo plano sin dejar al usuario mirando una pantalla de carga.
             _saving = false;
             document.getElementById('sidebar').style.display = '';
             document.getElementById('main').style.display = '';
@@ -16734,9 +16721,7 @@ var GD = (function() {
               _appInitialized = true;
               _initApp();
             }
-            setBadge('synced', _lastRemotePatientCount === null
-              ? 'Sincronizado'
-              : ('Drive: ' + _lastRemotePatientCount + ' pacientes'));
+            setBadge('synced', 'Drive conectado');
             if (_accountEmail) {
               showToast('☁️ Conectado a Drive como ' + _accountEmail, 'green');
             }
@@ -16754,14 +16739,7 @@ var GD = (function() {
             // dispositivos (incluido el móvil) reciban esas imágenes.
             if (_cfgDirty && !_cfgSaving) {
               if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
-              _cfgSaveTimer = setTimeout(_doSaveCfg, 100);
-            }
-            if (_heroDirty && !_heroSaving) {
-              // La Mac puede ser el único equipo que aún conserva la foto.
-              // Subirla tanto al archivo independiente como a la base común.
-              _dirty = true;
-              _scheduleSave();
-              setTimeout(_doSaveHero, 120);
+              _cfgSaveTimer = setTimeout(_doSaveCfg, 700);
             }
             // Si el usuario capturó algo mientras Drive estaba descargando,
             // save() dejó la marca pendiente. Subirla ahora que terminó la
@@ -16769,6 +16747,31 @@ var GD = (function() {
             if (_dirty && !_dbSaving) _scheduleSave();
             updateAppLoading('Tu consultorio está listo.',4);
             hideAppLoading();
+
+            // Los recursos visuales no son necesarios para comenzar a usar el
+            // expediente. Cargarlos después acorta la conexión perceptible y
+            // conserva exactamente la misma migración segura de datos antiguos.
+            Promise.resolve()
+              .then(_loadHero)
+              .then(function() {
+                if (typeof migrateLegacyInlineImagesToDrive !== 'function') return;
+                return migrateLegacyInlineImagesToDrive();
+              })
+              .then(function() {
+                // La primera ejecución solo-Drive siempre hace un guardado
+                // verificado antes de retirar las copias antiguas del navegador.
+                if (!appStorage.isReady()) _dirty = true;
+                if (_heroDirty && !_heroSaving) {
+                  _dirty = true;
+                  setTimeout(_doSaveHero, 120);
+                }
+                if (_cfgDirty && !_cfgSaving) saveCfg();
+                if (_dirty && !_dbSaving) _scheduleSave();
+              })
+              .catch(function(error) {
+                // Una imagen lenta no bloquea pacientes ni captura clínica.
+                console.warn('Recursos visuales pendientes de Drive:', error);
+              });
           })
           .catch(function(e) {
             _saving = false;
@@ -16894,7 +16897,23 @@ var GD = (function() {
         _needsAppDataMigration = true;
         _dirty = true;
       }
-      return Promise.all([_readFile(file.id), _loadDeviceDBPayloads(), _loadLegacyCajaPayloads()]).then(function(results) {
+      // Los respaldos antiguos de Caja pueden ser archivos grandes y solo son
+      // necesarios cuando la base canónica realmente no contiene Caja. Antes
+      // se descargaban hasta treinta copias en cada acceso aunque no hicieran
+      // falta. Reutilizar la misma lectura principal evita una petición doble.
+      var primaryRead = _readFile(file.id);
+      var legacyCajaRead = primaryRead.then(function(primaryData) {
+        var hasCanonicalCaja = !!(primaryData && (
+          cajaParseRows(primaryData._caja).length
+          || Object.keys(cajaParseTrash(primaryData._cajaTrash)).length
+          || (primaryData.cajaState && (
+            cajaParseRows(primaryData.cajaState.rows).length
+            || Object.keys(cajaParseTrash(primaryData.cajaState.tombstones)).length
+          ))
+        ));
+        return hasCanonicalCaja ? [] : _loadLegacyCajaPayloads();
+      });
+      return Promise.all([primaryRead, _loadDeviceDBPayloads(), legacyCajaRead]).then(function(results) {
         var data = _mergeDeviceDBPayloads(results[0], results[1]);
         if (!cajaParseRows(data._caja).length
             && !Object.keys(cajaParseTrash(data._cajaTrash)).length
@@ -17457,7 +17476,6 @@ var GD = (function() {
     var expectedRaw = String(raw);
     _catalogSaving = true;
     _catalogDirty = false;
-    setBadge('syncing', 'Guardando precios…');
     var locate = _catalogFileId
       ? Promise.resolve({ id:_catalogFileId })
       : _findFile(CATALOG_FILENAME);
@@ -17477,7 +17495,7 @@ var GD = (function() {
         if (_catalogSaveTimer) clearTimeout(_catalogSaveTimer);
         _catalogSaveTimer = setTimeout(_doSaveCatalog, 80);
       } else {
-        setBadge('synced', '✓ Precios guardados en Drive');
+        setBadge('synced', 'Drive conectado');
       }
     }).catch(function(error) {
       console.error('Catalog save error:', error);
@@ -17881,6 +17899,12 @@ var GD = (function() {
     // Cada escritura consulta de nuevo los metadatos. Así, aunque dos equipos
     // editen casi al mismo tiempo, ninguno parte deliberadamente de una versión
     // que el otro dispositivo ya reemplazó en Drive.
+    // Si una comprobación o guardado acaba de confirmar la versión remota, no
+    // repetir dos consultas de red por cada clic consecutivo. Los espejos por
+    // dispositivo siguen protegiendo cualquier edición simultánea.
+    if (_lastRemoteCheckAt && Date.now() - _lastRemoteCheckAt < 5000) {
+      return Promise.resolve(false);
+    }
     return Promise.all([_findPrimaryDBFile(), _findDeviceDBFiles()]).then(function(results) {
       _lastRemoteCheckAt = Date.now();
       var primaryFile = results[0];
@@ -17909,9 +17933,10 @@ var GD = (function() {
     if (_saving) { _dirty = true; return; }
     _dirty = true;
     if (_syncTimer) clearTimeout(_syncTimer);
-    // Cero demora: solo se difiere al siguiente ciclo para terminar de aplicar
-    // en memoria todos los cambios producidos por el mismo botón.
-    _syncTimer = setTimeout(_doSave, 0);
+    // Agrupar cambios cercanos evita subir la base completa varias veces cuando
+    // el usuario llena varios campos seguidos. La copia local se actualiza antes
+    // de llegar aquí, por lo que esta breve espera no pone datos en riesgo.
+    _syncTimer = setTimeout(_doSave, 650);
   }
 
   function _doSave() {
@@ -17926,7 +17951,10 @@ var GD = (function() {
     }
     _dbSaving = true;
     _dirty = false;
-    setBadge('syncing', 'Comprobando cambios…');
+    // Mantener el estado sereno durante el autoguardado. Solo un error requiere
+    // interrumpir visualmente al usuario; la acción manual Sincronizar conserva
+    // su propia confirmación.
+    setBadge('synced', 'Drive conectado');
     var expectedRevision = '';
     var expectedPatientCount = 0;
     var expectedContentSignature = '';
@@ -17936,7 +17964,6 @@ var GD = (function() {
     // Descargar y mezclar el contenido completo solo cuando los metadatos
     // indiquen que otro dispositivo guardó una versión nueva.
     _preflightBeforeSave().then(function() {
-      setBadge('syncing', 'Guardando…');
       saveLocalWithAutoBackup();
       var writeId = _dbIsAppData ? _dbFileId : null;
       var payload = _buildSavePayload();
@@ -17998,14 +18025,7 @@ var GD = (function() {
       // seguro retirar del navegador todas las copias clínicas heredadas.
       appStorage.activateDriveOnly();
       appStorage.markClean(savedDirtySnapshot);
-      setBadge('synced', result.mirrorPending
-        ? ('✓ Drive guardado: ' + result.patientCount + ' pacientes')
-        : ('✓ Drive verificado: ' + result.patientCount + ' pacientes'));
-      setTimeout(function() {
-        if (!_dbSaving && !_dirty) {
-          setBadge('synced', 'Drive: ' + result.patientCount + ' pacientes');
-        }
-      }, 2600);
+      setBadge('synced', 'Drive conectado');
       if (result.mirrorPending && _mirrorRetryCount < 2) {
         // Reintentar el lote completo más tarde. Si hubo una edición nueva,
         // _doSave construirá un payload actualizado y nunca restaurará el viejo.
@@ -18083,7 +18103,7 @@ var GD = (function() {
         if (!dbChanged && !cfgChanged && !catalogChanged) return false;
 
         _saving = true;
-        setBadge('syncing', 'Actualizando…');
+        setBadge('syncing', 'Recibiendo cambios…');
         var jobs = [];
         if (dbChanged) jobs.push(_loadDB(true));
         if (cfgChanged) jobs.push(_loadCfg());
@@ -18106,8 +18126,7 @@ var GD = (function() {
             if (_cfgDirty) saveCfg();
             if (_catalogDirty) saveCatalog(false);
           } else {
-            setBadge('synced', 'Actualizado automáticamente');
-            setTimeout(function(){ setBadge('synced', 'Sincronizado'); }, 2200);
+            setBadge('synced', 'Drive conectado');
             showToast('☁️ Cambios de otro dispositivo actualizados', 'green');
           }
           return true;
@@ -23598,7 +23617,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Indicadores de sincronización</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Arriba a la derecha: ✅ <strong>Sincronizado</strong> = todo guardado · ⏳ <strong>Guardando</strong> = en proceso · ⚠️ <strong>Error</strong> = reconectar. Toca <strong>"💾 Guardar"</strong> para forzar guardado inmediato.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Arriba a la derecha: ☁️ <strong>Drive conectado</strong> = la cuenta está activa y el autoguardado funciona · ↻ <strong>Recibiendo cambios</strong> = se encontró información nueva de otro dispositivo · ⚠️ <strong>Error</strong> = hace falta reconectar. Usa <strong>Sincronizar</strong> cuando quieras comprobar manualmente.</div>
           </div>
         </div>
       </div>
@@ -23618,7 +23637,7 @@ window.addEventListener('resize', function() {
       <div id="h-problemas" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">🛟 Solución de problemas</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:4px">No dice “Sincronizado”</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">Toca el indicador o Guardar, reconecta Google y espera. No cierres la página mientras diga Guardando: los cambios pendientes existen solo durante la sesión actual hasta que Drive los confirme.</div></div>
+          <div style="background:#fff8e1;border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid #f59e0b"><div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:4px">No dice “Drive conectado”</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">Toca el indicador y confirma la misma cuenta de Google. Si aparece un error, no cierres la página: pulsa Sincronizar o vuelve a conectar para enviar los cambios pendientes.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">No aparecen pacientes o citas</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Comprueba que entraste con la misma cuenta de Google. Pulsa Guardar/Sync y espera hasta un minuto. Revisa filtros de ciudad, alertas y doctor; un filtro activo puede ocultar registros.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Sin conexión a Drive</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">La aplicación no ofrece modo offline. Reconecta la misma cuenta de Google para cargar y guardar; no cierres la pestaña si hay un cambio pendiente.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Respaldo manual y recuperación</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En Configuración usa <strong>Exportar mis datos</strong> para descargar JSON. Para recuperar, usa <strong>Importar datos desde respaldo</strong> y selecciona un archivo exportado por esta app. Conserva varias copias fechadas antes de actualizar o borrar información.</div></div>
