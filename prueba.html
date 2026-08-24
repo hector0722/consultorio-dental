@@ -1237,11 +1237,64 @@ body.ped-open{overflow:hidden;}
 .spec-launch-card:hover{transform:translateY(-2px);border-color:var(--blue);}
 .spec-launch-icon{width:42px;height:42px;border-radius:13px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto;}
 .spec-launch-title{font-size:.78rem;font-weight:820}.spec-launch-sub{font-size:.65rem;color:var(--ink-3);margin-top:2px;line-height:1.35}
+.spec-clinical-intake{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:10px;border:1px solid var(--border);border-radius:14px;background:var(--bg);margin-bottom:11px;}
+.spec-unique{border:1px solid color-mix(in srgb,var(--spec-color) 24%,var(--border));border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--spec-pale) 42%,var(--card)),var(--card));padding:13px;margin-bottom:11px;overflow:hidden;}
+.spec-unique-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;}
+.spec-unique-title{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:850;color:var(--ink);}
+.spec-unique-title span:first-child{width:30px;height:30px;border-radius:10px;background:var(--spec-pale);color:var(--spec-color);display:flex;align-items:center;justify-content:center;}
+.spec-unique-hint{font-size:.61rem;color:var(--ink-4);}
+.spec-u-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.spec-u-section{padding:10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--card) 92%,transparent);min-width:0;}
+.spec-u-section.full{grid-column:1/-1;}
+.spec-u-label{font-size:.59rem;font-weight:850;text-transform:uppercase;letter-spacing:.055em;color:var(--ink-3);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.spec-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+.spec-choice-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.spec-choice-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.spec-choice{min-height:35px;padding:6px 7px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--ink-3);font:inherit;font-size:.62rem;font-weight:720;line-height:1.25;cursor:pointer;text-align:left;transition:all .14s;}
+.spec-choice:hover{border-color:var(--spec-color);color:var(--ink);transform:translateY(-1px);}
+.spec-choice.active{border-color:var(--spec-color);background:var(--spec-pale);color:var(--spec-color);box-shadow:0 0 0 2px color-mix(in srgb,var(--spec-color) 12%,transparent);}
+.spec-choice.center{text-align:center;}
+.spec-chip-row{display:flex;flex-wrap:wrap;gap:5px;}
+.spec-chip{padding:5px 8px;border:1px solid var(--border-med);border-radius:999px;background:var(--card);color:var(--ink-3);font:inherit;font-size:.61rem;font-weight:720;cursor:pointer;}
+.spec-chip.active{background:var(--spec-color);border-color:var(--spec-color);color:#fff;}
+.spec-input{width:100%;padding:8px 9px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--ink);font:inherit;font-size:.72rem;}
+.spec-input:focus{outline:none;border-color:var(--spec-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--spec-color) 12%,transparent);}
+.spec-note-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.spec-note-grid .spec-field:nth-child(n+3){grid-column:1/-1;}
+.spec-endo-dx{border-top:3px solid var(--spec-color);}
+.spec-endo-canal{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;}
+.spec-endo-tooth{width:68px;height:68px;border-radius:22px;background:var(--spec-pale);border:1px solid color-mix(in srgb,var(--spec-color) 28%,var(--border));display:flex;align-items:center;justify-content:center;font-size:1.6rem;position:relative;}
+.spec-endo-tooth::after{content:'Conductos';position:absolute;bottom:5px;font-size:.45rem;font-weight:800;text-transform:uppercase;color:var(--spec-color);}
+.spec-surgery-safety{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.spec-safety-item{display:flex;align-items:center;gap:6px;min-height:38px;padding:7px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--ink-3);font:inherit;font-size:.61rem;font-weight:700;text-align:left;cursor:pointer;}
+.spec-safety-item::before{content:'○';font-size:.9rem;color:var(--ink-4)}.spec-safety-item.active{border-color:var(--green);background:var(--green-bg);color:#176d31}.spec-safety-item.active::before{content:'✓';color:var(--green)}
+.spec-phase-track{display:grid;grid-template-columns:repeat(8,minmax(72px,1fr));gap:4px;overflow-x:auto;padding:3px 1px 8px;}
+.spec-phase{position:relative;padding:27px 6px 7px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink-3);font:inherit;font-size:.56rem;font-weight:760;text-align:center;cursor:pointer;}
+.spec-phase::before{content:attr(data-step);position:absolute;top:6px;left:50%;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--ink-4);font-size:.52rem;}
+.spec-phase.active{border-color:var(--spec-color);background:var(--spec-pale);color:var(--spec-color)}.spec-phase.active::before{background:var(--spec-color);color:#fff}
+.spec-implant-specs{display:grid;grid-template-columns:1.2fr .9fr .8fr;gap:7px;}
+.spec-stage-track{display:flex;gap:5px;overflow-x:auto;padding-bottom:6px;}
+.spec-stage{min-width:112px;padding:9px;border:1px solid var(--border);border-radius:10px;background:var(--card);font:inherit;text-align:left;cursor:pointer;color:var(--ink-3);}
+.spec-stage b{display:block;font-size:.63rem;color:inherit}.spec-stage span{font-size:.53rem;color:var(--ink-4)}.spec-stage.active{border-color:var(--spec-color);background:var(--spec-pale);color:var(--spec-color)}
+.spec-shade-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.spec-shade{width:42px;height:48px;border:1px solid rgba(0,0,0,.12);border-radius:16px 16px 8px 8px;background:var(--shade);color:#4a3b2d;font:inherit;font-size:.59rem;font-weight:850;cursor:pointer;box-shadow:inset 0 -8px 14px rgba(120,80,35,.07);}
+.spec-shade.active{outline:3px solid var(--spec-color);outline-offset:2px;}
+.spec-lesion-map{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.spec-lesion-site{padding:10px 5px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink-3);font:inherit;font-size:.59rem;font-weight:740;cursor:pointer;text-align:center;}
+.spec-lesion-site::before{content:'';display:block;width:18px;height:12px;margin:0 auto 5px;border-radius:50%;background:var(--spec-pale);border:1px solid color-mix(in srgb,var(--spec-color) 30%,var(--border));}.spec-lesion-site.active{border-color:var(--spec-color);color:var(--spec-color);background:var(--spec-pale)}
+.spec-redflag{border-color:rgba(220,38,38,.22);background:rgba(220,38,38,.035)}
+.spec-atm-joints{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.spec-atm-joint{padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--card);text-align:center;}
+.spec-atm-side{font-size:.62rem;font-weight:850;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px;}
+.spec-pain-meter{display:grid;grid-template-columns:42px 1fr 30px;gap:8px;align-items:center;}.spec-pain-value{font-size:1rem;font-weight:900;color:var(--spec-color);text-align:right}.spec-pain-meter input[type=range]{width:100%;accent-color:var(--spec-color)}
+.spec-risk-board{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:center;}
+.spec-risk-gauge{width:112px;height:112px;border-radius:50%;margin:auto;background:conic-gradient(var(--spec-color) var(--risk-angle,0deg),var(--border) 0);display:flex;align-items:center;justify-content:center;position:relative;}
+.spec-risk-gauge::before{content:'';position:absolute;inset:10px;border-radius:50%;background:var(--card)}.spec-risk-gauge span{position:relative;z-index:1;text-align:center;font-size:1.35rem;font-weight:900;color:var(--spec-color)}.spec-risk-gauge small{display:block;font-size:.5rem;font-weight:750;color:var(--ink-4);text-transform:uppercase}
 .btn-specialties{background:linear-gradient(135deg,#5e5ce6,#0071e3)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 5px 14px rgba(94,92,230,.2);}
 body.spec-open{overflow:hidden;}
-@media(max-width:1050px){.spec-dashboard-grid{grid-template-columns:1fr 1fr}.spec-workspace{grid-template-columns:1fr}.spec-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:1050px){.spec-dashboard-grid{grid-template-columns:1fr 1fr}.spec-workspace{grid-template-columns:1fr}.spec-summary{grid-template-columns:1fr 1fr}.spec-clinical-intake{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.spec-overlay{padding:0}.spec-box{width:100%;height:100%;border-radius:0}.spec-shell{grid-template-columns:1fr}.spec-sidebar{display:flex;gap:5px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px}.spec-nav-label{display:none}.spec-nav-btn{width:auto;min-width:max-content;grid-template-columns:28px auto;padding:6px 8px}.spec-nav-icon{width:28px;height:28px}.spec-nav-count{display:none}.spec-content{padding:13px}.spec-dashboard-grid,.spec-launch-grid{grid-template-columns:1fr}.spec-header{padding:12px 13px}.spec-head-actions .spec-print-btn{display:none}}
-@media(max-width:520px){.spec-summary{grid-template-columns:1fr 1fr}.spec-form-grid{grid-template-columns:1fr}.spec-field.full{grid-column:auto}.spec-page-head{display:block}.spec-page-head .btn{margin-top:9px}.spec-module-card{min-height:145px}}
+@media(max-width:520px){.spec-summary{grid-template-columns:1fr 1fr}.spec-form-grid,.spec-u-grid,.spec-note-grid{grid-template-columns:1fr}.spec-field.full,.spec-u-section.full,.spec-note-grid .spec-field:nth-child(n+3){grid-column:auto}.spec-page-head{display:block}.spec-page-head .btn{margin-top:9px}.spec-module-card{min-height:145px}.spec-clinical-intake{grid-template-columns:1fr}.spec-choice-grid.cols-3,.spec-choice-grid.cols-4{grid-template-columns:1fr 1fr}.spec-surgery-safety{grid-template-columns:1fr 1fr}.spec-implant-specs{grid-template-columns:1fr}.spec-risk-board{grid-template-columns:1fr}.spec-lesion-map{grid-template-columns:1fr 1fr}}
 
 /* ━━━━ DAY VIEW ━━━━ */.day-view-grid { display: grid; grid-template-columns: 56px 1fr; }
 .dv-time { height: 64px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: flex-end; padding: 6px 8px 0; font-size: .65rem; color: var(--ink-4); font-weight: 600; letter-spacing: .02em; }
@@ -21742,6 +21795,21 @@ var SPECIALTY_MODULES = [
   ]}
 ];
 
+// Campos adicionales que alimentan herramientas visuales propias de cada especialidad.
+SPECIALTY_MODULES.forEach(function(m){
+  var extras={
+    endodoncia:[{id:'symptoms',label:'Síntomas y pruebas',type:'multi'},{id:'workingLength',label:'Conductometría / longitud de trabajo',type:'text'}],
+    cirugia:[{id:'safety',label:'Lista de seguridad preoperatoria',type:'multi'},{id:'postop',label:'Control posoperatorio',type:'multi'}],
+    implantologia:[{id:'bone',label:'Condición del sitio receptor',type:'select'},{id:'graft',label:'Regeneración / injerto',type:'select'}],
+    protesis:[{id:'stage',label:'Etapa clínica',type:'select'},{id:'records',label:'Registros y pruebas',type:'multi'}],
+    restauradora:[{id:'substrate',label:'Sustrato / extensión',type:'select'},{id:'occlusion',label:'Control final',type:'multi'}],
+    medicinaoral:[{id:'redFlags',label:'Signos de alarma',type:'multi'},{id:'documentation',label:'Documentación',type:'select'}],
+    atm:[{id:'painScale',label:'Dolor EVA',type:'range'},{id:'muscles',label:'Músculos y función',type:'multi'}],
+    preventiva:[{id:'riskFactors',label:'Factores de riesgo',type:'multi'},{id:'motivation',label:'Adherencia / motivación',type:'select'}]
+  };
+  (extras[m.id]||[]).forEach(function(f){m.fields.push(f);});
+});
+
 var SPECIALTY_EXISTING = [
   {id:'odontograma',icon:'🦷',label:'Odontología general',color:'#0071e3',pale:'#eaf3ff',desc:'Odontograma adulto por superficies, hallazgos y notas.',open:'openOdontogram'},
   {id:'periodoncia',icon:'📊',label:'Periodoncia',color:'#168a45',pale:'#eaf8ef',desc:'Sondaje de seis sitios, NIC, sangrado y comparativo.',open:'openPeriodontogram'},
@@ -21797,7 +21865,8 @@ function renderSpecialtiesHub() {
   if (_specCurrent === 'dashboard') renderSpecDashboard(content);
   else if (_specExisting(_specCurrent)) renderSpecExisting(content,_specExisting(_specCurrent));
   else renderSpecModule(content,_specConfig(_specCurrent));
-  var printBtn = document.getElementById('spec-print-btn'); if (printBtn) printBtn.disabled = !_specConfig(_specCurrent);
+  var printBtn = document.getElementById('spec-print-btn');
+  if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = _specCurrent === 'dashboard' ? '🖨️ Resumen general' : '🖨️ Imprimir'; }
 }
 
 function renderSpecialtiesNav() {
@@ -21852,18 +21921,113 @@ function _specFieldHtml(field,value) {
 }
 function _specStatusOptions(value) { return ['Valoración','Diagnóstico','En tratamiento','Seguimiento','Alta','Referido'].map(function(s){return '<option'+(s===value?' selected':'')+'>'+s+'</option>';}).join(''); }
 
+function _specValue(editing,id) {
+  if(!editing)return '';
+  if(Object.prototype.hasOwnProperty.call(editing,id))return editing[id]||'';
+  return (editing.fields&&editing.fields[id])||'';
+}
+function _specEnc(v){return encodeURIComponent(String(v)).replace(/'/g,'%27');}
+function _specHidden(id,value){return '<input type="hidden" id="spec-field-'+id+'" value="'+escapeHTML(value||'')+'">';}
+function _specChoices(id,options,value,cols,extraClass) {
+  return _specHidden(id,value)+'<div class="spec-choice-grid'+(cols?' cols-'+cols:'')+'">'+options.map(function(o,i){var val=typeof o==='string'?o:o.value,label=typeof o==='string'?o:o.label;return '<button type="button" class="spec-choice '+(extraClass||'')+(String(val)===String(value)?' active':'')+'" data-field="'+id+'" onclick="specPickEncoded(\''+id+'\',\''+_specEnc(val)+'\',this)">'+escapeHTML(label)+'</button>';}).join('')+'</div>';
+}
+function _specMulti(id,options,value,mode) {
+  var selected=String(value||'').split('|').filter(Boolean),cls=mode==='safety'?'spec-surgery-safety':'spec-chip-row',btn=mode==='safety'?'spec-safety-item':'spec-chip';
+  return _specHidden(id,value)+'<div class="'+cls+'">'+options.map(function(o){return '<button type="button" class="'+btn+(selected.indexOf(o)!==-1?' active':'')+'" data-field="'+id+'" onclick="specToggleEncoded(\''+id+'\',\''+_specEnc(o)+'\',this)">'+escapeHTML(o)+'</button>';}).join('')+'</div>';
+}
+function _specInput(id,value,placeholder,type){return '<input class="spec-input" id="spec-field-'+id+'" type="'+(type||'text')+'" value="'+escapeHTML(value||'')+'" placeholder="'+escapeHTML(placeholder||'')+'">';}
+function specPickEncoded(id,encoded,button){
+  var value=decodeURIComponent(encoded),input=document.getElementById('spec-field-'+id);if(input)input.value=value;
+  document.querySelectorAll('[data-field="'+id+'"]').forEach(function(b){b.classList.remove('active');});if(button)button.classList.add('active');
+}
+function specToggleEncoded(id,encoded,button){
+  var value=decodeURIComponent(encoded),input=document.getElementById('spec-field-'+id);if(!input)return;var values=String(input.value||'').split('|').filter(Boolean),idx=values.indexOf(value);
+  if(idx>=0)values.splice(idx,1);else values.push(value);input.value=values.join('|');if(button)button.classList.toggle('active',idx<0);if(id==='riskFactors')specUpdateRiskGauge();
+}
+function specSetShade(value,button){var input=document.getElementById('spec-field-shade');if(input)input.value=value;document.querySelectorAll('.spec-shade').forEach(function(b){b.classList.remove('active');});if(button)button.classList.add('active');}
+function specPainChanged(input){var out=document.getElementById('spec-pain-value');if(out)out.textContent=input.value;}
+function specUpdateRiskGauge(){var input=document.getElementById('spec-field-riskFactors'),g=document.getElementById('spec-risk-gauge'),v=document.getElementById('spec-risk-value');if(!input||!g||!v)return;var n=String(input.value||'').split('|').filter(Boolean).length;g.style.setProperty('--risk-angle',Math.min(360,n*48)+'deg');v.innerHTML=n+'<small>factores</small>';}
+
+function _specEndoCanvas(m,e){
+  var pulpal=_specValue(e,'pulpalDx'),apical=_specValue(e,'apicalDx'),sym=_specValue(e,'symptoms'),iso=_specValue(e,'isolation');
+  return '<div class="spec-unique spec-endo-dx"><div class="spec-unique-head"><div class="spec-unique-title"><span>🔬</span>Mapa diagnóstico endodóncico</div><div class="spec-unique-hint">Diagnóstico AAE y configuración del sistema de conductos</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Diagnóstico pulpar</div>'+_specChoices('pulpalDx',['Pulpa normal','Pulpitis reversible','Pulpitis irreversible sintomática','Pulpitis irreversible asintomática','Necrosis pulpar','Previamente tratado'],pulpal,2)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Diagnóstico apical</div>'+_specChoices('apicalDx',['Tejidos apicales normales','Periodontitis apical sintomática','Periodontitis apical asintomática','Absceso apical agudo','Absceso apical crónico','Osteítis condensante'],apical,2)+'</div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Pruebas y síntomas</div>'+_specMulti('symptoms',['Dolor espontáneo','Frío positivo','Calor positivo','Percusión positiva','Palpación positiva','Movilidad','Fístula','Sin síntomas'],sym)+'</div>'
+    +'<div class="spec-u-section full"><div class="spec-endo-canal"><div class="spec-endo-tooth">🦷</div><div><div class="spec-u-label">Sistema de conductos</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+_specInput('canals',_specValue(e,'canals'),'MV, DV, P / número de conductos')+_specInput('workingLength',_specValue(e,'workingLength'),'Longitudes, lima apical, localizador')+'</div><div style="margin-top:7px">'+_specChoices('isolation',['Absoluto','Relativo','No realizado'],iso,3,'center')+'</div></div></div></div></div></div>';
+}
+function _specSurgeryCanvas(m,e){
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>⚕️</span>Planeación y seguridad quirúrgica</div><div class="spec-unique-hint">Valoración preoperatoria, procedimiento y salida segura</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Procedimiento programado</div>'+_specChoices('procedureType',['Valoración','Extracción simple','Extracción quirúrgica','Tercer molar','Frenilectomía','Biopsia','Cirugía preprotésica','Otro'],_specValue(e,'procedureType'),4)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Riesgo anestésico ASA</div>'+_specChoices('asa',['ASA I','ASA II','ASA III','ASA IV — requiere valoración'],_specValue(e,'asa'),2,'center')+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Anestesia / sedación</div>'+_specInput('anesthesia',_specValue(e,'anesthesia'),'Técnica, anestésico, dosis y vasoconstrictor')+'<div style="margin-top:7px">'+_specChoices('specimen',['No aplica','No enviada','Enviada','Resultado recibido'],_specValue(e,'specimen'),2)+'</div></div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Lista de seguridad preoperatoria</div>'+_specMulti('safety',['Identidad confirmada','Sitio quirúrgico confirmado','Consentimiento firmado','Alergias revisadas','Medicamentos revisados','Imagen disponible'],_specValue(e,'safety'),'safety')+'</div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Control de egreso</div>'+_specMulti('postop',['Hemostasia comprobada','Indicaciones entregadas','Receta entregada','Acompañante confirmado','Control programado'],_specValue(e,'postop'))+'</div></div></div>';
+}
+function _specImplantCanvas(m,e){
+  var phases=['Valoración','Planeación','Injerto','Colocación','Oseointegración','Segunda fase','Rehabilitación','Mantenimiento'];
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>⚙️</span>Ruta implantológica</div><div class="spec-unique-hint">Del estudio del sitio al mantenimiento protésico</div></div><div class="spec-u-section full"><div class="spec-u-label">Fase actual del caso</div>'+_specHidden('phase',_specValue(e,'phase'))+'<div class="spec-phase-track">'+phases.map(function(p,i){return '<button type="button" class="spec-phase'+(_specValue(e,'phase')===p?' active':'')+'" data-step="'+(i+1)+'" data-field="phase" onclick="specPickEncoded(\'phase\',\''+_specEnc(p)+'\',this)">'+p+'</button>';}).join('')+'</div></div><div class="spec-u-grid" style="margin-top:9px">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Sitio receptor</div>'+_specChoices('bone',['Volumen suficiente','Déficit horizontal','Déficit vertical','Seno maxilar próximo','Sitio posextracción','Requiere estudio'],_specValue(e,'bone'),2)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Regeneración</div>'+_specChoices('graft',['No requerida','Preservación alveolar','ROG horizontal','ROG vertical','Elevación de seno','Por definir'],_specValue(e,'graft'),2)+'</div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Especificaciones del implante</div><div class="spec-implant-specs">'+_specInput('system',_specValue(e,'system'),'Sistema, marca y conexión')+_specInput('dimensions',_specValue(e,'dimensions'),'Diámetro × longitud')+_specInput('torque',_specValue(e,'torque'),'Torque / ISQ')+'</div></div></div></div>';
+}
+function _specProsthoCanvas(m,e){
+  var stages=['Diagnóstico','Preparación','Impresión / escaneo','Provisional','Prueba estructura','Prueba estética','Entrega','Control'];
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>🧩</span>Flujo clínico y de laboratorio</div><div class="spec-unique-hint">Control de diseño, pruebas y entrega protésica</div></div><div class="spec-u-section full"><div class="spec-u-label">Tipo de rehabilitación</div>'+_specChoices('prosthesisType',['Corona','Puente fijo','Prótesis parcial removible','Prótesis total','Incrustación','Prótesis sobre implantes','Reparación'],_specValue(e,'prosthesisType'),4)+'</div><div class="spec-u-section full" style="margin-top:9px"><div class="spec-u-label">Etapa del caso</div>'+_specHidden('stage',_specValue(e,'stage'))+'<div class="spec-stage-track">'+stages.map(function(s,i){return '<button type="button" class="spec-stage'+(_specValue(e,'stage')===s?' active':'')+'" data-field="stage" onclick="specPickEncoded(\'stage\',\''+_specEnc(s)+'\',this)"><b>'+escapeHTML(s)+'</b><span>Paso '+(i+1)+'</span></button>';}).join('')+'</div></div><div class="spec-u-grid" style="margin-top:9px">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Material definitivo</div>'+_specChoices('material',['Zirconia','Disilicato de litio','Metal-cerámica','Cerámica feldespática','Resina','Acrílico','Metal'],_specValue(e,'material'),2)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Color y laboratorio</div>'+_specInput('shade',_specValue(e,'shade'),'Color / mapa cromático')+'<div style="margin-top:7px">'+_specInput('labStage',_specValue(e,'labStage'),'Laboratorio, orden o fecha de entrega')+'</div></div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Registros y pruebas completadas</div>'+_specMulti('records',['Fotografías','Escaneo intraoral','Impresión definitiva','Registro de mordida','Prueba pasiva','Prueba estética','Ajuste oclusal'],_specValue(e,'records'))+'</div></div></div>';
+}
+function _specRestorativeCanvas(m,e){
+  var shade=_specValue(e,'shade'),shades=[['B1','#fff9e9'],['A1','#f8edcf'],['A2','#f0dfbb'],['A3','#e4cda5'],['A3.5','#d9bc91'],['BL','#fffef5']];
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>✨</span>Diseño restaurador y estético</div><div class="spec-unique-hint">Sustrato, adhesión, estratificación y control final</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Procedimiento restaurador</div>'+_specChoices('restorationType',['Resina directa','Incrustación','Carilla','Blanqueamiento','Reconstrucción','Sellador','Desgaste selectivo'],_specValue(e,'restorationType'),4)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Sustrato y extensión</div>'+_specChoices('substrate',['Esmalte predominante','Dentina expuesta','Cavidad profunda','Diente tratado endodónticamente','Sustrato mixto','Reemplazo de restauración'],_specValue(e,'substrate'),2)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Selección cromática</div><div class="spec-shade-row">'+shades.map(function(s){return '<button type="button" class="spec-shade'+(shade===s[0]?' active':'')+'" style="--shade:'+s[1]+'" onclick="specSetShade(\''+s[0]+'\',this)">'+s[0]+'</button>';}).join('')+'</div><div style="margin-top:8px">'+_specInput('shade',shade,'Color personalizado / opacidades')+'</div></div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Sistema restaurador</div>'+_specInput('material',_specValue(e,'material'),'Adhesivo, composite, cerámica, lote…')+'<div style="margin-top:7px">'+_specChoices('isolation',['Absoluto','Relativo','No realizado'],_specValue(e,'isolation'),3,'center')+'</div></div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Control final</div>'+_specMulti('occlusion',['Contactos proximales','Anatomía','Pulido','Oclusión estática','Oclusión dinámica','Fotografía final'],_specValue(e,'occlusion'))+'</div></div></div>';
+}
+function _specOralMedicineCanvas(m,e){
+  var sites=['Labio','Mucosa yugal','Lengua','Piso de boca','Paladar','Encía','Orofaringe','Hueso'];
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>🔎</span>Documentación de lesión oral</div><div class="spec-unique-hint">Morfología, sitio, evolución y señales de alarma</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Morfología primaria</div>'+_specChoices('lesionType',['Úlcera','Mácula','Placa','Nódulo','Vesícula / ampolla','Aumento de volumen','Pigmentación','Lesión blanca','Lesión roja','Otro'],_specValue(e,'lesionType'),2)+'</div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Mapa de localización</div>'+_specInput('location',_specValue(e,'location'),'Descripción anatómica precisa')+'<div class="spec-lesion-map" style="margin-top:7px">'+sites.map(function(s){return '<button type="button" class="spec-lesion-site'+(_specValue(e,'location')===s?' active':'')+'" data-field="location" onclick="specPickEncoded(\'location\',\''+_specEnc(s)+'\',this)">'+s+'</button>';}).join('')+'</div></div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Evolución y documentación</div>'+_specInput('evolution',_specValue(e,'evolution'),'Inicio, cambios, dolor y recurrencia')+'<div style="margin-top:7px">'+_specChoices('documentation',['Fotografía pendiente','Fotografía registrada','Medición registrada','Imagen radiográfica','Histopatología disponible'],_specValue(e,'documentation'),2)+'</div></div>'
+    +'<div class="spec-u-section spec-redflag"><div class="spec-u-label">Signos de alarma</div>'+_specMulti('redFlags',['Más de 2 semanas','Induración','Sangrado espontáneo','Crecimiento rápido','Parestesia','Adenopatía','Pérdida de peso'],_specValue(e,'redFlags'),'safety')+'</div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Conducta diagnóstica</div>'+_specChoices('action',['Observación','Fotografía y control','Tratamiento empírico','Biopsia incisional','Biopsia excisional','Estudio de imagen','Referencia'],_specValue(e,'action'),4)+'</div></div></div>';
+}
+function _specAtmCanvas(m,e){
+  var pain=_specValue(e,'painScale')||'0';
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>◉</span>Evaluación funcional temporomandibular</div><div class="spec-unique-hint">Dolor, rango de movimiento, articulación y musculatura</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Intensidad de dolor EVA</div><div class="spec-pain-meter"><span>0</span><input id="spec-field-painScale" type="range" min="0" max="10" value="'+escapeHTML(pain)+'" oninput="specPainChanged(this)"><span class="spec-pain-value" id="spec-pain-value">'+escapeHTML(pain)+'</span></div><div style="margin-top:8px">'+_specInput('pain',_specValue(e,'pain'),'Sitio, patrón, duración y factores desencadenantes')+'</div></div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Rango mandibular</div>'+_specInput('opening',_specValue(e,'opening'),'Apertura máxima mm, lateralidades, protrusión')+'<div style="margin-top:7px">'+_specInput('device',_specValue(e,'device'),'Férula, fisioterapia o referencia')+'</div></div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Estado articular</div><div class="spec-atm-joints"><div class="spec-atm-joint"><div class="spec-atm-side">ATM derecha</div><span style="font-size:1.3rem">◖</span></div><div class="spec-atm-joint"><div class="spec-atm-side">ATM izquierda</div><span style="font-size:1.3rem">◗</span></div></div><div style="margin-top:7px">'+_specChoices('jointSounds',['Sin ruidos','Chasquido derecho','Chasquido izquierdo','Chasquido bilateral','Crepitación','No valorable'],_specValue(e,'jointSounds'),3)+'</div></div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Palpación y función</div>'+_specMulti('muscles',['Masetero derecho','Masetero izquierdo','Temporal derecho','Temporal izquierdo','Pterigoideos','Cervicales','Bruxismo','Limitación funcional'],_specValue(e,'muscles'))+'</div></div></div>';
+}
+function _specPreventiveCanvas(m,e){
+  var risks=_specValue(e,'riskFactors'),count=String(risks||'').split('|').filter(Boolean).length;
+  return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>🛡️</span>Tablero preventivo personalizado</div><div class="spec-unique-hint">Riesgo, hábitos, educación y frecuencia de mantenimiento</div></div><div class="spec-risk-board"><div class="spec-risk-gauge" id="spec-risk-gauge" style="--risk-angle:'+Math.min(360,count*48)+'deg"><span id="spec-risk-value">'+count+'<small>factores</small></span></div><div><div class="spec-u-label">Factores de riesgo detectados</div>'+_specMulti('riskFactors',['Caries reciente','Placa visible','Dieta frecuente','Boca seca','Ortodoncia','Tabaquismo / vapeo','Enfermedad sistémica','Baja adherencia'],risks)+'</div></div><div class="spec-u-grid" style="margin-top:10px">'
+    +'<div class="spec-u-section"><div class="spec-u-label">Higiene e índice de placa</div>'+_specChoices('hygiene',['Excelente','Buena','Regular','Deficiente','No valorada'],_specValue(e,'hygiene'),2)+'<div style="margin-top:7px">'+_specInput('plaque',_specValue(e,'plaque'),'Índice de placa o porcentaje')+'</div></div>'
+    +'<div class="spec-u-section"><div class="spec-u-label">Intervención preventiva</div>'+_specInput('fluoride',_specValue(e,'fluoride'),'Flúor, selladores, técnica y educación')+'<div style="margin-top:7px">'+_specChoices('motivation',['Alta adherencia','Buena disposición','Requiere refuerzo','Baja adherencia'],_specValue(e,'motivation'),2)+'</div></div>'
+    +'<div class="spec-u-section full"><div class="spec-u-label">Intervalo de mantenimiento</div>'+_specChoices('interval',['1 mes','3 meses','4 meses','6 meses','12 meses','Según riesgo'],_specValue(e,'interval'),3,'center')+'</div></div></div>';
+}
+function _specClinicalCanvas(m,e){
+  if(m.id==='endodoncia')return _specEndoCanvas(m,e);if(m.id==='cirugia')return _specSurgeryCanvas(m,e);if(m.id==='implantologia')return _specImplantCanvas(m,e);if(m.id==='protesis')return _specProsthoCanvas(m,e);if(m.id==='restauradora')return _specRestorativeCanvas(m,e);if(m.id==='medicinaoral')return _specOralMedicineCanvas(m,e);if(m.id==='atm')return _specAtmCanvas(m,e);return _specPreventiveCanvas(m,e);
+}
+
 function renderSpecModule(el,m) {
   if(!m){renderSpecDashboard(el);return;} var rec=_specRecords(m.id),latest=_specLatest(rec),today=fmtDate(new Date()),active=rec.filter(function(r){return ['Alta','Referido'].indexOf(r.status)===-1;}).length,overdue=rec.filter(function(r){return r.nextDate&&r.nextDate<today&&r.status!=='Alta';}).length;
   var editing=_specEditingId?rec.find(function(r){return String(r.id)===String(_specEditingId);}):null;
   var html='<div style="'+_specStyle(m)+'"><div class="spec-page-head"><div><div class="spec-page-kicker">Especialidad</div><div class="spec-page-title">'+m.icon+' '+escapeHTML(m.label)+'</div><div class="spec-page-desc">'+escapeHTML(m.desc)+'</div></div><button class="btn btn-ghost btn-sm" onclick="printSpecialtyModule()">🖨️ Imprimir evolución</button></div>';
   html+='<div class="spec-summary">'+_specSummaryCard('Evoluciones',rec.length,'registros clínicos')+_specSummaryCard('Casos activos',active,'en atención')+_specSummaryCard('Seguimientos',overdue,overdue?'vencidos':'sin vencidos')+_specSummaryCard('Último registro',latest?_specDateLabel(latest.date):'—',latest?latest.status:'sin actividad')+'</div>';
   if(overdue)html+='<div class="spec-alert"><span>📌</span><div>Hay '+overdue+' seguimiento'+(overdue===1?'':'s')+' con fecha vencida en esta especialidad.</div></div>';
-  html+='<div class="spec-workspace"><section class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">'+(editing?'Editar evolución':'Nueva evolución clínica')+'</div><span style="font-size:.62rem;color:var(--ink-4)">Los cambios se guardan en el expediente</span></div><div class="spec-form-grid">'
+  html+='<div class="spec-workspace"><section class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">'+(editing?'Editar evolución':'Nueva evolución clínica')+'</div><span style="font-size:.62rem;color:var(--ink-4)">Herramientas propias de '+escapeHTML(m.label)+'</span></div><div class="spec-clinical-intake">'
     +_specFieldHtml({id:'date',label:'Fecha',type:'date'},editing?editing.date:today)
     +_specFieldHtml({id:'site',label:'Diente / zona',type:'text',placeholder:'FDI, cuadrante o región'},editing?editing.site:'')
     +'<div class="spec-field"><label>Estado clínico</label><select id="spec-field-status">'+_specStatusOptions(editing?editing.status:'Valoración')+'</select></div>'
-    +_specFieldHtml({id:'nextDate',label:'Próxima revisión',type:'date'},editing?editing.nextDate:'')
-    +m.fields.map(function(f){return _specFieldHtml(f,editing&&editing.fields?editing.fields[f.id]:'');}).join('')
+    +_specFieldHtml({id:'nextDate',label:'Próxima revisión',type:'date'},editing?editing.nextDate:'')+'</div>'
+    +_specClinicalCanvas(m,editing)
+    +'<div class="spec-note-grid">'
     +'<div class="spec-field full"><label>Diagnóstico / hallazgos</label><textarea id="spec-field-diagnosis" rows="3" placeholder="Hallazgos clínicos, radiográficos y diagnóstico…">'+escapeHTML(editing?editing.diagnosis||'':'')+'</textarea></div>'
     +'<div class="spec-field full"><label>Procedimiento realizado</label><textarea id="spec-field-procedure" rows="3" placeholder="Procedimiento, técnica, materiales y respuesta clínica…">'+escapeHTML(editing?editing.procedure||'':'')+'</textarea></div>'
     +'<div class="spec-field full"><label>Plan y seguimiento</label><textarea id="spec-field-plan" rows="2" placeholder="Siguiente etapa, indicaciones, interconsulta o estudios…">'+escapeHTML(editing?editing.plan||'':'')+'</textarea></div>'
@@ -21893,6 +22057,41 @@ function saveSpecialtyRecord() {
 function editSpecialtyRecord(id){_specEditingId=id;renderSpecialtiesHub();var c=document.getElementById('spec-content');if(c)c.scrollTop=0;}
 function cancelSpecialtyEdit(){_specEditingId=null;renderSpecialtiesHub();}
 function deleteSpecialtyRecord(id){var m=_specConfig(_specCurrent),records=_specRecords(_specCurrent),idx=records.findIndex(function(r){return String(r.id)===String(id);});if(idx<0||!confirm('¿Eliminar esta evolución de '+m.label+'?'))return;records.splice(idx,1);saveDB();_specEditingId=null;renderSpecialtiesHub();showToast('Evolución eliminada','red');}
+
+function specPrintCurrent() {
+  if(_specCurrent==='dashboard'){printSpecialtiesOverview();return;}
+  if(_specConfig(_specCurrent)){printSpecialtyModule();return;}
+  var p=_specPatient();if(!p)return;
+  if(_specCurrent==='odontograma'){_odoCurPatId=p.id;printOdontogram();return;}
+  if(_specCurrent==='odontopediatria'){_odoPedCurPatId=p.id;printOdontogramPed();return;}
+  if(_specCurrent==='periodoncia'){
+    _perioCurPatId=p.id;var sessions=p.perioSessions||[],last=sessions[sessions.length-1];_perioSessionData=last?JSON.parse(JSON.stringify(last.data||{})):{};
+    document.getElementById('perio-session-date').value=last?last.date:fmtDate(new Date());document.getElementById('perio-session-note').value=last?last.note||'':'';renderPerioTable();printPeriodontogram();return;
+  }
+  if(_specCurrent==='ortodoncia'){printStoredOrthoSummary(p);return;}
+}
+
+function _specPrintWindow(title,body) {
+  var p=_specPatient(),clinic=(typeof cfg!=='undefined'&&cfg.name)||'Consultorio Dental',sub=(typeof cfg!=='undefined'&&cfg.sub)||'',today=new Date().toLocaleDateString('es-MX');
+  var html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+escapeHTML(title)+' · '+escapeHTML(p?p.name:'Paciente')+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#171717;padding:26px 32px;font-size:10px;max-width:900px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:2px solid #171717;padding-bottom:9px;margin-bottom:14px}.clinic{font-size:15px;font-weight:800}.muted{color:#666}h2{font-size:12px;margin:15px 0 7px;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:1px solid #ddd;padding-bottom:4px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.card{border:1px solid #ddd;border-radius:8px;padding:8px}.card b{display:block;font-size:9px;margin-bottom:3px}.row{display:grid;grid-template-columns:145px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid #eee}.label{color:#777}article{page-break-inside:avoid;margin-bottom:12px}@media print{@page{size:letter;margin:12mm}body{padding:0}}</style></head><body><div class="head"><div><div class="clinic">'+escapeHTML(clinic)+'</div><div class="muted">'+escapeHTML(sub)+'</div></div><div style="text-align:right"><b>'+escapeHTML(title.toUpperCase())+'</b><br>'+escapeHTML(p?p.name:'Paciente')+'<br><span class="muted">'+today+'</span></div></div>'+body+'</body></html>';
+  var w=window.open('','_blank');if(!w){showToast('El navegador bloqueó la ventana de impresión','red');return;}w.document.write(html);w.document.close();_printWindow(w);
+}
+
+function printSpecialtiesOverview() {
+  var all=_specAllRecords(),used=SPECIALTY_MODULES.filter(function(m){return _specRecords(m.id).length;});
+  var integrated=SPECIALTY_EXISTING.map(function(m){var x=_specExistingMetric(m);return '<div class="card"><b>'+m.icon+' '+escapeHTML(m.label)+'</b>'+x.value+' · '+escapeHTML(x.label)+'</div>';}).join('');
+  var modules=used.map(function(m){var rec=_specRecords(m.id),last=_specLatest(rec);return '<div class="card"><b>'+m.icon+' '+escapeHTML(m.label)+'</b>'+rec.length+' evoluciones'+(last?'<br><span class="muted">Última: '+_specDateLabel(last.date)+' · '+escapeHTML(last.status||'')+'</span>':'')+'</div>';}).join('');
+  var follow=all.filter(function(x){return x.record.nextDate;}).sort(function(a,b){return String(a.record.nextDate).localeCompare(String(b.record.nextDate));}).map(function(x){return '<div class="row"><span class="label">'+_specDateLabel(x.record.nextDate)+'</span><span>'+escapeHTML(x.module.label)+' · '+escapeHTML(x.record.site||'Consulta')+' · '+escapeHTML(x.record.status||'')+'</span></div>';}).join('');
+  _specPrintWindow('Resumen multidisciplinario','<h2>Módulos integrados</h2><div class="grid">'+integrated+'</div><h2>Especialidades con actividad</h2>'+(modules?'<div class="grid">'+modules+'</div>':'<p class="muted">Sin evoluciones en especialidades nuevas.</p>')+(follow?'<h2>Próximos seguimientos</h2>'+follow:''));
+}
+
+function printStoredOrthoSummary(p) {
+  var d=p.orthoData||{},controls=d.controls||[];
+  function row(label,value){return '<div class="row"><span class="label">'+escapeHTML(label)+'</span><span>'+escapeHTML(value||'—')+'</span></div>';}
+  var body='<h2>Estado del tratamiento</h2>'+row('Estado',d.estado||'Sin iniciar')+row('Fase',d.fase)+row('Aparatología',d.aparato)+row('Duración estimada',d.duracion)+row('Diagnóstico',d.diagnostico)+row('Objetivos',d.objetivos)+row('Mecánica',d.mecanica);
+  if(controls.length)body+='<h2>Controles</h2>'+controls.slice().reverse().map(function(c){return '<article>'+row(_orthoDateLabel(c.fecha),(c.fase||'Control')+(c.notas?' · '+c.notas:''))+'</article>';}).join('');
+  _specPrintWindow('Resumen ortodóncico',body);
+}
 
 function printSpecialtyModule() {
   var m=_specConfig(_specCurrent),p=_specPatient();if(!m||!p){showToast('Selecciona una especialidad clínica','red');return;}var records=_specRecords(m.id).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
@@ -23303,7 +23502,7 @@ window.addEventListener('resize', function() {
         </div>
       </div>
       <div class="spec-head-actions">
-        <button class="btn btn-ghost btn-sm spec-print-btn" id="spec-print-btn" onclick="printSpecialtyModule()" disabled>🖨️ Imprimir</button>
+        <button class="btn btn-ghost btn-sm spec-print-btn" id="spec-print-btn" onclick="specPrintCurrent()">🖨️ Resumen general</button>
         <button class="ortho-icon-btn" onclick="closeSpecialtiesHub()" aria-label="Cerrar centro de especialidades">✕</button>
       </div>
     </header>
