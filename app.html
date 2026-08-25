@@ -19995,9 +19995,31 @@ function _applyPrintBranding(doc) {
   doc.body.insertBefore(brand, doc.body.firstChild);
 }
 
+// Contraste exclusivo para impresión. Refuerza los textos secundarios que
+// algunas impresoras domésticas reproducen demasiado claros, sin cambiar los
+// colores clínicos del odontograma ni la apariencia normal de la aplicación.
+function _applyPrintContrast(doc) {
+  if (!doc || !doc.head || doc.getElementById('dental-print-contrast')) return;
+  var style = doc.createElement('style');
+  style.id = 'dental-print-contrast';
+  style.textContent = '@media print{'
+    + ':root{color-scheme:light!important}'
+    + 'html,body{background:#fff!important;color:#111!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    + 'p,li,td,th,label,.value,.clinic,.patient,.title,h1,h2,h3,h4,h5,h6{opacity:1!important}'
+    + '.muted,.sub,.meta,.label,.legal,.foot,.footer,small,'
+    + '[class*="-sub"],[class*="-meta"],[class*="-footer"],[class*="-label"]{color:#111!important;opacity:1!important}'
+    + 'table,th,td,.field,.box,.patient,.receipt,.bdoc-patient-box,.bdoc-note,.bdoc-visits,.bdoc-visits-row{border-color:#555!important}'
+    + '.total,.amount,.bdoc-total-box{background:#fff!important;color:#000!important;border:2px solid #111!important}'
+    + '.total *,.amount *,.bdoc-total-box *,.bdoc-total-label,.bdoc-total-amt{color:#000!important;opacity:1!important}'
+    + 'a{color:#000!important;text-decoration:underline!important}'
+    + '}';
+  doc.head.appendChild(style);
+}
+
 function _printWindow(w) {
   if (!w || !w.document) return;
   try { _applyPrintBranding(w.document); } catch(e) {}
+  try { _applyPrintContrast(w.document); } catch(e) {}
   var done = false;
   function printNow() {
     if (done) return;
