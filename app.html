@@ -6658,6 +6658,9 @@ const loadDB = () => {
     try {
       db = JSON.parse(r);
       neutralizeUnsafeText(db);
+      if (Array.isArray(db.appointments)) {
+        db.appointments = dedupeAppointmentsByCalendarId(db.appointments);
+      }
       _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(db);
       appStorage.setItem('dental_v4', serializeDatabaseForLocalStorage(db));
     } catch(e) {
@@ -6802,6 +6805,42 @@ function markAppointmentDeleted(id) {
     db._appointmentTombstones = {};
   }
   db._appointmentTombstones[String(id)] = Date.now();
+}
+
+// Dos dispositivos pueden guardar copias locales distintas de la misma cita
+// de Google Calendar. El identificador de Calendar es la identidad definitiva:
+// conservar una sola fila evita que el mismo paciente aparezca dos o tres veces.
+function dedupeAppointmentsByCalendarId(list) {
+  var result = [];
+  var byCalendarId = {};
+  (Array.isArray(list) ? list : []).forEach(function(appt) {
+    if (!appt || appt.id === undefined || appt.id === null) return;
+    var calId = appt.calendarEventId ? String(appt.calendarEventId) : '';
+    if (!calId) {
+      result.push(appt);
+      return;
+    }
+    var existingIndex = byCalendarId[calId];
+    if (existingIndex === undefined) {
+      byCalendarId[calId] = result.length;
+      result.push(appt);
+      return;
+    }
+    var current = result[existingIndex];
+    var currentAt = parseInt(current && current._updatedAt || '0', 10) || 0;
+    var nextAt = parseInt(appt._updatedAt || '0', 10) || 0;
+    var newer = nextAt >= currentAt ? appt : current;
+    var older = newer === appt ? current : appt;
+    var mergedAppt = JSON.parse(JSON.stringify(newer));
+    Object.keys(older || {}).forEach(function(key) {
+      if (mergedAppt[key] === undefined || mergedAppt[key] === null || mergedAppt[key] === '') {
+        mergedAppt[key] = JSON.parse(JSON.stringify(older[key]));
+      }
+    });
+    mergedAppt._updatedAt = Math.max(currentAt, nextAt) || mergedAppt._updatedAt;
+    result[existingIndex] = mergedAppt;
+  });
+  return result;
 }
 
 function prepareDentalSyncMetadata(previousRaw) {
@@ -7049,6 +7088,7 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
   }).map(function(id) {
     return JSON.parse(JSON.stringify(appointments[id].value));
   });
+  merged.appointments = dedupeAppointmentsByCalendarId(merged.appointments);
   if (Object.keys(appointmentTombstones).length) {
     merged._appointmentTombstones = appointmentTombstones;
   }
@@ -19204,9 +19244,30 @@ var GCal = (function() {
     if (body) opts.body = JSON.stringify(body);
     return fetch(BASE + path, opts).then(function(r) {
       if (r.status === 204) return null;
-      if (!r.ok) return r.json().then(function(e){ throw new Error((e.error && e.error.message) || ('HTTP ' + r.status)); });
+      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(e){
+        var error = new Error((e.error && e.error.message) || ('HTTP ' + r.status));
+        error.status = r.status;
+        throw error;
+      });
       return r.json();
     });
+  }
+
+  // Google permite asignar un ID estable al crear un evento. La misma cita
+  // obtiene el mismo ID aunque dos computadoras intenten subirla al mismo
+  // tiempo; la segunda recibe 409 y enlaza el evento ya existente.
+  function _stableCalendarEventId(appt) {
+    var raw = 'dental-appointment-' + String(appt && appt.id || '');
+    var h1 = 2166136261;
+    var h2 = 2246822519;
+    for (var i = 0; i < raw.length; i++) {
+      h1 ^= raw.charCodeAt(i);
+      h1 = Math.imul(h1, 16777619);
+      h2 ^= raw.charCodeAt(i) + i;
+      h2 = Math.imul(h2, 3266489917);
+    }
+    return 'dental' + (h1 >>> 0).toString(16).padStart(8, '0')
+      + (h2 >>> 0).toString(16).padStart(8, '0');
   }
 
   function _addHour(t) {
@@ -19284,8 +19345,19 @@ var GCal = (function() {
 
   // ── App → Calendar ───────────────────────────────────────
   function createEvent(appt) {
+    if (!appt) return Promise.resolve(null);
+    if (appt.calendarEventId) return Promise.resolve({ id:appt.calendarEventId, existing:true });
     var p = (db.patients||[]).find(function(x){ return x.id == appt.patientId; });
-    return _req('POST', '/calendars/primary/events', _buildEvent(appt, p ? p.name : ''))
+    var stableId = _stableCalendarEventId(appt);
+    var eventBody = _buildEvent(appt, p ? p.name : '');
+    eventBody.id = stableId;
+    return _req('POST', '/calendars/primary/events', eventBody)
+      .catch(function(error) {
+        if (error && error.status === 409) {
+          return _req('GET', '/calendars/primary/events/' + encodeURIComponent(stableId));
+        }
+        throw error;
+      })
       .then(function(ev) {
         if (ev && ev.id) { appt.calendarEventId = ev.id; saveDB(); }
         return ev;
@@ -19361,6 +19433,10 @@ var GCal = (function() {
     options = options || {};
     if (!_tok()) return Promise.resolve(0);
 
+    var appointmentCountBeforeCleanup = (db.appointments || []).length;
+    db.appointments = dedupeAppointmentsByCalendarId(db.appointments || []);
+    var cleanedDuplicates = Math.max(0, appointmentCountBeforeCleanup - db.appointments.length);
+
     // IDs ya conocidos en la app (para detectar cambios también)
     var knownCalIds = {};
     var apptByCalId = {};
@@ -19374,7 +19450,7 @@ var GCal = (function() {
     var imported = 0;
     var updated  = 0;
     var removed  = 0;
-    var changed  = false;
+    var changed  = cleanedDuplicates > 0;
 
     // Procesar una página de eventos
     function _processEvents(events) {
@@ -19395,7 +19471,10 @@ var GCal = (function() {
           }
           return;
         }
-        var src = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.source;
+        var privateProps = ev.extendedProperties && ev.extendedProperties.private || {};
+        var src = privateProps.source;
+        var dentalApptId = privateProps.dentalApptId !== undefined
+          ? String(privateProps.dentalApptId) : '';
         if (!ev.summary || !ev.start) return;
         var dateStr = _extractDate(ev.start.dateTime, ev.start.date);
         if (!dateStr) return;
@@ -19416,6 +19495,20 @@ var GCal = (function() {
         // Si ya conocemos el evento, no hay que ignorarlo: Google Calendar
         // pudo haber cambiado su fecha, hora, duración, paciente o notas.
         var knownAppt = apptByCalId[ev.id];
+        if (!knownAppt && dentalApptId) {
+          knownAppt = (db.appointments || []).find(function(appt) {
+            return String(appt.id) === dentalApptId;
+          }) || null;
+          if (knownAppt) {
+            // Si otro dispositivo ya enlazó este registro con un evento, no
+            // crear una segunda fila en la agenda por una copia concurrente.
+            if (knownAppt.calendarEventId && knownAppt.calendarEventId !== ev.id) return;
+            knownAppt.calendarEventId = ev.id;
+            knownCalIds[ev.id] = true;
+            apptByCalId[ev.id] = knownAppt;
+            changed = true;
+          }
+        }
         if (knownAppt) {
           var knownChanged = false;
           if (dateStr && knownAppt.date !== dateStr) { knownAppt.date = dateStr; knownChanged = true; }
@@ -19524,6 +19617,7 @@ var GCal = (function() {
           }
           if (updated) showToast('✏️ ' + updated + ' cita(s) actualizadas desde Google Calendar', 'green');
           if (removed) showToast('🗑️ ' + removed + ' cita(s) eliminadas desde Google Calendar', 'red');
+          if (cleanedDuplicates) showToast('✅ ' + cleanedDuplicates + ' cita(s) duplicadas corregidas', 'green');
         }
         return imported;
       });
@@ -19995,9 +20089,29 @@ function _applyPrintBranding(doc) {
   doc.body.insertBefore(brand, doc.body.firstChild);
 }
 
+// Refuerzo universal para impresoras domésticas y equipos que omiten los
+// fondos. Convierte textos grises en negro y evita letras blancas invisibles
+// cuando el navegador decide no imprimir un bloque oscuro.
+function _applyPrintContrast(doc) {
+  if (!doc || !doc.head || doc.getElementById('dental-print-contrast')) return;
+  var style = doc.createElement('style');
+  style.id = 'dental-print-contrast';
+  style.textContent = '@media print{'
+    + 'html,body{background:#fff!important;color:#000!important;-webkit-print-color-adjust:economy!important;print-color-adjust:economy!important}'
+    + 'body *{color:#111!important;opacity:1!important;text-shadow:none!important}'
+    + 'small,.muted,.sub,.meta,.label,.legal,.foot,.footer,[class*="-sub"],[class*="-meta"],[class*="-footer"],[class*="-label"]{color:#111!important;opacity:1!important}'
+    + '.bdoc-table thead tr,.bdoc-total-box,.amount,.total,[style*="background:#151515"],[style*="background:#171717"],[style*="background:#1d1d1f"]{background:#fff!important;color:#000!important;border:2px solid #111!important}'
+    + '.bdoc-table th,.bdoc-total-label,.bdoc-total-amt,.amount *,.total *{color:#000!important}'
+    + 'table,th,td,.field,.box,.patient,.bdoc-patient-box,.bdoc-note,.bdoc-visits,.bdoc-visits-row{border-color:#666!important}'
+    + 'a{text-decoration:underline!important;color:#000!important}'
+    + '}';
+  doc.head.appendChild(style);
+}
+
 function _printWindow(w) {
   if (!w || !w.document) return;
   try { _applyPrintBranding(w.document); } catch(e) {}
+  try { _applyPrintContrast(w.document); } catch(e) {}
   var done = false;
   function printNow() {
     if (done) return;
