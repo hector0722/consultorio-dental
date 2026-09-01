@@ -18236,28 +18236,69 @@ var GD = (function() {
     if (!blob || String(blob.type || '').indexOf('image/') !== 0) {
       return Promise.reject(new Error('El archivo no es una imagen válida'));
     }
+
+    function driveImageError(response) {
+      return response.text().then(function(text) {
+        var detail = '';
+        try {
+          var parsed = JSON.parse(text || '{}');
+          detail = parsed && parsed.error && parsed.error.message
+            ? ': ' + parsed.error.message : '';
+        } catch(e) {}
+        var error = new Error('Drive imagen HTTP ' + response.status + detail);
+        error.status = response.status;
+        throw error;
+      });
+    }
+
+    function createBinaryFile() {
+      // Google Drive requiere multipart/related para combinar metadatos y
+      // bytes. FormData genera multipart/form-data y puede ser rechazado con
+      // HTTP 400, aunque el archivo sea una imagen perfectamente válida.
+      var boundary = 'dental_image_' + Date.now().toString(36)
+        + '_' + Math.random().toString(36).slice(2,10);
+      var meta = {
+        name:name,
+        mimeType:blob.type,
+        parents:_folderId ? [_folderId] : []
+      };
+      var body = new Blob([
+        '--' + boundary + '\r\n',
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n',
+        JSON.stringify(meta),
+        '\r\n--' + boundary + '\r\n',
+        'Content-Type: ' + blob.type + '\r\n\r\n',
+        blob,
+        '\r\n--' + boundary + '--'
+      ], { type:'multipart/related; boundary=' + boundary });
+      return _fetchDrive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+        method:'POST',
+        headers:{
+          Authorization:'Bearer ' + _token,
+          'Content-Type':'multipart/related; boundary=' + boundary
+        },
+        body:body
+      }).then(function(r) {
+        if (!r.ok) return driveImageError(r);
+        return r.json();
+      });
+    }
+
     if (fileId) {
-      return fetch('https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&fields=id,modifiedTime', {
+      return _fetchDrive('https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&fields=id,modifiedTime', {
         method: 'PATCH',
         headers: { Authorization: 'Bearer ' + _token, 'Content-Type': blob.type },
         body: blob
       }).then(function(r) {
-        if (!r.ok) throw new Error('Drive imagen HTTP ' + r.status);
+        // El id puede quedar obsoleto si alguien borró la imagen directamente
+        // en Drive o restauró una configuración de otra cuenta. En ese caso,
+        // crear el recurso de nuevo y guardar el id que Drive devuelva.
+        if (r.status === 404) return createBinaryFile();
+        if (!r.ok) return driveImageError(r);
         return r.json();
       });
     }
-    var meta = { name:name, parents:_folderId ? [_folderId] : [] };
-    var form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(meta)], { type:'application/json' }));
-    form.append('file', blob);
-    return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
-      method:'POST',
-      headers:{ Authorization:'Bearer ' + _token },
-      body:form
-    }).then(function(r) {
-      if (!r.ok) throw new Error('Drive imagen HTTP ' + r.status);
-      return r.json();
-    });
+    return createBinaryFile();
   }
 
   function _assetInfo(kind) {
