@@ -6385,7 +6385,10 @@ var appStorage = (function(nativeStorage) {
     dental_gd_token_hint:1,
     dental_device_id_v1:1,
     dental_license_activated_v1:1,
-    dental_seen_version:1
+    dental_seen_version:1,
+    // Respaldo mínimo, no clínico, para que una recarga inmediata no pierda
+    // el porcentaje mientras Google Drive termina de confirmar el cambio.
+    dental_pending_doctor_rates_v1:1
   };
   var AUX_EXCLUDED = {
     dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
@@ -13556,7 +13559,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -14490,14 +14493,68 @@ goPage = function(id, el) {
 // =====================================================
 // REPORTES DE INGRESOS
 // =====================================================
-var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_TRASH_KEY='dental_production_trash_v1';
+var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_RATES_PENDING_KEY='dental_pending_doctor_rates_v1', PROD_TRASH_KEY='dental_production_trash_v1';
 function prodLoad(){try{return JSON.parse(appStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
-function prodRates(){try{return JSON.parse(appStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
+var _prodPendingRatesRestored=false;
+function prodPendingRates(){
+  try {
+    var pending=JSON.parse(appStorage.getItem(PROD_RATES_PENDING_KEY)||'null');
+    return pending&&pending.rates&&typeof pending.rates==='object'?pending:null;
+  } catch(e){ return null; }
+}
+function prodRememberPendingRates(r,updatedAt){
+  var account=(typeof GD!=='undefined'&&GD._account)?String(GD._account()||''):'';
+  appStorage.setItem(PROD_RATES_PENDING_KEY,JSON.stringify({rates:r,updatedAt:Number(updatedAt)||Date.now(),account:account}));
+}
+function prodRestorePendingRates(){
+  var pending=prodPendingRates();if(!pending)return false;
+  var account=(typeof GD!=='undefined'&&GD._account)?String(GD._account()||''):'';
+  if(pending.account&&account&&pending.account!==account)return false;
+  var storedAt=parseInt(appStorage.getItem(PROD_RATES_UPDATED_KEY)||'0',10)||0;
+  var pendingAt=parseInt(pending.updatedAt||'0',10)||0;
+  if(pendingAt<storedAt)return false;
+  var pendingRaw=JSON.stringify(pending.rates||{}),storedRaw=appStorage.getItem(PROD_RATES_KEY)||'{}';
+  if(pendingRaw===storedRaw&&pendingAt===storedAt)return false;
+  appStorage.setItem(PROD_RATES_KEY,pendingRaw);
+  appStorage.setItem(PROD_RATES_UPDATED_KEY,String(pendingAt||Date.now()));
+  // Si Drive alcanzó a devolver los movimientos anteriores pero no el nuevo
+  // porcentaje, recalcularlos con la copia pendiente antes de volver a subir.
+  var records=prodLoad(),recordsChanged=false;
+  records.forEach(function(row){
+    var rate=pending.rates[String(row.doctorId)];
+    if(rate===undefined)return;
+    var pct=Math.max(0,Math.min(100,Number(rate)||0));
+    var qty=Math.max(1,Number(row.qty)||1),unit=Number(row.unitPrice)||0;
+    var gross=Number(row.gross)||qty*unit,pay=gross*pct/100;
+    if(Number(row.percent)!==pct||Number(row.pay)!==pay){
+      row.gross=gross;row.percent=pct;row.pay=pay;recordsChanged=true;
+    }
+  });
+  if(recordsChanged)appStorage.setItem(PROD_KEY,JSON.stringify(records));
+  prodMarkLocalChange();
+  if(!_prodPendingRatesRestored){
+    _prodPendingRatesRestored=true;
+    setTimeout(function(){if(typeof GD!=='undefined'&&GD.save)GD.save();},0);
+  }
+  return true;
+}
+function prodRates(){
+  prodRestorePendingRates();
+  try{return JSON.parse(appStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}
+}
+function confirmPendingDoctorRatesSaved(savedRatesRaw,savedUpdatedAt){
+  var pending=prodPendingRates();if(!pending)return;
+  var pendingRaw=JSON.stringify(pending.rates||{}),savedRaw=String(savedRatesRaw||'{}');
+  if(pendingRaw===savedRaw&&(parseInt(savedUpdatedAt||'0',10)||0)>=(parseInt(pending.updatedAt||'0',10)||0)){
+    appStorage.removeItem(PROD_RATES_PENDING_KEY);
+    _prodPendingRatesRestored=false;
+  }
+}
 function prodTrashLoad(){try{return JSON.parse(appStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
 function prodMarkLocalChange(){appStorage.setItem('dental_local_updated_at',Date.now().toString());appStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
-function prodMarkRatesChange(){var now=Date.now().toString();appStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();}
+function prodMarkRatesChange(updatedAt){var now=String(updatedAt||Date.now());appStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();return Number(now);}
 function prodSave(data){appStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodSaveRates(r){appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){var changedAt=Date.now();appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange(changedAt);prodRememberPendingRates(r,changedAt);if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodTrashSave(data){appStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
 function prodInitForm(){
@@ -14572,11 +14629,16 @@ function prodSetRate(id,value,silent){
     }
   });
   // Guardar porcentaje y reportes juntos antes de programar una sola subida.
+  var changedAt=Date.now();
   appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
   if(updated)appStorage.setItem(PROD_KEY,JSON.stringify(records));
-  prodMarkRatesChange();
+  prodMarkRatesChange(changedAt);
+  prodRememberPendingRates(r,changedAt);
   if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();
-  if(typeof GD!=='undefined'&&GD.save)GD.save();
+  if(typeof GD!=='undefined'){
+    if(!silent&&GD.saveNow)GD.saveNow();
+    else if(GD.save)GD.save();
+  }
   var doctorInput=document.getElementById('prod-doctor'),percentInput=document.getElementById('prod-percent');
   if(doctorInput&&percentInput&&String(doctorInput.value)===String(id))percentInput.value=v;
   prodPreview();
@@ -18799,12 +18861,16 @@ var GD = (function() {
     var savedDirtySnapshot = null;
     var savedMirrorFile = null;
     var mirrorWriteError = null;
+    var savedDoctorRatesRaw = '{}';
+    var savedDoctorRatesUpdatedAt = 0;
     // Descargar y mezclar el contenido completo solo cuando los metadatos
     // indiquen que otro dispositivo guardó una versión nueva.
     _preflightBeforeSave().then(function() {
       saveLocalWithAutoBackup();
       var writeId = _dbIsAppData ? _dbFileId : null;
       var payload = _buildSavePayload();
+      savedDoctorRatesRaw = payload._doctorRates || '{}';
+      savedDoctorRatesUpdatedAt = parseInt(payload._doctorRatesUpdatedAt || '0', 10) || 0;
       savedDirtySnapshot = appStorage.dirtySnapshot();
       expectedRevision = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
       expectedPatientCount = Array.isArray(payload.patients) ? payload.patients.length : 0;
@@ -18863,6 +18929,9 @@ var GD = (function() {
       // seguro retirar del navegador todas las copias clínicas heredadas.
       appStorage.activateDriveOnly();
       appStorage.markClean(savedDirtySnapshot);
+      if (typeof confirmPendingDoctorRatesSaved === 'function') {
+        confirmPendingDoctorRatesSaved(savedDoctorRatesRaw, savedDoctorRatesUpdatedAt);
+      }
       // El borrador temporal se retira únicamente después de que la base
       // completa fue escrita y verificada leyendo de vuelta desde Drive.
       if (typeof confirmPatientDraftSaved === 'function') confirmPatientDraftSaved();
