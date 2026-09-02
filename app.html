@@ -5869,6 +5869,7 @@ body.app-ready #dash-page.active > .card {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <h2 id="det-name">—</h2>
             <span id="det-hc-number" style="font-size:.72rem;font-weight:700;color:var(--ink-4);background:var(--bg);border:1px solid var(--border-med);border-radius:12px;padding:2px 9px"></span>
+            <span id="det-doctor" style="font-size:.72rem;font-weight:700;color:var(--blue);background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:12px;padding:2px 9px">👨‍⚕️ Sin doctor asignado</span>
           </div>
           <p id="det-sub">—</p>
         </div>
@@ -6113,6 +6114,7 @@ body.app-ready #dash-page.active > .card {
           <div class="fg"><label>Teléfono</label><input type="tel" id="fp-phone"></div>
           <div class="fg"><label>Fecha de nacimiento</label><input type="date" id="fp-dob"></div>
           <div class="fg"><label>Sexo</label><select id="fp-sex"><option value="">—</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div>
+          <div class="fg"><label>Doctor responsable</label><select id="fp-doctor"><option value="">Sin asignar</option></select></div>
           <div class="fg"><label>CURP</label><input type="text" id="fp-curp" placeholder="18 caracteres" maxlength="18" style="text-transform:uppercase"></div>
           <div class="fg"><label>Ciudad / Residencia</label><input type="text" id="fp-city"></div>
           <div class="fg"><label>Correo electrónico</label><input type="email" id="fp-email" placeholder="paciente@email.com"></div>
@@ -6383,7 +6385,10 @@ var appStorage = (function(nativeStorage) {
     dental_gd_token_hint:1,
     dental_device_id_v1:1,
     dental_license_activated_v1:1,
-    dental_seen_version:1
+    dental_seen_version:1,
+    // Respaldo mínimo, no clínico, para que una recarga inmediata no pierda
+    // el porcentaje mientras Google Drive termina de confirmar el cambio.
+    dental_pending_doctor_rates_v1:1
   };
   var AUX_EXCLUDED = {
     dental_v4:1, dental_v3:1, dentalDB_v2:1, dentalClinicDB:1,
@@ -7310,7 +7315,7 @@ function renderList(ps) {
     tr.className = 'patient-mobile-card';
     tr.innerHTML = `
       <td data-label="HC" style="color:var(--ink-4);font-size:.72rem;font-weight:600;white-space:nowrap">${p.expediente ? '<span title="No. Expediente personalizado">'+p.expediente+'</span>' : p.hcNumber||'—'}</td>
-      <td data-label="Paciente"><strong style="font-weight:600">${p.name}</strong></td>
+      <td data-label="Paciente"><strong style="font-weight:600">${p.name}</strong><div style="font-size:.66rem;color:${p.assignedDoctorId||p.assignedDoctorName?'var(--blue)':'var(--ink-4)'};margin-top:2px">👨‍⚕️ ${escapeHTML(patientDoctorLabel(p))}</div></td>
       <td data-label="Ciudad" style="color:var(--ink-3)">${safe(p.residence)}</td>
       <td data-label="Edad" style="color:var(--ink-3)">${age !== null ? age + ' años' : '—'}</td>
       <td data-label="Alertas">${b}</td>
@@ -7351,6 +7356,9 @@ function filterList() {
     // Filtrar por doctor — buscar coincidencia parcial también (por nombres viejos)
     if (d) {
       var dLower = d.toLowerCase();
+      var assignedName = patientDoctorLabel(p).toLowerCase();
+      var hasAssignedDoc = assignedName !== 'sin doctor asignado'
+        && assignedName.includes(dLower.split(' ')[1] || dLower);
       var hasDocAppt = (db.appointments||[]).some(function(a) {
         return String(a.patientId) === String(p.id) &&
           a.doctorName && a.doctorName.toLowerCase().includes(dLower.split(' ')[1] || dLower);
@@ -7358,7 +7366,7 @@ function filterList() {
       var hasDocSV = (p.signosVitales||[]).some(function(sv) {
         return sv.doctor && sv.doctor.toLowerCase().includes(dLower.split(' ')[1] || dLower);
       });
-      if (!hasDocAppt && !hasDocSV) return false;
+      if (!hasAssignedDoc && !hasDocAppt && !hasDocSV) return false;
     }
     return true;
   });
@@ -7452,6 +7460,14 @@ function _renderDetailBase(id) {
   document.getElementById('det-name').textContent   = p.name;
   const age = calcAge(p.dob);
   document.getElementById('det-sub').textContent = [safe(p.occupation), safe(p.residence), age ? age + ' años' : ''].filter(x => x !== '—').join(' · ');
+  var detailDoctor = document.getElementById('det-doctor');
+  if (detailDoctor) {
+    var assigned = patientAssignedDoctor(p);
+    detailDoctor.textContent = '👨‍⚕️ ' + patientDoctorLabel(p);
+    detailDoctor.style.color = assigned || p.assignedDoctorName ? 'var(--blue)' : '#925400';
+    detailDoctor.style.background = assigned || p.assignedDoctorName ? 'var(--blue-pale)' : '#fff7dc';
+    detailDoctor.style.borderColor = assigned || p.assignedDoctorName ? 'var(--blue-mid)' : '#e8c76a';
+  }
   const ar = document.getElementById('det-alerts'); ar.innerHTML = '';
   if (isAlrg(p.allergies))  ar.innerHTML += `<span class="alert-pill ap-red">⚠️ ALERGIA: ${p.allergies}</span>`;
   if (isSmoke(p.smokeVape)) ar.innerHTML += `<span class="alert-pill ap-orange">🚬 ${p.smokeVape}</span>`;
@@ -7561,7 +7577,7 @@ function delOrtho(i) {
 
 // ═══ FORM ═══
 var HC_CORE_FIELDS = [
-  ['fp-expediente','No. Expediente'],['fp-phone','Teléfono'],['fp-dob','Fecha de nacimiento'],['fp-sex','Sexo'],['fp-curp','CURP'],['fp-city','Ciudad / Residencia'],['fp-email','Correo electrónico'],['fp-rep-legal','Representante legal'],['fp-rep-parentesco','Parentesco representante'],['fp-civil','Estado civil'],['fp-occ','Ocupación'],['fp-social','Red social contacto'],['fp-height','Estatura'],['fp-weight','Peso'],['fp-wnote','Nota peso'],['fp-kids','Hijos'],['fp-preg','Embarazo / AC'],['fp-fiscal-rfc','RFC'],['fp-fiscal-name','Nombre o razón social'],['fp-fiscal-zip','Código postal fiscal'],['fp-fiscal-regime','Régimen fiscal'],['fp-fiscal-use','Uso del CFDI'],['fp-fiscal-email','Correo para factura'],['fp-meds','Condición médica / Medicamentos'],['fp-allergy','Alergias'],['fp-supps','Suplementos / Vitaminas'],['fp-smoke','Fuma / Vapea'],['fp-subst','Sustancias'],['fp-alc','Alcohol'],['fp-soda','Refresco / Café'],['fp-diet','Dieta'],['fp-snacks','Snacks'],['fp-other','Otros problemas de salud'],['fp-brush','Cepillado'],['fp-paste','Pasta dental'],['fp-floss','Hilo dental'],['fp-mouth','Enjuague bucal'],['fp-cie10','Diagnóstico principal (CIE-10)'],['fp-pronostico','Pronóstico'],['fp-aviso-priv','Aviso de privacidad'],['fp-dental','Historial dental previo']
+  ['fp-expediente','No. Expediente'],['fp-phone','Teléfono'],['fp-dob','Fecha de nacimiento'],['fp-sex','Sexo'],['fp-doctor','Doctor responsable'],['fp-curp','CURP'],['fp-city','Ciudad / Residencia'],['fp-email','Correo electrónico'],['fp-rep-legal','Representante legal'],['fp-rep-parentesco','Parentesco representante'],['fp-civil','Estado civil'],['fp-occ','Ocupación'],['fp-social','Red social contacto'],['fp-height','Estatura'],['fp-weight','Peso'],['fp-wnote','Nota peso'],['fp-kids','Hijos'],['fp-preg','Embarazo / AC'],['fp-fiscal-rfc','RFC'],['fp-fiscal-name','Nombre o razón social'],['fp-fiscal-zip','Código postal fiscal'],['fp-fiscal-regime','Régimen fiscal'],['fp-fiscal-use','Uso del CFDI'],['fp-fiscal-email','Correo para factura'],['fp-meds','Condición médica / Medicamentos'],['fp-allergy','Alergias'],['fp-supps','Suplementos / Vitaminas'],['fp-smoke','Fuma / Vapea'],['fp-subst','Sustancias'],['fp-alc','Alcohol'],['fp-soda','Refresco / Café'],['fp-diet','Dieta'],['fp-snacks','Snacks'],['fp-other','Otros problemas de salud'],['fp-brush','Cepillado'],['fp-paste','Pasta dental'],['fp-floss','Hilo dental'],['fp-mouth','Enjuague bucal'],['fp-cie10','Diagnóstico principal (CIE-10)'],['fp-pronostico','Pronóstico'],['fp-aviso-priv','Aviso de privacidad'],['fp-dental','Historial dental previo']
 ];
 var _hcDraft = null;
 function escapeHTML(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -7571,6 +7587,74 @@ function hcTemplate(){
   if (!Array.isArray(cfg.hcTemplate.fields)) cfg.hcTemplate.fields=[];
   return cfg.hcTemplate;
 }
+
+// ── Doctor responsable del paciente ──────────────────────
+// Es una asignación administrativa del expediente. Las citas y registros de
+// producción conservan su propio doctor para no alterar el historial real.
+function patientAssignedDoctor(patient, doctors) {
+  if (!patient) return null;
+  doctors = doctors || ((typeof loadDoctors === 'function') ? loadDoctors() : []);
+  var byId = patient.assignedDoctorId !== undefined && patient.assignedDoctorId !== null && patient.assignedDoctorId !== ''
+    ? doctors.find(function(d){ return String(d.id) === String(patient.assignedDoctorId); })
+    : null;
+  if (byId) return byId;
+  var storedName = String(patient.assignedDoctorName || '').trim();
+  return storedName ? (doctors.find(function(d){ return d.name === storedName; }) || null) : null;
+}
+
+function patientDoctorLabel(patient) {
+  var doctor = patientAssignedDoctor(patient);
+  return doctor ? doctor.name : (String((patient && patient.assignedDoctorName) || '').trim() || 'Sin doctor asignado');
+}
+
+function populatePatientDoctorSelect(selectedId, selectedName, preferActive) {
+  var select = document.getElementById('fp-doctor');
+  if (!select) return;
+  var doctors = (typeof loadDoctors === 'function') ? loadDoctors() : [];
+  var desiredId = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
+  if (!desiredId && selectedName) {
+    var byName = doctors.find(function(d){ return d.name === selectedName; });
+    if (byName) desiredId = String(byName.id);
+  }
+  if (!desiredId && preferActive) {
+    var active = (typeof _activeDoctor !== 'undefined' && _activeDoctor)
+      || ((typeof loadActiveDoctor === 'function') ? loadActiveDoctor() : null);
+    if (active) desiredId = String(active.id);
+  }
+  select.innerHTML = '<option value="">Sin asignar</option>' + doctors.map(function(d) {
+    return '<option value="' + escapeHTML(String(d.id)) + '">👨‍⚕️ ' + escapeHTML(d.name) + '</option>';
+  }).join('');
+  select.value = doctors.some(function(d){ return String(d.id) === desiredId; }) ? desiredId : '';
+}
+
+function selectedPatientDoctor() {
+  var select = document.getElementById('fp-doctor');
+  var doctorId = select ? String(select.value || '') : '';
+  var doctors = (typeof loadDoctors === 'function') ? loadDoctors() : [];
+  return doctorId ? (doctors.find(function(d){ return String(d.id) === doctorId; }) || null) : null;
+}
+
+function doctorPatientMap(doctors, inPeriod) {
+  doctors = doctors || [];
+  var result = {};
+  var assigned = {};
+  doctors.forEach(function(doc){ result[doc.name] = {}; });
+  (db.patients || []).forEach(function(patient) {
+    var doctor = patientAssignedDoctor(patient, doctors);
+    if (!doctor || !result[doctor.name]) return;
+    result[doctor.name][patient.id] = true;
+    assigned[String(patient.id)] = true;
+  });
+  // Compatibilidad: pacientes antiguos sin asignación siguen vinculándose por
+  // sus citas, como ocurría antes de existir el doctor responsable.
+  (db.appointments || []).forEach(function(appt) {
+    if (!appt.patientId || assigned[String(appt.patientId)]) return;
+    if (inPeriod && !inPeriod(appt.date)) return;
+    if (appt.doctorName && result[appt.doctorName]) result[appt.doctorName][appt.patientId] = true;
+  });
+  return result;
+}
+
 function applyHCTemplate(){
   var t=hcTemplate();
   HC_CORE_FIELDS.forEach(function(meta){
@@ -7630,6 +7714,7 @@ function printPatientForm(){
       if(!input||hidden.indexOf(input.id)>=0||box.style.display==='none')return;
       var label=box.querySelector('label');
       var value=input.value;
+      if(input.tagName==='SELECT'&&input.selectedIndex>=0)value=input.options[input.selectedIndex].textContent;
       if(input.type==='date'&&value){var d=value.split('-');if(d.length===3)value=d[2]+'/'+d[1]+'/'+d[0];}
       fields.push({label:label?label.textContent.replace('*','').trim():'Campo',value:value||'—',wide:box.classList.contains('full')||input.tagName==='TEXTAREA'});
     });
@@ -7795,6 +7880,7 @@ function restorePatientDraftAfterReconnect(force) {
     document.getElementById('fp-id').value = '';
     document.getElementById('form-title').textContent = 'Nuevo paciente · borrador recuperado';
     applyHCTemplate();
+    populatePatientDoctorSelect('', '', false);
   }
   // Los campos personalizados se crean al aplicar la plantilla; restaurar sus
   // valores después garantiza que también sobrevivan a la recarga.
@@ -7836,6 +7922,7 @@ function openAddForm() {
   document.getElementById('fp-id').value = '';
   showForm();
   applyHCTemplate();
+  populatePatientDoctorSelect('', '', true);
   _patientDraftDirty = false;
 }
 function editCurrent() {
@@ -7875,7 +7962,7 @@ window.addEventListener('pagehide', function() {
   if (_patientDraftDirty && page && page.classList.contains('active')) _writePatientDraft('editing');
 });
 const fv = id => document.getElementById(id).value;
-function clearForm() { ['fp-name','fp-phone','fp-dob','fp-sex','fp-curp','fp-city','fp-email','fp-rep-legal','fp-rep-parentesco','fp-occ','fp-social','fp-height','fp-weight','fp-wnote','fp-fiscal-rfc','fp-fiscal-name','fp-fiscal-zip','fp-fiscal-regime','fp-fiscal-use','fp-fiscal-email','fp-meds','fp-allergy','fp-supps','fp-smoke','fp-subst','fp-alc','fp-soda','fp-diet','fp-snacks','fp-other','fp-brush','fp-paste','fp-floss','fp-mouth','fp-dental','fp-cie10','fp-aviso-priv','fp-expediente'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
+function clearForm() { ['fp-name','fp-phone','fp-dob','fp-sex','fp-doctor','fp-curp','fp-city','fp-email','fp-rep-legal','fp-rep-parentesco','fp-occ','fp-social','fp-height','fp-weight','fp-wnote','fp-fiscal-rfc','fp-fiscal-name','fp-fiscal-zip','fp-fiscal-regime','fp-fiscal-use','fp-fiscal-email','fp-meds','fp-allergy','fp-supps','fp-smoke','fp-subst','fp-alc','fp-soda','fp-diet','fp-snacks','fp-other','fp-brush','fp-paste','fp-floss','fp-mouth','fp-dental','fp-cie10','fp-aviso-priv','fp-expediente'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
 function fillForm(p) {
   document.getElementById('fp-id').value = p.id;
   const s = (id, v) => { const e = document.getElementById(id); if (e) e.value = v || ''; };
@@ -7895,11 +7982,13 @@ function fillForm(p) {
   s('fp-floss',p.hygieneFloss);s('fp-mouth',p.hygieneMouthwash);s('fp-dental',p.dentalHistory);
   s('fp-cie10',p.cie10);s('fp-pronostico',p.pronostico);s('fp-aviso-priv',p.avisoPrv);
   applyHCTemplate();
+  populatePatientDoctorSelect(p.assignedDoctorId, p.assignedDoctorName, false);
 }
 function savePatient() {
   const name = fv('fp-name').trim(); if (!name) { alert('El nombre es obligatorio.'); return; }
   const id = fv('fp-id');
-  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), fiscalData:{rfc:fv('fp-fiscal-rfc').trim().toUpperCase(),name:fv('fp-fiscal-name').trim().toUpperCase(),postalCode:fv('fp-fiscal-zip').trim(),regime:fv('fp-fiscal-regime'),use:fv('fp-fiscal-use'),email:fv('fp-fiscal-email').trim()}, medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
+  const assignedDoctor = selectedPatientDoctor();
+  const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), assignedDoctorId:assignedDoctor?assignedDoctor.id:null, assignedDoctorName:assignedDoctor?assignedDoctor.name:'', curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), fiscalData:{rfc:fv('fp-fiscal-rfc').trim().toUpperCase(),name:fv('fp-fiscal-name').trim().toUpperCase(),postalCode:fv('fp-fiscal-zip').trim(),regime:fv('fp-fiscal-regime'),use:fv('fp-fiscal-use'),email:fv('fp-fiscal-email').trim()}, medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
   if (id) { const idx = db.patients.findIndex(x => x.id == id); db.patients[idx] = { ...db.patients[idx], ...data }; curId = parseInt(id); }
   else { data.id = Date.now(); data.orthoControls = []; data.tags = []; data.clinicalNotes = ''; db.patients.push(data); curId = data.id; assignHCNumbers(); }
   // Conservar el formulario hasta que Drive confirme la escritura. Si el token
@@ -8517,6 +8606,14 @@ function buildStats() {
       if (a.status === 'cancelled') ds.canceladas++;
       if (a.patientId) ds.pacientes[a.patientId] = true;
     });
+    // En "Todo el tiempo", incluir también expedientes asignados aunque aún
+    // no tengan una cita. Los períodos fechados siguen contando actividad real.
+    if (period === 'all') {
+      db.patients.forEach(function(patient) {
+        var assigned = patientAssignedDoctor(patient, doctors);
+        if (assigned && docStats[assigned.name]) docStats[assigned.name].pacientes[patient.id] = true;
+      });
+    }
 
     // Cards por doctor
     var grid = document.getElementById('stats-doctors-grid');
@@ -10675,11 +10772,20 @@ function quickCreatePatient() {
   }
   document.getElementById('qp-name').style.borderColor = '';
 
+  var quickDoctors = (typeof loadDoctors === 'function') ? loadDoctors() : [];
+  var quickDoctorSelect = document.getElementById('appt-doctor-select');
+  var quickDoctorId = quickDoctorSelect ? String(quickDoctorSelect.value || '') : '';
+  var quickDoctor = quickDoctorId
+    ? quickDoctors.find(function(d){ return String(d.id) === quickDoctorId; })
+    : ((typeof _activeDoctor !== 'undefined' && _activeDoctor) || null);
+
   // Crear paciente mínimo en la DB
   var newP = {
     id: Date.now(),
     name: name,
     phone: phone,
+    assignedDoctorId: quickDoctor ? quickDoctor.id : null,
+    assignedDoctorName: quickDoctor ? quickDoctor.name : '',
     dob: '', residence: '', maritalStatus: '', occupation: '',
     contactSocial: '', heightCm: '', weightKg: '', weightNote: '',
     hasKids: '', isPregnant: '', medsCondition: '', allergies: '',
@@ -13453,7 +13559,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -14387,14 +14493,68 @@ goPage = function(id, el) {
 // =====================================================
 // REPORTES DE INGRESOS
 // =====================================================
-var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_TRASH_KEY='dental_production_trash_v1';
+var PROD_KEY='dental_production_v1', PROD_RATES_KEY='dental_doctor_rates_v1', PROD_RATES_UPDATED_KEY='dental_doctor_rates_updated_at', PROD_RATES_PENDING_KEY='dental_pending_doctor_rates_v1', PROD_TRASH_KEY='dental_production_trash_v1';
 function prodLoad(){try{return JSON.parse(appStorage.getItem(PROD_KEY))||[];}catch(e){return[];}}
-function prodRates(){try{return JSON.parse(appStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}}
+var _prodPendingRatesRestored=false;
+function prodPendingRates(){
+  try {
+    var pending=JSON.parse(appStorage.getItem(PROD_RATES_PENDING_KEY)||'null');
+    return pending&&pending.rates&&typeof pending.rates==='object'?pending:null;
+  } catch(e){ return null; }
+}
+function prodRememberPendingRates(r,updatedAt){
+  var account=(typeof GD!=='undefined'&&GD._account)?String(GD._account()||''):'';
+  appStorage.setItem(PROD_RATES_PENDING_KEY,JSON.stringify({rates:r,updatedAt:Number(updatedAt)||Date.now(),account:account}));
+}
+function prodRestorePendingRates(){
+  var pending=prodPendingRates();if(!pending)return false;
+  var account=(typeof GD!=='undefined'&&GD._account)?String(GD._account()||''):'';
+  if(pending.account&&account&&pending.account!==account)return false;
+  var storedAt=parseInt(appStorage.getItem(PROD_RATES_UPDATED_KEY)||'0',10)||0;
+  var pendingAt=parseInt(pending.updatedAt||'0',10)||0;
+  if(pendingAt<storedAt)return false;
+  var pendingRaw=JSON.stringify(pending.rates||{}),storedRaw=appStorage.getItem(PROD_RATES_KEY)||'{}';
+  if(pendingRaw===storedRaw&&pendingAt===storedAt)return false;
+  appStorage.setItem(PROD_RATES_KEY,pendingRaw);
+  appStorage.setItem(PROD_RATES_UPDATED_KEY,String(pendingAt||Date.now()));
+  // Si Drive alcanzó a devolver los movimientos anteriores pero no el nuevo
+  // porcentaje, recalcularlos con la copia pendiente antes de volver a subir.
+  var records=prodLoad(),recordsChanged=false;
+  records.forEach(function(row){
+    var rate=pending.rates[String(row.doctorId)];
+    if(rate===undefined)return;
+    var pct=Math.max(0,Math.min(100,Number(rate)||0));
+    var qty=Math.max(1,Number(row.qty)||1),unit=Number(row.unitPrice)||0;
+    var gross=Number(row.gross)||qty*unit,pay=gross*pct/100;
+    if(Number(row.percent)!==pct||Number(row.pay)!==pay){
+      row.gross=gross;row.percent=pct;row.pay=pay;recordsChanged=true;
+    }
+  });
+  if(recordsChanged)appStorage.setItem(PROD_KEY,JSON.stringify(records));
+  prodMarkLocalChange();
+  if(!_prodPendingRatesRestored){
+    _prodPendingRatesRestored=true;
+    setTimeout(function(){if(typeof GD!=='undefined'&&GD.save)GD.save();},0);
+  }
+  return true;
+}
+function prodRates(){
+  prodRestorePendingRates();
+  try{return JSON.parse(appStorage.getItem(PROD_RATES_KEY))||{};}catch(e){return{};}
+}
+function confirmPendingDoctorRatesSaved(savedRatesRaw,savedUpdatedAt){
+  var pending=prodPendingRates();if(!pending)return;
+  var pendingRaw=JSON.stringify(pending.rates||{}),savedRaw=String(savedRatesRaw||'{}');
+  if(pendingRaw===savedRaw&&(parseInt(savedUpdatedAt||'0',10)||0)>=(parseInt(pending.updatedAt||'0',10)||0)){
+    appStorage.removeItem(PROD_RATES_PENDING_KEY);
+    _prodPendingRatesRestored=false;
+  }
+}
 function prodTrashLoad(){try{return JSON.parse(appStorage.getItem(PROD_TRASH_KEY))||[];}catch(e){return[];}}
 function prodMarkLocalChange(){appStorage.setItem('dental_local_updated_at',Date.now().toString());appStorage.setItem('dental_offline_last_saved_at',Date.now().toString());}
-function prodMarkRatesChange(){var now=Date.now().toString();appStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();}
+function prodMarkRatesChange(updatedAt){var now=String(updatedAt||Date.now());appStorage.setItem(PROD_RATES_UPDATED_KEY,now);prodMarkLocalChange();return Number(now);}
 function prodSave(data){appStorage.setItem(PROD_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
-function prodSaveRates(r){appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
+function prodSaveRates(r){var changedAt=Date.now();appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));prodMarkRatesChange(changedAt);prodRememberPendingRates(r,changedAt);if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodTrashSave(data){appStorage.setItem(PROD_TRASH_KEY,JSON.stringify(data));prodMarkLocalChange();if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();if(typeof GD!=='undefined'&&GD.save)GD.save();}
 function prodDoctors(){var ds=(typeof loadDoctors==='function'&&loadDoctors())||[];if(!ds.length)ds=[{id:'default',name:(cfg&&cfg.name)||'Doctor principal',color:(cfg&&cfg.color)||'#0071e3'}];return ds;}
 function prodInitForm(){
@@ -14469,11 +14629,16 @@ function prodSetRate(id,value,silent){
     }
   });
   // Guardar porcentaje y reportes juntos antes de programar una sola subida.
+  var changedAt=Date.now();
   appStorage.setItem(PROD_RATES_KEY,JSON.stringify(r));
   if(updated)appStorage.setItem(PROD_KEY,JSON.stringify(records));
-  prodMarkRatesChange();
+  prodMarkRatesChange(changedAt);
+  prodRememberPendingRates(r,changedAt);
   if(typeof scheduleAutoFileBackup==='function')scheduleAutoFileBackup();
-  if(typeof GD!=='undefined'&&GD.save)GD.save();
+  if(typeof GD!=='undefined'){
+    if(!silent&&GD.saveNow)GD.saveNow();
+    else if(GD.save)GD.save();
+  }
   var doctorInput=document.getElementById('prod-doctor'),percentInput=document.getElementById('prod-percent');
   if(doctorInput&&percentInput&&String(doctorInput.value)===String(id))percentInput.value=v;
   prodPreview();
@@ -18696,12 +18861,16 @@ var GD = (function() {
     var savedDirtySnapshot = null;
     var savedMirrorFile = null;
     var mirrorWriteError = null;
+    var savedDoctorRatesRaw = '{}';
+    var savedDoctorRatesUpdatedAt = 0;
     // Descargar y mezclar el contenido completo solo cuando los metadatos
     // indiquen que otro dispositivo guardó una versión nueva.
     _preflightBeforeSave().then(function() {
       saveLocalWithAutoBackup();
       var writeId = _dbIsAppData ? _dbFileId : null;
       var payload = _buildSavePayload();
+      savedDoctorRatesRaw = payload._doctorRates || '{}';
+      savedDoctorRatesUpdatedAt = parseInt(payload._doctorRatesUpdatedAt || '0', 10) || 0;
       savedDirtySnapshot = appStorage.dirtySnapshot();
       expectedRevision = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
       expectedPatientCount = Array.isArray(payload.patients) ? payload.patients.length : 0;
@@ -18760,6 +18929,9 @@ var GD = (function() {
       // seguro retirar del navegador todas las copias clínicas heredadas.
       appStorage.activateDriveOnly();
       appStorage.markClean(savedDirtySnapshot);
+      if (typeof confirmPendingDoctorRatesSaved === 'function') {
+        confirmPendingDoctorRatesSaved(savedDoctorRatesRaw, savedDoctorRatesUpdatedAt);
+      }
       // El borrador temporal se retira únicamente después de que la base
       // completa fue escrita y verificada leyendo de vuelta desde Drive.
       if (typeof confirmPatientDraftSaved === 'function') confirmPatientDraftSaved();
@@ -21940,15 +22112,18 @@ function _updateSbDoctorFilter() {
 }
 
 function filterPatientsByDoctor(doctorId) {
-  _patientDoctorFilter = doctorId ? parseInt(doctorId, 10) : '';
+  _patientDoctorFilter = doctorId ? String(doctorId) : '';
   var filtered = db.patients;
   if (_patientDoctorFilter) {
-    // Filtrar pacientes que tienen al menos una cita con este doctor
+    // Priorizar la asignación del expediente y conservar compatibilidad con
+    // pacientes antiguos que solo tenían doctor dentro de sus citas.
     var patientIdsWithDoc = {};
     (db.appointments || []).forEach(function(a) {
-      if (a.doctorId === _patientDoctorFilter) patientIdsWithDoc[a.patientId] = true;
+      if (String(a.doctorId) === _patientDoctorFilter) patientIdsWithDoc[a.patientId] = true;
     });
-    filtered = db.patients.filter(function(p) { return patientIdsWithDoc[p.id]; });
+    filtered = db.patients.filter(function(p) {
+      return String(p.assignedDoctorId || '') === _patientDoctorFilter || patientIdsWithDoc[p.id];
+    });
   }
   renderList(filtered);
   updateTopStats();
@@ -22487,15 +22662,9 @@ function renderCalcComisiones() {
   var docProduccion = {};
   doctors.forEach(function(doc) { docProduccion[doc.name] = 0; });
 
-  // Método: cruzar citas del doctor con pagos del paciente
-  var docPatients = {}; // { doctorName: Set de patientIds }
-  doctors.forEach(function(doc) { docPatients[doc.name] = {}; });
-
-  (db.appointments || []).forEach(function(a) {
-    if (!a.doctorName || !docPatients[a.doctorName]) return;
-    if (!inPeriod(a.date)) return;
-    if (a.patientId) docPatients[a.doctorName][a.patientId] = true;
-  });
+  // La asignación del expediente es la fuente principal. Para pacientes
+  // antiguos sin asignación se conserva el cruce histórico por citas.
+  var docPatients = doctorPatientMap(doctors, inPeriod);
 
   // Sumar pagos de esos pacientes en ese período
   db.patients.forEach(function(p) {
@@ -22588,8 +22757,8 @@ function _updateComision(input) {
     if (period==='year') return d.getFullYear()===now.getFullYear();
     return true;
   }
-  var docPats = {};
-  (db.appointments||[]).forEach(function(a){ if(a.doctorName===docName&&inP(a.date)&&a.patientId) docPats[a.patientId]=true; });
+  var mappedPatients = doctorPatientMap((typeof loadDoctors==='function') ? loadDoctors() : [], inP);
+  var docPats = mappedPatients[docName] || {};
   var prod = 0;
   db.patients.forEach(function(p){ if(!docPats[p.id]) return; (p.payments||[]).forEach(function(pay){ if(inP(pay.date)&&(pay.type==='in'||pay.type==='ing')) prod+=(parseFloat(pay.amount)||0); }); });
 
@@ -22600,9 +22769,9 @@ function _updateComision(input) {
 
   // Recalcular total
   var doctors = (typeof loadDoctors==='function') ? loadDoctors() : [];
+  var allDoctorPatients = doctorPatientMap(doctors, inP);
   var total = doctors.reduce(function(t,d){
-    var dp={};
-    (db.appointments||[]).forEach(function(a){if(a.doctorName===d.name&&inP(a.date)&&a.patientId)dp[a.patientId]=true;});
+    var dp=allDoctorPatients[d.name]||{};
     var dp2=0;
     db.patients.forEach(function(p){if(!dp[p.id])return;(p.payments||[]).forEach(function(pay){if(inP(pay.date)&&(pay.type==='in'||pay.type==='ing'))dp2+=(parseFloat(pay.amount)||0);});});
     return t + Math.round(dp2*(_comisionPct[d.name]||30)/100);
