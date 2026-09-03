@@ -6,7 +6,7 @@
 <title id="page-title">Programa Consultorio Dental</title>
 <meta name="description" content="Programa Consultorio Dental — Software de gestión clínica para consultorios odontológicos. Administra pacientes, expedientes, ortodoncia, presupuestos y más.">
 <link rel="manifest" id="pwa-manifest">
-<meta name="theme-color" id="pwa-theme-color" content="#161617">
+<meta name="theme-color" id="pwa-theme-color" content="#bfe7fb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Consultorio">
@@ -4865,6 +4865,852 @@ body.app-ready #dash-page.active > .card {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: .01ms !important;
+  }
+}
+
+/* =========================================================
+   LIQUID GLASS / macOS GOLDEN GATE
+   Capa visual definitiva. Mantiene intacta la lógica clínica.
+========================================================= */
+:root {
+  --liquid-navy: #12314f;
+  --liquid-ink: #143451;
+  --liquid-muted: #607a91;
+  --liquid-line: rgba(255,255,255,.66);
+  --liquid-glass: rgba(244,251,255,.52);
+  --liquid-glass-strong: rgba(249,253,255,.68);
+  --liquid-glass-soft: rgba(219,242,255,.34);
+  --liquid-shadow: 0 24px 70px rgba(29,88,126,.14), 0 4px 16px rgba(30,91,132,.07);
+  --liquid-shadow-soft: 0 12px 34px rgba(33,99,142,.09), 0 2px 9px rgba(33,99,142,.05);
+  --liquid-radius: 24px;
+  --liquid-radius-sm: 15px;
+  --sb-w: 252px;
+}
+
+html {
+  background: #8ed3f7;
+}
+
+body,
+body.user-custom-theme {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: 0 !important;
+  color: var(--liquid-ink) !important;
+  background:
+    radial-gradient(ellipse at 8% 4%, rgba(255,255,255,.94) 0, rgba(255,255,255,.26) 23%, transparent 45%),
+    radial-gradient(ellipse at 90% 12%, rgba(205,245,255,.95) 0, rgba(137,213,255,.34) 31%, transparent 56%),
+    radial-gradient(ellipse at 52% 108%, rgba(106,182,250,.58) 0, rgba(155,220,251,.18) 38%, transparent 66%),
+    linear-gradient(145deg, #d9f3ff 0%, #bfe7fb 38%, #a8d8f5 72%, #caedfb 100%) !important;
+  background-attachment: fixed !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif !important;
+  font-weight: 450;
+  letter-spacing: -.008em;
+  animation: none !important;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  z-index: -2;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(2px);
+}
+body::before {
+  width: min(55vw, 820px);
+  height: min(42vw, 620px);
+  left: 17vw;
+  top: -26vh;
+  background: radial-gradient(circle, rgba(255,255,255,.82), rgba(203,239,255,.28) 53%, transparent 72%);
+}
+body::after {
+  width: min(45vw, 680px);
+  height: min(45vw, 680px);
+  right: -16vw;
+  bottom: -29vh;
+  background: radial-gradient(circle, rgba(80,169,242,.36), rgba(135,208,252,.16) 48%, transparent 72%);
+}
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(38,105,151,.24);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+
+/* Sidebar flotante y translúcido */
+#sidebar,
+body.user-custom-theme #sidebar {
+  position: fixed !important;
+  top: 18px !important;
+  left: 18px !important;
+  right: auto !important;
+  bottom: 18px !important;
+  width: var(--sb-w) !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  transform: none;
+  color: var(--liquid-navy);
+  background:
+    linear-gradient(160deg, rgba(247,253,255,.66), rgba(202,235,253,.41) 62%, rgba(191,229,250,.31)) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  border-radius: 30px !important;
+  box-shadow: var(--liquid-shadow), inset 0 1px 0 rgba(255,255,255,.88), inset 0 -1px 0 rgba(74,148,194,.08) !important;
+  backdrop-filter: blur(34px) saturate(155%) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(155%) !important;
+  animation: none !important;
+  isolation: isolate;
+}
+#sidebar::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 210px !important;
+  height: 250px !important;
+  left: -75px !important;
+  top: -95px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(255,255,255,.8), rgba(136,213,253,.23) 55%, transparent 72%) !important;
+  filter: blur(1px) !important;
+  animation: none !important;
+}
+#sidebar::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 190px;
+  height: 190px;
+  right: -100px;
+  bottom: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(87,179,239,.24), transparent 70%);
+}
+
+.sb-logo {
+  display: grid !important;
+  flex: 0 0 auto;
+  grid-template-columns: 46px minmax(0,1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  column-gap: 12px !important;
+  min-height: 92px !important;
+  height: auto !important;
+  padding: 18px 17px 15px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.52) !important;
+}
+.sb-logo-icon {
+  grid-row: 1 / 3 !important;
+  width: 46px !important;
+  height: 46px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,.76) !important;
+  border-radius: 15px !important;
+  color: #fff !important;
+  background: linear-gradient(145deg, rgba(73,178,245,.96), rgba(8,116,220,.92)) !important;
+  box-shadow: 0 10px 25px rgba(15,115,201,.25), inset 0 1px 0 rgba(255,255,255,.48) !important;
+}
+.sb-logo h1 {
+  align-self: end !important;
+  min-width: 0;
+  color: var(--liquid-navy) !important;
+  font-size: .9rem !important;
+  font-weight: 720 !important;
+  letter-spacing: -.025em !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-logo p {
+  display: block !important;
+  align-self: start !important;
+  color: rgba(40,76,105,.62) !important;
+  font-size: .63rem !important;
+  font-weight: 560 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-nav {
+  display: block !important;
+  flex: 1 1 auto !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 10px 11px 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%) !important;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%) !important;
+  clip-path: none !important;
+}
+.sb-section {
+  display: block !important;
+  padding: 12px 10px 6px !important;
+  color: rgba(40,77,107,.44) !important;
+  font-size: .58rem !important;
+  font-weight: 720 !important;
+  letter-spacing: .11em !important;
+}
+.sb-nav .nav-item,
+.nav-item {
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 41px !important;
+  margin: 2px 0 !important;
+  padding: 6px 9px !important;
+  overflow: visible !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  color: rgba(23,57,85,.7) !important;
+  background: transparent !important;
+  font-size: .78rem !important;
+  font-weight: 560 !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  box-shadow: none !important;
+}
+.nav-item::after { display: none !important; }
+.nav-item .nav-icon {
+  display: flex !important;
+  flex: 0 0 29px !important;
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 10px !important;
+  color: inherit !important;
+  background: rgba(255,255,255,.31) !important;
+  border: 1px solid rgba(255,255,255,.32) !important;
+  filter: saturate(.72);
+}
+.nav-item:hover {
+  color: var(--liquid-navy) !important;
+  background: rgba(255,255,255,.38) !important;
+  border-color: rgba(255,255,255,.48) !important;
+  transform: translateX(2px) !important;
+}
+.nav-item.active {
+  color: #0c4f87 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(239,250,255,.54)) !important;
+  border-color: rgba(255,255,255,.92) !important;
+  box-shadow: 0 9px 24px rgba(49,117,158,.12), inset 0 1px 0 rgba(255,255,255,.94) !important;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(#56c1ff,#0877db);
+  box-shadow: 0 0 12px rgba(19,133,222,.38);
+}
+.nav-item.active .nav-icon {
+  color: #fff !important;
+  background: linear-gradient(145deg,#55bdff,#0b76d8) !important;
+  border-color: rgba(255,255,255,.62) !important;
+  box-shadow: 0 6px 14px rgba(10,117,211,.2) !important;
+}
+
+.sb-footer {
+  position: relative !important;
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  padding: 11px 13px 13px !important;
+  overflow: visible !important;
+  color: rgba(39,73,101,.55) !important;
+  background: rgba(231,247,255,.21) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255,255,255,.52) !important;
+  box-shadow: none !important;
+}
+.sb-footer > div:first-child { flex: 1 1 100% !important; width: 100% !important; }
+.sb-footer #active-doctor-badge {
+  display: block !important;
+  order: -1;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 2px !important;
+}
+.sb-footer #active-doctor-badge .doctor-active-badge {
+  width: 100% !important;
+  min-height: 38px;
+  justify-content: flex-start;
+  color: #215f8c !important;
+  background: rgba(255,255,255,.39) !important;
+  border-color: rgba(255,255,255,.58) !important;
+}
+.sb-footer #active-doctor-name { flex: 1; }
+.sb-footer > button,
+.sb-footer #backup-badge { display: flex !important; }
+.sb-footer .sb-settings-btn,
+.sb-footer button[title="Configuración"] {
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  color: #235a83 !important;
+  background: rgba(255,255,255,.38) !important;
+  border: 1px solid rgba(255,255,255,.56) !important;
+  border-radius: 12px !important;
+}
+
+/* Área de trabajo */
+#main,
+body.user-custom-theme #main {
+  min-height: 100vh !important;
+  margin-left: calc(var(--sb-w) + 36px) !important;
+  padding-top: 0 !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  color: var(--liquid-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.topbar,
+body.user-custom-theme .topbar {
+  position: sticky !important;
+  top: 18px !important;
+  z-index: 150 !important;
+  display: flex !important;
+  min-height: 62px !important;
+  height: 62px !important;
+  margin: 18px 24px 0 !important;
+  padding: 10px 15px 10px 19px !important;
+  overflow: hidden;
+  color: var(--liquid-ink) !important;
+  background: linear-gradient(135deg, rgba(250,254,255,.69), rgba(229,246,255,.49)) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  border-radius: 22px !important;
+  box-shadow: var(--liquid-shadow-soft), inset 0 1px 0 rgba(255,255,255,.94) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+}
+.topbar::before {
+  content: '';
+  position: absolute;
+  width: 170px;
+  height: 70px;
+  left: 32%;
+  top: -56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.58);
+  filter: blur(18px);
+  pointer-events: none;
+}
+.topbar::after { display: none !important; }
+.topbar h2,
+body.user-custom-theme .topbar h2 {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 7px 12px 7px 10px !important;
+  color: var(--liquid-navy) !important;
+  background: rgba(255,255,255,.32) !important;
+  border: 1px solid rgba(255,255,255,.42) !important;
+  border-radius: 999px !important;
+  font-size: .72rem !important;
+  font-weight: 680 !important;
+  letter-spacing: .015em !important;
+  text-shadow: none !important;
+}
+.topbar h2::before {
+  width: 7px;
+  height: 7px;
+  background: #21a6ef;
+  box-shadow: 0 0 0 4px rgba(33,166,239,.12), 0 0 16px rgba(33,166,239,.38);
+}
+.topbar-actions { position: relative; z-index: 1; align-items: center !important; gap: 7px !important; }
+.content,
+body.user-custom-theme .content {
+  width: 100%;
+  max-width: 1580px !important;
+  margin: 0 auto !important;
+  padding: 24px 24px 64px !important;
+  background: transparent !important;
+}
+
+/* Superficies de vidrio */
+.card,
+.stat-card,
+.table-wrap,
+.cal-main,
+.appt-form-card,
+.patient-header,
+.budget-panel,
+.prod-doctor-card,
+.perio-summary-card,
+.perio-map-card,
+.spec-module-card,
+.receipt-kpi,
+body.user-custom-theme .card,
+body.user-custom-theme .stat-card,
+body.user-custom-theme .table-wrap,
+body.user-custom-theme .cal-main,
+body.user-custom-theme .appt-form-card,
+body.user-custom-theme .patient-header,
+body.user-custom-theme .budget-panel {
+  color: var(--liquid-ink) !important;
+  background: linear-gradient(145deg, rgba(250,254,255,.67), rgba(226,244,254,.43)) !important;
+  border: 1px solid rgba(255,255,255,.78) !important;
+  box-shadow: var(--liquid-shadow-soft), inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(74,145,190,.07) !important;
+  backdrop-filter: blur(25px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(145%) !important;
+}
+.card,
+body.user-custom-theme .card { border-radius: var(--liquid-radius) !important; padding: 21px !important; }
+.table-wrap { border-radius: var(--liquid-radius) !important; overflow: hidden; }
+.cal-main,
+.patient-header,
+.budget-panel { border-radius: var(--liquid-radius) !important; }
+.card-title {
+  color: #426a87 !important;
+  font-size: .7rem !important;
+  font-weight: 740 !important;
+  letter-spacing: .075em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboard-hero,
+body.user-custom-theme .dashboard-hero {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) minmax(300px,42%) !important;
+  align-items: center !important;
+  min-height: 245px !important;
+  margin-bottom: 18px !important;
+  padding: 34px 36px !important;
+  overflow: hidden !important;
+  color: var(--liquid-navy) !important;
+  background:
+    radial-gradient(circle at 82% 24%, rgba(255,255,255,.88), transparent 16rem),
+    linear-gradient(120deg, rgba(238,250,255,.78), rgba(142,211,248,.49) 60%, rgba(200,237,255,.58)) !important;
+  border: 1px solid rgba(255,255,255,.86) !important;
+  border-radius: 29px !important;
+  box-shadow: var(--liquid-shadow), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  backdrop-filter: blur(28px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(150%) !important;
+}
+.dashboard-hero::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  width: 350px !important;
+  height: 350px !important;
+  right: -90px !important;
+  top: -150px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(255,255,255,.72), rgba(102,190,247,.18) 48%, transparent 68%) !important;
+  filter: blur(2px) !important;
+}
+.dashboard-hero::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  width: 210px !important;
+  height: 210px !important;
+  left: 43% !important;
+  bottom: -165px !important;
+  border: 28px solid rgba(255,255,255,.24) !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+.dashboard-hero > div:first-child { position: relative !important; z-index: 3 !important; max-width: 650px !important; }
+.dashboard-eyebrow {
+  margin-bottom: 10px !important;
+  color: #3377a5 !important;
+  font-size: .63rem !important;
+  font-weight: 760 !important;
+  letter-spacing: .14em !important;
+}
+.dashboard-hero #dash-greeting {
+  max-width: 680px !important;
+  margin: 0 0 9px !important;
+  color: #133b5b !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif !important;
+  font-size: clamp(2rem,3.3vw,3.35rem) !important;
+  font-weight: 720 !important;
+  line-height: .99 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.62) !important;
+}
+.dashboard-hero #dash-date-lbl {
+  max-width: 520px !important;
+  margin-top: 0 !important;
+  color: rgba(34,76,108,.64) !important;
+  font-size: .8rem !important;
+}
+.hero-reference-art { opacity: .36 !important; filter: saturate(.68) hue-rotate(166deg) brightness(1.18); }
+.dashboard-quick-actions {
+  position: absolute !important;
+  z-index: 6 !important;
+  left: 34px !important;
+  right: auto !important;
+  bottom: 26px !important;
+  display: flex !important;
+  min-width: 0 !important;
+  padding: 5px !important;
+  gap: 5px !important;
+  background: rgba(255,255,255,.3) !important;
+  border: 1px solid rgba(255,255,255,.54) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 9px 24px rgba(37,102,143,.08) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+}
+.dashboard-action {
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  color: #174e78 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  font-size: .71rem !important;
+  font-weight: 650 !important;
+  text-align: center !important;
+}
+.dashboard-action:hover { color: #075da0 !important; background: rgba(255,255,255,.58) !important; }
+
+/* Indicadores: capas claras con relieve suave */
+.stats-row { gap: 13px !important; margin-top: 17px !important; margin-bottom: 20px !important; }
+.stats-row .stat-card,
+body.user-custom-theme .stats-row .stat-card {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0,1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  column-gap: 13px !important;
+  min-height: 108px !important;
+  padding: 16px 17px !important;
+  overflow: hidden !important;
+  border-radius: 21px !important;
+}
+.stats-row .stat-card::before {
+  inset: 13px auto 13px 0 !important;
+  width: 3px !important;
+  background: linear-gradient(#64c9ff,#198bdf) !important;
+}
+.stats-row .stat-card::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  width: 90px !important;
+  height: 90px !important;
+  right: -48px !important;
+  top: -49px !important;
+  border-radius: 50% !important;
+  background: rgba(110,201,250,.13) !important;
+}
+.stats-row .stat-icon {
+  grid-row: 1 / 3 !important;
+  width: 42px !important;
+  height: 42px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,.66) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.66), rgba(157,217,251,.34)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 7px 16px rgba(33,108,154,.08) !important;
+}
+.stats-row .stat-label { color: #668096 !important; }
+.stats-row .stat-value { color: #153b58 !important; }
+.stats-row .stat-card:hover {
+  transform: translateY(-3px) scale(1.006) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: 0 19px 45px rgba(33,99,142,.13), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+/* Controles de cristal */
+.btn,
+body.user-custom-theme .btn,
+#desktop-help-btn,
+#gd-save-now-btn,
+#pwa-install-btn {
+  min-height: 36px;
+  border-radius: 13px !important;
+  font-weight: 630 !important;
+}
+.btn-primary,
+.pass-btn,
+.topbar .btn-primary {
+  color: #fff !important;
+  background: linear-gradient(145deg,#27a8f3,#0875d7) !important;
+  border: 1px solid rgba(255,255,255,.54) !important;
+  box-shadow: 0 9px 22px rgba(8,112,206,.22), inset 0 1px 0 rgba(255,255,255,.38) !important;
+}
+.btn-primary:hover,
+.pass-btn:hover,
+.topbar .btn-primary:hover {
+  background: linear-gradient(145deg,#43b8f7,#0a7fe4) !important;
+  box-shadow: 0 12px 27px rgba(8,112,206,.28), inset 0 1px 0 rgba(255,255,255,.48) !important;
+}
+.btn-ghost,
+body.user-custom-theme:not(.user-theme-dark-card) .btn-ghost,
+#desktop-help-btn {
+  color: #315b79 !important;
+  background: rgba(255,255,255,.34) !important;
+  border: 1px solid rgba(255,255,255,.58) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.62) !important;
+}
+.btn-ghost:hover,
+#desktop-help-btn:hover { background: rgba(255,255,255,.61) !important; color: #0867ad !important; }
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+textarea,
+select,
+body.user-custom-theme input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body.user-custom-theme textarea,
+body.user-custom-theme select {
+  color: var(--liquid-ink) !important;
+  background: rgba(248,253,255,.48) !important;
+  border-color: rgba(85,145,184,.18) !important;
+  border-radius: 13px !important;
+  box-shadow: inset 0 1px 2px rgba(24,76,108,.035), 0 1px 0 rgba(255,255,255,.75) !important;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: rgba(16,126,211,.53) !important;
+  background: rgba(255,255,255,.72) !important;
+  box-shadow: 0 0 0 4px rgba(21,139,222,.11), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+thead tr { background: rgba(225,244,254,.42) !important; }
+th { color: #648099 !important; }
+tbody tr:hover td { background: rgba(255,255,255,.27) !important; }
+
+/* Ventanas y hojas modales */
+.overlay,
+.settings-overlay,
+#backup-reminder-overlay,
+#doctor-select-overlay,
+#gd-reconnect-modal {
+  background: rgba(27,72,104,.22) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+.overlay-box,
+.settings-box,
+.settings-panel,
+.modal-box,
+.doctor-select-box,
+.photo-bulk-box,
+#backup-reminder-box,
+.perio-box,
+.odo-box,
+.ped-box,
+.spec-box,
+.help-window {
+  color: var(--liquid-ink) !important;
+  background: linear-gradient(145deg, rgba(248,253,255,.88), rgba(216,240,253,.76)) !important;
+  border: 1px solid rgba(255,255,255,.88) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 38px 110px rgba(20,69,103,.24), inset 0 1px 0 rgba(255,255,255,.98) !important;
+  backdrop-filter: blur(36px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(145%) !important;
+}
+.settings-header,
+.overlay-header {
+  background: rgba(244,252,255,.58) !important;
+  border-color: rgba(255,255,255,.68) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+
+#pass-screen,
+#gd-login-screen,
+#app-loading-screen {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,.94), transparent 26rem),
+    radial-gradient(circle at 82% 84%, rgba(77,173,240,.35), transparent 28rem),
+    linear-gradient(145deg,#d9f3ff,#a8d9f6) !important;
+}
+.pass-box,
+.gd-login-box,
+.app-loading-card {
+  color: var(--liquid-ink) !important;
+  background: rgba(246,252,255,.58) !important;
+  border: 1px solid rgba(255,255,255,.85) !important;
+  border-radius: 30px !important;
+  box-shadow: 0 35px 100px rgba(20,77,117,.2), inset 0 1px 0 rgba(255,255,255,.96) !important;
+  backdrop-filter: blur(32px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
+}
+
+/* Modo oscuro: vidrio azul noche, sin perder contraste */
+html.dark body,
+html.dark body.user-custom-theme {
+  color: #eef8ff !important;
+  background:
+    radial-gradient(ellipse at 8% 2%, rgba(49,126,183,.32), transparent 36%),
+    radial-gradient(ellipse at 92% 88%, rgba(31,102,162,.25), transparent 42%),
+    linear-gradient(145deg,#071521,#0d2437 55%,#102d45) !important;
+}
+html.dark #sidebar,
+html.dark body.user-custom-theme #sidebar {
+  color: #eff9ff !important;
+  background: linear-gradient(155deg, rgba(21,54,79,.69), rgba(8,29,46,.6)) !important;
+  border-color: rgba(255,255,255,.13) !important;
+}
+html.dark .sb-logo h1,
+html.dark .nav-item { color: rgba(238,248,255,.78) !important; }
+html.dark .sb-logo p,
+html.dark .sb-section { color: rgba(205,229,245,.48) !important; }
+html.dark .nav-item.active { color: #fff !important; background: rgba(104,188,244,.18) !important; border-color: rgba(156,216,255,.23) !important; }
+html.dark .topbar,
+html.dark body.user-custom-theme .topbar,
+html.dark .card,
+html.dark .stat-card,
+html.dark .table-wrap,
+html.dark .cal-main,
+html.dark .patient-header,
+html.dark .budget-panel,
+html.dark body.user-custom-theme .card,
+html.dark body.user-custom-theme .stat-card,
+html.dark body.user-custom-theme .table-wrap,
+html.dark body.user-custom-theme .cal-main {
+  color: #ecf7ff !important;
+  background: linear-gradient(145deg, rgba(30,65,91,.66), rgba(15,45,68,.48)) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.1) !important;
+}
+html.dark .topbar h2,
+html.dark body.user-custom-theme .topbar h2,
+html.dark .stat-value { color: #eef8ff !important; }
+html.dark .card-title,
+html.dark .stat-label { color: #a8c4d8 !important; }
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select { color: #eef8ff !important; background: rgba(9,32,51,.5) !important; border-color: rgba(255,255,255,.14) !important; }
+
+/* Escritorio compacto y móvil */
+@media (max-width: 1100px) {
+  :root { --sb-w: min(88vw,330px); }
+  #sidebar,
+  body.user-custom-theme #sidebar {
+    top: 10px !important;
+    left: 10px !important;
+    bottom: 10px !important;
+    width: var(--sb-w) !important;
+    transform: translateX(calc(-100% - 24px)) !important;
+    transition: transform .28s cubic-bezier(.22,1,.36,1) !important;
+    z-index: 400 !important;
+  }
+  body.mobile-nav-open #sidebar { transform: translateX(0) !important; }
+  body.mobile-nav-open #sidebar-scrim { display: block !important; }
+  body.mobile-nav-open { overflow: hidden; }
+  #sidebar-scrim {
+    z-index: 390 !important;
+    background: rgba(24,65,95,.24) !important;
+    backdrop-filter: blur(13px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(13px) saturate(120%) !important;
+  }
+  #main,
+  body.user-custom-theme #main { margin-left: 0 !important; }
+  #mobile-menu-btn { display: inline-flex !important; }
+  .topbar,
+  body.user-custom-theme .topbar { top: 10px !important; margin: 10px 12px 0 !important; }
+  .content,
+  body.user-custom-theme .content { padding: 20px 14px 70px !important; }
+}
+
+@media (max-width: 760px) {
+  body,
+  body.user-custom-theme { background-attachment: fixed !important; }
+  #sidebar,
+  body.user-custom-theme #sidebar { border-radius: 26px !important; }
+  .topbar,
+  body.user-custom-theme .topbar {
+    height: 58px !important;
+    min-height: 58px !important;
+    padding: 8px 10px !important;
+    border-radius: 19px !important;
+  }
+  .topbar h2,
+  body.user-custom-theme .topbar h2 { max-width: 35vw !important; font-size: .66rem !important; }
+  #mobile-menu-btn { background: rgba(255,255,255,.4) !important; border: 1px solid rgba(255,255,255,.58) !important; }
+  .content,
+  body.user-custom-theme .content { padding: 16px 10px calc(84px + env(safe-area-inset-bottom)) !important; }
+  .dashboard-hero,
+  body.user-custom-theme .dashboard-hero {
+    display: block !important;
+    min-height: 480px !important;
+    padding: 29px 23px !important;
+    border-radius: 25px !important;
+  }
+  .dashboard-hero #dash-greeting { max-width: 90% !important; font-size: clamp(2.15rem,12vw,3.5rem) !important; }
+  .hero-reference-art { height: 265px !important; bottom: 60px !important; }
+  .dashboard-quick-actions {
+    left: 13px !important;
+    right: 13px !important;
+    bottom: 13px !important;
+    display: grid !important;
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+  .dashboard-action { padding: 7px 4px !important; font-size: .62rem !important; }
+  .stats-row { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 9px !important; }
+  .stats-row .stat-card,
+  body.user-custom-theme .stats-row .stat-card {
+    grid-template-columns: 36px minmax(0,1fr) !important;
+    column-gap: 9px !important;
+    min-height: 103px !important;
+    padding: 13px !important;
+    border-radius: 18px !important;
+  }
+  .stats-row .stat-icon { width: 36px !important; height: 36px !important; border-radius: 12px !important; }
+  .stats-row .stat-value { font-size: 1.28rem !important; }
+  .card,
+  body.user-custom-theme .card { padding: 16px !important; border-radius: 20px !important; }
+  .overlay-box,
+  .settings-box,
+  .settings-panel,
+  .modal-box,
+  .doctor-select-box,
+  .photo-bulk-box,
+  #backup-reminder-box {
+    border-radius: 26px 26px 0 0 !important;
+  }
+}
+
+@media (max-width: 410px) {
+  .dashboard-quick-actions { grid-template-columns: 1fr !important; }
+  .dashboard-hero,
+  body.user-custom-theme .dashboard-hero { min-height: 560px !important; }
+  .stats-row { grid-template-columns: 1fr !important; }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  #sidebar, .topbar, .card, .stat-card, .table-wrap, .cal-main,
+  .patient-header, .budget-panel, .overlay-box, .settings-box {
+    background: rgba(238,249,255,.94) !important;
   }
 }
 </style>
@@ -10611,8 +11457,8 @@ function openWA() {
   const container = document.getElementById('wa-templates');
   container.innerHTML = templates.map((t,i) => `
     <div class="wa-tpl" onclick="selectWATpl(${i})" id="wa-tpl-${i}">
-      <div class="wa-tpl-title">${t.title}</div>
-      <div class="wa-tpl-pre">${t.msg.substring(0,80)}…</div>
+      <div class="wa-tpl-title">${escapeHTML(t.title)}</div>
+      <div class="wa-tpl-pre">${escapeHTML(t.msg.substring(0,80))}…</div>
     </div>`).join('');
   document.getElementById('wa-msg').value = '';
   document.getElementById('wa-overlay').classList.add('open');
@@ -11445,7 +12291,10 @@ function openSettings() {
   applyBranding();
 }
 
-function closeSettings() {
+function closeSettings(savePendingCustomWATpls) {
+  if (savePendingCustomWATpls && typeof flushCustomWATplEdits === 'function') {
+    flushCustomWATplEdits();
+  }
   document.getElementById('settings-overlay').classList.remove('open');
 }
 
@@ -11492,6 +12341,7 @@ function pickPresetColor(hex) {
 }
 
 function saveSettings() {
+  if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
   cfg.name     = document.getElementById('cfg-name').value  || cfg.name;
   cfg.sub      = document.getElementById('cfg-sub').value   || cfg.sub;
   cfg.city     = document.getElementById('cfg-city').value  || cfg.city;
@@ -13170,6 +14020,7 @@ function buildCompleteBackup() {
     doctors: appStorage.getItem('dental_doctors_v1') || null,
     doctorsUpdatedAt: appStorage.getItem('dental_doctors_updated_at') || null,
     waTemplates: appStorage.getItem('dental_wa_custom_tpls_v1') || null,
+    waTemplatesUpdatedAt: appStorage.getItem('dental_wa_custom_tpls_updated_at_v1') || null,
     quickNotes: appStorage.getItem('dental_quick_notes_v1') || null,
     patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
   };
@@ -13429,6 +14280,7 @@ function importData(input) {
       var importedDoctors = backup.doctors || importedDb._doctors || null;
       var importedDoctorsUpdatedAt = backup.doctorsUpdatedAt || importedDb._doctorsUpdatedAt || null;
       var importedWa = backup.waTemplates || importedDb._waTpls || null;
+      var importedWaUpdatedAt = backup.waTemplatesUpdatedAt || importedDb._waTplsUpdatedAt || null;
       var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
       var importedTombstones = backup.patientTombstones || importedDb._patientTombstones || {};
 
@@ -13448,6 +14300,7 @@ function importData(input) {
       delete db._doctors;
       delete db._doctorsUpdatedAt;
       delete db._waTpls;
+      delete db._waTplsUpdatedAt;
       delete db._quickNotes;
       delete db._patientTombstones;
 
@@ -13492,6 +14345,7 @@ function importData(input) {
         appStorage.setItem('dental_doctors_updated_at', String(importedDoctorsUpdatedAt || Date.now()));
       }
       if (importedWa) appStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
+      if (importedWaUpdatedAt) appStorage.setItem('dental_wa_custom_tpls_updated_at_v1', String(importedWaUpdatedAt));
       if (importedNotes) appStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
       // Las marcas de pacientes eliminados pertenecen al respaldo. Conservar
       // las del navegador anterior podía volver a borrar pacientes importados.
@@ -13559,7 +14413,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -16939,14 +17793,53 @@ function installPWA() {
 // ★ V3 — PLANTILLAS WA PERSONALIZADAS
 // ══════════════════════════════════════════════════════════
 var WA_CUSTOM_KEY = 'dental_wa_custom_tpls_v1';
+var WA_CUSTOM_UPDATED_KEY = 'dental_wa_custom_tpls_updated_at_v1';
+var _waTplEditTimer = null;
 
 function loadCustomWATpls() {
   try { return JSON.parse(appStorage.getItem(WA_CUSTOM_KEY)) || []; } catch(e) { return []; }
 }
 function saveCustomWATpls(tpls) {
-  appStorage.setItem(WA_CUSTOM_KEY, JSON.stringify(tpls));
+  var next = JSON.stringify(Array.isArray(tpls) ? tpls : []);
+  if (appStorage.getItem(WA_CUSTOM_KEY) === next) return false;
+  appStorage.setItem(WA_CUSTOM_KEY, next);
+  appStorage.setItem(WA_CUSTOM_UPDATED_KEY, String(Date.now()));
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
-  if (typeof GD !== 'undefined' && GD.save) GD.save();
+  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
+  else if (typeof GD !== 'undefined' && GD.save) GD.save();
+  return true;
+}
+
+function readCustomWATplsFromSettings() {
+  var overlay = document.getElementById('settings-overlay');
+  if (!overlay || !overlay.classList.contains('open')) return null;
+  var rows = document.querySelectorAll('#wa-custom-tpls-list .wa-custom-tpl');
+  if (!rows.length) return null;
+  return Array.prototype.map.call(rows, function(row) {
+    var title = row.querySelector('input');
+    var msg = row.querySelector('textarea');
+    return {
+      title: title && title.value.trim() ? title.value.trim() : 'Sin título',
+      msg: msg ? msg.value : ''
+    };
+  });
+}
+
+function queueCustomWATplSave() {
+  if (_waTplEditTimer) clearTimeout(_waTplEditTimer);
+  _waTplEditTimer = setTimeout(function() {
+    _waTplEditTimer = null;
+    flushCustomWATplEdits();
+  }, 450);
+}
+
+function flushCustomWATplEdits() {
+  if (_waTplEditTimer) {
+    clearTimeout(_waTplEditTimer);
+    _waTplEditTimer = null;
+  }
+  var tpls = readCustomWATplsFromSettings();
+  return tpls ? saveCustomWATpls(tpls) : false;
 }
 
 function renderCustomWATplsInSettings() {
@@ -16959,14 +17852,15 @@ function renderCustomWATplsInSettings() {
   }
   list.innerHTML = tpls.map(function(t, i) {
     return '<div class="wa-custom-tpl">'
-      + '<input type="text" placeholder="Título" value="' + (t.title||'').replace(/"/g,'&quot;') + '" onchange="updateCustomWATpl(' + i + ',\'title\',this.value)">'
-      + '<textarea placeholder="Mensaje… usa {nombre}" onchange="updateCustomWATpl(' + i + ',\'msg\',this.value)">' + (t.msg||'') + '</textarea>'
+      + '<input type="text" placeholder="Título" value="' + escapeHTML(t.title||'') + '" oninput="queueCustomWATplSave()" onchange="flushCustomWATplEdits()">'
+      + '<textarea placeholder="Mensaje… usa {nombre}" oninput="queueCustomWATplSave()" onchange="flushCustomWATplEdits()">' + escapeHTML(t.msg||'') + '</textarea>'
       + '<button class="wa-tpl-del" onclick="delCustomWATpl(' + i + ')" title="Eliminar">✕</button>'
       + '</div>';
   }).join('');
 }
 
 function addCustomWATpl() {
+  flushCustomWATplEdits();
   var tpls = loadCustomWATpls();
   tpls.push({ title: 'Nueva plantilla', msg: 'Hola {nombre}! ' });
   saveCustomWATpls(tpls);
@@ -16979,6 +17873,7 @@ function updateCustomWATpl(i, field, val) {
 }
 
 function delCustomWATpl(i) {
+  flushCustomWATplEdits();
   var tpls = loadCustomWATpls();
   tpls.splice(i, 1);
   saveCustomWATpls(tpls);
@@ -17360,7 +18255,7 @@ var GD = (function() {
     'dental_production_v1','dental_production_trash_v1',
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
     'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
-    'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
+    'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
   ];
 
   function _accountId(user) {
@@ -18019,7 +18914,23 @@ var GD = (function() {
         }
         delete data._catalog;
         delete data._catalogUpdatedAt;
-        if (data._waTpls)     { appStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
+        if (data._waTpls !== undefined) {
+          var remoteWaUpdatedAt = parseInt(data._waTplsUpdatedAt || '0', 10) || 0;
+          var localWaUpdatedAt = parseInt(appStorage.getItem(WA_CUSTOM_UPDATED_KEY) || '0', 10) || 0;
+          var keepPendingWa = appStorage.isDirty(WA_CUSTOM_KEY)
+            || appStorage.isDirty(WA_CUSTOM_UPDATED_KEY)
+            || (appStorage.getItem(WA_CUSTOM_KEY) !== null && localWaUpdatedAt > remoteWaUpdatedAt);
+          if (keepPendingWa) {
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+          } else {
+            appStorage.setItem(WA_CUSTOM_KEY, typeof data._waTpls === 'string'
+              ? data._waTpls : JSON.stringify(data._waTpls));
+            if (remoteWaUpdatedAt) appStorage.setItem(WA_CUSTOM_UPDATED_KEY, String(remoteWaUpdatedAt));
+          }
+        }
+        delete data._waTpls;
+        delete data._waTplsUpdatedAt;
         if (data._quickNotes) { appStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors !== undefined) {
           // La lista de doctores necesita su propio control de versión. Antes
@@ -18485,6 +19396,40 @@ var GD = (function() {
       tombstones: mergedCajaTrash,
       updatedAt: cajaUpdatedAt
     };
+
+    // Las plantillas son configuración compartida, pero también viajan en los
+    // espejos de cada dispositivo. Elegir la versión más reciente evita que
+    // una copia anterior de Drive haga desaparecer una plantilla recién creada.
+    var localWaRaw = appStorage.getItem(WA_CUSTOM_KEY);
+    var localWaUpdatedAt = parseInt(appStorage.getItem(WA_CUSTOM_UPDATED_KEY) || '0', 10) || 0;
+    var localWaPending = appStorage.isDirty(WA_CUSTOM_KEY)
+      || appStorage.isDirty(WA_CUSTOM_UPDATED_KEY);
+    var bestWaRaw = null;
+    var bestWaUpdatedAt = -1;
+    allPayloads.forEach(function(payload) {
+      var aux = payload._auxStore && typeof payload._auxStore === 'object'
+        ? payload._auxStore : {};
+      var raw = payload._waTpls !== undefined ? payload._waTpls : aux[WA_CUSTOM_KEY];
+      var updatedAt = parseInt(
+        payload._waTplsUpdatedAt !== undefined
+          ? payload._waTplsUpdatedAt : aux[WA_CUSTOM_UPDATED_KEY] || '0',
+        10
+      ) || 0;
+      if (raw !== undefined && raw !== null && updatedAt > bestWaUpdatedAt) {
+        bestWaRaw = typeof raw === 'string' ? raw : JSON.stringify(raw);
+        bestWaUpdatedAt = updatedAt;
+      }
+    });
+    if (localWaRaw !== null
+        && (localWaPending || bestWaRaw === null || localWaUpdatedAt > bestWaUpdatedAt)) {
+      bestWaRaw = localWaRaw;
+      bestWaUpdatedAt = localWaUpdatedAt;
+    }
+    if (bestWaRaw !== null) {
+      merged._waTpls = bestWaRaw;
+      merged._waTplsUpdatedAt = Math.max(0, bestWaUpdatedAt);
+    }
+
     var tombstones = merged._patientTombstones || {};
     (mirrors || []).forEach(function(mirror) {
       tombstones = mergeTimestampMaps(tombstones, mirror._patientTombstones);
@@ -19398,6 +20343,7 @@ var GD = (function() {
       _catalog:    appStorage.getItem('dental_catalog_v1')     || null,
       _catalogUpdatedAt:parseInt(appStorage.getItem('dental_catalog_updated_at')||'0',10)||0,
       _waTpls:     appStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
+      _waTplsUpdatedAt:parseInt(appStorage.getItem('dental_wa_custom_tpls_updated_at_v1')||'0',10)||0,
       _quickNotes: appStorage.getItem('dental_quick_notes_v1') || '[]',
       _doctors:    appStorage.getItem('dental_doctors_v1')     || '[]',
       _doctorsUpdatedAt:parseInt(appStorage.getItem('dental_doctors_updated_at')||'0',10)||0,
@@ -19590,7 +20536,7 @@ function _interactionStateFingerprint() {
       + '|' + [
         'dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1',
         'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
-        'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
+        'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
       ].map(function(k){ return appStorage.getItem(k) || ''; }).join('|');
   } catch(e) { return ''; }
   // Huella corta para no conservar otra copia completa de los datos en memoria.
@@ -23664,6 +24610,7 @@ function forceReloadFromDrive() {
   appStorage.removeItem('dental_doctor_rates_updated_at');
   appStorage.removeItem('dental_catalog_v1');
   appStorage.removeItem('dental_wa_custom_tpls_v1');
+  appStorage.removeItem('dental_wa_custom_tpls_updated_at_v1');
   appStorage.removeItem('dental_quick_notes_v1');
   appStorage.removeItem('dental_doctors_v1');
 
@@ -23816,7 +24763,7 @@ window.addEventListener('resize', function() {
   <div class="settings-box">
     <div class="settings-header">
       <h2>⚙️ Personalización</h2>
-      <button onclick="closeSettings()" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+      <button onclick="closeSettings(true)" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
     </div>
     <div class="settings-body">
 
