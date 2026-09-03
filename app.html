@@ -10611,8 +10611,8 @@ function openWA() {
   const container = document.getElementById('wa-templates');
   container.innerHTML = templates.map((t,i) => `
     <div class="wa-tpl" onclick="selectWATpl(${i})" id="wa-tpl-${i}">
-      <div class="wa-tpl-title">${t.title}</div>
-      <div class="wa-tpl-pre">${t.msg.substring(0,80)}…</div>
+      <div class="wa-tpl-title">${escapeHTML(t.title)}</div>
+      <div class="wa-tpl-pre">${escapeHTML(t.msg.substring(0,80))}…</div>
     </div>`).join('');
   document.getElementById('wa-msg').value = '';
   document.getElementById('wa-overlay').classList.add('open');
@@ -11445,7 +11445,10 @@ function openSettings() {
   applyBranding();
 }
 
-function closeSettings() {
+function closeSettings(savePendingCustomWATpls) {
+  if (savePendingCustomWATpls && typeof flushCustomWATplEdits === 'function') {
+    flushCustomWATplEdits();
+  }
   document.getElementById('settings-overlay').classList.remove('open');
 }
 
@@ -11492,6 +11495,7 @@ function pickPresetColor(hex) {
 }
 
 function saveSettings() {
+  if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
   cfg.name     = document.getElementById('cfg-name').value  || cfg.name;
   cfg.sub      = document.getElementById('cfg-sub').value   || cfg.sub;
   cfg.city     = document.getElementById('cfg-city').value  || cfg.city;
@@ -13170,6 +13174,7 @@ function buildCompleteBackup() {
     doctors: appStorage.getItem('dental_doctors_v1') || null,
     doctorsUpdatedAt: appStorage.getItem('dental_doctors_updated_at') || null,
     waTemplates: appStorage.getItem('dental_wa_custom_tpls_v1') || null,
+    waTemplatesUpdatedAt: appStorage.getItem('dental_wa_custom_tpls_updated_at_v1') || null,
     quickNotes: appStorage.getItem('dental_quick_notes_v1') || null,
     patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
   };
@@ -13429,6 +13434,7 @@ function importData(input) {
       var importedDoctors = backup.doctors || importedDb._doctors || null;
       var importedDoctorsUpdatedAt = backup.doctorsUpdatedAt || importedDb._doctorsUpdatedAt || null;
       var importedWa = backup.waTemplates || importedDb._waTpls || null;
+      var importedWaUpdatedAt = backup.waTemplatesUpdatedAt || importedDb._waTplsUpdatedAt || null;
       var importedNotes = backup.quickNotes || importedDb._quickNotes || null;
       var importedTombstones = backup.patientTombstones || importedDb._patientTombstones || {};
 
@@ -13448,6 +13454,7 @@ function importData(input) {
       delete db._doctors;
       delete db._doctorsUpdatedAt;
       delete db._waTpls;
+      delete db._waTplsUpdatedAt;
       delete db._quickNotes;
       delete db._patientTombstones;
 
@@ -13492,6 +13499,7 @@ function importData(input) {
         appStorage.setItem('dental_doctors_updated_at', String(importedDoctorsUpdatedAt || Date.now()));
       }
       if (importedWa) appStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
+      if (importedWaUpdatedAt) appStorage.setItem('dental_wa_custom_tpls_updated_at_v1', String(importedWaUpdatedAt));
       if (importedNotes) appStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
       // Las marcas de pacientes eliminados pertenecen al respaldo. Conservar
       // las del navegador anterior podía volver a borrar pacientes importados.
@@ -13559,7 +13567,7 @@ function resetAllData() {
   if (!confirm('Segunda confirmación: ¿Borrar TODO y empezar desde cero?')) return;
 
   // Limpiar el estado temporal y guardar el estado vacío en Drive.
-  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
+  ['dental_v4','dental_v3','dentalDB_v2','dentalClinicDB','dental_cfg_v1','dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1','dental_production_trash_v1','dental_doctor_rates_v1','dental_doctor_rates_updated_at','dental_pending_doctor_rates_v1','dental_caja_migrated_v1','dbs1','dental_last_backup_ts','dental_backup_snooze_ts','dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1','dental_autobackup_previous','dental_autobackup_latest','dental_local_updated_at','dental_offline_last_saved_at','dental_offline_enabled','dental_auto_file_enabled','dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1','dental_preimport_backup','dental_pre_drive_merge_backup','dental_recovered_snapshot_source'].forEach(function(k){
     appStorage.removeItem(k);
   });
   if (typeof _deleteAutoBackupHandle === 'function') _deleteAutoBackupHandle();
@@ -16939,14 +16947,53 @@ function installPWA() {
 // ★ V3 — PLANTILLAS WA PERSONALIZADAS
 // ══════════════════════════════════════════════════════════
 var WA_CUSTOM_KEY = 'dental_wa_custom_tpls_v1';
+var WA_CUSTOM_UPDATED_KEY = 'dental_wa_custom_tpls_updated_at_v1';
+var _waTplEditTimer = null;
 
 function loadCustomWATpls() {
   try { return JSON.parse(appStorage.getItem(WA_CUSTOM_KEY)) || []; } catch(e) { return []; }
 }
 function saveCustomWATpls(tpls) {
-  appStorage.setItem(WA_CUSTOM_KEY, JSON.stringify(tpls));
+  var next = JSON.stringify(Array.isArray(tpls) ? tpls : []);
+  if (appStorage.getItem(WA_CUSTOM_KEY) === next) return false;
+  appStorage.setItem(WA_CUSTOM_KEY, next);
+  appStorage.setItem(WA_CUSTOM_UPDATED_KEY, String(Date.now()));
   if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
-  if (typeof GD !== 'undefined' && GD.save) GD.save();
+  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
+  else if (typeof GD !== 'undefined' && GD.save) GD.save();
+  return true;
+}
+
+function readCustomWATplsFromSettings() {
+  var overlay = document.getElementById('settings-overlay');
+  if (!overlay || !overlay.classList.contains('open')) return null;
+  var rows = document.querySelectorAll('#wa-custom-tpls-list .wa-custom-tpl');
+  if (!rows.length) return null;
+  return Array.prototype.map.call(rows, function(row) {
+    var title = row.querySelector('input');
+    var msg = row.querySelector('textarea');
+    return {
+      title: title && title.value.trim() ? title.value.trim() : 'Sin título',
+      msg: msg ? msg.value : ''
+    };
+  });
+}
+
+function queueCustomWATplSave() {
+  if (_waTplEditTimer) clearTimeout(_waTplEditTimer);
+  _waTplEditTimer = setTimeout(function() {
+    _waTplEditTimer = null;
+    flushCustomWATplEdits();
+  }, 450);
+}
+
+function flushCustomWATplEdits() {
+  if (_waTplEditTimer) {
+    clearTimeout(_waTplEditTimer);
+    _waTplEditTimer = null;
+  }
+  var tpls = readCustomWATplsFromSettings();
+  return tpls ? saveCustomWATpls(tpls) : false;
 }
 
 function renderCustomWATplsInSettings() {
@@ -16959,14 +17006,15 @@ function renderCustomWATplsInSettings() {
   }
   list.innerHTML = tpls.map(function(t, i) {
     return '<div class="wa-custom-tpl">'
-      + '<input type="text" placeholder="Título" value="' + (t.title||'').replace(/"/g,'&quot;') + '" onchange="updateCustomWATpl(' + i + ',\'title\',this.value)">'
-      + '<textarea placeholder="Mensaje… usa {nombre}" onchange="updateCustomWATpl(' + i + ',\'msg\',this.value)">' + (t.msg||'') + '</textarea>'
+      + '<input type="text" placeholder="Título" value="' + escapeHTML(t.title||'') + '" oninput="queueCustomWATplSave()" onchange="flushCustomWATplEdits()">'
+      + '<textarea placeholder="Mensaje… usa {nombre}" oninput="queueCustomWATplSave()" onchange="flushCustomWATplEdits()">' + escapeHTML(t.msg||'') + '</textarea>'
       + '<button class="wa-tpl-del" onclick="delCustomWATpl(' + i + ')" title="Eliminar">✕</button>'
       + '</div>';
   }).join('');
 }
 
 function addCustomWATpl() {
+  flushCustomWATplEdits();
   var tpls = loadCustomWATpls();
   tpls.push({ title: 'Nueva plantilla', msg: 'Hola {nombre}! ' });
   saveCustomWATpls(tpls);
@@ -16979,6 +17027,7 @@ function updateCustomWATpl(i, field, val) {
 }
 
 function delCustomWATpl(i) {
+  flushCustomWATplEdits();
   var tpls = loadCustomWATpls();
   tpls.splice(i, 1);
   saveCustomWATpls(tpls);
@@ -17360,7 +17409,7 @@ var GD = (function() {
     'dental_production_v1','dental_production_trash_v1',
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
     'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
-    'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
+    'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
   ];
 
   function _accountId(user) {
@@ -18019,7 +18068,23 @@ var GD = (function() {
         }
         delete data._catalog;
         delete data._catalogUpdatedAt;
-        if (data._waTpls)     { appStorage.setItem('dental_wa_custom_tpls_v1', data._waTpls); delete data._waTpls; }
+        if (data._waTpls !== undefined) {
+          var remoteWaUpdatedAt = parseInt(data._waTplsUpdatedAt || '0', 10) || 0;
+          var localWaUpdatedAt = parseInt(appStorage.getItem(WA_CUSTOM_UPDATED_KEY) || '0', 10) || 0;
+          var keepPendingWa = appStorage.isDirty(WA_CUSTOM_KEY)
+            || appStorage.isDirty(WA_CUSTOM_UPDATED_KEY)
+            || (appStorage.getItem(WA_CUSTOM_KEY) !== null && localWaUpdatedAt > remoteWaUpdatedAt);
+          if (keepPendingWa) {
+            _preferLocalAfterReconnect = true;
+            _dirty = true;
+          } else {
+            appStorage.setItem(WA_CUSTOM_KEY, typeof data._waTpls === 'string'
+              ? data._waTpls : JSON.stringify(data._waTpls));
+            if (remoteWaUpdatedAt) appStorage.setItem(WA_CUSTOM_UPDATED_KEY, String(remoteWaUpdatedAt));
+          }
+        }
+        delete data._waTpls;
+        delete data._waTplsUpdatedAt;
         if (data._quickNotes) { appStorage.setItem('dental_quick_notes_v1', data._quickNotes); delete data._quickNotes; }
         if (data._doctors !== undefined) {
           // La lista de doctores necesita su propio control de versión. Antes
@@ -18485,6 +18550,40 @@ var GD = (function() {
       tombstones: mergedCajaTrash,
       updatedAt: cajaUpdatedAt
     };
+
+    // Las plantillas son configuración compartida, pero también viajan en los
+    // espejos de cada dispositivo. Elegir la versión más reciente evita que
+    // una copia anterior de Drive haga desaparecer una plantilla recién creada.
+    var localWaRaw = appStorage.getItem(WA_CUSTOM_KEY);
+    var localWaUpdatedAt = parseInt(appStorage.getItem(WA_CUSTOM_UPDATED_KEY) || '0', 10) || 0;
+    var localWaPending = appStorage.isDirty(WA_CUSTOM_KEY)
+      || appStorage.isDirty(WA_CUSTOM_UPDATED_KEY);
+    var bestWaRaw = null;
+    var bestWaUpdatedAt = -1;
+    allPayloads.forEach(function(payload) {
+      var aux = payload._auxStore && typeof payload._auxStore === 'object'
+        ? payload._auxStore : {};
+      var raw = payload._waTpls !== undefined ? payload._waTpls : aux[WA_CUSTOM_KEY];
+      var updatedAt = parseInt(
+        payload._waTplsUpdatedAt !== undefined
+          ? payload._waTplsUpdatedAt : aux[WA_CUSTOM_UPDATED_KEY] || '0',
+        10
+      ) || 0;
+      if (raw !== undefined && raw !== null && updatedAt > bestWaUpdatedAt) {
+        bestWaRaw = typeof raw === 'string' ? raw : JSON.stringify(raw);
+        bestWaUpdatedAt = updatedAt;
+      }
+    });
+    if (localWaRaw !== null
+        && (localWaPending || bestWaRaw === null || localWaUpdatedAt > bestWaUpdatedAt)) {
+      bestWaRaw = localWaRaw;
+      bestWaUpdatedAt = localWaUpdatedAt;
+    }
+    if (bestWaRaw !== null) {
+      merged._waTpls = bestWaRaw;
+      merged._waTplsUpdatedAt = Math.max(0, bestWaUpdatedAt);
+    }
+
     var tombstones = merged._patientTombstones || {};
     (mirrors || []).forEach(function(mirror) {
       tombstones = mergeTimestampMaps(tombstones, mirror._patientTombstones);
@@ -19398,6 +19497,7 @@ var GD = (function() {
       _catalog:    appStorage.getItem('dental_catalog_v1')     || null,
       _catalogUpdatedAt:parseInt(appStorage.getItem('dental_catalog_updated_at')||'0',10)||0,
       _waTpls:     appStorage.getItem('dental_wa_custom_tpls_v1') || '[]',
+      _waTplsUpdatedAt:parseInt(appStorage.getItem('dental_wa_custom_tpls_updated_at_v1')||'0',10)||0,
       _quickNotes: appStorage.getItem('dental_quick_notes_v1') || '[]',
       _doctors:    appStorage.getItem('dental_doctors_v1')     || '[]',
       _doctorsUpdatedAt:parseInt(appStorage.getItem('dental_doctors_updated_at')||'0',10)||0,
@@ -19590,7 +19690,7 @@ function _interactionStateFingerprint() {
       + '|' + [
         'dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1',
         'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
-        'dental_wa_custom_tpls_v1','dental_quick_notes_v1'
+        'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
       ].map(function(k){ return appStorage.getItem(k) || ''; }).join('|');
   } catch(e) { return ''; }
   // Huella corta para no conservar otra copia completa de los datos en memoria.
@@ -23664,6 +23764,7 @@ function forceReloadFromDrive() {
   appStorage.removeItem('dental_doctor_rates_updated_at');
   appStorage.removeItem('dental_catalog_v1');
   appStorage.removeItem('dental_wa_custom_tpls_v1');
+  appStorage.removeItem('dental_wa_custom_tpls_updated_at_v1');
   appStorage.removeItem('dental_quick_notes_v1');
   appStorage.removeItem('dental_doctors_v1');
 
@@ -23816,7 +23917,7 @@ window.addEventListener('resize', function() {
   <div class="settings-box">
     <div class="settings-header">
       <h2>⚙️ Personalización</h2>
-      <button onclick="closeSettings()" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+      <button onclick="closeSettings(true)" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
     </div>
     <div class="settings-body">
 
