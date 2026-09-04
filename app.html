@@ -17329,6 +17329,8 @@ var GD = (function() {
   var GD_MODE_KEY = 'dental_gd_mode';
 
   var _token     = null;
+  var _tokenExpiresAt = 0;
+  var _reauthRequired = false;
   var _folderId  = null;
   var _dbFileId  = null;
   var _regularDbFileId = null;
@@ -17377,6 +17379,50 @@ var GD = (function() {
   // Dar tiempo suficiente a conexiones lentas y bases clínicas grandes sin
   // dejar la interfaz indefinidamente en "Guardando…".
   var DRIVE_REQUEST_TIMEOUT_MS = 90000;
+  // Los tokens del flujo web de Google son temporales. Considerarlos vencidos
+  // un minuto antes evita que una escritura larga falle a mitad del envío.
+  var TOKEN_EXPIRY_MARGIN_MS = 60000;
+
+  function _driveAuthError(message, status) {
+    var error = new Error(message || 'La sesión de Google necesita renovarse');
+    error.code = 'DRIVE_AUTH_REQUIRED';
+    error.status = status || 401;
+    return error;
+  }
+
+  function _isDriveAuthError(error) {
+    return !!(error && (error.code === 'DRIVE_AUTH_REQUIRED' || error.status === 401));
+  }
+
+  function _requireDriveReconnect(message) {
+    var hadToken = !!_token;
+    // Si había una escritura en curso, conservar la versión local como la que
+    // debe volver a subirse después de autorizar la misma cuenta.
+    if (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _catalogDirty
+        || _catalogSaving || _heroDirty || _heroSaving
+        || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
+      _preferLocalAfterReconnect = true;
+    }
+    _token = null;
+    _tokenExpiresAt = 0;
+    _stopAutoPull();
+    if (!_reauthRequired) {
+      _reauthRequired = true;
+      _showReconnectRequired(message || 'Tu sesión de Google venció. Reconecta para continuar');
+      if (hadToken) {
+        showToast('🔐 La sesión de Google venció. Reconecta y el cambio pendiente se guardará automáticamente.', 'red');
+      }
+    }
+  }
+
+  function _hasUsableToken() {
+    if (!_token) return false;
+    if (_tokenExpiresAt && Date.now() >= _tokenExpiresAt - TOKEN_EXPIRY_MARGIN_MS) {
+      _requireDriveReconnect('Tu sesión de Google venció. Reconecta para guardar tus cambios');
+      return false;
+    }
+    return true;
+  }
 
   function _getDeviceId() {
     if (_deviceId) return _deviceId;
@@ -17562,6 +17608,10 @@ var GD = (function() {
           return;
         }
         _token = resp.access_token;
+        var expiresInSeconds = parseInt(resp.expires_in || '3600', 10);
+        if (!isFinite(expiresInSeconds) || expiresInSeconds <= 0) expiresInSeconds = 3600;
+        _tokenExpiresAt = Date.now() + (expiresInSeconds * 1000);
+        _reauthRequired = false;
         _mode  = 'google';
         // Al volver del selector de cuentas, restablecer explícitamente la
         // pantalla de progreso antes de iniciar las lecturas de Drive.
@@ -17631,6 +17681,7 @@ var GD = (function() {
             if (_preferLocalAfterReconnect) {
               _scheduleSave();
               saveCfg();
+              if (_catalogDirty && !_catalogSaving) saveCatalog(false);
               showToast('☁️ Subiendo a Drive los cambios pendientes de esta sesión…', 'green');
               _preferLocalAfterReconnect = false;
             }
@@ -18284,6 +18335,9 @@ var GD = (function() {
 
   // ── Helpers Drive API ────────────────────────────────────
   function _fetchDrive(url, options, timeoutMs) {
+    if (!_hasUsableToken()) {
+      return Promise.reject(_driveAuthError('La sesión de Google necesita renovarse', 401));
+    }
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = null;
     var opts = Object.assign({}, options || {});
@@ -18293,7 +18347,13 @@ var GD = (function() {
         controller.abort();
       }, timeoutMs || DRIVE_REQUEST_TIMEOUT_MS);
     }
-    return fetch(url, opts).catch(function(error) {
+    return fetch(url, opts).then(function(response) {
+      if (response.status === 401) {
+        _requireDriveReconnect('Tu sesión de Google venció. Reconecta para guardar tus cambios');
+        throw _driveAuthError('Drive rechazó la sesión vencida', 401);
+      }
+      return response;
+    }).catch(function(error) {
       if (error && error.name === 'AbortError') {
         throw new Error('Drive tardó demasiado en responder');
       }
@@ -18361,8 +18421,9 @@ var GD = (function() {
   }
 
   function saveCatalog(immediate) {
-    if (!_token || _mode !== 'google') {
+    if (!_hasUsableToken() || _mode !== 'google') {
       _catalogDirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar los precios');
       return false;
     }
@@ -18393,7 +18454,7 @@ var GD = (function() {
   }
 
   function _doSaveCatalog() {
-    if (!_token || !_catalogDirty || _catalogSaving) return;
+    if (!_hasUsableToken() || !_catalogDirty || _catalogSaving) return;
     var raw = appStorage.getItem('dental_catalog_v1');
     if (!raw) return;
     var updatedAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || Date.now();
@@ -18425,8 +18486,12 @@ var GD = (function() {
       console.error('Catalog save error:', error);
       _catalogSaving = false;
       _catalogDirty = true;
-      setBadge('error', 'No se guardaron los precios');
-      showToast('⚠️ Drive no confirmó el catálogo. Intenta nuevamente.', 'red');
+      if (_isDriveAuthError(error)) {
+        setBadge('error', 'Sesión vencida · reconecta para guardar');
+      } else {
+        setBadge('error', 'No se guardaron los precios');
+        showToast('⚠️ Drive no confirmó el catálogo. Intenta nuevamente.', 'red');
+      }
     });
   }
 
@@ -18939,7 +19004,8 @@ var GD = (function() {
   }
 
   function _doSave() {
-    if (!_token || !_dirty || _saving) return;
+    if (!_dirty || _saving) return;
+    if (!_hasUsableToken()) return;
     if (_dbSaving) return;
     // Las fotos se suben como archivos independientes. Mientras se arma el
     // lote, no recargar la base desde Drive: eso reemplazaría el objeto del
@@ -19053,8 +19119,12 @@ var GD = (function() {
       console.error('Drive save error:', e);
       _dbSaving = false;
       _dirty = true;
-      setBadge('error', 'No se pudo guardar en Drive');
-      showToast('⚠️ El cambio sigue pendiente en esta sesión. Reconecta Drive antes de cerrar.', 'red');
+      if (_isDriveAuthError(e)) {
+        setBadge('error', 'Sesión vencida · reconecta para guardar');
+      } else {
+        setBadge('error', 'No se pudo guardar en Drive');
+        showToast('⚠️ El cambio sigue pendiente en esta sesión. Revisa tu conexión y vuelve a sincronizar.', 'red');
+      }
     });
   }
 
@@ -19065,7 +19135,7 @@ var GD = (function() {
   function _pullRemoteChanges(force) {
     // Un guardado pendiente de configuración o portada no debe bloquear la
     // descarga de Caja, pacientes y citas. Antes podía impedirla para siempre.
-    if (!_token || _mode !== 'google' || _autoPulling || _saving || _dbSaving
+    if (!_hasUsableToken() || _mode !== 'google' || _autoPulling || _saving || _dbSaving
         || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
       return Promise.resolve(false);
     }
@@ -19145,7 +19215,11 @@ var GD = (function() {
         _saving = false;
         // Un fallo temporal de red no toca el caché ni interrumpe la captura.
         console.warn('Actualización automática pendiente:', error);
-        if (force) setBadge('error', 'No se pudo sincronizar');
+        if (force) {
+          setBadge('error', _isDriveAuthError(error)
+            ? 'Sesión vencida · reconecta para guardar'
+            : 'No se pudo sincronizar');
+        }
         return force ? null : false;
       })
       .finally(function() {
@@ -19155,7 +19229,7 @@ var GD = (function() {
 
   function _startAutoPull() {
     _stopAutoPull();
-    if (!_token || _mode !== 'google') return;
+    if (!_hasUsableToken() || _mode !== 'google') return;
     _autoPullTimer = setInterval(_pullRemoteChanges, AUTO_PULL_MS);
     if (!_visibilitySyncInstalled) {
       document.addEventListener('visibilitychange', function() {
@@ -19319,7 +19393,7 @@ var GD = (function() {
 
   function save() {
     saveLocalWithAutoBackup();
-    if (_mode === 'google' && _token) {
+    if (_mode === 'google' && _hasUsableToken()) {
       if (_saving) {
         // La edición ocurrió durante una descarga. No perder la intención de
         // guardarla; el flujo de carga programará la subida al finalizar.
@@ -19329,6 +19403,7 @@ var GD = (function() {
       }
     } else {
       _dirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar este cambio');
       showToast('⚠️ Cambio pendiente: reconecta Google Drive antes de cerrar', 'red');
     }
@@ -19368,19 +19443,20 @@ var GD = (function() {
       showToast('⚠️ No se pudo preparar la configuración para Drive.', 'red');
     }
     if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
-    if (_mode === 'google' && _token && !_saving) {
+    if (_mode === 'google' && _hasUsableToken() && !_saving) {
       _cfgDirty = true;
       if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
       _cfgSaveTimer = setTimeout(_doSaveCfg, 0);
     } else if (!_token) {
       _cfgDirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar la configuración');
     }
     return localCfgSaved;
   }
 
   function _doSaveCfg() {
-    if (!_token || _saving || !_cfgDirty) return;
+    if (!_hasUsableToken() || _saving || !_cfgDirty) return;
     if (_cfgSaving) return;
     _cfgSaving = true;
     _cfgDirty = false;
@@ -19427,7 +19503,7 @@ var GD = (function() {
   }
 
   function showStatus() {
-    if (_mode === 'local' || !_token) {
+    if (_mode === 'local' || !_hasUsableToken()) {
       // Abrir modal de reconexión a Google
       var reconModal = document.getElementById('gd-reconnect-modal');
       if (reconModal) {
@@ -19447,7 +19523,8 @@ var GD = (function() {
   function signOut() {
     if (!confirm('¿Cerrar sesión? Los datos quedan en tu Drive.')) return;
     _stopAutoPull();
-    _token = null; _folderId = null; _dbFileId = null; _regularDbFileId = null;
+    _token = null; _tokenExpiresAt = 0; _reauthRequired = false;
+    _folderId = null; _dbFileId = null; _regularDbFileId = null;
     _dbIsAppData = false; _needsAppDataMigration = false;
     _deviceDbFileId = null; _lastMirrorModifiedTime = '';
     _cfgFileId = null; _catalogFileId = null; _heroFileId = null;
@@ -19506,9 +19583,10 @@ var GD = (function() {
   }
 
   function saveNow() {
-    if (!_token || _saving) {
+    if (!_hasUsableToken() || _saving) {
       saveLocalWithAutoBackup();
       _dirty = true;
+      _preferLocalAfterReconnect = true;
       if (!_token) _showReconnectRequired('Reconecta Drive para guardar tus cambios');
       return;
     }
@@ -19519,7 +19597,7 @@ var GD = (function() {
   }
 
   function syncNow() {
-    if (!_token || _mode !== 'google') {
+    if (!_hasUsableToken() || _mode !== 'google') {
       showStatus();
       return;
     }
@@ -19554,7 +19632,7 @@ var GD = (function() {
       || (typeof _photoMutationActive === 'function' && _photoMutationActive())
     );
   }
-  function getToken() { return _token; }
+  function getToken() { return _hasUsableToken() ? _token : null; }
   function getAccountEmail() { return _accountEmail; }
   return {
     signIn, skip, save, saveNow, syncNow, saveCfg, saveCatalog, saveHeroImage,
