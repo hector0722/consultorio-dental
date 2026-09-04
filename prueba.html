@@ -4867,495 +4867,6 @@ body.app-ready #dash-page.active > .card {
     transition-duration: .01ms !important;
   }
 }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   LIQUID GLASS · GOLDEN GATE
-   Capa visual final — solo pintura (color, fondo, sombra, radio).
-   No cambia layout, ni display, ni posiciones: la funcionalidad
-   y el comportamiento responsivo quedan intactos.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-:root {
-  /* Cristal */
-  --gl-blur:    saturate(180%) blur(22px);
-  --gl-blur-lg: saturate(190%) blur(36px);
-  --gl:         rgba(255,255,255,.76);
-  --gl-2:       rgba(255,255,255,.86);
-  --gl-3:       rgba(255,255,255,.94);
-  --gl-brd:     rgba(255,255,255,.72);
-  --gl-hi:      inset 0 1px 0 rgba(255,255,255,.95);
-  --gl-hi-soft: inset 0 1px 0 rgba(255,255,255,.7);
-
-  /* Sombras suaves, nunca duras */
-  --sh-sm: 0 1px 2px rgba(24,64,120,.03), 0 10px 26px rgba(24,64,120,.06);
-  --sh-md: 0 2px 6px rgba(24,64,120,.04), 0 16px 40px rgba(24,64,120,.08);
-  --sh-lg: 0 8px 22px rgba(24,64,120,.07), 0 30px 70px rgba(24,64,120,.10);
-  --sh-xl: 0 24px 64px rgba(24,64,120,.16), 0 64px 130px rgba(24,64,120,.12);
-
-  /* Paleta azul serena */
-  --bg:         #d8eafa;
-  --surface:    rgba(255,255,255,.82);
-  --card:       rgba(255,255,255,.78);
-  --blue:       #1a6ff0;
-  --blue-light: #57a5ff;
-  --blue-pale:  #e9f2ff;
-  --blue-mid:   #c3ddfd;
-
-  --ink:   #16202e;
-  --ink-2: #3e4c5e;
-  --ink-3: #74849a;
-  --ink-4: #a3b1c4;
-
-  --border:     rgba(28,70,124,.07);
-  --border-med: rgba(28,70,124,.13);
-
-  /* Bordes más redondos, tipo iOS/macOS */
-  --r-sm: 12px;
-  --r:    16px;
-  --r-lg: 22px;
-  --r-xl: 30px;
-}
-
-/* ── Fondo Golden Gate: azul sereno, luminoso y quieto ── */
-body {
-  background:
-    radial-gradient(1000px 620px at 4% -6%,  rgba(255,255,255,.55), transparent 60%),
-    radial-gradient(900px 560px at 96% 4%,   rgba(178,220,248,.70), transparent 64%),
-    radial-gradient(1100px 760px at 76% 100%, rgba(166,201,252,.55), transparent 70%),
-    linear-gradient(158deg, #bcd9f4 0%, #c9e3f9 36%, #d7ecfc 68%, #cbe2f9 100%) !important;
-  background-attachment: fixed !important;
-  color: var(--ink);
-}
-#main { background: transparent !important; }
-
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: rgba(28,70,124,.16); border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(28,70,124,.28); }
-
-/* ━━━ Barra de navegación: vidrio blanco esmerilado ━━━ */
-#sidebar {
-  background: linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.58)) !important;
-  -webkit-backdrop-filter: var(--gl-blur-lg);
-  backdrop-filter: var(--gl-blur-lg);
-  border-bottom: 1px solid rgba(255,255,255,.75) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 10px 34px rgba(24,64,120,.07) !important;
-}
-.sb-logo { border-right: 1px solid rgba(28,70,124,.07) !important; }
-.sb-logo-icon {
-  background: linear-gradient(150deg, #57a5ff, #1a6ff0) !important;
-  border: 1px solid rgba(255,255,255,.55) !important;
-  color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 18px rgba(26,111,240,.28) !important;
-}
-.sb-logo h1 { color: var(--ink) !important; }
-.sb-logo p  { color: var(--ink-3) !important; }
-
-.sb-section { color: var(--ink-4) !important; }
-#backup-badge { color: var(--ink-3); }
-.sb-footer #sb-city-lbl, .sb-footer #active-doctor-name { color: var(--ink-2) !important; }
-.nav-item { color: var(--ink-2) !important; font-weight: 500; }
-.nav-item:hover {
-  color: var(--ink) !important;
-  background: rgba(255,255,255,.72) !important;
-  box-shadow: var(--gl-hi-soft), 0 3px 10px rgba(24,64,120,.05) !important;
-}
-.nav-item.active {
-  color: var(--blue) !important;
-  background: rgba(255,255,255,.95) !important;
-  box-shadow: var(--gl-hi), 0 6px 18px rgba(24,64,120,.10) !important;
-}
-.nav-icon { background: rgba(255,255,255,.55) !important; }
-.nav-item.active .nav-icon { background: var(--blue-pale) !important; }
-
-.sb-footer {
-  background: transparent !important;
-  border-left: 1px solid rgba(28,70,124,.07) !important;
-  border-top-color: rgba(28,70,124,.07) !important;
-  box-shadow: none !important;
-}
-.doctor-active-badge {
-  background: rgba(255,255,255,.78) !important;
-  border: 1px solid rgba(255,255,255,.85) !important;
-  color: var(--ink-2) !important;
-  box-shadow: var(--gl-hi-soft), 0 3px 10px rgba(24,64,120,.05) !important;
-}
-.doctor-active-badge:hover { background: #fff !important; color: var(--blue) !important; }
-.sb-settings-btn, .sb-footer > button {
-  background: rgba(255,255,255,.78) !important;
-  border: 1px solid rgba(255,255,255,.85) !important;
-  color: var(--ink-2) !important;
-  box-shadow: var(--gl-hi-soft), 0 3px 10px rgba(24,64,120,.05) !important;
-}
-#sidebar-scrim {
-  background: rgba(24,64,120,.22) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  backdrop-filter: blur(14px) !important;
-}
-@media (max-width: 760px) {
-  #sidebar {
-    background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,247,255,.92)) !important;
-  }
-  .sb-footer { border-top: 1px solid rgba(28,70,124,.08) !important; }
-}
-
-/* ━━━ Topbar de cristal claro ━━━ */
-.topbar {
-  background: rgba(255,255,255,.42) !important;
-  -webkit-backdrop-filter: var(--gl-blur);
-  backdrop-filter: var(--gl-blur);
-  border: 0 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.7) !important;
-}
-.topbar h2 {
-  background: rgba(255,255,255,.72) !important;
-  box-shadow: var(--gl-hi-soft);
-  color: var(--ink-2) !important;
-}
-
-/* ━━━ Paneles de cristal esmerilado ━━━ */
-.card,
-.table-wrap,
-.appt-form-card,
-.patient-header,
-.form-sec,
-.budget-panel,
-.cal-main,
-.bp-header {
-  background: var(--gl) !important;
-  -webkit-backdrop-filter: var(--gl-blur);
-  backdrop-filter: var(--gl-blur);
-  border: 1px solid var(--gl-brd) !important;
-  border-radius: 24px !important;
-  box-shadow: var(--gl-hi), var(--sh-sm) !important;
-}
-.card:hover, .table-wrap:hover, .cal-main:hover {
-  box-shadow: var(--gl-hi), var(--sh-md) !important;
-  border-color: rgba(255,255,255,.9) !important;
-}
-thead tr { background: rgba(255,255,255,.45) !important; }
-tbody tr:hover td { background: rgba(26,111,240,.04) !important; }
-.card-title, .form-sec-title { color: var(--ink-3) !important; }
-
-/* Indicadores: cristal con acento de color */
-.stats-row .stat-card {
-  background: linear-gradient(165deg, rgba(255,255,255,.90), rgba(255,255,255,.70)) !important;
-  border: 1px solid var(--gl-brd) !important;
-  -webkit-backdrop-filter: var(--gl-blur);
-  backdrop-filter: var(--gl-blur);
-  border-radius: 22px !important;
-  box-shadow: var(--gl-hi), var(--sh-sm) !important;
-}
-.stats-row .stat-card:hover {
-  border-color: rgba(255,255,255,.95) !important;
-  box-shadow: var(--gl-hi), var(--sh-md) !important;
-}
-.stats-row .stat-icon {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 2px 8px rgba(24,64,120,.05) !important;
-}
-/* Temas antiguos pintaban de blanco las tarjetas 1 y 4; sobre cristal claro
-   el texto debe volver a tinta oscura para que se lea. */
-.stats-row .stat-card .stat-label { color: var(--ink-3) !important; opacity: 1 !important; }
-.stats-row .stat-card .stat-value { color: var(--ink) !important; opacity: 1 !important; }
-html.dark .stats-row .stat-card .stat-label { color: #94a3b8 !important; }
-html.dark .stats-row .stat-card .stat-value { color: #eef3fb !important; }
-
-/* Fichas, chips y píldoras */
-.tx-chip, .today-appt, .ortho-item, .patient-module-pill, .hc-core-item {
-  background: rgba(255,255,255,.66) !important;
-  border: 1px solid rgba(255,255,255,.8) !important;
-  box-shadow: var(--gl-hi-soft), 0 2px 8px rgba(24,64,120,.04) !important;
-}
-.tx-chip.selected {
-  background: linear-gradient(165deg, rgba(235,244,255,.95), rgba(214,233,255,.88)) !important;
-  border-color: var(--blue-mid) !important;
-  box-shadow: var(--gl-hi), 0 6px 18px rgba(26,111,240,.14) !important;
-}
-.today-appt:hover { background: rgba(233,242,255,.9) !important; }
-.avatar {
-  background: linear-gradient(150deg, #57a5ff, #1a6ff0) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 6px 18px rgba(26,111,240,.28) !important;
-}
-
-/* ━━━ Botones: píldoras de vidrio con reflejo ━━━ */
-.btn {
-  border-radius: 980px !important;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-}
-.btn-primary {
-  background: linear-gradient(180deg, #4d9bff, #1a6ff0) !important;
-  border: 1px solid rgba(255,255,255,.24) !important;
-  color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 22px rgba(26,111,240,.28) !important;
-}
-.btn-primary:hover {
-  background: linear-gradient(180deg, #63a8ff, #2278f5) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 12px 28px rgba(26,111,240,.34) !important;
-}
-.btn-ghost {
-  background: rgba(255,255,255,.75) !important;
-  border: 1px solid rgba(255,255,255,.9) !important;
-  color: var(--ink-2) !important;
-  box-shadow: var(--gl-hi-soft), 0 3px 12px rgba(24,64,120,.05) !important;
-}
-.btn-ghost:hover { background: #fff !important; }
-.btn-dark {
-  background: linear-gradient(180deg, #35455c, #1e2b3d) !important;
-  border: 1px solid rgba(255,255,255,.14) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px rgba(24,64,120,.18) !important;
-}
-.btn-success, .btn-danger { box-shadow: var(--gl-hi-soft), 0 3px 12px rgba(24,64,120,.05) !important; }
-
-/* ━━━ Campos: vidrio limpio, foco azul suave ━━━ */
-.fg input, .fg textarea, .fg select,
-.search-wrap input, .filter-sel,
-.afc-field input, .afc-field textarea, .afc-field select,
-.card input[type="text"], .card input[type="number"], .card input[type="date"],
-.card input[type="time"], .card input[type="tel"], .card input[type="email"],
-.card input[type="search"], .card textarea, .card select,
-.overlay-box input[type="text"], .overlay-box input[type="number"],
-.overlay-box input[type="date"], .overlay-box textarea, .overlay-box select,
-.settings-box input[type="text"], .settings-box input[type="number"],
-.settings-box input[type="tel"], .settings-box input[type="email"],
-.settings-box textarea, .settings-box select,
-.hc-editor-row input[type="text"], .hc-editor-row select {
-  background: rgba(255,255,255,.78) !important;
-  border: 1px solid rgba(255,255,255,.9) !important;
-  border-radius: var(--r-sm) !important;
-  color: var(--ink) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: inset 0 1px 2px rgba(24,64,120,.04), 0 1px 3px rgba(24,64,120,.03) !important;
-}
-.fg input:focus, .fg textarea:focus, .fg select:focus,
-.search-wrap input:focus, .filter-sel:focus,
-.afc-field input:focus, .afc-field textarea:focus, .afc-field select:focus,
-.card input:focus, .card textarea:focus, .card select:focus {
-  border-color: rgba(26,111,240,.5) !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 4px rgba(26,111,240,.13), inset 0 1px 2px rgba(24,64,120,.03) !important;
-}
-/* La búsqueda es el elemento más visible: pastilla blanca amplia */
-.search-icon { color: var(--ink-3) !important; }
-.search-wrap input {
-  background: rgba(255,255,255,.92) !important;
-  border-radius: 16px !important;
-  box-shadow: var(--gl-hi), 0 6px 18px rgba(24,64,120,.06) !important;
-}
-
-/* ━━━ Modales: fondo desenfocado + caja de cristal ━━━ */
-.overlay, .settings-overlay, #del-modal, #backup-reminder-overlay,
-#doctor-select-overlay, #gd-reconnect-modal, #update-notice-overlay,
-.perio-overlay, .odo-overlay, .ped-overlay, .spec-overlay, .ortho-overlay {
-  background: rgba(24,64,120,.26) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
-}
-.overlay-box, .settings-box, .del-box, #backup-reminder-box,
-.doctor-select-box, .gd-reconnect-box {
-  background: rgba(255,255,255,.90) !important;
-  -webkit-backdrop-filter: var(--gl-blur-lg);
-  backdrop-filter: var(--gl-blur-lg);
-  border: 1px solid rgba(255,255,255,.85) !important;
-  box-shadow: var(--gl-hi), var(--sh-xl) !important;
-}
-/* Módulos clínicos a pantalla completa: legibilidad primero */
-.perio-box, .odo-box, .ped-box, .spec-box, .ortho-box {
-  background: rgba(255,255,255,.95) !important;
-  -webkit-backdrop-filter: var(--gl-blur-lg);
-  backdrop-filter: var(--gl-blur-lg);
-  border: 1px solid rgba(255,255,255,.8) !important;
-  box-shadow: var(--sh-xl) !important;
-}
-
-/* ━━━ Hero del inicio: cristal azul claro, no bloque oscuro ━━━ */
-.dashboard-hero {
-  background:
-    radial-gradient(900px 520px at 88% 6%,  rgba(255,255,255,.70), transparent 58%),
-    radial-gradient(820px 540px at 8% 100%,  rgba(160,198,252,.55), transparent 64%),
-    linear-gradient(150deg, rgba(252,254,255,.82) 0%, rgba(224,238,255,.76) 52%, rgba(199,224,254,.74) 100%) !important;
-  -webkit-backdrop-filter: var(--gl-blur-lg);
-  backdrop-filter: var(--gl-blur-lg);
-  border: 1px solid rgba(255,255,255,.85) !important;
-  border-radius: 30px !important;
-  box-shadow: var(--gl-hi), var(--sh-lg) !important;
-}
-.dashboard-hero::before { border-color: rgba(26,111,240,.05) !important; }
-.dashboard-eyebrow { color: var(--blue) !important; }
-.dashboard-hero #dash-greeting {
-  color: var(--ink) !important;
-  text-shadow: none !important;
-}
-.dashboard-hero #dash-date-lbl { color: var(--ink-3) !important; }
-.dashboard-quick-actions {
-  background: rgba(255,255,255,.60) !important;
-  border: 1px solid rgba(255,255,255,.85) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  backdrop-filter: blur(18px) saturate(170%);
-  border-radius: 22px !important;
-  box-shadow: var(--gl-hi), 0 8px 24px rgba(24,64,120,.07) !important;
-}
-.dashboard-action {
-  background: rgba(255,255,255,.82) !important;
-  color: var(--ink-2) !important;
-  box-shadow: var(--gl-hi-soft), 0 2px 8px rgba(24,64,120,.05) !important;
-}
-.dashboard-action:hover { background: #fff !important; color: var(--blue) !important; }
-.dashboard-action:first-child {
-  background: linear-gradient(180deg, #4d9bff, #1a6ff0) !important;
-  color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), 0 8px 20px rgba(26,111,240,.32) !important;
-}
-.hero-reference-art { opacity: .95 !important; filter: saturate(1) brightness(1.03) !important; }
-
-/* ━━━ Modo oscuro: cristal nocturno azul ━━━ */
-html.dark {
-  --gl:     rgba(30,44,68,.55);
-  --gl-2:   rgba(28,42,66,.72);
-  --gl-3:   rgba(26,40,64,.86);
-  --gl-brd: rgba(255,255,255,.10);
-  --gl-hi:      inset 0 1px 0 rgba(255,255,255,.07);
-  --gl-hi-soft: inset 0 1px 0 rgba(255,255,255,.05);
-  --bg:      #0b1220;
-  --card:    rgba(30,44,68,.58);
-  --surface: rgba(30,44,68,.62);
-  --border:     rgba(255,255,255,.09);
-  --border-med: rgba(255,255,255,.15);
-  --ink:   #eef3fb;
-  --ink-2: #c3cede;
-  --ink-3: #94a3b8;
-  --ink-4: #6d7b8f;
-}
-html.dark body {
-  background:
-    radial-gradient(1100px 620px at 12% -10%, rgba(26,86,160,.38), transparent 70%),
-    radial-gradient(900px 560px at 92% 4%,   rgba(20,92,110,.30), transparent 68%),
-    linear-gradient(168deg, #070d18 0%, #0a1424 45%, #060b16 100%) !important;
-  background-attachment: fixed !important;
-  color: #eef3fb !important;
-}
-html.dark #main { background: transparent !important; }
-html.dark #sidebar {
-  background: linear-gradient(180deg, rgba(16,27,47,.80), rgba(10,18,33,.74)) !important;
-  border-bottom-color: rgba(255,255,255,.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.35) !important;
-}
-html.dark .sb-logo { border-right-color: rgba(255,255,255,.08) !important; }
-html.dark .sb-logo h1 { color: #eef3fb !important; }
-html.dark .sb-logo p  { color: rgba(255,255,255,.45) !important; }
-html.dark .nav-item { color: rgba(255,255,255,.66) !important; }
-html.dark .nav-item:hover { color: #fff !important; background: rgba(255,255,255,.08) !important; box-shadow: none !important; }
-html.dark .nav-item.active {
-  color: #fff !important;
-  background: rgba(255,255,255,.14) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.14) !important;
-}
-html.dark .nav-icon { background: rgba(255,255,255,.07) !important; }
-html.dark .nav-item.active .nav-icon { background: rgba(90,160,255,.28) !important; }
-html.dark .sb-footer { border-left-color: rgba(255,255,255,.08) !important; }
-html.dark .sb-section { color: rgba(255,255,255,.38) !important; }
-html.dark .sb-footer #sb-city-lbl, html.dark .sb-footer #active-doctor-name { color: #dbe5f3 !important; }
-html.dark .doctor-active-badge,
-html.dark .sb-settings-btn, html.dark .sb-footer > button {
-  background: rgba(255,255,255,.09) !important;
-  border-color: rgba(255,255,255,.13) !important;
-  color: #dbe5f3 !important;
-  box-shadow: none !important;
-}
-html.dark .topbar {
-  background: rgba(14,24,42,.55) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 0 rgba(0,0,0,.35) !important;
-}
-html.dark .topbar h2 { background: rgba(255,255,255,.09) !important; color: #d1d9e6 !important; }
-html.dark .card,
-html.dark .table-wrap,
-html.dark .appt-form-card,
-html.dark .patient-header,
-html.dark .form-sec,
-html.dark .budget-panel,
-html.dark .cal-main,
-html.dark .stats-row .stat-card {
-  background: var(--gl) !important;
-  border-color: rgba(255,255,255,.10) !important;
-  box-shadow: var(--gl-hi), 0 18px 44px rgba(0,0,0,.38) !important;
-}
-html.dark thead tr { background: rgba(255,255,255,.05) !important; }
-html.dark .tx-chip, html.dark .today-appt, html.dark .ortho-item,
-html.dark .patient-module-pill, html.dark .hc-core-item {
-  background: rgba(255,255,255,.055) !important;
-  border-color: rgba(255,255,255,.10) !important;
-  box-shadow: none !important;
-}
-html.dark .fg input, html.dark .fg textarea, html.dark .fg select,
-html.dark .search-wrap input, html.dark .filter-sel,
-html.dark .afc-field input, html.dark .afc-field select, html.dark .afc-field textarea,
-html.dark .card input, html.dark .card textarea, html.dark .card select {
-  background: rgba(255,255,255,.07) !important;
-  border-color: rgba(255,255,255,.13) !important;
-  color: #eef3fb !important;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.25) !important;
-}
-html.dark .btn-ghost {
-  background: rgba(255,255,255,.09) !important;
-  border-color: rgba(255,255,255,.13) !important;
-  color: #e6edf8 !important;
-  box-shadow: none !important;
-}
-html.dark .overlay-box, html.dark .settings-box, html.dark .del-box,
-html.dark #backup-reminder-box, html.dark .doctor-select-box, html.dark .gd-reconnect-box {
-  background: rgba(22,32,52,.92) !important;
-  border-color: rgba(255,255,255,.10) !important;
-}
-html.dark .perio-box, html.dark .odo-box, html.dark .ped-box,
-html.dark .spec-box, html.dark .ortho-box {
-  background: rgba(18,27,45,.96) !important;
-  border-color: rgba(255,255,255,.09) !important;
-}
-html.dark .dashboard-hero {
-  background:
-    radial-gradient(circle at 80% 10%,  rgba(70,150,255,.30), transparent 58%),
-    radial-gradient(circle at 14% 100%, rgba(110,120,255,.24), transparent 62%),
-    linear-gradient(150deg, rgba(18,30,52,.88), rgba(12,22,40,.86)) !important;
-  border-color: rgba(255,255,255,.10) !important;
-}
-html.dark .dashboard-hero #dash-greeting { color: #f2f7ff !important; }
-html.dark .dashboard-hero #dash-date-lbl { color: rgba(240,246,255,.55) !important; }
-html.dark .dashboard-eyebrow { color: #7fc2ff !important; }
-html.dark .dashboard-quick-actions {
-  background: rgba(255,255,255,.07) !important;
-  border-color: rgba(255,255,255,.12) !important;
-}
-html.dark .dashboard-action { background: rgba(255,255,255,.08) !important; color: rgba(255,255,255,.85) !important; }
-
-/* ━━━ Respaldos y rendimiento ━━━ */
-/* Si el navegador no soporta backdrop-filter, se opacan los cristales */
-@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
-  :root { --gl: rgba(255,255,255,.95); --card: rgba(255,255,255,.96); }
-  .topbar  { background: rgba(255,255,255,.92) !important; }
-  #sidebar { background: rgba(255,255,255,.96) !important; }
-  .dashboard-hero { background: linear-gradient(150deg,#ffffff,#e6f0fd) !important; }
-  .overlay, .settings-overlay, #del-modal, #backup-reminder-overlay,
-  #doctor-select-overlay, #gd-reconnect-modal, #update-notice-overlay,
-  .perio-overlay, .odo-overlay, .ped-overlay, .spec-overlay {
-    background: rgba(24,64,120,.55) !important;
-  }
-}
-/* En móvil se reduce el desenfoque para no castigar batería */
-@media (max-width: 760px) {
-  :root { --gl-blur: saturate(170%) blur(14px); --gl-blur-lg: saturate(175%) blur(22px); }
-  .tx-chip, .today-appt, .ortho-item, .patient-module-pill, .hc-core-item,
-  .btn { -webkit-backdrop-filter: none; backdrop-filter: none; }
-}
-/* La impresión de recetas, recibos y expedientes se mantiene en papel blanco */
-@media print {
-  * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-  body { background: #fff !important; }
-  .card, .table-wrap, .patient-header, .form-sec, .stats-row .stat-card {
-    background: #fff !important;
-    box-shadow: none !important;
-    border-color: #ddd !important;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -17818,6 +17329,8 @@ var GD = (function() {
   var GD_MODE_KEY = 'dental_gd_mode';
 
   var _token     = null;
+  var _tokenExpiresAt = 0;
+  var _reauthRequired = false;
   var _folderId  = null;
   var _dbFileId  = null;
   var _regularDbFileId = null;
@@ -17866,6 +17379,50 @@ var GD = (function() {
   // Dar tiempo suficiente a conexiones lentas y bases clínicas grandes sin
   // dejar la interfaz indefinidamente en "Guardando…".
   var DRIVE_REQUEST_TIMEOUT_MS = 90000;
+  // Los tokens del flujo web de Google son temporales. Considerarlos vencidos
+  // un minuto antes evita que una escritura larga falle a mitad del envío.
+  var TOKEN_EXPIRY_MARGIN_MS = 60000;
+
+  function _driveAuthError(message, status) {
+    var error = new Error(message || 'La sesión de Google necesita renovarse');
+    error.code = 'DRIVE_AUTH_REQUIRED';
+    error.status = status || 401;
+    return error;
+  }
+
+  function _isDriveAuthError(error) {
+    return !!(error && (error.code === 'DRIVE_AUTH_REQUIRED' || error.status === 401));
+  }
+
+  function _requireDriveReconnect(message) {
+    var hadToken = !!_token;
+    // Si había una escritura en curso, conservar la versión local como la que
+    // debe volver a subirse después de autorizar la misma cuenta.
+    if (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _catalogDirty
+        || _catalogSaving || _heroDirty || _heroSaving
+        || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
+      _preferLocalAfterReconnect = true;
+    }
+    _token = null;
+    _tokenExpiresAt = 0;
+    _stopAutoPull();
+    if (!_reauthRequired) {
+      _reauthRequired = true;
+      _showReconnectRequired(message || 'Tu sesión de Google venció. Reconecta para continuar');
+      if (hadToken) {
+        showToast('🔐 La sesión de Google venció. Reconecta y el cambio pendiente se guardará automáticamente.', 'red');
+      }
+    }
+  }
+
+  function _hasUsableToken() {
+    if (!_token) return false;
+    if (_tokenExpiresAt && Date.now() >= _tokenExpiresAt - TOKEN_EXPIRY_MARGIN_MS) {
+      _requireDriveReconnect('Tu sesión de Google venció. Reconecta para guardar tus cambios');
+      return false;
+    }
+    return true;
+  }
 
   function _getDeviceId() {
     if (_deviceId) return _deviceId;
@@ -18051,6 +17608,10 @@ var GD = (function() {
           return;
         }
         _token = resp.access_token;
+        var expiresInSeconds = parseInt(resp.expires_in || '3600', 10);
+        if (!isFinite(expiresInSeconds) || expiresInSeconds <= 0) expiresInSeconds = 3600;
+        _tokenExpiresAt = Date.now() + (expiresInSeconds * 1000);
+        _reauthRequired = false;
         _mode  = 'google';
         // Al volver del selector de cuentas, restablecer explícitamente la
         // pantalla de progreso antes de iniciar las lecturas de Drive.
@@ -18120,6 +17681,7 @@ var GD = (function() {
             if (_preferLocalAfterReconnect) {
               _scheduleSave();
               saveCfg();
+              if (_catalogDirty && !_catalogSaving) saveCatalog(false);
               showToast('☁️ Subiendo a Drive los cambios pendientes de esta sesión…', 'green');
               _preferLocalAfterReconnect = false;
             }
@@ -18773,6 +18335,9 @@ var GD = (function() {
 
   // ── Helpers Drive API ────────────────────────────────────
   function _fetchDrive(url, options, timeoutMs) {
+    if (!_hasUsableToken()) {
+      return Promise.reject(_driveAuthError('La sesión de Google necesita renovarse', 401));
+    }
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = null;
     var opts = Object.assign({}, options || {});
@@ -18782,7 +18347,13 @@ var GD = (function() {
         controller.abort();
       }, timeoutMs || DRIVE_REQUEST_TIMEOUT_MS);
     }
-    return fetch(url, opts).catch(function(error) {
+    return fetch(url, opts).then(function(response) {
+      if (response.status === 401) {
+        _requireDriveReconnect('Tu sesión de Google venció. Reconecta para guardar tus cambios');
+        throw _driveAuthError('Drive rechazó la sesión vencida', 401);
+      }
+      return response;
+    }).catch(function(error) {
       if (error && error.name === 'AbortError') {
         throw new Error('Drive tardó demasiado en responder');
       }
@@ -18850,8 +18421,9 @@ var GD = (function() {
   }
 
   function saveCatalog(immediate) {
-    if (!_token || _mode !== 'google') {
+    if (!_hasUsableToken() || _mode !== 'google') {
       _catalogDirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar los precios');
       return false;
     }
@@ -18882,7 +18454,7 @@ var GD = (function() {
   }
 
   function _doSaveCatalog() {
-    if (!_token || !_catalogDirty || _catalogSaving) return;
+    if (!_hasUsableToken() || !_catalogDirty || _catalogSaving) return;
     var raw = appStorage.getItem('dental_catalog_v1');
     if (!raw) return;
     var updatedAt = parseInt(appStorage.getItem(CATALOG_UPDATED_KEY) || '0', 10) || Date.now();
@@ -18914,8 +18486,12 @@ var GD = (function() {
       console.error('Catalog save error:', error);
       _catalogSaving = false;
       _catalogDirty = true;
-      setBadge('error', 'No se guardaron los precios');
-      showToast('⚠️ Drive no confirmó el catálogo. Intenta nuevamente.', 'red');
+      if (_isDriveAuthError(error)) {
+        setBadge('error', 'Sesión vencida · reconecta para guardar');
+      } else {
+        setBadge('error', 'No se guardaron los precios');
+        showToast('⚠️ Drive no confirmó el catálogo. Intenta nuevamente.', 'red');
+      }
     });
   }
 
@@ -19428,7 +19004,8 @@ var GD = (function() {
   }
 
   function _doSave() {
-    if (!_token || !_dirty || _saving) return;
+    if (!_dirty || _saving) return;
+    if (!_hasUsableToken()) return;
     if (_dbSaving) return;
     // Las fotos se suben como archivos independientes. Mientras se arma el
     // lote, no recargar la base desde Drive: eso reemplazaría el objeto del
@@ -19542,8 +19119,12 @@ var GD = (function() {
       console.error('Drive save error:', e);
       _dbSaving = false;
       _dirty = true;
-      setBadge('error', 'No se pudo guardar en Drive');
-      showToast('⚠️ El cambio sigue pendiente en esta sesión. Reconecta Drive antes de cerrar.', 'red');
+      if (_isDriveAuthError(e)) {
+        setBadge('error', 'Sesión vencida · reconecta para guardar');
+      } else {
+        setBadge('error', 'No se pudo guardar en Drive');
+        showToast('⚠️ El cambio sigue pendiente en esta sesión. Revisa tu conexión y vuelve a sincronizar.', 'red');
+      }
     });
   }
 
@@ -19554,7 +19135,7 @@ var GD = (function() {
   function _pullRemoteChanges(force) {
     // Un guardado pendiente de configuración o portada no debe bloquear la
     // descarga de Caja, pacientes y citas. Antes podía impedirla para siempre.
-    if (!_token || _mode !== 'google' || _autoPulling || _saving || _dbSaving
+    if (!_hasUsableToken() || _mode !== 'google' || _autoPulling || _saving || _dbSaving
         || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
       return Promise.resolve(false);
     }
@@ -19634,7 +19215,11 @@ var GD = (function() {
         _saving = false;
         // Un fallo temporal de red no toca el caché ni interrumpe la captura.
         console.warn('Actualización automática pendiente:', error);
-        if (force) setBadge('error', 'No se pudo sincronizar');
+        if (force) {
+          setBadge('error', _isDriveAuthError(error)
+            ? 'Sesión vencida · reconecta para guardar'
+            : 'No se pudo sincronizar');
+        }
         return force ? null : false;
       })
       .finally(function() {
@@ -19644,7 +19229,7 @@ var GD = (function() {
 
   function _startAutoPull() {
     _stopAutoPull();
-    if (!_token || _mode !== 'google') return;
+    if (!_hasUsableToken() || _mode !== 'google') return;
     _autoPullTimer = setInterval(_pullRemoteChanges, AUTO_PULL_MS);
     if (!_visibilitySyncInstalled) {
       document.addEventListener('visibilitychange', function() {
@@ -19808,7 +19393,7 @@ var GD = (function() {
 
   function save() {
     saveLocalWithAutoBackup();
-    if (_mode === 'google' && _token) {
+    if (_mode === 'google' && _hasUsableToken()) {
       if (_saving) {
         // La edición ocurrió durante una descarga. No perder la intención de
         // guardarla; el flujo de carga programará la subida al finalizar.
@@ -19818,6 +19403,7 @@ var GD = (function() {
       }
     } else {
       _dirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar este cambio');
       showToast('⚠️ Cambio pendiente: reconecta Google Drive antes de cerrar', 'red');
     }
@@ -19857,19 +19443,20 @@ var GD = (function() {
       showToast('⚠️ No se pudo preparar la configuración para Drive.', 'red');
     }
     if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
-    if (_mode === 'google' && _token && !_saving) {
+    if (_mode === 'google' && _hasUsableToken() && !_saving) {
       _cfgDirty = true;
       if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
       _cfgSaveTimer = setTimeout(_doSaveCfg, 0);
     } else if (!_token) {
       _cfgDirty = true;
+      _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar la configuración');
     }
     return localCfgSaved;
   }
 
   function _doSaveCfg() {
-    if (!_token || _saving || !_cfgDirty) return;
+    if (!_hasUsableToken() || _saving || !_cfgDirty) return;
     if (_cfgSaving) return;
     _cfgSaving = true;
     _cfgDirty = false;
@@ -19916,7 +19503,7 @@ var GD = (function() {
   }
 
   function showStatus() {
-    if (_mode === 'local' || !_token) {
+    if (_mode === 'local' || !_hasUsableToken()) {
       // Abrir modal de reconexión a Google
       var reconModal = document.getElementById('gd-reconnect-modal');
       if (reconModal) {
@@ -19936,7 +19523,8 @@ var GD = (function() {
   function signOut() {
     if (!confirm('¿Cerrar sesión? Los datos quedan en tu Drive.')) return;
     _stopAutoPull();
-    _token = null; _folderId = null; _dbFileId = null; _regularDbFileId = null;
+    _token = null; _tokenExpiresAt = 0; _reauthRequired = false;
+    _folderId = null; _dbFileId = null; _regularDbFileId = null;
     _dbIsAppData = false; _needsAppDataMigration = false;
     _deviceDbFileId = null; _lastMirrorModifiedTime = '';
     _cfgFileId = null; _catalogFileId = null; _heroFileId = null;
@@ -19995,9 +19583,10 @@ var GD = (function() {
   }
 
   function saveNow() {
-    if (!_token || _saving) {
+    if (!_hasUsableToken() || _saving) {
       saveLocalWithAutoBackup();
       _dirty = true;
+      _preferLocalAfterReconnect = true;
       if (!_token) _showReconnectRequired('Reconecta Drive para guardar tus cambios');
       return;
     }
@@ -20008,7 +19597,7 @@ var GD = (function() {
   }
 
   function syncNow() {
-    if (!_token || _mode !== 'google') {
+    if (!_hasUsableToken() || _mode !== 'google') {
       showStatus();
       return;
     }
@@ -20043,7 +19632,7 @@ var GD = (function() {
       || (typeof _photoMutationActive === 'function' && _photoMutationActive())
     );
   }
-  function getToken() { return _token; }
+  function getToken() { return _hasUsableToken() ? _token : null; }
   function getAccountEmail() { return _accountEmail; }
   return {
     signIn, skip, save, saveNow, syncNow, saveCfg, saveCatalog, saveHeroImage,
