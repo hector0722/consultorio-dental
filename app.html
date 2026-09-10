@@ -5246,6 +5246,7 @@ body.app-ready #dash-page.active > .card {
             <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00"></div>
             <div class="afc-field"><label>Hora fin</label><input type="time" id="appt-time-end" placeholder="--:--"></div>
           </div>
+          <div style="font-size:.65rem;color:var(--ink-3);margin:-3px 0 8px;line-height:1.4">La hora usa formato de 24 horas: <strong>14:00 = 2:00 p. m.</strong></div>
           <div class="afc-field"><label>Procedimiento</label><input type="text" id="appt-proc" placeholder="ej. Limpieza, Resina…"></div>
           <div class="afc-field"><label>Notas</label><textarea id="appt-notes" rows="2" placeholder="Opcional…"></textarea></div>
           <div class="afc-field" id="appt-doctor-field" style="display:none">
@@ -8869,7 +8870,9 @@ var calDayOf  = fmtDate(new Date()); // current day in day view
 
 var DAYS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 var MONTHS_ES= ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-var HOURS    = Array.from({length:13},(_,i)=>i+7); // 7am–7pm
+// Cubrir el día completo. El formulario admite 00:00–23:59, por lo que la
+// cuadrícula no debe ocultar citas válidas de madrugada o por la noche.
+var HOURS    = Array.from({length:24},(_,i)=>i); // 12am–11pm
 var _agendaRenderIndex = null;
 var _dayAutoScrolledFor = '';
 
@@ -9009,7 +9012,7 @@ function renderMonthView() {
     var mcStyle = docColor ? `--appt-accent:${docColor}` : '';
     var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
     var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
-    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${a.time} ${a.doctorName||''}"><span class="mc-appt-time">${a.time}</span><span class="mc-appt-name">${shortName}</span></div>`;
+    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
     }).join('');
     const more = dayAp.length > maxShow
       ? `<div class="mc-more" onclick="event.stopPropagation();showApptDayPanel('${ds}')">+${dayAp.length-maxShow} más</div>` : '';
@@ -9060,7 +9063,7 @@ function renderDayView() {
   var isToday = ds === fmtDate(now);
   var nowH    = now.getHours();
   var nowM    = now.getMinutes();
-  var HOURS_DAY = Array.from({length:17}, function(_,i){ return i+6; });
+  var HOURS_DAY = Array.from({length:24}, function(_,i){ return i; });
 
   var dateLabel = new Date(ds+'T12:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
@@ -9072,7 +9075,7 @@ function renderDayView() {
     + '</div>';
 
   var rows = HOURS_DAY.map(function(h) {
-    var hLabel    = h < 12 ? h+'am' : h===12 ? '12pm' : (h-12)+'pm';
+    var hLabel    = fmtTime(String(h).padStart(2,'0') + ':00');
     var hourAppts = appts.filter(function(a){ return parseInt(a.time) === h; })
       .sort(function(a,b){ return a.time.localeCompare(b.time); });
     var isNowH = isToday && h === nowH;
@@ -9097,7 +9100,7 @@ function renderDayView() {
       }
       return '<div class="dv-appt ' + cls + '" style="top:' + topPct + '%' + laneStyle + '" '
         + 'onclick="dvClick(this)" data-ds="' + ds + '">'
-        + '<div class="dv-appt-time">' + a.time + '</div>'
+        + '<div class="dv-appt-time">' + fmtTime(a.time) + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
         + procStr
         + '</div>';
@@ -9119,8 +9122,11 @@ function renderDayView() {
 
   if (_dayAutoScrolledFor !== ds) setTimeout(function() {
     _dayAutoScrolledFor = ds;
-    var targetH = isToday ? Math.max(nowH - 1, 6) : 8;
-    var HOURS2  = Array.from({length:17}, function(_,i){ return i+6; });
+    var apptHours = appts.map(function(a){ return parseInt(a.time, 10); })
+      .filter(function(h){ return isFinite(h) && h >= 0 && h <= 23; });
+    var firstApptHour = apptHours.length ? Math.min.apply(null, apptHours) : null;
+    var targetH = isToday ? Math.max(nowH - 1, 0) : (firstApptHour !== null ? firstApptHour : 8);
+    var HOURS2  = Array.from({length:24}, function(_,i){ return i; });
     var slots   = container.querySelectorAll('.dv-slot');
     var idx     = HOURS2.indexOf(targetH);
     if (idx >= 0 && slots[idx]) slots[idx].scrollIntoView({ behavior:'smooth', block:'center' });
@@ -9167,7 +9173,7 @@ function renderWeekView() {
   // Body: one row per hour
   const bodyEl = document.getElementById('week-body-rows');
   bodyEl.innerHTML = HOURS.map(h => {
-    const timeLabel = h<=12?`${h}am`:h===12?'12pm':`${h-12}pm`;
+    const timeLabel = fmtTime(String(h).padStart(2,'0') + ':00');
     const isNowRow  = h===nowH;
     const nowPct    = Math.round(nowM/60*100);
     const slots = days.map(d => {
@@ -9192,7 +9198,7 @@ function renderWeekView() {
           laneStyle = 'right:auto;left:' + (laneIndex * lanePct) + '%;width:' + lanePct + '%;box-sizing:border-box;border:2px solid var(--card);';
         }
       return `<div class="wc-appt ${cls}" style="top:${top}%;height:90%;${wcBg}${laneStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:(a.calendarName||'Cita')} - ${a.proc||''}">
-          <div class="wc-appt-name">${a.time} ${p?p.name.split(' ')[0]:a.calendarName||a.proc||'Cita'}${a.doctorName?' · '+a.doctorName.split(' ')[1]||'':''}</div>
+          <div class="wc-appt-name">${fmtTime(a.time)} ${p?p.name.split(' ')[0]:a.calendarName||a.proc||'Cita'}${a.doctorName?' · '+a.doctorName.split(' ')[1]||'':''}</div>
           <div class="wc-appt-proc">${a.proc||''}</div>
         </div>`;
       }).join('');
@@ -9203,6 +9209,21 @@ function renderWeekView() {
 }
 
 // ── ADD APPOINTMENT ──
+function _confirmEarlyAppointmentTime(timeValue) {
+  var parts = String(timeValue || '').split(':');
+  var hour = parseInt(parts[0], 10);
+  var minute = parts[1] || '00';
+  if (!isFinite(hour) || hour >= 6) return true;
+  var displayHour = hour % 12 || 12;
+  var afternoonHour = hour + 12;
+  var afternoonValue = String(afternoonHour).padStart(2, '0') + ':' + minute;
+  return confirm(
+    'La hora seleccionada es ' + displayHour + ':' + minute + ' a. m. (madrugada).\n\n'
+    + 'Si querías ' + displayHour + ':' + minute + ' p. m., usa ' + afternoonValue + '.\n\n'
+    + 'Pulsa Aceptar solamente para guardar la cita en la madrugada.'
+  );
+}
+
 function addAppt() {
   const pid     = document.getElementById('appt-patient').value;
   const date    = document.getElementById('appt-date').value;
@@ -9212,6 +9233,7 @@ function addAppt() {
   const notes   = document.getElementById('appt-notes').value.trim();
   if (!pid || !date || !time) { alert('Selecciona paciente, fecha y hora de inicio.'); return; }
   if (timeEnd && timeEnd <= time) { alert('La hora fin debe ser mayor que la hora de inicio.'); return; }
+  if (!_confirmEarlyAppointmentTime(time)) return;
   if (!db.appointments) db.appointments = [];
   var apptDoc = null;
   var docSel = document.getElementById('appt-doctor-select');
@@ -9226,6 +9248,7 @@ function addAppt() {
     doctorId:   apptDoc ? apptDoc.id   : null,
     doctorName: apptDoc ? apptDoc.name : ''
   });
+  _dayAutoScrolledFor = '';
   saveDB();
   // Limpiar todos los campos del formulario
   ['appt-proc','appt-notes'].forEach(id => document.getElementById(id).value = '');
@@ -9297,7 +9320,7 @@ function renderUpcoming() {
     const dObj= new Date(a.date+'T12:00');
     const dl  = dObj.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'});
     return `<div class="today-appt" onclick="showApptDayPanel('${a.date}')">
-      <span class="ta-time">${a.time}</span>
+      <span class="ta-time">${fmtTime(a.time)}</span>
       <div style="flex:1"><div class="ta-name">${p?p.name:(a.calendarName||a.proc||'Sin paciente')}</div><div class="ta-proc">${a.proc||a.calendarName||'Cita'} · ${dl}${a.doctorName?' · 👨‍⚕️'+a.doctorName.split(' ')[1]||a.doctorName:''}</div></div>
     </div>`;
   }).join('');
@@ -9333,7 +9356,7 @@ function showApptDayPanel(dateStr) {
     var proc   = (a.proc||'—') + (a.notes ? ' · '+a.notes : '');
     var status = (stIcon[a.status]||'') + ' ' + (stMap[a.status]||'');
     var sid    = String(a.id); // usar string para evitar problemas de precisión numérica
-    var timeLabel = a.timeEnd ? a.time + ' – ' + a.timeEnd : a.time;
+    var timeLabel = a.timeEnd ? fmtTime(a.time) + ' – ' + fmtTime(a.timeEnd) : fmtTime(a.time);
 
     var doneBtnHtml   = a.status==='pending'
       ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Completada">✓</button>' : '';
@@ -22633,6 +22656,7 @@ function saveEditAppt() {
   if (!a) return;
   var editStart = document.getElementById('edit-appt-time').value || a.time;
   var editEnd = document.getElementById('edit-appt-time-end').value || a.timeEnd;
+  if (!_confirmEarlyAppointmentTime(editStart)) return;
   // Nunca guardar una hora final anterior o igual a la inicial.
   if (!editEnd || editEnd <= editStart) editEnd = oneHourAfter(editStart);
   a.date    = document.getElementById('edit-appt-date').value     || a.date;
@@ -22647,6 +22671,7 @@ function saveEditAppt() {
     var editDoc = editDoctors.find(function(d){ return d.name === editDocSel.value; });
     if (editDoc) a.doctorId = editDoc.id;
   }
+  _dayAutoScrolledFor = '';
   saveDB();
   renderCal();
   renderDashboard();
@@ -24871,6 +24896,7 @@ window.addEventListener('resize', function() {
           <input type="time" id="edit-appt-time-end" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
         </div>
       </div>
+      <div style="font-size:.65rem;color:var(--ink-3);margin-top:-4px;line-height:1.4">Formato de 24 horas: <strong>14:00 = 2:00 p. m.</strong></div>
       <div>
         <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Procedimiento</label>
         <input type="text" id="edit-appt-proc" placeholder="ej. Limpieza, Resina…" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
