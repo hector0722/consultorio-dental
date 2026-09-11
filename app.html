@@ -19842,6 +19842,7 @@ var GCal = (function() {
   var DENTAL_TAG = 'dental_app'; // marca para identificar eventos creados por la app
   var _importInFlight = null;
   var _syncAllInFlight = null;
+  var _createEventInFlight = Object.create(null);
   var _lastImportAt = 0;
   var _lastFullImportAt = 0;
 
@@ -19856,7 +19857,11 @@ var GCal = (function() {
     if (body) opts.body = JSON.stringify(body);
     return fetch(BASE + path, opts).then(function(r) {
       if (r.status === 204) return null;
-      if (!r.ok) return r.json().then(function(e){ throw new Error((e.error && e.error.message) || ('HTTP ' + r.status)); });
+      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(e){
+        var error = new Error((e.error && e.error.message) || ('HTTP ' + r.status));
+        error.status = r.status;
+        throw error;
+      });
       return r.json();
     });
   }
@@ -19935,13 +19940,64 @@ var GCal = (function() {
   }
 
   // ── App → Calendar ───────────────────────────────────────
+  function _stableCalendarEventId(appt) {
+    // Calendar sólo admite base32hex (0-9, a-v). Codificar el id interno en
+    // hexadecimal produce siempre el mismo id y vuelve idempotente el alta.
+    var raw = String(appt && appt.id !== undefined ? appt.id : '');
+    var encoded = '';
+    for (var i = 0; i < raw.length; i++) {
+      encoded += raw.charCodeAt(i).toString(16).padStart(4, '0');
+    }
+    return 'dental' + (encoded || '00000');
+  }
+
+  function _findExistingEvent(appt) {
+    var privateKey = 'dentalApptId=' + String(appt.id);
+    var path = '/calendars/primary/events?showDeleted=false&singleEvents=true&maxResults=2'
+      + '&privateExtendedProperty=' + encodeURIComponent(privateKey)
+      + '&fields=items(id,status,summary,start,end,extendedProperties)';
+    return _req('GET', path).then(function(data) {
+      var items = (data && data.items) || [];
+      return items.find(function(ev){ return ev && ev.status !== 'cancelled'; }) || null;
+    });
+  }
+
   function createEvent(appt) {
+    if (!appt || appt.id === undefined || appt.id === null) {
+      return Promise.reject(new Error('La cita no tiene identificador interno'));
+    }
+    if (appt.calendarEventId) return Promise.resolve({ id:appt.calendarEventId, existing:true });
+    var apptKey = String(appt.id);
+    if (_createEventInFlight[apptKey]) return _createEventInFlight[apptKey];
     var p = (db.patients||[]).find(function(x){ return x.id == appt.patientId; });
-    return _req('POST', '/calendars/primary/events', _buildEvent(appt, p ? p.name : ''))
+    var body = _buildEvent(appt, p ? p.name : '');
+    body.id = _stableCalendarEventId(appt);
+
+    // Buscar primero por la propiedad privada. Esto recupera eventos creados
+    // por versiones anteriores y evita volver a insertarlos tras recargar o
+    // sincronizar desde otro dispositivo.
+    var job = _findExistingEvent(appt).then(function(existing) {
+      if (existing && existing.id) return existing;
+      return _req('POST', '/calendars/primary/events', body).catch(function(error) {
+        // Dos dispositivos pueden intentar crear al mismo tiempo. El id
+        // determinista hace que uno reciba 409; leerlo enlaza la misma cita.
+        if (error && error.status === 409) {
+          return _req('GET', '/calendars/primary/events/' + encodeURIComponent(body.id));
+        }
+        throw error;
+      });
+    })
       .then(function(ev) {
         if (ev && ev.id) { appt.calendarEventId = ev.id; saveDB(); }
         return ev;
-      }).catch(function(e){ console.warn('GCal createEvent:', e.message); });
+      }).catch(function(e){
+        console.warn('GCal createEvent:', e.message);
+        throw e;
+      }).finally(function() {
+        delete _createEventInFlight[apptKey];
+      });
+    _createEventInFlight[apptKey] = job;
+    return job;
   }
 
   function updateEvent(appt) {
@@ -20026,6 +20082,7 @@ var GCal = (function() {
     var imported = 0;
     var updated  = 0;
     var removed  = 0;
+    var deduplicated = 0;
     var changed  = false;
 
     // Procesar una página de eventos
@@ -20047,7 +20104,9 @@ var GCal = (function() {
           }
           return;
         }
-        var src = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.source;
+        var privateProps = ev.extendedProperties && ev.extendedProperties.private || {};
+        var src = privateProps.source;
+        var sourceDentalApptId = privateProps.dentalApptId ? String(privateProps.dentalApptId) : '';
         if (!ev.summary || !ev.start) return;
         var dateStr = _extractDate(ev.start.dateTime, ev.start.date);
         if (!dateStr) return;
@@ -20065,9 +20124,44 @@ var GCal = (function() {
         if (!evTimeEnd || evTimeEnd === evTime) evTimeEnd = _addHour(evTime);
         var cleanNotes = (ev.description || '').replace('[Consultorio Dental]', '').trim();
 
+        var knownAppt = apptByCalId[ev.id];
+
+        // Los eventos creados por la app conservan el id interno en Calendar.
+        // Si una carrera antigua generó dos eventos de Google para la misma
+        // cita, ambos apuntan a ese mismo id. Mantener una sola cita local y
+        // retirar únicamente la copia que sabemos que fue importada.
+        if (sourceDentalApptId) {
+          var sourceAppt = (db.appointments || []).find(function(a) {
+            return String(a.id) === sourceDentalApptId;
+          });
+          if (sourceAppt) {
+            if (knownAppt && knownAppt !== sourceAppt && knownAppt.fromCalendar) {
+              markAppointmentDeleted(knownAppt.id);
+              db.appointments = (db.appointments || []).filter(function(a) { return a !== knownAppt; });
+              delete apptByCalId[knownAppt.calendarEventId];
+              deduplicated++;
+              changed = true;
+            }
+            // Si ya hay un evento canónico, cualquier otro con el mismo id
+            // interno es una copia de Calendar: reconocerlo pero no importarlo.
+            if (sourceAppt.calendarEventId && sourceAppt.calendarEventId !== ev.id) {
+              knownCalIds[ev.id] = true;
+              apptByCalId[ev.id] = sourceAppt;
+              return;
+            }
+            if (sourceAppt.calendarEventId !== ev.id) {
+              sourceAppt.calendarEventId = ev.id;
+              changed = true;
+            }
+            sourceAppt.sourceDentalApptId = sourceDentalApptId;
+            knownCalIds[ev.id] = true;
+            apptByCalId[ev.id] = sourceAppt;
+            knownAppt = sourceAppt;
+          }
+        }
+
         // Si ya conocemos el evento, no hay que ignorarlo: Google Calendar
         // pudo haber cambiado su fecha, hora, duración, paciente o notas.
-        var knownAppt = apptByCalId[ev.id];
         if (knownAppt) {
           var knownChanged = false;
           if (dateStr && knownAppt.date !== dateStr) { knownAppt.date = dateStr; knownChanged = true; }
@@ -20121,6 +20215,7 @@ var GCal = (function() {
           patientId:       patient ? patient.id : null,
           calendarName:    patient ? null : titleClean,
           calendarPhone:   calPhone || '',
+          sourceDentalApptId: sourceDentalApptId || '',
           date:            dateStr,
           time:            timeStr,
           timeEnd:         timeEnd,
@@ -20176,6 +20271,7 @@ var GCal = (function() {
           }
           if (updated) showToast('✏️ ' + updated + ' cita(s) actualizadas desde Google Calendar', 'green');
           if (removed) showToast('🗑️ ' + removed + ' cita(s) eliminadas desde Google Calendar', 'red');
+          if (deduplicated) showToast('✅ ' + deduplicated + ' copia(s) duplicada(s) unificada(s)', 'green');
         }
         return imported;
       });
