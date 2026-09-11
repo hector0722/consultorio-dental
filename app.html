@@ -765,8 +765,10 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .mc-appt:hover{background:color-mix(in srgb,var(--appt-accent) 24%,var(--card));}
 .mc-appt-time{font-weight:850;color:var(--appt-accent);margin-right:4px;}
 .mc-appt-name{color:inherit;}
-.mc-appt.mc-done{--appt-accent:var(--green);opacity:1;}
-.mc-appt.mc-cancelled{--appt-accent:var(--red);opacity:.82;text-decoration:line-through;}
+.mc-appt.mc-done{--appt-accent:var(--green);background:var(--green);color:#fff!important;opacity:1;}
+.mc-appt.mc-cancelled{--appt-accent:var(--red);background:var(--red);color:#fff!important;opacity:.82;text-decoration:line-through;}
+.mc-appt.mc-done .mc-appt-time,
+.mc-appt.mc-cancelled .mc-appt-time{color:#fff!important;}
 .mc-more{font-size:.65rem;color:var(--blue);font-weight:700;padding:1px 4px;cursor:pointer;}
 /* Week grid */
 .week-cal{display:grid;grid-template-columns:52px repeat(7,1fr);}
@@ -9009,7 +9011,9 @@ function renderMonthView() {
     // El color del doctor se usa como acento y se mezcla con la tarjeta. Antes
     // se colocaba un fondo claro directo y, en temas oscuros, heredaba texto
     // blanco: por eso el nombre parecía desaparecer.
-    var mcStyle = docColor ? `--appt-accent:${docColor}` : '';
+    // El color del doctor sólo aplica mientras la cita está pendiente. El
+    // estado clínico debe prevalecer: verde completada, rojo cancelada.
+    var mcStyle = docColor && a.status === 'pending' ? `--appt-accent:${docColor}` : '';
     var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
     var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
     return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
@@ -9186,7 +9190,11 @@ function renderWeekView() {
         const top = Math.round(min/60*100);
         const cls = a.status==='done'?'wca-done':a.status==='cancelled'?'wca-cancelled':'';
         var docColorWc = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
-        var wcBg = docColorWc ? 'background:'+docColorWc+';border-color:'+docColorWc+';' : '';
+        // No usar color inline del doctor en estados finales: un estilo inline
+        // ocultaba el verde/rojo definido por wca-done y wca-cancelled.
+        var wcBg = docColorWc && a.status === 'pending'
+          ? 'background:'+docColorWc+';border-color:'+docColorWc+';'
+          : '';
         // En Semana cada evento de la misma franja horaria recibe una columna.
         // Calendar puede entregar "15:00" o "15:00:00"; usar toda la franja
         // evita que formatos distintos terminen dibujados uno encima de otro.
@@ -9401,12 +9409,10 @@ document.addEventListener('click', function(e) {
   if (!appt && action !== 'delete') return;
 
   if (action === 'done' || action === 'cancelled') {
-    appt.status = action;
-    saveDB();
-    renderCal();
-    renderDashboard();
-    showApptDayPanel(appt.date);
-    showToast(action === 'done' ? '✅ Cita completada' : '❌ Cita cancelada', action === 'done' ? 'green' : 'red');
+    // Usar una sola ruta para guardar el estado y actualizar el color del
+    // evento enlazado en Google Calendar. Antes este manejador sólo cambiaba
+    // la tarjeta local y omitía GCal.updateEvent().
+    setApptStatus(sid, action);
 
   } else if (action === 'delete') {
     var date = appt ? appt.date : null;
@@ -9475,18 +9481,23 @@ function setApptStatus(id, status) {
   if (!a) return;
   a.status = status; saveDB(); renderCal(); renderDashboard();
   showApptDayPanel(a.date);
-  // Actualizar color en Google Calendar inmediatamente
-  if (typeof GCal !== 'undefined' && a.calendarEventId) {
-    GCal.updateEvent(a).then(function() {
+  var confirmPage = document.getElementById('confirm-page');
+  if (confirmPage && confirmPage.classList.contains('active') && typeof renderConfirmPage === 'function') {
+    renderConfirmPage();
+  }
+  // Actualizar color en Google Calendar inmediatamente. Si todavía no existe
+  // el evento, createEvent lo crea con el color correspondiente al estado.
+  if (typeof GCal !== 'undefined') {
+    var calendarUpdate = a.calendarEventId ? GCal.updateEvent(a) : GCal.createEvent(a);
+    calendarUpdate.then(function() {
       if (status === 'done') showToast('✅ Completada · Google Calendar actualizado 🟢', 'green');
       else if (status === 'cancelled') showToast('❌ Cancelada · Google Calendar actualizado 🔴', 'red');
-    }).catch(function() {
-      if (status === 'done') showToast('✅ Completada', 'green');
-      else if (status === 'cancelled') showToast('❌ Cancelada', 'red');
+    }).catch(function(error) {
+      console.warn('Calendar pendiente al cambiar estado:', error && error.message ? error.message : error);
+      if (status === 'done') showToast('✅ Completada en la app · Calendar pendiente', 'red');
+      else if (status === 'cancelled') showToast('❌ Cancelada en la app · Calendar pendiente', 'red');
     });
   } else {
-    // Sin calendarEventId — crear evento en Calendar con el status correcto
-    if (typeof GCal !== 'undefined') GCal.createEvent(a).catch(function(){});
     if (status === 'done') showToast('✅ Cita completada', 'green');
     else if (status === 'cancelled') showToast('❌ Cita cancelada', 'red');
   }
@@ -20004,9 +20015,7 @@ var GCal = (function() {
     if (!appt.calendarEventId) return createEvent(appt);
     var p = (db.patients||[]).find(function(x){ return x.id == appt.patientId; });
     var colorId = appt.status === 'done' ? '2' : appt.status === 'cancelled' ? '11' : '7';
-    var tok = _tok();
-    if (!tok) { console.warn('GCal updateEvent: sin token'); return Promise.resolve(); }
-    var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events/' + appt.calendarEventId;
+    if (!_tok()) return Promise.reject(new Error('Sin token de Google'));
     var patientName = p ? p.name : (appt.calendarName || 'Cita dental');
     var dateStr = appt.date;
     var timeStr = appt.time || '09:00';
@@ -20017,23 +20026,15 @@ var GCal = (function() {
       end:   { dateTime: dateStr + 'T' + timeEnd + ':00', timeZone: TZ },
       colorId: colorId
     };
-    return fetch(url, {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    }).then(function(r) {
-      if (r.status === 200 || r.status === 201) {
-        return { ok: true };
+    var path = '/calendars/primary/events/' + encodeURIComponent(appt.calendarEventId);
+    return _req('PATCH', path, body).catch(function(error) {
+      if (error && (error.status === 404 || error.status === 410)) {
+        appt.calendarEventId = null;
+        return createEvent(appt);
       }
-      if (r.status === 404 || r.status === 410) {
-        appt.calendarEventId = null; return createEvent(appt);
-      }
-      // Loguear error real
-      return r.text().then(function(txt) {
-        console.warn('GCal PATCH error', r.status, txt);
-        return { ok: false, status: r.status };
-      });
-    }).catch(function(e) { console.warn('GCal updateEvent fetch error:', e.message); });
+      console.warn('GCal updateEvent:', error && error.message ? error.message : error);
+      throw error;
+    });
   }
 
   function deleteEvent(appt) {
