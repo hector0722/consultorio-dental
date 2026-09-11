@@ -9401,12 +9401,10 @@ document.addEventListener('click', function(e) {
   if (!appt && action !== 'delete') return;
 
   if (action === 'done' || action === 'cancelled') {
-    appt.status = action;
-    saveDB();
-    renderCal();
-    renderDashboard();
-    showApptDayPanel(appt.date);
-    showToast(action === 'done' ? '✅ Cita completada' : '❌ Cita cancelada', action === 'done' ? 'green' : 'red');
+    // Usar una sola ruta para guardar el estado y actualizar el color del
+    // evento enlazado en Google Calendar. Antes este manejador sólo cambiaba
+    // la tarjeta local y omitía GCal.updateEvent().
+    setApptStatus(sid, action);
 
   } else if (action === 'delete') {
     var date = appt ? appt.date : null;
@@ -9475,18 +9473,23 @@ function setApptStatus(id, status) {
   if (!a) return;
   a.status = status; saveDB(); renderCal(); renderDashboard();
   showApptDayPanel(a.date);
-  // Actualizar color en Google Calendar inmediatamente
-  if (typeof GCal !== 'undefined' && a.calendarEventId) {
-    GCal.updateEvent(a).then(function() {
+  var confirmPage = document.getElementById('confirm-page');
+  if (confirmPage && confirmPage.classList.contains('active') && typeof renderConfirmPage === 'function') {
+    renderConfirmPage();
+  }
+  // Actualizar color en Google Calendar inmediatamente. Si todavía no existe
+  // el evento, createEvent lo crea con el color correspondiente al estado.
+  if (typeof GCal !== 'undefined') {
+    var calendarUpdate = a.calendarEventId ? GCal.updateEvent(a) : GCal.createEvent(a);
+    calendarUpdate.then(function() {
       if (status === 'done') showToast('✅ Completada · Google Calendar actualizado 🟢', 'green');
       else if (status === 'cancelled') showToast('❌ Cancelada · Google Calendar actualizado 🔴', 'red');
-    }).catch(function() {
-      if (status === 'done') showToast('✅ Completada', 'green');
-      else if (status === 'cancelled') showToast('❌ Cancelada', 'red');
+    }).catch(function(error) {
+      console.warn('Calendar pendiente al cambiar estado:', error && error.message ? error.message : error);
+      if (status === 'done') showToast('✅ Completada en la app · Calendar pendiente', 'red');
+      else if (status === 'cancelled') showToast('❌ Cancelada en la app · Calendar pendiente', 'red');
     });
   } else {
-    // Sin calendarEventId — crear evento en Calendar con el status correcto
-    if (typeof GCal !== 'undefined') GCal.createEvent(a).catch(function(){});
     if (status === 'done') showToast('✅ Cita completada', 'green');
     else if (status === 'cancelled') showToast('❌ Cita cancelada', 'red');
   }
@@ -20004,9 +20007,7 @@ var GCal = (function() {
     if (!appt.calendarEventId) return createEvent(appt);
     var p = (db.patients||[]).find(function(x){ return x.id == appt.patientId; });
     var colorId = appt.status === 'done' ? '2' : appt.status === 'cancelled' ? '11' : '7';
-    var tok = _tok();
-    if (!tok) { console.warn('GCal updateEvent: sin token'); return Promise.resolve(); }
-    var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events/' + appt.calendarEventId;
+    if (!_tok()) return Promise.reject(new Error('Sin token de Google'));
     var patientName = p ? p.name : (appt.calendarName || 'Cita dental');
     var dateStr = appt.date;
     var timeStr = appt.time || '09:00';
@@ -20017,23 +20018,15 @@ var GCal = (function() {
       end:   { dateTime: dateStr + 'T' + timeEnd + ':00', timeZone: TZ },
       colorId: colorId
     };
-    return fetch(url, {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    }).then(function(r) {
-      if (r.status === 200 || r.status === 201) {
-        return { ok: true };
+    var path = '/calendars/primary/events/' + encodeURIComponent(appt.calendarEventId);
+    return _req('PATCH', path, body).catch(function(error) {
+      if (error && (error.status === 404 || error.status === 410)) {
+        appt.calendarEventId = null;
+        return createEvent(appt);
       }
-      if (r.status === 404 || r.status === 410) {
-        appt.calendarEventId = null; return createEvent(appt);
-      }
-      // Loguear error real
-      return r.text().then(function(txt) {
-        console.warn('GCal PATCH error', r.status, txt);
-        return { ok: false, status: r.status };
-      });
-    }).catch(function(e) { console.warn('GCal updateEvent fetch error:', e.message); });
+      console.warn('GCal updateEvent:', error && error.message ? error.message : error);
+      throw error;
+    });
   }
 
   function deleteEvent(appt) {
