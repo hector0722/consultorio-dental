@@ -765,8 +765,8 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .mc-appt:hover{background:color-mix(in srgb,var(--appt-accent) 24%,var(--card));}
 .mc-appt-time{font-weight:850;color:var(--appt-accent);margin-right:4px;}
 .mc-appt-name{color:inherit;}
-.mc-appt.mc-done{--appt-accent:var(--green);background:var(--green);color:#fff!important;opacity:1;}
-.mc-appt.mc-cancelled{--appt-accent:var(--red);background:var(--red);color:#fff!important;opacity:.82;text-decoration:line-through;}
+.mc-appt.mc-done{--appt-accent:var(--appt-status-color,var(--green));background:var(--appt-status-color,var(--green));color:#fff!important;opacity:1;}
+.mc-appt.mc-cancelled{--appt-accent:var(--appt-status-color,var(--red));background:var(--appt-status-color,var(--red));color:#fff!important;opacity:.82;text-decoration:line-through;}
 .mc-appt.mc-done .mc-appt-time,
 .mc-appt.mc-cancelled .mc-appt-time{color:#fff!important;}
 .mc-more{font-size:.65rem;color:var(--blue);font-weight:700;padding:1px 4px;cursor:pointer;}
@@ -784,10 +784,10 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .wc-slot:last-child{border-right:none;}
 .wc-slot:hover{background:rgba(0,113,227,.04);}
 .wc-slot.wc-now-row{background:rgba(0,113,227,.03);}
-.wc-appt{position:absolute;left:2px;right:2px;top:2px;background:var(--blue);border-radius:4px;padding:3px 6px;cursor:pointer;z-index:1;min-height:24px;transition:opacity .1s;}
+.wc-appt{position:absolute;left:2px;right:2px;top:2px;background:var(--appt-status-color,var(--blue));border-radius:4px;padding:3px 6px;cursor:pointer;z-index:1;min-height:24px;transition:opacity .1s;}
 .wc-appt:hover{opacity:.85;}
-.wc-appt.wca-done{background:#248a3d;}
-.wc-appt.wca-cancelled{background:var(--red);opacity:.6;}
+.wc-appt.wca-done{background:var(--appt-status-color,#248a3d);}
+.wc-appt.wca-cancelled{background:var(--appt-status-color,var(--red));opacity:.6;}
 .wc-appt-name{font-size:.68rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .wc-appt-proc{font-size:.6rem;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .wc-now-line{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:3;pointer-events:none;}
@@ -805,9 +805,9 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .adi-name{font-size:.81rem;font-weight:600;}
 .adi-proc{font-size:.71rem;color:var(--ink-3);}
 .adi-actions{display:flex;gap:4px;flex-shrink:0;}
-.appt-day-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;color:var(--ink);}
+.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:4px solid var(--appt-status-color,var(--blue));border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;color:var(--ink);}
 .appt-day-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;}
-.appt-day-time{font-size:.73rem;font-weight:800;color:var(--blue);white-space:nowrap;padding-top:1px;}
+.appt-day-time{font-size:.73rem;font-weight:800;color:var(--appt-status-color,var(--blue));white-space:nowrap;padding-top:1px;}
 .appt-day-name{font-size:.83rem;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .appt-day-proc{font-size:.72rem;color:var(--ink-3);margin-top:2px;line-height:1.45;overflow-wrap:anywhere;}
 .appt-day-status{font-size:.68rem;color:var(--ink-3);margin-top:3px;line-height:1.4;}
@@ -915,6 +915,18 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .doctor-config-color strong{font-size:.72rem;color:var(--ink-2);}
 .doctor-config-color span{font-size:.64rem;color:var(--ink-4);}
 .doctor-config-color input[type=color]{width:48px;height:36px;flex:0 0 48px;padding:2px;border:1px solid var(--border-med);border-radius:10px;background:var(--card);}
+.doctor-status-colors{margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
+.doctor-status-colors-head{margin-bottom:9px;}
+.doctor-status-colors-head strong{display:block;font-size:.72rem;color:var(--ink-2);}
+.doctor-status-colors-head span{display:block;font-size:.64rem;color:var(--ink-4);margin-top:2px;line-height:1.4;}
+.doctor-status-color-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.doctor-status-color-field{display:flex;min-width:0;flex-direction:column;gap:5px;}
+.doctor-status-color-field>span{font-size:.62rem;font-weight:750;color:var(--ink-3);}
+.doctor-status-color-control{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:center;gap:5px;}
+.doctor-status-color-dot{width:13px;height:13px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.12);}
+.doctor-status-color-select{min-width:0;width:100%;padding:8px 6px;border:1px solid var(--border-med);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:.68rem;cursor:pointer;}
+.doctor-status-color-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
+@media(max-width:560px){.doctor-status-color-grid{grid-template-columns:1fr}.doctor-status-color-control{grid-template-columns:18px minmax(0,1fr)}}
 .color-presets{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
 .color-preset{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;}
 .color-preset:hover{transform:scale(1.15);}
@@ -1375,14 +1387,14 @@ body.spec-open{overflow:hidden;}
 .dv-slot.dv-now { background: rgba(0,113,227,.04); }
 .dv-appt {
   position: absolute; left: 6px; right: 6px; top: 3px;
-  background: var(--blue); border-radius: 8px;
+  background: var(--appt-status-color,var(--blue)); border-radius: 8px;
   padding: 6px 10px; cursor: pointer; z-index: 1;
   min-height: 52px; transition: opacity .15s;
   box-shadow: 0 2px 8px rgba(0,113,227,.25);
 }
 .dv-appt:hover { opacity: .88; }
-.dv-appt.dv-done { background: #248a3d; box-shadow: 0 2px 8px rgba(36,138,61,.25); }
-.dv-appt.dv-cancelled { background: var(--red); opacity: .55; box-shadow: none; }
+.dv-appt.dv-done { background:var(--appt-status-color,#248a3d); box-shadow: 0 2px 8px rgba(36,138,61,.25); }
+.dv-appt.dv-cancelled { background:var(--appt-status-color,var(--red)); opacity: .55; box-shadow: none; }
 .dv-appt-time { font-size: .7rem; color: rgba(255,255,255,.75); font-weight: 600; margin-bottom: 2px; }
 .dv-appt-name { font-size: .85rem; font-weight: 700; color: #fff; line-height: 1.2; }
 .dv-appt-proc { font-size: .75rem; color: rgba(255,255,255,.8); margin-top: 2px; }
@@ -4231,10 +4243,10 @@ html.dark .topbar h2 {
   .mc-appt {
     display: inline-block; width: 6px; height: 6px; min-height: 0;
     padding: 0; margin: 1px; border: 0; border-radius: 50%;
-    background: var(--blue); font-size: 0; vertical-align: top;
+    background:var(--appt-status-color,var(--appt-accent,var(--blue))); font-size: 0; vertical-align: top;
   }
-  .mc-appt.mc-done { background: var(--green); }
-  .mc-appt.mc-cancelled { background: var(--red); }
+  .mc-appt.mc-done { background:var(--appt-status-color,var(--green)); }
+  .mc-appt.mc-cancelled { background:var(--appt-status-color,var(--red)); }
   .mc-more { display: inline-block; padding: 0 2px; font-size: .56rem; }
   .appt-form-card {
     position: static; width: 100%; max-width: none; max-height: none;
@@ -8921,6 +8933,101 @@ function _agendaIndex() {
   return _agendaRenderIndex || (_agendaRenderIndex = _buildAgendaRenderIndex());
 }
 
+// Paleta de eventos de Google Calendar. Cada cita guarda el colorId de esta
+// paleta para que el programa y Calendar presenten exactamente el mismo color.
+var GOOGLE_CALENDAR_EVENT_COLORS = [
+  { id:'1',  name:'Lavanda',   hex:'#7986cb' },
+  { id:'2',  name:'Salvia',    hex:'#33b679' },
+  { id:'3',  name:'Uva',       hex:'#8e24aa' },
+  { id:'4',  name:'Flamenco',  hex:'#e67c73' },
+  { id:'5',  name:'Plátano',   hex:'#f6c026' },
+  { id:'6',  name:'Mandarina', hex:'#f5511d' },
+  { id:'7',  name:'Pavo real', hex:'#039be5' },
+  { id:'8',  name:'Grafito',   hex:'#616161' },
+  { id:'9',  name:'Arándano',  hex:'#3f51b5' },
+  { id:'10', name:'Albahaca',  hex:'#0b8043' },
+  { id:'11', name:'Tomate',    hex:'#d60000' }
+];
+
+function googleCalendarColorDef(colorId) {
+  var id = String(colorId || '');
+  return GOOGLE_CALENDAR_EVENT_COLORS.find(function(color){ return color.id === id; }) || GOOGLE_CALENDAR_EVENT_COLORS[6];
+}
+
+function closestGoogleCalendarColorId(hex) {
+  var match = String(hex || '').trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return '7';
+  var value = parseInt(match[1], 16);
+  var r = (value >> 16) & 255, g = (value >> 8) & 255, b = value & 255;
+  var best = GOOGLE_CALENDAR_EVENT_COLORS[0], bestDistance = Infinity;
+  GOOGLE_CALENDAR_EVENT_COLORS.forEach(function(color) {
+    var colorValue = parseInt(color.hex.slice(1), 16);
+    var cr = (colorValue >> 16) & 255, cg = (colorValue >> 8) & 255, cb = colorValue & 255;
+    var distance = Math.pow(r-cr,2) + Math.pow(g-cg,2) + Math.pow(b-cb,2);
+    if (distance < bestDistance) { best = color; bestDistance = distance; }
+  });
+  return best.id;
+}
+
+function appointmentStatusColorKey(status) {
+  return status === 'done' ? 'done' : status === 'cancelled' ? 'cancelled' : 'pending';
+}
+
+function doctorCalendarColorId(doctor, status) {
+  var key = appointmentStatusColorKey(status);
+  var configured = doctor && doctor.calendarColors && doctor.calendarColors[key];
+  if (configured && GOOGLE_CALENDAR_EVENT_COLORS.some(function(color){ return color.id === String(configured); })) {
+    return String(configured);
+  }
+  if (key === 'done') return '2';
+  if (key === 'cancelled') return '11';
+  return closestGoogleCalendarColorId(doctor && doctor.color ? doctor.color : '#039be5');
+}
+
+var _appointmentDoctorIndexRaw = null;
+var _appointmentDoctorIndex = { byId:Object.create(null), byName:Object.create(null) };
+function appointmentDoctorIndex() {
+  var storedDoctors = appStorage.getItem('dental_doctors_v1') || '';
+  var raw = storedDoctors || ('__default__|' + String(cfg && cfg.name || '') + '|' + String(cfg && cfg.color || ''));
+  if (_appointmentDoctorIndexRaw === raw) return _appointmentDoctorIndex;
+  var doctors = typeof loadDoctors === 'function' ? loadDoctors() : [];
+  var byId = Object.create(null), byName = Object.create(null);
+  doctors.forEach(function(doctor) {
+    byId[String(doctor.id)] = doctor;
+    byName[String(doctor.name || '').trim().toLowerCase()] = doctor;
+  });
+  _appointmentDoctorIndexRaw = raw;
+  _appointmentDoctorIndex = { byId:byId, byName:byName };
+  return _appointmentDoctorIndex;
+}
+
+function findAppointmentDoctor(appt) {
+  var index = appointmentDoctorIndex();
+  var byId = appt && appt.doctorId !== undefined && appt.doctorId !== null
+    ? index.byId[String(appt.doctorId)]
+    : null;
+  if (byId) return byId;
+  var name = String(appt && appt.doctorName || '').trim().toLowerCase();
+  return name ? (index.byName[name] || null) : null;
+}
+
+function appointmentCalendarColorId(appt) {
+  var doctor = findAppointmentDoctor(appt);
+  return doctorCalendarColorId(doctor, appt && appt.status);
+}
+
+function appointmentDisplayColor(appt) {
+  return googleCalendarColorDef(appointmentCalendarColorId(appt)).hex;
+}
+
+function renderDoctorCalendarColorOptions(selectedId) {
+  var selected = String(selectedId || '7');
+  return GOOGLE_CALENDAR_EVENT_COLORS.map(function(color) {
+    return '<option value="' + color.id + '"' + (color.id === selected ? ' selected' : '') + '>'
+      + color.name + '</option>';
+  }).join('');
+}
+
 function _agendaPageIsActive() {
   var page = document.getElementById('agenda-page');
   return !!(page && page.classList.contains('active') && !document.hidden);
@@ -9024,13 +9131,10 @@ function renderMonthView() {
     const blocks  = dayAp.slice(0,maxShow).map(a => {
       const p   = agendaIdx.patientsById[String(a.patientId)];
       const cls = a.status==='done'?'mc-done':a.status==='cancelled'?'mc-cancelled':'';
-      var docColor = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
-    // El color del doctor se usa como acento y se mezcla con la tarjeta. Antes
-    // se colocaba un fondo claro directo y, en temas oscuros, heredaba texto
-    // blanco: por eso el nombre parecía desaparecer.
-    // El color del doctor sólo aplica mientras la cita está pendiente. El
-    // estado clínico debe prevalecer: verde completada, rojo cancelada.
-    var mcStyle = docColor && a.status === 'pending' ? `--appt-accent:${docColor}` : '';
+      var apptColor = appointmentDisplayColor(a);
+    // La combinación doctor + estado decide el color y se comparte con
+    // Google Calendar. En Mes, las pendientes conservan un fondo suave.
+    var mcStyle = `--appt-accent:${apptColor};--appt-status-color:${apptColor}`;
     var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
     var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
     return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
@@ -9107,6 +9211,7 @@ function renderDayView() {
       var min    = parseInt((a.time.split(':')[1])||0);
       var topPct = Math.round(min/60*100);
       var cls    = a.status==='done' ? 'dv-done' : a.status==='cancelled' ? 'dv-cancelled' : '';
+      var apptColor = appointmentDisplayColor(a);
       var nameStr= p ? p.name : (a.calendarName || 'Paciente');
       var procStr= a.proc ? '<div class="dv-appt-proc">' + a.proc + '</div>' : '';
       // Las citas que empiezan exactamente a la misma hora se reparten en
@@ -9119,7 +9224,7 @@ function renderDayView() {
         var lanePct = 100 / laneCount;
         laneStyle = ';right:auto;left:calc(' + (laneIndex * lanePct) + '% + 6px);width:calc(' + lanePct + '% - 10px)';
       }
-      return '<div class="dv-appt ' + cls + '" style="top:' + topPct + '%' + laneStyle + '" '
+      return '<div class="dv-appt ' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%' + laneStyle + '" '
         + 'onclick="dvClick(this)" data-ds="' + ds + '">'
         + '<div class="dv-appt-time">' + fmtTime(a.time) + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
@@ -9206,12 +9311,8 @@ function renderWeekView() {
         const min = parseInt((a.time.split(':')[1]||0));
         const top = Math.round(min/60*100);
         const cls = a.status==='done'?'wca-done':a.status==='cancelled'?'wca-cancelled':'';
-        var docColorWc = (a.doctorName && window._doctorColorMap && window._doctorColorMap[a.doctorName]) ? window._doctorColorMap[a.doctorName] : '';
-        // No usar color inline del doctor en estados finales: un estilo inline
-        // ocultaba el verde/rojo definido por wca-done y wca-cancelled.
-        var wcBg = docColorWc && a.status === 'pending'
-          ? 'background:'+docColorWc+';border-color:'+docColorWc+';'
-          : '';
+        var docColorWc = appointmentDisplayColor(a);
+        var wcBg = '--appt-status-color:'+docColorWc+';border-color:'+docColorWc+';';
         // En Semana cada evento de la misma franja horaria recibe una columna.
         // Calendar puede entregar "15:00" o "15:00:00"; usar toda la franja
         // evita que formatos distintos terminen dibujados uno encima de otro.
@@ -9382,6 +9483,7 @@ function showApptDayPanel(dateStr) {
     var status = (stIcon[a.status]||'') + ' ' + (stMap[a.status]||'');
     var sid    = String(a.id); // usar string para evitar problemas de precisión numérica
     var timeLabel = a.timeEnd ? fmtTime(a.time) + ' – ' + fmtTime(a.timeEnd) : fmtTime(a.time);
+    var apptColor = appointmentDisplayColor(a);
 
     var doneBtnHtml   = a.status==='pending'
       ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Completada">✓</button>' : '';
@@ -9398,7 +9500,7 @@ function showApptDayPanel(dateStr) {
         + ' Enviar WhatsApp</button>';
     }
 
-    return '<div class="appt-day-card">'
+    return '<div class="appt-day-card" style="--appt-status-color:'+apptColor+'">'
       + '<div class="appt-day-card-head">'
       +   '<span class="appt-day-time">'+timeLabel+'</span>'
       +   '<div style="min-width:0">'
@@ -9507,8 +9609,8 @@ function setApptStatus(id, status) {
   if (typeof GCal !== 'undefined') {
     var calendarUpdate = a.calendarEventId ? GCal.updateEvent(a) : GCal.createEvent(a);
     calendarUpdate.then(function() {
-      if (status === 'done') showToast('✅ Completada · Google Calendar actualizado 🟢', 'green');
-      else if (status === 'cancelled') showToast('❌ Cancelada · Google Calendar actualizado 🔴', 'red');
+      if (status === 'done') showToast('✅ Completada · color actualizado en Google Calendar', 'green');
+      else if (status === 'cancelled') showToast('❌ Cancelada · color actualizado en Google Calendar', 'red');
     }).catch(function(error) {
       console.warn('Calendar pendiente al cambiar estado:', error && error.message ? error.message : error);
       if (status === 'done') showToast('✅ Completada en la app · Calendar pendiente', 'red');
@@ -13628,7 +13730,7 @@ function resetAllData() {
   selectedTx = {}; customTx = []; _budgetPatId = ''; _budgetNotes = ''; _budgetVisits = [];
   cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
   _activeDoctor = null;
-  var defaultDoctor = { id:1, name:cfg.name, specialty:cfg.sub, cedula:'', cedula2:'', color:cfg.color };
+  var defaultDoctor = { id:1, name:cfg.name, specialty:cfg.sub, cedula:'', cedula2:'', color:'#039be5', calendarColors:{pending:'7',done:'2',cancelled:'11'} };
   appStorage.setItem('dental_doctors_v1', JSON.stringify([defaultDoctor]));
   setActiveDoctor(defaultDoctor);
   // Persistir también el estado vacío en Drive para que no reaparezcan los
@@ -20128,7 +20230,7 @@ var GCal = (function() {
       description: (appt.notes || '') + (appt.notes ? '\n\n' : '') + '[Consultorio Dental]',
       start: { dateTime: dateStr + 'T' + timeStr + ':00', timeZone: TZ },
       end:   { dateTime: dateStr + 'T' + timeEnd + ':00', timeZone: TZ },
-      colorId: appt.status === 'done' ? '2' : appt.status === 'cancelled' ? '11' : '7',
+      colorId: appointmentCalendarColorId(appt),
       extendedProperties: { private: { source: DENTAL_TAG, dentalApptId: String(appt.id) } }
     };
   }
@@ -20149,7 +20251,7 @@ var GCal = (function() {
     var privateKey = 'dentalApptId=' + String(appt.id);
     var path = '/calendars/primary/events?showDeleted=false&singleEvents=true&maxResults=2'
       + '&privateExtendedProperty=' + encodeURIComponent(privateKey)
-      + '&fields=items(id,status,summary,start,end,extendedProperties)';
+      + '&fields=items(id,status,summary,start,end,colorId,extendedProperties)';
     return _req('GET', path).then(function(data) {
       var items = (data && data.items) || [];
       return items.find(function(ev){ return ev && ev.status !== 'cancelled'; }) || null;
@@ -20182,7 +20284,11 @@ var GCal = (function() {
       });
     })
       .then(function(ev) {
-        if (ev && ev.id) { appt.calendarEventId = ev.id; saveDB(); }
+        if (ev && ev.id) {
+          appt.calendarEventId = ev.id;
+          appt.calendarAppliedColorId = String(ev.colorId || appointmentCalendarColorId(appt));
+          saveDB();
+        }
         return ev;
       }).catch(function(e){
         console.warn('GCal createEvent:', e.message);
@@ -20194,10 +20300,11 @@ var GCal = (function() {
     return job;
   }
 
-  function updateEvent(appt) {
+  function updateEvent(appt, options) {
+    options = options || {};
     if (!appt.calendarEventId) return createEvent(appt);
     var p = (db.patients||[]).find(function(x){ return x.id == appt.patientId; });
-    var colorId = appt.status === 'done' ? '2' : appt.status === 'cancelled' ? '11' : '7';
+    var colorId = appointmentCalendarColorId(appt);
     if (!_tok()) return Promise.reject(new Error('Sin token de Google'));
     var patientName = p ? p.name : (appt.calendarName || 'Cita dental');
     var dateStr = appt.date;
@@ -20210,7 +20317,11 @@ var GCal = (function() {
       colorId: colorId
     };
     var path = '/calendars/primary/events/' + encodeURIComponent(appt.calendarEventId);
-    return _req('PATCH', path, body).catch(function(error) {
+    return _req('PATCH', path, body).then(function(event) {
+      appt.calendarAppliedColorId = String(colorId);
+      if (!options.skipSave) saveDB();
+      return event;
+    }).catch(function(error) {
       if (error && (error.status === 404 || error.status === 410)) {
         appt.calendarEventId = null;
         return createEvent(appt);
@@ -20348,6 +20459,10 @@ var GCal = (function() {
         // pudo haber cambiado su fecha, hora, duración, paciente o notas.
         if (knownAppt) {
           var knownChanged = false;
+          if (ev.colorId && String(knownAppt.calendarAppliedColorId || '') !== String(ev.colorId)) {
+            knownAppt.calendarAppliedColorId = String(ev.colorId);
+            knownChanged = true;
+          }
           if (dateStr && knownAppt.date !== dateStr) { knownAppt.date = dateStr; knownChanged = true; }
           if (evTime && knownAppt.time !== evTime) { knownAppt.time = evTime; knownChanged = true; }
           if (evTimeEnd && knownAppt.timeEnd !== evTimeEnd) { knownAppt.timeEnd = evTimeEnd; knownChanged = true; }
@@ -20407,6 +20522,7 @@ var GCal = (function() {
           notes:           notes,
           status:          'pending',
           calendarEventId: ev.id,
+          calendarAppliedColorId: ev.colorId ? String(ev.colorId) : '',
           fromCalendar:    true
         });
         knownCalIds[ev.id] = true;
@@ -20430,12 +20546,12 @@ var GCal = (function() {
         var recentSince = new Date(Date.now() - 10 * 60 * 1000);
         params = '/calendars/primary/events?showDeleted=true&singleEvents=true&maxResults=250'
           + '&updatedMin=' + encodeURIComponent(recentSince.toISOString())
-          + '&fields=nextPageToken,items(id,status,summary,description,start,end,extendedProperties)';
+          + '&fields=nextPageToken,items(id,status,summary,description,start,end,colorId,extendedProperties)';
       } else {
         params = '/calendars/primary/events?showDeleted=true&singleEvents=true&orderBy=startTime&maxResults=500'
           + '&timeMin=' + encodeURIComponent(windowStart.toISOString())
           + '&timeMax=' + encodeURIComponent(windowEnd.toISOString())
-          + '&fields=nextPageToken,items(id,status,summary,description,start,end,extendedProperties)';
+          + '&fields=nextPageToken,items(id,status,summary,description,start,end,colorId,extendedProperties)';
       }
       if (pageToken) params += '&pageToken=' + encodeURIComponent(pageToken);
 
@@ -20471,6 +20587,44 @@ var GCal = (function() {
     });
   }
 
+  // Aplicar a citas existentes la combinación de colores elegida para cada
+  // doctor. Se omiten las citas externas sin doctor asignado y las que ya
+  // tienen el color correcto para no consumir solicitudes innecesarias.
+  function syncDoctorColors(doctorId, doctorName, silent) {
+    if (!_tok()) return Promise.reject(new Error('Sin conexión con Google Calendar'));
+    var wantedId = doctorId === undefined || doctorId === null ? '' : String(doctorId);
+    var wantedName = String(doctorName || '').trim().toLowerCase();
+    var toUpdate = (db.appointments || []).filter(function(appt) {
+      if (!appt.calendarEventId) return false;
+      var doctor = findAppointmentDoctor(appt);
+      if (!doctor) return false;
+      if (wantedId && String(doctor.id) !== wantedId) return false;
+      if (!wantedId && wantedName && String(doctor.name || '').trim().toLowerCase() !== wantedName) return false;
+      return String(appt.calendarAppliedColorId || '') !== String(appointmentCalendarColorId(appt));
+    });
+    if (!toUpdate.length) return Promise.resolve(0);
+    if (!silent) setBadge('syncing', 'Actualizando colores…');
+    var updated = 0;
+    var chain = Promise.resolve();
+    toUpdate.forEach(function(appt) {
+      chain = chain.then(function() {
+        return updateEvent(appt, {skipSave:true}).then(function(){ updated++; });
+      });
+    });
+    return chain.then(function() {
+      saveDB();
+      if (typeof renderCal === 'function') renderCal();
+      if (!silent) {
+        setBadge('synced', 'Colores actualizados');
+        showToast('🎨 ' + updated + ' cita(s) actualizadas en Google Calendar', 'green');
+      }
+      return updated;
+    }).catch(function(error) {
+      if (!silent) setBadge('error', 'Colores pendientes en Calendar');
+      throw error;
+    });
+  }
+
   // ── Sync completo bidireccional ──────────────────────────
   function syncAll() {
     if (!_tok()) return Promise.resolve(0);
@@ -20488,6 +20642,9 @@ var GCal = (function() {
     });
     _syncAllInFlight = uploadChain
       .then(function() { return importFromCalendar({force:true}); })
+      .then(function(n) {
+        return syncDoctorColors(null, '', true).then(function(){ return n; });
+      })
       .then(function(n) {
         setBadge('synced', 'Sincronizado');
         var msg = '✅ Calendar sincronizado';
@@ -20510,7 +20667,7 @@ var GCal = (function() {
   }
 
   return {
-    createEvent, updateEvent, deleteEvent, syncAll, importFromCalendar,
+    createEvent, updateEvent, deleteEvent, syncAll, syncDoctorColors, importFromCalendar,
     extractTime: _extractTime,
     extractDate: _extractDate,
     findPatient: _findPatient
@@ -22218,7 +22375,8 @@ function loadDoctors() {
     specialty: cfg.sub       || '',
     cedula:    cfg.cedula    || '',
     cedula2:   cfg.cedula2   || '',
-    color:     cfg.color     || '#0071e3'
+    color:     cfg.color     || '#039be5',
+    calendarColors: { pending:'7', done:'2', cancelled:'11' }
   }];
 }
 
@@ -22401,9 +22559,15 @@ function renderDoctorsCfg() {
   var doctors = loadDoctors();
 
   list.innerHTML = doctors.map(function(doc, i) {
+    var pendingId = doctorCalendarColorId(doc, 'pending');
+    var doneId = doctorCalendarColorId(doc, 'done');
+    var cancelledId = doctorCalendarColorId(doc, 'cancelled');
+    var pendingHex = googleCalendarColorDef(pendingId).hex;
+    var doneHex = googleCalendarColorDef(doneId).hex;
+    var cancelledHex = googleCalendarColorDef(cancelledId).hex;
     return '<div class="doctor-config-card">'
       + '<div class="doctor-config-head">'
-      + '<div class="doctor-avatar-sm doctor-config-avatar" style="background:linear-gradient(135deg,' + (doc.color||'#0071e3') + ',#5e5ce6)">'
+      + '<div class="doctor-avatar-sm doctor-config-avatar" style="background:linear-gradient(135deg,' + pendingHex + ',#5e5ce6)">'
       + doc.name.split(' ').map(function(w){ return w[0]; }).slice(0,2).join('') + '</div>'
       + '<div class="doctor-config-title"><strong>' + doc.name + '</strong><span>Perfil profesional</span></div>'
       + (doctors.length > 1 ? '<button type="button" class="doctor-config-delete" onclick="deleteDoctorCfg(' + i + ')" aria-label="Eliminar doctor" title="Eliminar">🗑️</button>' : '')
@@ -22422,11 +22586,19 @@ function renderDoctorsCfg() {
       + 'data-idx="' + i + '" data-field="cedula2" onchange="updateDoctorCfgFromEl(this)" '
       + '></label>'
       + '</div>'
-      + '<div class="doctor-config-color">'
-      + '<div><strong>Color en agenda</strong><span>Identifica sus citas</span></div>'
-      + '<input type="color" value="' + (doc.color||'#0071e3') + '" '
-      + 'data-idx="' + i + '" data-field="color" onchange="updateDoctorCfgFromEl(this);renderCal();populateDoctorFilter()" '
-      + 'aria-label="Color en agenda">'
+      + '<div class="doctor-status-colors">'
+      + '<div class="doctor-status-colors-head"><strong>Colores de sus citas</strong><span>Se usarán iguales en esta agenda y en Google Calendar.</span></div>'
+      + '<div class="doctor-status-color-grid">'
+      + '<label class="doctor-status-color-field"><span>Pendiente</span><div class="doctor-status-color-control">'
+      + '<i class="doctor-status-color-dot" style="background:' + pendingHex + '"></i>'
+      + '<select class="doctor-status-color-select" data-idx="' + i + '" data-status="pending" onchange="updateDoctorCalendarColorFromEl(this)">' + renderDoctorCalendarColorOptions(pendingId) + '</select></div></label>'
+      + '<label class="doctor-status-color-field"><span>Confirmada / completada</span><div class="doctor-status-color-control">'
+      + '<i class="doctor-status-color-dot" style="background:' + doneHex + '"></i>'
+      + '<select class="doctor-status-color-select" data-idx="' + i + '" data-status="done" onchange="updateDoctorCalendarColorFromEl(this)">' + renderDoctorCalendarColorOptions(doneId) + '</select></div></label>'
+      + '<label class="doctor-status-color-field"><span>Cancelada</span><div class="doctor-status-color-control">'
+      + '<i class="doctor-status-color-dot" style="background:' + cancelledHex + '"></i>'
+      + '<select class="doctor-status-color-select" data-idx="' + i + '" data-status="cancelled" onchange="updateDoctorCalendarColorFromEl(this)">' + renderDoctorCalendarColorOptions(cancelledId) + '</select></div></label>'
+      + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -22434,14 +22606,16 @@ function renderDoctorsCfg() {
 
 function addDoctorCfg() {
   var doctors = loadDoctors();
-  var colors = ['#0071e3','#34c759','#ff9500','#ff3b30','#af52de','#5e5ce6'];
+  var pendingIds = ['7','3','5','6','9','10'];
+  var pendingId = pendingIds[doctors.length % pendingIds.length];
   doctors.push({
     id:        Date.now(),
     name:      'Nuevo doctor',
     specialty: '',
     cedula:    '',
     cedula2:   '',
-    color:     colors[doctors.length % colors.length]
+    color:     googleCalendarColorDef(pendingId).hex,
+    calendarColors: { pending:pendingId, done:'2', cancelled:'11' }
   });
   saveDoctors(doctors);
   renderDoctorsCfg();
@@ -22462,6 +22636,41 @@ function updateDoctorCfgFromEl(el) {
   var idx   = parseInt(el.getAttribute('data-idx'), 10);
   var field = el.getAttribute('data-field');
   updateDoctorCfg(idx, field, el.value);
+}
+
+var _doctorCalendarColorSyncTimer = null;
+function scheduleDoctorCalendarColorSync(doctorId, doctorName) {
+  if (_doctorCalendarColorSyncTimer) clearTimeout(_doctorCalendarColorSyncTimer);
+  _doctorCalendarColorSyncTimer = setTimeout(function() {
+    _doctorCalendarColorSyncTimer = null;
+    if (typeof GCal !== 'undefined' && GCal.syncDoctorColors) {
+      // Revisar todos los perfiles permite cambiar varios doctores seguidos
+      // sin que el último selector cancele la actualización del anterior.
+      GCal.syncDoctorColors(null, '').catch(function(error) {
+        console.warn('Colores de Calendar pendientes:', error && error.message ? error.message : error);
+      });
+    }
+  }, 700);
+}
+
+function updateDoctorCalendarColorFromEl(el) {
+  var idx = parseInt(el.getAttribute('data-idx'), 10);
+  var status = appointmentStatusColorKey(el.getAttribute('data-status'));
+  var colorId = String(el.value || '');
+  if (!GOOGLE_CALENDAR_EVENT_COLORS.some(function(color){ return color.id === colorId; })) return;
+  var doctors = loadDoctors();
+  var doctor = doctors[idx];
+  if (!doctor) return;
+  doctor.calendarColors = Object.assign({}, doctor.calendarColors || {});
+  doctor.calendarColors[status] = colorId;
+  // El color pendiente también identifica al doctor en avatares y reportes.
+  if (status === 'pending') doctor.color = googleCalendarColorDef(colorId).hex;
+  saveDoctors(doctors);
+  if (_activeDoctor && String(_activeDoctor.id) === String(doctor.id)) setActiveDoctor(doctor);
+  renderDoctorsCfg();
+  if (typeof renderCal === 'function') renderCal();
+  if (typeof populateDoctorFilter === 'function') populateDoctorFilter();
+  scheduleDoctorCalendarColorSync(doctor.id, doctor.name);
 }
 
 function deleteDoctorCfg(idx) {
@@ -25507,7 +25716,7 @@ window.addEventListener('resize', function() {
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Registrar doctores</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Ve a ⚙️ Configuración → <strong>"Doctores de la clínica"</strong> y agrega a cada doctor con nombre, especialidad, cédula y color. El color se aplica en la agenda para diferenciar visualmente las citas.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Ve a ⚙️ Configuración → <strong>"Doctores de la clínica"</strong> y agrega a cada doctor con nombre, especialidad y cédula. Puedes elegir tres colores para sus citas: <strong>pendiente, confirmada/completada y cancelada</strong>. La misma combinación se aplica en la agenda y en Google Calendar.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Seleccionar doctor activo</div>
