@@ -1892,6 +1892,17 @@ html.app-is-loading #app-loading-screen{display:flex!important;opacity:1!importa
 #gd-sync-badge.syncing { background:#e8f1fd; color:var(--blue); border-color:var(--blue-mid); }
 #gd-sync-badge.error   { background:#fff1f0; color:#c0000a; border-color:rgba(255,59,48,.25); }
 #gd-sync-badge.offline { background:var(--bg); color:var(--ink-4); border-color:var(--border); }
+#gd-session-timer {
+  display:none; align-items:center; gap:5px; white-space:nowrap;
+  padding:4px 10px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--bg); color:var(--ink-3); font:inherit; font-size:.7rem;
+  font-weight:650; font-variant-numeric:tabular-nums; cursor:pointer; transition:all .2s;
+}
+#gd-session-timer.active  { background:var(--bg); color:var(--ink-3); border-color:var(--border); }
+#gd-session-timer.warning { background:#fff8e1; color:#9a5b00; border-color:rgba(245,158,11,.45); }
+#gd-session-timer.expired { background:#fff1f0; color:#c0000a; border-color:rgba(255,59,48,.3); }
+#gd-session-timer.syncing { background:#e8f1fd; color:var(--blue); border-color:var(--blue-mid); }
+#gd-session-timer:hover { transform:translateY(-1px); box-shadow:var(--sh-sm); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display:inline-block; animation: spin .8s linear infinite; }
 
@@ -4017,6 +4028,8 @@ html.dark .topbar h2 {
   .topbar h2 { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .topbar-actions { gap: 5px; }
   #gd-sync-txt, #gd-save-now-btn, #pwa-install-btn { display: none !important; }
+  #gd-session-timer { padding:4px 8px; }
+  #gd-session-label { font-size:.64rem; }
   #desktop-help-btn { display:none !important; }
   #btn-add { padding: 8px 12px; }
   .content { padding: 16px 12px 80px; }
@@ -5087,6 +5100,10 @@ body.app-ready #dash-page.active > .card {
         <span id="gd-sync-icon">⚫</span>
         <span id="gd-sync-txt">Sin cuenta</span>
       </div>
+      <button id="gd-session-timer" class="active" type="button" onclick="gdRenewSession()" title="Tiempo restante de la conexión con Google">
+        <span id="gd-session-icon">🔐</span>
+        <span id="gd-session-label">Sesión --:--</span>
+      </button>
       <button id="gd-save-now-btn" onclick="gdSaveNow()" title="Enviar y recibir cambios de Google Drive"
         style="display:none;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);background:#e9faf0;border:1.5px solid rgba(52,199,89,.35);color:#1a7a3c;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">
         🔄 Sincronizar
@@ -17365,6 +17382,7 @@ var GD = (function() {
   var _token     = null;
   var _tokenExpiresAt = 0;
   var _reauthRequired = false;
+  var _sessionTimer = null;
   var _folderId  = null;
   var _dbFileId  = null;
   var _regularDbFileId = null;
@@ -17416,6 +17434,62 @@ var GD = (function() {
   // Los tokens del flujo web de Google son temporales. Considerarlos vencidos
   // un minuto antes evita que una escritura larga falle a mitad del envío.
   var TOKEN_EXPIRY_MARGIN_MS = 60000;
+  var SESSION_WARNING_MS = 5 * 60 * 1000;
+
+  function _setSessionTimerState(state, text, title) {
+    var button = document.getElementById('gd-session-timer');
+    var icon = document.getElementById('gd-session-icon');
+    var label = document.getElementById('gd-session-label');
+    if (!button) return;
+    button.style.display = 'inline-flex';
+    button.className = state || 'active';
+    if (icon) icon.textContent = state === 'syncing' ? '↻' : (state === 'expired' ? '⚠️' : '🔐');
+    if (label) label.textContent = text || 'Sesión activa';
+    button.title = title || 'Toca para renovar la conexión con Google';
+  }
+
+  function _updateSessionTimer() {
+    if (!_tokenExpiresAt || !_token) {
+      if (_reauthRequired) {
+        _setSessionTimerState('expired', 'Renovar sesión', 'La conexión con Google venció. Toca para renovarla.');
+      }
+      return;
+    }
+    // El minuto final se reserva para que una escritura clínica no comience
+    // con un token que pueda vencer mientras se envía a Drive.
+    var remaining = Math.max(0, _tokenExpiresAt - Date.now() - TOKEN_EXPIRY_MARGIN_MS);
+    if (remaining <= 0) {
+      _requireDriveReconnect('La sesión de Google terminó. Toca Renovar sesión para continuar sincronizando');
+      return;
+    }
+    var totalSeconds = Math.ceil(remaining / 1000);
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    var clock = minutes + ':' + String(seconds).padStart(2, '0');
+    var warning = remaining <= SESSION_WARNING_MS;
+    _setSessionTimerState(
+      warning ? 'warning' : 'active',
+      (warning ? 'Renovar · ' : 'Sesión ') + clock,
+      warning
+        ? 'La sesión está por vencer. Toca para renovarla sin salir de la pantalla.'
+        : 'Tiempo restante de la conexión con Google. Toca para renovarla ahora.'
+    );
+  }
+
+  function _startSessionTimer() {
+    if (_sessionTimer) clearInterval(_sessionTimer);
+    _updateSessionTimer();
+    _sessionTimer = setInterval(_updateSessionTimer, 1000);
+  }
+
+  function _stopSessionTimer(hide) {
+    if (_sessionTimer) clearInterval(_sessionTimer);
+    _sessionTimer = null;
+    if (hide) {
+      var button = document.getElementById('gd-session-timer');
+      if (button) button.style.display = 'none';
+    }
+  }
 
   function _driveAuthError(message, status) {
     var error = new Error(message || 'La sesión de Google necesita renovarse');
@@ -17430,21 +17504,31 @@ var GD = (function() {
 
   function _requireDriveReconnect(message) {
     var hadToken = !!_token;
+    var hasPendingChanges = !!(_dirty || _dbSaving || _cfgDirty || _cfgSaving
+      || _catalogDirty || _catalogSaving || _heroDirty || _heroSaving
+      || (typeof _photoMutationActive === 'function' && _photoMutationActive()));
     // Si había una escritura en curso, conservar la versión local como la que
     // debe volver a subirse después de autorizar la misma cuenta.
-    if (_dirty || _dbSaving || _cfgDirty || _cfgSaving || _catalogDirty
-        || _catalogSaving || _heroDirty || _heroSaving
-        || (typeof _photoMutationActive === 'function' && _photoMutationActive())) {
+    if (hasPendingChanges) {
       _preferLocalAfterReconnect = true;
     }
     _token = null;
     _tokenExpiresAt = 0;
     _stopAutoPull();
+    _stopSessionTimer(false);
     if (!_reauthRequired) {
       _reauthRequired = true;
-      _showReconnectRequired(message || 'Tu sesión de Google venció. Reconecta para continuar');
+      setBadge('error', 'Drive pausado · renueva la sesión');
+      _setSessionTimerState('expired', 'Renovar sesión', message || 'Toca para renovar la conexión con Google');
+      // La caducidad mientras la app está en reposo no debe sacar al usuario
+      // de lo que está viendo. Solo se bloquea si existe un cambio por guardar.
+      if (hasPendingChanges) {
+        _showReconnectRequired(message || 'Tu sesión de Google venció. Reconecta para guardar tus cambios');
+      }
       if (hadToken) {
-        showToast('🔐 La sesión de Google venció. Reconecta y el cambio pendiente se guardará automáticamente.', 'red');
+        showToast(hasPendingChanges
+          ? '🔐 La sesión venció. Renueva y el cambio pendiente se guardará automáticamente.'
+          : '🔐 La sincronización está en pausa. Toca Renovar sesión; puedes seguir viendo tus datos.', 'red');
       }
     }
   }
@@ -17707,6 +17791,7 @@ var GD = (function() {
               _initApp();
             }
             setBadge('synced', 'Drive conectado');
+            _startSessionTimer();
             if (_accountEmail) {
               showToast('☁️ Conectado a Drive como ' + _accountEmail, 'green');
             }
@@ -19422,7 +19507,111 @@ var GD = (function() {
   function reconnect() {
     var modal = document.getElementById('gd-reconnect-modal');
     if (modal) { modal.classList.remove('open'); modal.style.display = ''; }
-    signIn(false);
+    if (_appInitialized) renewSession();
+    else signIn(false);
+  }
+
+  // Renovación ligera: conserva la pantalla y los datos ya cargados. Google
+  // exige que esta solicitud nazca de un clic del usuario, pero no hace falta
+  // recargar nuevamente toda la base clínica.
+  function renewSession() {
+    if (_authInProgress) return;
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+      _setSessionTimerState('expired', 'Renovar sesión', 'Google no cargó. Revisa la conexión a internet.');
+      showToast('⚠️ Google no cargó. Revisa tu conexión e intenta nuevamente.', 'red');
+      return;
+    }
+    var authAttempt = ++_authAttemptSeq;
+    _activeAuthAttempt = authAttempt;
+    _authInProgress = true;
+    setBadge('syncing', 'Renovando conexión…');
+    _setSessionTimerState('syncing', 'Renovando…', 'Confirmando la conexión con Google');
+    var tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      hint: _accountEmail || undefined,
+      callback: function(resp) {
+        if (authAttempt !== _activeAuthAttempt) return;
+        if (!resp || resp.error || !resp.access_token) {
+          _activeAuthAttempt = 0;
+          _authInProgress = false;
+          _reauthRequired = true;
+          setBadge('error', 'Drive pausado · renueva la sesión');
+          _setSessionTimerState('expired', 'Renovar sesión', 'No se pudo renovar. Toca para intentar otra vez.');
+          showToast('⚠️ No se renovó la sesión. Intenta nuevamente.', 'red');
+          return;
+        }
+        var newToken = resp.access_token;
+        var expiresInSeconds = parseInt(resp.expires_in || '3600', 10);
+        if (!isFinite(expiresInSeconds) || expiresInSeconds <= 0) expiresInSeconds = 3600;
+        fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress,permissionId,displayName)', {
+          headers: { Authorization: 'Bearer ' + newToken }
+        }).then(function(response) {
+          if (!response.ok) throw new Error('No se pudo verificar la cuenta');
+          return response.json();
+        }).then(function(info) {
+          if (!info || !info.user) throw new Error('Google no devolvió la cuenta');
+          var renewedAccount = _accountId(info.user);
+          var expectedAccount = String(_accountEmail || appStorage.getItem(ACCOUNT_ID_KEY) || '').trim().toLowerCase();
+          if (expectedAccount && renewedAccount && expectedAccount !== renewedAccount) {
+            throw new Error('Selecciona la misma cuenta de Google: ' + _accountEmail);
+          }
+          _prepareAccount(info.user);
+          _token = newToken;
+          _tokenExpiresAt = Date.now() + (expiresInSeconds * 1000);
+          _reauthRequired = false;
+          _activeAuthAttempt = 0;
+          _authInProgress = false;
+          appStorage.setItem('dental_gd_token_hint', '1');
+          var modal = document.getElementById('gd-reconnect-modal');
+          if (modal) modal.classList.remove('open');
+          setBadge('synced', 'Drive conectado');
+          _startSessionTimer();
+          _startAutoPull();
+          showToast('✅ Sesión renovada sin recargar la pantalla', 'green');
+          if (_preferLocalAfterReconnect || _hasPending()) {
+            _preferLocalAfterReconnect = false;
+            if (_dirty && !_dbSaving) _scheduleSave();
+            if (_cfgDirty && !_cfgSaving) saveCfg();
+            if (_catalogDirty && !_catalogSaving) saveCatalog(false);
+          } else {
+            _pullRemoteChanges(true);
+          }
+        }).catch(function(error) {
+          _token = null;
+          _tokenExpiresAt = 0;
+          _reauthRequired = true;
+          _activeAuthAttempt = 0;
+          _authInProgress = false;
+          setBadge('error', 'Cuenta no verificada · renueva');
+          _setSessionTimerState('expired', 'Renovar sesión', error.message || 'Toca para intentar otra vez.');
+          showToast('⚠️ ' + (error.message || 'No se pudo verificar la cuenta.'), 'red');
+        });
+      }
+    });
+    try {
+      tokenClient.requestAccessToken({ prompt:'' });
+      setTimeout(function() {
+        // Algunos navegadores bloquean el cuadro de Google sin responder.
+        // Recuperar el botón para que el usuario pueda volver a intentarlo.
+        if (authAttempt === _activeAuthAttempt && _authInProgress) {
+          _activeAuthAttempt = 0;
+          _authInProgress = false;
+          _reauthRequired = true;
+          setBadge('error', 'Drive pausado · renueva la sesión');
+          _setSessionTimerState('expired', 'Renovar sesión', 'Google no respondió. Toca para volver a intentar.');
+          showToast('⚠️ Google no respondió. Toca Renovar sesión para intentar otra vez.', 'red');
+        }
+      }, 10000);
+    } catch(error) {
+      if (authAttempt !== _activeAuthAttempt) return;
+      _activeAuthAttempt = 0;
+      _authInProgress = false;
+      _reauthRequired = true;
+      setBadge('error', 'Drive pausado · renueva la sesión');
+      _setSessionTimerState('expired', 'Renovar sesión', 'Toca para intentar nuevamente.');
+      showToast('⚠️ No se pudo abrir Google. Intenta nuevamente.', 'red');
+    }
   }
 
   function save() {
@@ -19538,25 +19727,18 @@ var GD = (function() {
 
   function showStatus() {
     if (_mode === 'local' || !_hasUsableToken()) {
-      // Abrir modal de reconexión a Google
-      var reconModal = document.getElementById('gd-reconnect-modal');
-      if (reconModal) {
-        reconModal.style.display = '';
-        reconModal.classList.add('open');
-        return;
-      }
-      // Si no hay modal, abrir el login screen
-      var loginScreen = document.getElementById('gd-login-screen');
-      if (loginScreen) { loginScreen.style.display = 'flex'; return; }
-      GD.signIn();
+      if (_appInitialized) renewSession();
+      else reconnect();
       return;
     }
-    showToast('✅ Google Drive activo', 'green');
+    _updateSessionTimer();
+    showToast('✅ Google Drive activo. El contador muestra el tiempo restante.', 'green');
   }
 
   function signOut() {
     if (!confirm('¿Cerrar sesión? Los datos quedan en tu Drive.')) return;
     _stopAutoPull();
+    _stopSessionTimer(true);
     _token = null; _tokenExpiresAt = 0; _reauthRequired = false;
     _folderId = null; _dbFileId = null; _regularDbFileId = null;
     _dbIsAppData = false; _needsAppDataMigration = false;
@@ -19671,7 +19853,7 @@ var GD = (function() {
   return {
     signIn, skip, save, saveNow, syncNow, saveCfg, saveCatalog, saveHeroImage,
     uploadImageAsset, removeImageAsset, loadImageAsset,
-    showStatus, signOut, start, reconnect, _hasPending, _token: getToken, _account:getAccountEmail
+    showStatus, signOut, start, reconnect, renewSession, _hasPending, _token: getToken, _account:getAccountEmail
   };
 })();
 
@@ -19681,6 +19863,7 @@ function gdSkip()       { GD.skip(); }
 function gdUseOffline() { GD.skip(); }
 function gdShowStatus() { GD.showStatus(); }
 function gdReconnectNow() { GD.reconnect(); }
+function gdRenewSession() { GD.renewSession(); }
 function gcalSync() {
   if (typeof GCal === 'undefined') { showToast('Conecta Google primero', 'red'); return; }
   showToast('⏳ Sincronizando con Google Calendar…', 'green');
