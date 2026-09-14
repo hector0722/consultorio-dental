@@ -7344,39 +7344,8 @@ function buildWhatsAppMessageUrl(phone, message) {
     : 'https://web.whatsapp.com/send?') + query;
 }
 
-function buildWhatsAppAppUrl(phone, message) {
-  var normalizedMessage = String(message || '');
-  if (normalizedMessage.normalize) normalizedMessage = normalizedMessage.normalize('NFC');
-  var cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
-  var query = (cleanPhone ? 'phone=' + encodeURIComponent(cleanPhone) + '&' : '')
-    + 'text=' + encodeURIComponent(normalizedMessage);
-  return 'whatsapp://send?' + query;
-}
-
 function openWhatsAppMessage(phone, message) {
-  var fallbackUrl = buildWhatsAppMessageUrl(phone, message);
-
-  // En celulares, la ruta oficial ya entrega el mensaje a la aplicación.
-  if (isMobileWhatsAppDevice()) {
-    window.location.href = fallbackUrl;
-    return;
-  }
-
-  // En Mac/PC intentar primero la aplicación instalada. Si no existe,
-  // regresar automáticamente a WhatsApp Web sin pasar por wa.me.
-  var fallbackTimer = window.setTimeout(function() {
-    document.removeEventListener('visibilitychange', cancelFallback);
-    if (!document.hidden) window.location.href = fallbackUrl;
-  }, 2500);
-
-  function cancelFallback() {
-    if (!document.hidden) return;
-    window.clearTimeout(fallbackTimer);
-    document.removeEventListener('visibilitychange', cancelFallback);
-  }
-
-  document.addEventListener('visibilitychange', cancelFallback);
-  window.location.href = buildWhatsAppAppUrl(phone, message);
+  window.open(buildWhatsAppMessageUrl(phone, message), '_blank', 'noopener');
 }
 
 const fmt$ = function(n) {
