@@ -807,13 +807,18 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .adi-name{font-size:.81rem;font-weight:600;}
 .adi-proc{font-size:.71rem;color:var(--ink-3);}
 .adi-actions{display:flex;gap:4px;flex-shrink:0;}
-.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:4px solid var(--appt-status-color,var(--blue));border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;color:var(--ink);}
-.appt-day-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;}
-.appt-day-time{font-size:.73rem;font-weight:800;color:var(--appt-status-color,var(--blue));white-space:nowrap;padding-top:1px;}
-.appt-day-name{font-size:.83rem;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.appt-day-proc{font-size:.72rem;color:var(--ink-3);margin-top:2px;line-height:1.45;overflow-wrap:anywhere;}
-.appt-day-status{font-size:.68rem;color:var(--ink-3);margin-top:3px;line-height:1.4;}
-.appt-day-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--appt-status-color,var(--blue));border-radius:12px;padding:9px 10px;margin-bottom:7px;color:var(--ink);transition:border-color .12s,box-shadow .12s,transform .12s;}
+.appt-day-card:hover{border-color:color-mix(in srgb,var(--appt-status-color,var(--blue)) 42%,var(--border));box-shadow:0 5px 14px rgba(0,0,0,.1);transform:translateY(-1px);}
+.appt-day-card-head{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center;gap:10px;}
+.appt-day-time{display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 7px;border-radius:9px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 13%,transparent);font-size:.68rem;font-weight:800;line-height:1.25;text-align:center;color:var(--appt-status-color,var(--blue));white-space:normal;}
+.appt-day-info{min-width:0;}
+.appt-day-name{font-size:.82rem;font-weight:780;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-proc{font-size:.69rem;color:var(--ink-3);margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-meta{display:flex;align-items:center;gap:5px;margin-top:4px;min-width:0;font-size:.64rem;color:var(--ink-3);}
+.appt-day-status{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;padding:2px 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);line-height:1.2;}
+.appt-day-doctor{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.appt-day-actions .appt-action-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-height:32px;padding:0;border-radius:9px;font-size:.72rem;}
 /* ━━━━ PAYMENTS ━━━━ */
 .pay-item{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .pay-date{font-size:.71rem;color:var(--ink-3);min-width:72px;}
@@ -883,7 +888,7 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
   #sidebar, .topbar, .ph-actions, .btn, .no-print { display: none !important; }
   #main { margin-left: 0; }
 }
-.wa-appt-btn{background:#25d366;color:#fff;border:none;border-radius:980px;padding:4px 10px;font-family:inherit;font-weight:700;font-size:.7rem;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;margin-top:2px;}
+.wa-appt-btn{width:auto!important;height:32px!important;min-height:32px!important;margin:0 auto 0 0!important;padding:0 11px!important;background:#25d366;color:#fff;border:none;border-radius:9px!important;font-family:inherit;font-weight:750;font-size:.66rem!important;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;}
 .wa-appt-btn:hover{background:#1da851;}
 
 /* ━━━━ SETTINGS PANEL ━━━━ */
@@ -9596,37 +9601,39 @@ function showApptDayPanel(dateStr) {
     var p      = agendaIdx.patientsById[String(a.patientId)];
     var nombre = p ? p.name : (a.calendarName || a.proc || 'Sin paciente');
     var proc   = (a.proc||'—') + (a.notes ? ' · '+a.notes : '');
-    var status = (stIcon[a.status]||'') + ' ' + (stMap[a.status]||'');
+    var statusIcon = stIcon[a.status] || '';
+    var statusText = stMap[a.status] || '';
     var sid    = String(a.id); // usar string para evitar problemas de precisión numérica
     var timeLabel = a.timeEnd ? fmtTime(a.time) + ' – ' + fmtTime(a.timeEnd) : fmtTime(a.time);
     var apptColor = appointmentDisplayColor(a);
 
     var doneBtnHtml   = a.status==='pending'
-      ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Completada">✓</button>' : '';
+      ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Marcar completada" aria-label="Marcar completada">✓</button>' : '';
     var cancelBtnHtml = a.status==='pending'
-      ? '<button class="btn btn-danger btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="cancelled" title="Cancelar">✕</button>' : '';
-    var editBtnHtml   = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="edit" title="Editar cita" style="font-size:.7rem">✏️</button>';
-    var delBtnHtml    = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="delete" title="Eliminar">🗑</button>';
+      ? '<button class="btn btn-danger btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="cancelled" title="Cancelar cita" aria-label="Cancelar cita">✕</button>' : '';
+    var editBtnHtml   = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="edit" title="Editar cita" aria-label="Editar cita">✏️</button>';
+    var delBtnHtml    = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="delete" title="Eliminar cita" aria-label="Eliminar cita">🗑</button>';
 
     var waBtnHtml = '';
     if (a.status==='pending') {
       waBtnHtml = '<button class="wa-appt-btn appt-action-btn" data-appt-id="'+sid+'" data-action="wa"'
-        + ' style="width:100%;justify-content:center;margin-top:8px;padding:7px 10px;font-size:.78rem">'
+        + ' title="Enviar WhatsApp" aria-label="Enviar WhatsApp">'
         + '<svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M.057 24l1.687-6.163C.703 16.033.156 13.988.157 11.891.16 5.335 5.495.001 12.05.001c3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>'
-        + ' Enviar WhatsApp</button>';
+        + ' WhatsApp</button>';
     }
 
     return '<div class="appt-day-card" style="--appt-status-color:'+apptColor+'">'
       + '<div class="appt-day-card-head">'
       +   '<span class="appt-day-time">'+timeLabel+'</span>'
-      +   '<div style="min-width:0">'
+      +   '<div class="appt-day-info">'
       +     '<div class="appt-day-name">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
       +     '<div class="appt-day-proc">'+proc+'</div>'
-      +     '<div class="appt-day-status">'+status+(a.doctorName?' · 👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' '):'')+'</div>'
+      +     '<div class="appt-day-meta"><span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
+      +       (a.doctorName?'<span class="appt-day-doctor">👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' ')+'</span>':'')
+      +     '</div>'
       +   '</div>'
       + '</div>'
-      + '<div class="appt-day-actions">'+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
-      + waBtnHtml
+      + '<div class="appt-day-actions">'+waBtnHtml+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
       + '</div>';
   }).join('');
 }
