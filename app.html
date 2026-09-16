@@ -784,12 +784,14 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .wc-slot:last-child{border-right:none;}
 .wc-slot:hover{background:rgba(0,113,227,.04);}
 .wc-slot.wc-now-row{background:rgba(0,113,227,.03);}
-.wc-appt{position:absolute;left:2px;right:2px;top:2px;background:var(--appt-status-color,var(--blue));border-radius:4px;padding:3px 6px;cursor:pointer;z-index:1;min-height:24px;transition:opacity .1s;}
-.wc-appt:hover{opacity:.85;}
+.wc-appt{position:absolute;left:2px;right:2px;top:2px;background:var(--appt-status-color,var(--blue));border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:4px 6px;box-sizing:border-box;overflow:hidden;cursor:pointer;z-index:2;min-height:22px;box-shadow:0 2px 7px rgba(0,0,0,.14);transition:filter .12s,box-shadow .12s,transform .12s;}
+.wc-appt:hover{filter:brightness(1.07);box-shadow:0 5px 14px rgba(0,0,0,.22);transform:translateY(-1px);z-index:5;}
 .wc-appt.wca-done{background:var(--appt-status-color,#248a3d);}
 .wc-appt.wca-cancelled{background:var(--appt-status-color,var(--red));opacity:.6;}
-.wc-appt-name{font-size:.68rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wc-appt-proc{font-size:.6rem;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wc-appt-name{font-size:.67rem;font-weight:750;line-height:1.25;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wc-appt-proc{margin-top:2px;font-size:.59rem;line-height:1.2;color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wc-appt.wca-compact{padding-top:3px;padding-bottom:3px;}
+.wc-appt.wca-compact .wc-appt-proc{display:none;}
 .wc-now-line{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:3;pointer-events:none;}
 .wc-now-dot{position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--red);}
 /* Sidebar form */
@@ -1387,17 +1389,21 @@ body.spec-open{overflow:hidden;}
 .dv-slot.dv-now { background: rgba(0,113,227,.04); }
 .dv-appt {
   position: absolute; left: 6px; right: 6px; top: 3px;
-  background: var(--appt-status-color,var(--blue)); border-radius: 8px;
-  padding: 6px 10px; cursor: pointer; z-index: 1;
-  min-height: 52px; transition: opacity .15s;
-  box-shadow: 0 2px 8px rgba(0,113,227,.25);
+  background: var(--appt-status-color,var(--blue)); border:1px solid rgba(255,255,255,.2); border-radius: 9px;
+  padding: 6px 10px; box-sizing:border-box; overflow:hidden; cursor: pointer; z-index: 2;
+  min-height: 20px; transition: filter .12s,box-shadow .12s,transform .12s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.16);
 }
-.dv-appt:hover { opacity: .88; }
+.dv-appt:hover { filter:brightness(1.07);box-shadow:0 5px 14px rgba(0,0,0,.22);transform:translateY(-1px);z-index:5; }
 .dv-appt.dv-done { background:var(--appt-status-color,#248a3d); box-shadow: 0 2px 8px rgba(36,138,61,.25); }
 .dv-appt.dv-cancelled { background:var(--appt-status-color,var(--red)); opacity: .55; box-shadow: none; }
 .dv-appt-time { font-size: .7rem; color: rgba(255,255,255,.75); font-weight: 600; margin-bottom: 2px; }
 .dv-appt-name { font-size: .85rem; font-weight: 700; color: #fff; line-height: 1.2; }
 .dv-appt-proc { font-size: .75rem; color: rgba(255,255,255,.8); margin-top: 2px; }
+.dv-appt.dv-compact{display:flex;align-items:center;gap:7px;padding:3px 8px;}
+.dv-appt.dv-compact .dv-appt-time{flex:0 0 auto;margin:0;font-size:.64rem;}
+.dv-appt.dv-compact .dv-appt-name{min-width:0;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dv-appt.dv-compact .dv-appt-proc{display:none;}
 .dv-header { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 12px; }
 .dv-header-date { font-size: 1.1rem; font-weight: 800; letter-spacing: -.03em; }
 .dv-header-sub { font-size: .8rem; color: var(--ink-3); }
@@ -7344,8 +7350,42 @@ function buildWhatsAppMessageUrl(phone, message) {
     : 'https://web.whatsapp.com/send?') + query;
 }
 
+function buildWhatsAppAppUrl(phone, message) {
+  var normalizedMessage = String(message || '');
+  if (normalizedMessage.normalize) normalizedMessage = normalizedMessage.normalize('NFC');
+  var cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+  var query = (cleanPhone ? 'phone=' + encodeURIComponent(cleanPhone) + '&' : '')
+    + 'text=' + encodeURIComponent(normalizedMessage);
+  return 'whatsapp://send?' + query;
+}
+
 function openWhatsAppMessage(phone, message) {
-  window.open(buildWhatsAppMessageUrl(phone, message), '_blank', 'noopener');
+  var webUrl = buildWhatsAppMessageUrl(phone, message);
+
+  if (isMobileWhatsAppDevice()) {
+    window.open(webUrl, '_blank', 'noopener');
+    return;
+  }
+
+  // Intentar la aplicación de escritorio sin navegar fuera del consultorio.
+  var appOpened = false;
+  var probe = document.createElement('iframe');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
+
+  function detectAppOpen() { appOpened = true; }
+
+  document.addEventListener('visibilitychange', detectAppOpen);
+  window.addEventListener('blur', detectAppOpen);
+  probe.src = buildWhatsAppAppUrl(phone, message);
+  document.body.appendChild(probe);
+
+  window.setTimeout(function() {
+    document.removeEventListener('visibilitychange', detectAppOpen);
+    window.removeEventListener('blur', detectAppOpen);
+    if (probe.parentNode) probe.parentNode.removeChild(probe);
+    if (!appOpened && !document.hidden) window.open(webUrl, '_blank', 'noopener');
+  }, 4500);
 }
 
 const fmt$ = function(n) {
@@ -9213,6 +9253,7 @@ function renderDayView() {
   var nowH    = now.getHours();
   var nowM    = now.getMinutes();
   var HOURS_DAY = Array.from({length:24}, function(_,i){ return i; });
+  var dayLayout = _layoutWeekAppointments(appts);
 
   var dateLabel = new Date(ds+'T12:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
@@ -9225,32 +9266,28 @@ function renderDayView() {
 
   var rows = HOURS_DAY.map(function(h) {
     var hLabel    = fmtTime(String(h).padStart(2,'0') + ':00');
-    var hourAppts = appts.filter(function(a){ return parseInt(a.time) === h; })
-      .sort(function(a,b){ return a.time.localeCompare(b.time); });
+    var hourAppts = dayLayout.filter(function(item){ return Math.floor(item.start / 60) === h; });
     var isNowH = isToday && h === nowH;
     var nowPct = Math.round(nowM / 60 * 100);
 
-    var apptBlocks = hourAppts.map(function(a) {
+    var apptBlocks = hourAppts.map(function(layout) {
+      var a      = layout.appt;
       var p      = agendaIdx.patientsById[String(a.patientId)];
-      var min    = parseInt((a.time.split(':')[1])||0);
-      var topPct = Math.round(min/60*100);
-      var cls    = a.status==='done' ? 'dv-done' : a.status==='cancelled' ? 'dv-cancelled' : '';
+      var topPct = ((layout.start - h * 60) / 60 * 100).toFixed(3);
+      var heightPct = ((layout.end - layout.start) / 60 * 100).toFixed(3);
+      var duration = layout.end - layout.start;
+      var cls    = (a.status==='done' ? ' dv-done' : a.status==='cancelled' ? ' dv-cancelled' : '')
+        + (duration < 45 ? ' dv-compact' : '');
       var apptColor = appointmentDisplayColor(a);
       var nameStr= p ? p.name : (a.calendarName || 'Paciente');
       var procStr= a.proc ? '<div class="dv-appt-proc">' + a.proc + '</div>' : '';
-      // Las citas que empiezan exactamente a la misma hora se reparten en
-      // columnas, en vez de dibujarse una encima de la otra.
-      var sameStart = hourAppts.filter(function(x){ return x.time === a.time; });
-      var laneCount = sameStart.length;
-      var laneIndex = sameStart.indexOf(a);
-      var laneStyle = '';
-      if (laneCount > 1) {
-        var lanePct = 100 / laneCount;
-        laneStyle = ';right:auto;left:calc(' + (laneIndex * lanePct) + '% + 6px);width:calc(' + lanePct + '% - 10px)';
-      }
-      return '<div class="dv-appt ' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%' + laneStyle + '" '
+      var lanePct = 100 / layout.laneCount;
+      var laneLeft = layout.lane * lanePct;
+      var laneStyle = ';right:auto;left:calc(' + laneLeft + '% + 6px);width:calc(' + lanePct + '% - 12px)';
+      var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
+      return '<div class="dv-appt' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%;height:calc(' + heightPct + '% - 4px)' + laneStyle + '" '
         + 'onclick="dvClick(this)" data-ds="' + ds + '">'
-        + '<div class="dv-appt-time">' + fmtTime(a.time) + '</div>'
+        + '<div class="dv-appt-time">' + timeRange + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
         + procStr
         + '</div>';
@@ -9301,12 +9338,64 @@ function getCalWeekDays(anchor) {
   return Array.from({length:7},(_,i)=>{ const x=new Date(sun); x.setDate(sun.getDate()+i); return x; });
 }
 
+function _calendarTimeMinutes(value) {
+  var parts = String(value || '').split(':');
+  var hour = parseInt(parts[0], 10);
+  var minute = parseInt(parts[1], 10) || 0;
+  if (!isFinite(hour)) return 0;
+  return Math.max(0, Math.min(1440, hour * 60 + minute));
+}
+
+function _layoutWeekAppointments(appts) {
+  var items = (appts || []).map(function(appt, order) {
+    var start = _calendarTimeMinutes(appt.time);
+    var end = appt.timeEnd ? _calendarTimeMinutes(appt.timeEnd) : start + 60;
+    if (end <= start) end = start + 60;
+    end = Math.min(1440, end);
+    return { appt:appt, start:start, end:end, order:order, lane:0, laneCount:1 };
+  }).sort(function(a, b) {
+    return a.start - b.start || b.end - a.end || a.order - b.order;
+  });
+
+  var clusters = [];
+  var cluster = [];
+  var clusterEnd = -1;
+  items.forEach(function(item) {
+    if (cluster.length && item.start >= clusterEnd) {
+      clusters.push(cluster);
+      cluster = [];
+      clusterEnd = -1;
+    }
+    cluster.push(item);
+    clusterEnd = Math.max(clusterEnd, item.end);
+  });
+  if (cluster.length) clusters.push(cluster);
+
+  clusters.forEach(function(group) {
+    var laneEnds = [];
+    group.forEach(function(item) {
+      var lane = laneEnds.findIndex(function(end) { return end <= item.start; });
+      if (lane < 0) lane = laneEnds.length;
+      laneEnds[lane] = item.end;
+      item.lane = lane;
+    });
+    group.forEach(function(item) { item.laneCount = Math.max(1, laneEnds.length); });
+  });
+  return items;
+}
+
 function renderWeekView() {
   const days    = getCalWeekDays(calWeekOf);
   const today   = todayStr();
   const agendaIdx = _agendaIndex();
   const nowH    = new Date().getHours();
   const nowM    = new Date().getMinutes();
+  const layoutsByDate = {};
+
+  days.forEach(function(d) {
+    var ds = fmtDate(d);
+    layoutsByDate[ds] = _layoutWeekAppointments(agendaIdx.appointmentsByDate[ds] || []);
+  });
 
   // Header row
   const hdr = document.getElementById('week-header-row');
@@ -9328,27 +9417,30 @@ function renderWeekView() {
     const nowPct    = Math.round(nowM/60*100);
     const slots = days.map(d => {
       const ds = fmtDate(d);
-      // Find appts that start in this hour
-      const ha = (agendaIdx.appointmentsByDate[ds] || []).filter(a => parseInt(a.time)===h);
-      const blocks = ha.map(a => {
+      // Dibujar cada cita en la hora donde empieza; su altura puede continuar
+      // por las siguientes filas según la hora de terminación real.
+      const ha = (layoutsByDate[ds] || []).filter(function(item) {
+        return Math.floor(item.start / 60) === h;
+      });
+      const blocks = ha.map(function(layout) {
+        const a   = layout.appt;
         const p   = agendaIdx.patientsById[String(a.patientId)];
-        const min = parseInt((a.time.split(':')[1]||0));
-        const top = Math.round(min/60*100);
-        const cls = a.status==='done'?'wca-done':a.status==='cancelled'?'wca-cancelled':'';
+        const top = ((layout.start - h * 60) / 60 * 100).toFixed(3);
+        const height = ((layout.end - layout.start) / 60 * 100).toFixed(3);
+        const duration = layout.end - layout.start;
+        const cls = (a.status==='done'?' wca-done':a.status==='cancelled'?' wca-cancelled':'')
+          + (duration < 45 ? ' wca-compact' : '');
         var docColorWc = appointmentDisplayColor(a);
         var wcBg = '--appt-status-color:'+docColorWc+';border-color:'+docColorWc+';';
-        // En Semana cada evento de la misma franja horaria recibe una columna.
-        // Calendar puede entregar "15:00" o "15:00:00"; usar toda la franja
-        // evita que formatos distintos terminen dibujados uno encima de otro.
-        var laneCount = ha.length;
-        var laneIndex = ha.indexOf(a);
-        var laneStyle = '';
-        if (laneCount > 1) {
-          var lanePct = 100 / laneCount;
-          laneStyle = 'right:auto;left:' + (laneIndex * lanePct) + '%;width:' + lanePct + '%;box-sizing:border-box;border:2px solid var(--card);';
-        }
-      return `<div class="wc-appt ${cls}" style="top:${top}%;height:90%;${wcBg}${laneStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:(a.calendarName||'Cita')} - ${a.proc||''}">
-          <div class="wc-appt-name">${fmtTime(a.time)} ${p?p.name.split(' ')[0]:a.calendarName||a.proc||'Cita'}${a.doctorName?' · '+a.doctorName.split(' ')[1]||'':''}</div>
+        var lanePct = 100 / layout.laneCount;
+        var laneLeft = layout.lane * lanePct;
+        var laneStyle = 'right:auto;left:calc(' + laneLeft + '% + 2px);width:calc(' + lanePct + '% - 4px);';
+        var patientName = p ? p.name.split(' ')[0] : (a.calendarName || a.proc || 'Cita');
+        var doctorParts = String(a.doctorName || '').trim().split(/\s+/);
+        var doctorShort = doctorParts.length > 1 ? ' · ' + doctorParts[1] : '';
+        var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
+      return `<div class="wc-appt${cls}" style="top:${top}%;height:calc(${height}% - 3px);${wcBg}${laneStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${timeRange} · ${p?p.name:(a.calendarName||'Cita')} · ${a.proc||''}">
+          <div class="wc-appt-name">${fmtTime(a.time)} ${patientName}${doctorShort}</div>
           <div class="wc-appt-proc">${a.proc||''}</div>
         </div>`;
       }).join('');
