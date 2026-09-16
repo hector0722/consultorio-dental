@@ -1389,17 +1389,21 @@ body.spec-open{overflow:hidden;}
 .dv-slot.dv-now { background: rgba(0,113,227,.04); }
 .dv-appt {
   position: absolute; left: 6px; right: 6px; top: 3px;
-  background: var(--appt-status-color,var(--blue)); border-radius: 8px;
-  padding: 6px 10px; cursor: pointer; z-index: 1;
-  min-height: 52px; transition: opacity .15s;
-  box-shadow: 0 2px 8px rgba(0,113,227,.25);
+  background: var(--appt-status-color,var(--blue)); border:1px solid rgba(255,255,255,.2); border-radius: 9px;
+  padding: 6px 10px; box-sizing:border-box; overflow:hidden; cursor: pointer; z-index: 2;
+  min-height: 20px; transition: filter .12s,box-shadow .12s,transform .12s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.16);
 }
-.dv-appt:hover { opacity: .88; }
+.dv-appt:hover { filter:brightness(1.07);box-shadow:0 5px 14px rgba(0,0,0,.22);transform:translateY(-1px);z-index:5; }
 .dv-appt.dv-done { background:var(--appt-status-color,#248a3d); box-shadow: 0 2px 8px rgba(36,138,61,.25); }
 .dv-appt.dv-cancelled { background:var(--appt-status-color,var(--red)); opacity: .55; box-shadow: none; }
 .dv-appt-time { font-size: .7rem; color: rgba(255,255,255,.75); font-weight: 600; margin-bottom: 2px; }
 .dv-appt-name { font-size: .85rem; font-weight: 700; color: #fff; line-height: 1.2; }
 .dv-appt-proc { font-size: .75rem; color: rgba(255,255,255,.8); margin-top: 2px; }
+.dv-appt.dv-compact{display:flex;align-items:center;gap:7px;padding:3px 8px;}
+.dv-appt.dv-compact .dv-appt-time{flex:0 0 auto;margin:0;font-size:.64rem;}
+.dv-appt.dv-compact .dv-appt-name{min-width:0;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dv-appt.dv-compact .dv-appt-proc{display:none;}
 .dv-header { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 12px; }
 .dv-header-date { font-size: 1.1rem; font-weight: 800; letter-spacing: -.03em; }
 .dv-header-sub { font-size: .8rem; color: var(--ink-3); }
@@ -7369,19 +7373,19 @@ function openWhatsAppMessage(phone, message) {
   probe.setAttribute('aria-hidden', 'true');
   probe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
 
-  function detectAppOpen() {
-    if (document.hidden) appOpened = true;
-  }
+  function detectAppOpen() { appOpened = true; }
 
   document.addEventListener('visibilitychange', detectAppOpen);
+  window.addEventListener('blur', detectAppOpen);
   probe.src = buildWhatsAppAppUrl(phone, message);
   document.body.appendChild(probe);
 
   window.setTimeout(function() {
     document.removeEventListener('visibilitychange', detectAppOpen);
+    window.removeEventListener('blur', detectAppOpen);
     if (probe.parentNode) probe.parentNode.removeChild(probe);
     if (!appOpened && !document.hidden) window.open(webUrl, '_blank', 'noopener');
-  }, 2200);
+  }, 4500);
 }
 
 const fmt$ = function(n) {
@@ -9249,6 +9253,7 @@ function renderDayView() {
   var nowH    = now.getHours();
   var nowM    = now.getMinutes();
   var HOURS_DAY = Array.from({length:24}, function(_,i){ return i; });
+  var dayLayout = _layoutWeekAppointments(appts);
 
   var dateLabel = new Date(ds+'T12:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
@@ -9261,32 +9266,28 @@ function renderDayView() {
 
   var rows = HOURS_DAY.map(function(h) {
     var hLabel    = fmtTime(String(h).padStart(2,'0') + ':00');
-    var hourAppts = appts.filter(function(a){ return parseInt(a.time) === h; })
-      .sort(function(a,b){ return a.time.localeCompare(b.time); });
+    var hourAppts = dayLayout.filter(function(item){ return Math.floor(item.start / 60) === h; });
     var isNowH = isToday && h === nowH;
     var nowPct = Math.round(nowM / 60 * 100);
 
-    var apptBlocks = hourAppts.map(function(a) {
+    var apptBlocks = hourAppts.map(function(layout) {
+      var a      = layout.appt;
       var p      = agendaIdx.patientsById[String(a.patientId)];
-      var min    = parseInt((a.time.split(':')[1])||0);
-      var topPct = Math.round(min/60*100);
-      var cls    = a.status==='done' ? 'dv-done' : a.status==='cancelled' ? 'dv-cancelled' : '';
+      var topPct = ((layout.start - h * 60) / 60 * 100).toFixed(3);
+      var heightPct = ((layout.end - layout.start) / 60 * 100).toFixed(3);
+      var duration = layout.end - layout.start;
+      var cls    = (a.status==='done' ? ' dv-done' : a.status==='cancelled' ? ' dv-cancelled' : '')
+        + (duration < 45 ? ' dv-compact' : '');
       var apptColor = appointmentDisplayColor(a);
       var nameStr= p ? p.name : (a.calendarName || 'Paciente');
       var procStr= a.proc ? '<div class="dv-appt-proc">' + a.proc + '</div>' : '';
-      // Las citas que empiezan exactamente a la misma hora se reparten en
-      // columnas, en vez de dibujarse una encima de la otra.
-      var sameStart = hourAppts.filter(function(x){ return x.time === a.time; });
-      var laneCount = sameStart.length;
-      var laneIndex = sameStart.indexOf(a);
-      var laneStyle = '';
-      if (laneCount > 1) {
-        var lanePct = 100 / laneCount;
-        laneStyle = ';right:auto;left:calc(' + (laneIndex * lanePct) + '% + 6px);width:calc(' + lanePct + '% - 10px)';
-      }
-      return '<div class="dv-appt ' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%' + laneStyle + '" '
+      var lanePct = 100 / layout.laneCount;
+      var laneLeft = layout.lane * lanePct;
+      var laneStyle = ';right:auto;left:calc(' + laneLeft + '% + 6px);width:calc(' + lanePct + '% - 12px)';
+      var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
+      return '<div class="dv-appt' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%;height:calc(' + heightPct + '% - 4px)' + laneStyle + '" '
         + 'onclick="dvClick(this)" data-ds="' + ds + '">'
-        + '<div class="dv-appt-time">' + fmtTime(a.time) + '</div>'
+        + '<div class="dv-appt-time">' + timeRange + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
         + procStr
         + '</div>';
