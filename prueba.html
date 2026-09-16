@@ -801,6 +801,33 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .afc-field label{display:block;font-size:.72rem;font-weight:600;color:var(--ink-3);margin-bottom:4px;}
 .afc-field input,.afc-field select,.afc-field textarea{width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--bg);-webkit-appearance:none;}
 .afc-field input:focus,.afc-field select:focus,.afc-field textarea:focus{outline:none;border-color:var(--blue);background:var(--card);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
+.afc-form-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border);}
+.afc-form-heading{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);}
+.afc-form-subtitle{margin-top:3px;font-size:.65rem;color:var(--ink-4);line-height:1.35;}
+.afc-form-toggle{flex:0 0 auto;min-height:28px!important;padding:4px 8px!important;border:1px solid var(--border)!important;border-radius:8px!important;background:var(--bg)!important;color:var(--ink-3)!important;font:inherit;font-size:.64rem!important;cursor:pointer;}
+.appt-form-card.form-collapsed #appt-new-form-body{display:none;}
+.appt-form-card.form-collapsed .afc-form-header{margin-bottom:0;padding-bottom:0;border-bottom:0;}
+.afc-schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.afc-schedule-grid .afc-date-field{grid-column:1/-1;}
+.afc-time-format{display:flex;align-items:center;gap:6px;margin:-2px 0 8px;color:var(--ink-4);font-size:.63rem;line-height:1.35;}
+.afc-notes-details{margin-bottom:9px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--bg) 70%,transparent);overflow:hidden;}
+.afc-notes-details summary{padding:8px 10px;cursor:pointer;list-style:none;color:var(--ink-3);font-size:.7rem;font-weight:700;}
+.afc-notes-details summary::-webkit-details-marker{display:none;}
+.afc-notes-details summary::before{content:"＋";margin-right:5px;color:var(--blue);}
+.afc-notes-details[open] summary::before{content:"−";}
+.afc-notes-details .afc-field{margin:0;padding:0 8px 8px;}
+.afc-notes-details textarea{min-height:62px!important;resize:vertical;}
+.afc-availability{margin:-1px 0 9px;padding:8px 9px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--bg) 78%,transparent);}
+.afc-availability-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;color:var(--ink-3);font-size:.64rem;font-weight:750;}
+.afc-availability-count{padding:2px 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.59rem;color:var(--ink-4);}
+.afc-busy-chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:1px;scrollbar-width:thin;}
+.afc-busy-chip{flex:0 0 auto;max-width:150px;padding:5px 7px;border:1px solid color-mix(in srgb,var(--appt-status-color,var(--blue)) 28%,var(--border));border-radius:8px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 9%,var(--card));color:var(--ink-2);font:inherit;font-size:.62rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.afc-busy-chip:hover{border-color:var(--appt-status-color,var(--blue));}
+.afc-availability.is-free{display:flex;align-items:center;gap:7px;color:var(--green);font-size:.67rem;font-weight:700;}
+.afc-availability.is-conflict{border-color:color-mix(in srgb,var(--red) 48%,var(--border));background:color-mix(in srgb,var(--red) 8%,var(--card));color:var(--red);}
+.afc-conflict-title{font-size:.68rem;font-weight:800;}
+.afc-conflict-detail{margin-top:2px;color:var(--ink-3);font-size:.62rem;line-height:1.35;}
+.afc-submit-btn{width:100%;justify-content:center;border-radius:10px!important;margin-top:3px;min-height:40px;}
 .appt-detail-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .adi-time{font-size:.73rem;font-weight:700;color:var(--blue);min-width:42px;}
 .adi-info{flex:1;}
@@ -5257,7 +5284,14 @@ body.app-ready #dash-page.active > .card {
         </div>
         <!-- Sidebar form -->
         <div class="appt-form-card">
-          <div class="afc-title">＋ Nueva cita</div>
+          <div class="afc-form-header">
+            <div>
+              <div class="afc-form-heading">＋ Nueva cita</div>
+              <div class="afc-form-subtitle">Selecciona paciente y horario</div>
+            </div>
+            <button type="button" class="afc-form-toggle" id="appt-form-toggle" onclick="toggleNewApptForm()" aria-expanded="true">Ocultar</button>
+          </div>
+          <div id="appt-new-form-body">
           <div class="afc-field">
             <label>Paciente</label>
             <div style="position:relative">
@@ -5292,20 +5326,25 @@ body.app-ready #dash-page.active > .card {
               </div>
             </div>
           </div>
-          <div class="afc-field"><label>Fecha</label><input type="date" id="appt-date"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <div class="afc-schedule-grid">
+            <div class="afc-field afc-date-field"><label>Fecha</label><input type="date" id="appt-date"></div>
             <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00"></div>
             <div class="afc-field"><label>Hora fin</label><input type="time" id="appt-time-end" placeholder="--:--"></div>
           </div>
-          <div style="font-size:.65rem;color:var(--ink-3);margin:-3px 0 8px;line-height:1.4">La hora usa formato de 24 horas: <strong>14:00 = 2:00 p. m.</strong></div>
+          <div id="appt-time-blocked-info" class="afc-availability" role="status" aria-live="polite"></div>
+          <div class="afc-time-format"><span>🕘</span><span>Formato 24 h · <strong>14:00 = 2:00 p. m.</strong></span></div>
           <div class="afc-field"><label>Procedimiento</label><input type="text" id="appt-proc" placeholder="ej. Limpieza, Resina…"></div>
-          <div class="afc-field"><label>Notas</label><textarea id="appt-notes" rows="2" placeholder="Opcional…"></textarea></div>
+          <details class="afc-notes-details">
+            <summary>Agregar notas opcionales</summary>
+            <div class="afc-field"><textarea id="appt-notes" rows="2" placeholder="Indicaciones o detalles de la cita…"></textarea></div>
+          </details>
           <div class="afc-field" id="appt-doctor-field" style="display:none">
             <label>Doctor</label>
             <select id="appt-doctor-select" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
             </select>
           </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;border-radius:var(--r-sm);margin-top:4px" onclick="addAppt()">Agendar cita</button>
+          <button class="btn btn-primary afc-submit-btn" onclick="addAppt()">Agendar cita</button>
+          </div>
           <div id="appt-day-panel" style="margin-top:14px;display:none">
             <div class="afc-title" id="appt-day-panel-title" style="margin-top:0"></div>
             <div id="appt-day-list"></div>
@@ -9232,6 +9271,7 @@ function cellClick(ds) {
   _selectedCalDay = ds;
   var di = document.getElementById('appt-date');
   if (di) di.value = ds;
+  toggleNewApptForm(true);
   showApptDayPanel(ds);
   // Volver a pintar para que la selección sea consistente en modo claro,
   // oscuro y después de navegar entre meses.
@@ -9341,6 +9381,7 @@ function clickDaySlot(ds, h) {
   var ti = document.getElementById('appt-time');
   if (di) di.value = ds;
   if (ti) ti.value = String(h).padStart(2,'0') + ':00';
+  toggleNewApptForm(true);
   showApptDayPanel(ds);
 }
 
@@ -21212,6 +21253,21 @@ var _origRefreshUI = null;
 
 
 // ── Horas bloqueadas en el selector ─────────────────────
+function toggleNewApptForm(forceOpen) {
+  var body = document.getElementById('appt-new-form-body');
+  var card = body ? body.closest('.appt-form-card') : null;
+  var button = document.getElementById('appt-form-toggle');
+  if (!card) return;
+  var shouldCollapse = typeof forceOpen === 'boolean'
+    ? !forceOpen
+    : !card.classList.contains('form-collapsed');
+  card.classList.toggle('form-collapsed', shouldCollapse);
+  if (button) {
+    button.textContent = shouldCollapse ? 'Mostrar' : 'Ocultar';
+    button.setAttribute('aria-expanded', shouldCollapse ? 'false' : 'true');
+  }
+}
+
 function updateBlockedTimes() {
   var dateEl  = document.getElementById('appt-date');
   var timeEl  = document.getElementById('appt-time');
@@ -21225,72 +21281,72 @@ function updateBlockedTimes() {
     return a.status !== 'cancelled';
   });
 
-  // Construir lista de horas bloqueadas (HH:00 y HH:30)
-  var blocked = {};
-  dayAppts.forEach(function(a) {
-    if (!a.time) return;
-    var startH = parseInt(a.time.split(':')[0], 10);
-    var startM = parseInt(a.time.split(':')[1] || '0', 10);
-    var endTime = a.timeEnd || (String(startH + 1).padStart(2,'0') + ':00');
-    var endH = parseInt(endTime.split(':')[0], 10);
-    var endM = parseInt(endTime.split(':')[1] || '0', 10);
-    // Marcar cada slot de 30 min dentro del rango
-    var cur = startH * 60 + startM;
-    var end = endH * 60 + endM;
-    while (cur < end) {
-      var hh = Math.floor(cur / 60);
-      var mm = cur % 60;
-      blocked[String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0')] = true;
-      cur += 30;
-    }
-  });
-
-  // Mostrar indicador visual bajo el selector de hora
+  // Panel compacto de disponibilidad bajo los campos de horario.
   var indicator = document.getElementById('appt-time-blocked-info');
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.id = 'appt-time-blocked-info';
-    indicator.style.cssText = 'font-size:.7rem;color:var(--ink-3);margin-top:4px;line-height:1.5';
-    timeEl.parentNode.appendChild(indicator);
+    indicator.className = 'afc-availability';
+    var scheduleGrid = timeEl.closest('.afc-schedule-grid');
+    if (scheduleGrid && scheduleGrid.parentNode) scheduleGrid.parentNode.insertBefore(indicator, scheduleGrid.nextSibling);
   }
 
-  var blockedSlots = Object.keys(blocked).sort();
-  if (blockedSlots.length) {
-    // Agrupar en rangos para mostrar de forma legible
-    var ranges = [];
-    dayAppts.forEach(function(a) {
-      if (a.status !== 'cancelled') {
-        var p = db.patients.find(function(x){ return x.id == a.patientId; });
-        var name = p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Ocupado');
-        ranges.push(a.time + (a.timeEnd ? '–' + a.timeEnd : '') + ' ' + name);
-      }
-    });
-    indicator.innerHTML = '⚠️ Ocupado: ' + ranges.join(' · ');
-    indicator.style.color = 'var(--orange)';
-  } else {
-    indicator.innerHTML = '✅ Día disponible';
-    indicator.style.color = '#1a7a3c';
+  function appointmentLabel(a) {
+    var p = db.patients.find(function(x){ return x.id == a.patientId; });
+    return p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Cita');
   }
 
-  // Advertir si la hora seleccionada está bloqueada
-  timeEl.oninput = timeEl.onchange = function() {
-    _autoSetTimeEnd(this.value);
-    var val = this.value;
-    if (val && blocked[val]) {
-      indicator.innerHTML = '❌ Hora ocupada — ' + val + ' ya tiene cita';
-      indicator.style.color = 'var(--red)';
-      timeEl.style.borderColor = 'var(--red)';
-    } else if (val) {
-      timeEl.style.borderColor = '';
-      if (blockedSlots.length) {
-        indicator.innerHTML = '⚠️ Ocupado: ' + ranges.join(' · ');
-        indicator.style.color = 'var(--orange)';
-      } else {
-        indicator.innerHTML = '✅ Disponible';
-        indicator.style.color = '#1a7a3c';
-      }
+  function renderDayOverview() {
+    timeEl.style.borderColor = '';
+    if (timeEndEl) timeEndEl.style.borderColor = '';
+    if (!dayAppts.length) {
+      indicator.className = 'afc-availability is-free';
+      indicator.innerHTML = '<span>✓</span><span>Día disponible · no hay citas registradas</span>';
+      return;
     }
+    var chips = dayAppts.map(function(a) {
+      var end = a.timeEnd || oneHourAfter(a.time);
+      var color = appointmentDisplayColor(a);
+      return '<button type="button" class="afc-busy-chip" data-existing-appt="' + escapeHTML(String(a.id)) + '" '
+        + 'style="--appt-status-color:' + escapeHTML(color) + '" title="Abrir cita">'
+        + escapeHTML(fmtTime(a.time) + '–' + fmtTime(end) + ' · ' + appointmentLabel(a)) + '</button>';
+    }).join('');
+    indicator.className = 'afc-availability';
+    indicator.innerHTML = '<div class="afc-availability-head"><span>Agenda del día</span><span class="afc-availability-count">'
+      + dayAppts.length + ' cita' + (dayAppts.length === 1 ? '' : 's') + '</span></div>'
+      + '<div class="afc-busy-chips">' + chips + '</div>';
+  }
+
+  function validateSelectedRange(autoEnd) {
+    if (autoEnd) _autoSetTimeEnd(timeEl.value);
+    if (!timeEl.value) { renderDayOverview(); return; }
+    var selectedStart = _calendarTimeMinutes(timeEl.value);
+    var selectedEnd = timeEndEl && timeEndEl.value ? _calendarTimeMinutes(timeEndEl.value) : selectedStart + 60;
+    if (selectedEnd <= selectedStart) selectedEnd = selectedStart + 60;
+    var conflicts = dayAppts.filter(function(a) {
+      var start = _calendarTimeMinutes(a.time);
+      var end = a.timeEnd ? _calendarTimeMinutes(a.timeEnd) : start + 60;
+      return selectedStart < end && selectedEnd > start;
+    });
+    if (!conflicts.length) { renderDayOverview(); return; }
+    var conflictText = conflicts.map(function(a) {
+      var end = a.timeEnd || oneHourAfter(a.time);
+      return fmtTime(a.time) + '–' + fmtTime(end) + ' ' + appointmentLabel(a);
+    }).join(' · ');
+    indicator.className = 'afc-availability is-conflict';
+    indicator.innerHTML = '<div class="afc-conflict-title">Horario ocupado</div><div class="afc-conflict-detail">'
+      + escapeHTML(conflictText) + '</div>';
+    timeEl.style.borderColor = 'var(--red)';
+    if (timeEndEl) timeEndEl.style.borderColor = 'var(--red)';
+  }
+
+  indicator.onclick = function(event) {
+    var chip = event.target.closest('[data-existing-appt]');
+    if (chip) openEditAppt(chip.getAttribute('data-existing-appt'));
   };
+  timeEl.oninput = timeEl.onchange = function() { validateSelectedRange(true); };
+  if (timeEndEl) timeEndEl.oninput = timeEndEl.onchange = function() { validateSelectedRange(false); };
+  validateSelectedRange(false);
 }
 
 // Actualizar horas bloqueadas cuando cambia la fecha
