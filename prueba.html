@@ -7346,8 +7346,42 @@ function buildWhatsAppMessageUrl(phone, message) {
     : 'https://web.whatsapp.com/send?') + query;
 }
 
+function buildWhatsAppAppUrl(phone, message) {
+  var normalizedMessage = String(message || '');
+  if (normalizedMessage.normalize) normalizedMessage = normalizedMessage.normalize('NFC');
+  var cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+  var query = (cleanPhone ? 'phone=' + encodeURIComponent(cleanPhone) + '&' : '')
+    + 'text=' + encodeURIComponent(normalizedMessage);
+  return 'whatsapp://send?' + query;
+}
+
 function openWhatsAppMessage(phone, message) {
-  window.open(buildWhatsAppMessageUrl(phone, message), '_blank', 'noopener');
+  var webUrl = buildWhatsAppMessageUrl(phone, message);
+
+  if (isMobileWhatsAppDevice()) {
+    window.open(webUrl, '_blank', 'noopener');
+    return;
+  }
+
+  // Intentar la aplicación de escritorio sin navegar fuera del consultorio.
+  var appOpened = false;
+  var probe = document.createElement('iframe');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
+
+  function detectAppOpen() {
+    if (document.hidden) appOpened = true;
+  }
+
+  document.addEventListener('visibilitychange', detectAppOpen);
+  probe.src = buildWhatsAppAppUrl(phone, message);
+  document.body.appendChild(probe);
+
+  window.setTimeout(function() {
+    document.removeEventListener('visibilitychange', detectAppOpen);
+    if (probe.parentNode) probe.parentNode.removeChild(probe);
+    if (!appOpened && !document.hidden) window.open(webUrl, '_blank', 'noopener');
+  }, 2200);
 }
 
 const fmt$ = function(n) {
