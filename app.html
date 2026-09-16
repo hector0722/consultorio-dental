@@ -801,19 +801,51 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .afc-field label{display:block;font-size:.72rem;font-weight:600;color:var(--ink-3);margin-bottom:4px;}
 .afc-field input,.afc-field select,.afc-field textarea{width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--bg);-webkit-appearance:none;}
 .afc-field input:focus,.afc-field select:focus,.afc-field textarea:focus{outline:none;border-color:var(--blue);background:var(--card);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
+.afc-form-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border);}
+.afc-form-heading{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);}
+.afc-form-subtitle{margin-top:3px;font-size:.65rem;color:var(--ink-4);line-height:1.35;}
+.afc-form-toggle{flex:0 0 auto;min-height:28px!important;padding:4px 8px!important;border:1px solid var(--border)!important;border-radius:8px!important;background:var(--bg)!important;color:var(--ink-3)!important;font:inherit;font-size:.64rem!important;cursor:pointer;}
+.appt-form-card.form-collapsed #appt-new-form-body{display:none;}
+.appt-form-card.form-collapsed .afc-form-header{margin-bottom:0;padding-bottom:0;border-bottom:0;}
+.afc-schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.afc-schedule-grid .afc-date-field{grid-column:1/-1;}
+.afc-time-format{display:flex;align-items:center;gap:6px;margin:-2px 0 8px;color:var(--ink-4);font-size:.63rem;line-height:1.35;}
+.afc-notes-details{margin-bottom:9px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--bg) 70%,transparent);overflow:hidden;}
+.afc-notes-details summary{padding:8px 10px;cursor:pointer;list-style:none;color:var(--ink-3);font-size:.7rem;font-weight:700;}
+.afc-notes-details summary::-webkit-details-marker{display:none;}
+.afc-notes-details summary::before{content:"＋";margin-right:5px;color:var(--blue);}
+.afc-notes-details[open] summary::before{content:"−";}
+.afc-notes-details .afc-field{margin:0;padding:0 8px 8px;}
+.afc-notes-details textarea{min-height:62px!important;resize:vertical;}
+.afc-availability{margin:-1px 0 9px;padding:8px 9px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--bg) 78%,transparent);}
+.afc-availability-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;color:var(--ink-3);font-size:.64rem;font-weight:750;}
+.afc-availability-count{padding:2px 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.59rem;color:var(--ink-4);}
+.afc-busy-chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:1px;scrollbar-width:thin;}
+.afc-busy-chip{flex:0 0 auto;max-width:150px;padding:5px 7px;border:1px solid color-mix(in srgb,var(--appt-status-color,var(--blue)) 28%,var(--border));border-radius:8px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 9%,var(--card));color:var(--ink-2);font:inherit;font-size:.62rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.afc-busy-chip:hover{border-color:var(--appt-status-color,var(--blue));}
+.afc-availability.is-free{display:flex;align-items:center;gap:7px;color:var(--green);font-size:.67rem;font-weight:700;}
+.afc-availability.is-conflict{border-color:color-mix(in srgb,var(--red) 48%,var(--border));background:color-mix(in srgb,var(--red) 8%,var(--card));color:var(--red);}
+.afc-conflict-title{font-size:.68rem;font-weight:800;}
+.afc-conflict-detail{margin-top:2px;color:var(--ink-3);font-size:.62rem;line-height:1.35;}
+.afc-submit-btn{width:100%;justify-content:center;border-radius:10px!important;margin-top:3px;min-height:40px;}
 .appt-detail-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .adi-time{font-size:.73rem;font-weight:700;color:var(--blue);min-width:42px;}
 .adi-info{flex:1;}
 .adi-name{font-size:.81rem;font-weight:600;}
 .adi-proc{font-size:.71rem;color:var(--ink-3);}
 .adi-actions{display:flex;gap:4px;flex-shrink:0;}
-.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:4px solid var(--appt-status-color,var(--blue));border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;color:var(--ink);}
-.appt-day-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;}
-.appt-day-time{font-size:.73rem;font-weight:800;color:var(--appt-status-color,var(--blue));white-space:nowrap;padding-top:1px;}
-.appt-day-name{font-size:.83rem;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.appt-day-proc{font-size:.72rem;color:var(--ink-3);margin-top:2px;line-height:1.45;overflow-wrap:anywhere;}
-.appt-day-status{font-size:.68rem;color:var(--ink-3);margin-top:3px;line-height:1.4;}
-.appt-day-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--appt-status-color,var(--blue));border-radius:12px;padding:9px 10px;margin-bottom:7px;color:var(--ink);transition:border-color .12s,box-shadow .12s,transform .12s;}
+.appt-day-card:hover{border-color:color-mix(in srgb,var(--appt-status-color,var(--blue)) 42%,var(--border));box-shadow:0 5px 14px rgba(0,0,0,.1);transform:translateY(-1px);}
+.appt-day-card-head{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center;gap:10px;}
+.appt-day-time{display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 7px;border-radius:9px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 13%,transparent);font-size:.68rem;font-weight:800;line-height:1.25;text-align:center;color:var(--appt-status-color,var(--blue));white-space:normal;}
+.appt-day-info{min-width:0;}
+.appt-day-name{font-size:.82rem;font-weight:780;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-proc{font-size:.69rem;color:var(--ink-3);margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-meta{display:flex;align-items:center;gap:5px;margin-top:4px;min-width:0;font-size:.64rem;color:var(--ink-3);}
+.appt-day-status{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;padding:2px 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);line-height:1.2;}
+.appt-day-doctor{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.appt-day-actions .appt-action-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-height:32px;padding:0;border-radius:9px;font-size:.72rem;}
 /* ━━━━ PAYMENTS ━━━━ */
 .pay-item{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .pay-date{font-size:.71rem;color:var(--ink-3);min-width:72px;}
@@ -883,7 +915,7 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
   #sidebar, .topbar, .ph-actions, .btn, .no-print { display: none !important; }
   #main { margin-left: 0; }
 }
-.wa-appt-btn{background:#25d366;color:#fff;border:none;border-radius:980px;padding:4px 10px;font-family:inherit;font-weight:700;font-size:.7rem;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;margin-top:2px;}
+.wa-appt-btn{width:auto!important;height:32px!important;min-height:32px!important;margin:0 auto 0 0!important;padding:0 11px!important;background:#25d366;color:#fff;border:none;border-radius:9px!important;font-family:inherit;font-weight:750;font-size:.66rem!important;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;}
 .wa-appt-btn:hover{background:#1da851;}
 
 /* ━━━━ SETTINGS PANEL ━━━━ */
@@ -1410,6 +1442,15 @@ body.spec-open{overflow:hidden;}
 .dv-now-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--red); z-index: 3; pointer-events: none; }
 .dv-now-dot { position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
 .dv-empty-hour { display: flex; align-items: center; justify-content: center; height: 100%; }
+
+/* Interacción estilo Google Calendar: mover y cambiar duración */
+.wc-appt,.dv-appt{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;will-change:transform,height;}
+.wc-appt.cal-event-interacting,.dv-appt.cal-event-interacting{cursor:grabbing!important;opacity:.82;filter:brightness(1.08);box-shadow:0 12px 28px rgba(0,0,0,.34);z-index:50!important;transition:none!important;}
+.cal-resize-handle{position:absolute;left:5px;right:5px;bottom:0;height:9px;cursor:ns-resize;z-index:3;opacity:.42;}
+.cal-resize-handle::after{content:"";position:absolute;left:50%;bottom:2px;width:24px;height:3px;border-radius:999px;background:rgba(255,255,255,.92);transform:translateX(-50%);}
+.wc-appt:hover .cal-resize-handle,.dv-appt:hover .cal-resize-handle{opacity:1;}
+.cal-drag-tooltip{position:fixed;z-index:12000;pointer-events:none;padding:6px 9px;border-radius:9px;background:rgba(20,20,22,.94);border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 24px rgba(0,0,0,.3);color:#fff;font-size:.69rem;font-weight:750;white-space:nowrap;transform:translate(12px,-36px);}
+body.cal-event-dragging{cursor:grabbing!important;}
 
 /* ━━━━ RECETAS ━━━━ */
 .rx-card {
@@ -5243,7 +5284,14 @@ body.app-ready #dash-page.active > .card {
         </div>
         <!-- Sidebar form -->
         <div class="appt-form-card">
-          <div class="afc-title">＋ Nueva cita</div>
+          <div class="afc-form-header">
+            <div>
+              <div class="afc-form-heading">＋ Nueva cita</div>
+              <div class="afc-form-subtitle">Selecciona paciente y horario</div>
+            </div>
+            <button type="button" class="afc-form-toggle" id="appt-form-toggle" onclick="toggleNewApptForm()" aria-expanded="true">Ocultar</button>
+          </div>
+          <div id="appt-new-form-body">
           <div class="afc-field">
             <label>Paciente</label>
             <div style="position:relative">
@@ -5278,20 +5326,25 @@ body.app-ready #dash-page.active > .card {
               </div>
             </div>
           </div>
-          <div class="afc-field"><label>Fecha</label><input type="date" id="appt-date"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <div class="afc-schedule-grid">
+            <div class="afc-field afc-date-field"><label>Fecha</label><input type="date" id="appt-date"></div>
             <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00"></div>
             <div class="afc-field"><label>Hora fin</label><input type="time" id="appt-time-end" placeholder="--:--"></div>
           </div>
-          <div style="font-size:.65rem;color:var(--ink-3);margin:-3px 0 8px;line-height:1.4">La hora usa formato de 24 horas: <strong>14:00 = 2:00 p. m.</strong></div>
+          <div id="appt-time-blocked-info" class="afc-availability" role="status" aria-live="polite"></div>
+          <div class="afc-time-format"><span>🕘</span><span>Formato 24 h · <strong>14:00 = 2:00 p. m.</strong></span></div>
           <div class="afc-field"><label>Procedimiento</label><input type="text" id="appt-proc" placeholder="ej. Limpieza, Resina…"></div>
-          <div class="afc-field"><label>Notas</label><textarea id="appt-notes" rows="2" placeholder="Opcional…"></textarea></div>
+          <details class="afc-notes-details">
+            <summary>Agregar notas opcionales</summary>
+            <div class="afc-field"><textarea id="appt-notes" rows="2" placeholder="Indicaciones o detalles de la cita…"></textarea></div>
+          </details>
           <div class="afc-field" id="appt-doctor-field" style="display:none">
             <label>Doctor</label>
             <select id="appt-doctor-select" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
             </select>
           </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;border-radius:var(--r-sm);margin-top:4px" onclick="addAppt()">Agendar cita</button>
+          <button class="btn btn-primary afc-submit-btn" onclick="addAppt()">Agendar cita</button>
+          </div>
           <div id="appt-day-panel" style="margin-top:14px;display:none">
             <div class="afc-title" id="appt-day-panel-title" style="margin-top:0"></div>
             <div id="appt-day-list"></div>
@@ -9201,7 +9254,7 @@ function renderMonthView() {
     var mcStyle = `--appt-accent:${apptColor};--appt-status-color:${apptColor}`;
     var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
     var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
-    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
+    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="calendarEventClick(event,'${String(a.id)}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
     }).join('');
     const more = dayAp.length > maxShow
       ? `<div class="mc-more" onclick="event.stopPropagation();showApptDayPanel('${ds}')">+${dayAp.length-maxShow} más</div>` : '';
@@ -9218,6 +9271,7 @@ function cellClick(ds) {
   _selectedCalDay = ds;
   var di = document.getElementById('appt-date');
   if (di) di.value = ds;
+  toggleNewApptForm(true);
   showApptDayPanel(ds);
   // Volver a pintar para que la selección sea consistente en modo claro,
   // oscuro y después de navegar entre meses.
@@ -9260,7 +9314,7 @@ function renderDayView() {
   var header = '<div class="dv-header">'
     + '<div>'
     + '<div class="dv-header-date">' + dateLabel + '</div>'
-    + '<div class="dv-header-sub">' + appts.length + ' cita' + (appts.length!==1?'s':'') + ' · Toca una hora para agendar</div>'
+    + '<div class="dv-header-sub">' + appts.length + ' cita' + (appts.length!==1?'s':'') + ' · Arrastra para mover · tira del borde inferior para duración</div>'
     + '</div>'
     + '</div>';
 
@@ -9285,11 +9339,13 @@ function renderDayView() {
       var laneLeft = layout.lane * lanePct;
       var laneStyle = ';right:auto;left:calc(' + laneLeft + '% + 6px);width:calc(' + lanePct + '% - 12px)';
       var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
+      var sid = String(a.id);
       return '<div class="dv-appt' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%;height:calc(' + heightPct + '% - 4px)' + laneStyle + '" '
-        + 'onclick="dvClick(this)" data-ds="' + ds + '">'
+        + 'onclick="calendarEventClick(event,\'' + sid + '\')" data-appt-id="' + sid + '" data-ds="' + ds + '">'
         + '<div class="dv-appt-time">' + timeRange + '</div>'
         + '<div class="dv-appt-name">' + nameStr + '</div>'
         + procStr
+        + '<span class="cal-resize-handle" title="Arrastra para cambiar la duración" aria-hidden="true"></span>'
         + '</div>';
     }).join('');
 
@@ -9325,6 +9381,7 @@ function clickDaySlot(ds, h) {
   var ti = document.getElementById('appt-time');
   if (di) di.value = ds;
   if (ti) ti.value = String(h).padStart(2,'0') + ':00';
+  toggleNewApptForm(true);
   showApptDayPanel(ds);
 }
 
@@ -9439,16 +9496,210 @@ function renderWeekView() {
         var doctorParts = String(a.doctorName || '').trim().split(/\s+/);
         var doctorShort = doctorParts.length > 1 ? ' · ' + doctorParts[1] : '';
         var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
-      return `<div class="wc-appt${cls}" style="top:${top}%;height:calc(${height}% - 3px);${wcBg}${laneStyle}" onclick="event.stopPropagation();showApptDayPanel('${ds}')" title="${timeRange} · ${p?p.name:(a.calendarName||'Cita')} · ${a.proc||''}">
+        var sid = String(a.id);
+      return `<div class="wc-appt${cls}" style="top:${top}%;height:calc(${height}% - 3px);${wcBg}${laneStyle}" onclick="calendarEventClick(event,'${sid}')" data-appt-id="${sid}" data-ds="${ds}" title="${timeRange} · ${p?p.name:(a.calendarName||'Cita')} · ${a.proc||''}">
           <div class="wc-appt-name">${fmtTime(a.time)} ${patientName}${doctorShort}</div>
           <div class="wc-appt-proc">${a.proc||''}</div>
+          <span class="cal-resize-handle" title="Arrastra para cambiar la duración" aria-hidden="true"></span>
         </div>`;
       }).join('');
-      return `<div class="wc-slot${isNowRow?' wc-now-row':''}" onclick="cellClick('${ds}');document.getElementById('appt-time').value='${String(h).padStart(2,'0')}:00'">${blocks}${isNowRow&&fmtDate(d)===today?`<div class="wc-now-line" style="top:${nowPct}%"><div class="wc-now-dot"></div></div>`:''}</div>`;
+      return `<div class="wc-slot${isNowRow?' wc-now-row':''}" data-ds="${ds}" data-h="${h}" onclick="cellClick('${ds}');document.getElementById('appt-time').value='${String(h).padStart(2,'0')}:00'">${blocks}${isNowRow&&fmtDate(d)===today?`<div class="wc-now-line" style="top:${nowPct}%"><div class="wc-now-dot"></div></div>`:''}</div>`;
     }).join('');
     return `<div class="wc-time-label">${timeLabel}</div>${slots}`;
   }).join('');
 }
+
+// ── INTERACCIÓN DIRECTA DE CITAS (DÍA / SEMANA) ──
+var _calendarPointerState = null;
+var _calendarSuppressClickUntil = 0;
+
+function _calendarMinutesToTime(total) {
+  total = Math.max(0, Math.min(1439, Math.round(total)));
+  return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+}
+
+function _calendarSnapMinutes(total) {
+  return Math.round(total / 15) * 15;
+}
+
+function _calendarDateLabel(ds) {
+  var date = new Date(ds + 'T12:00');
+  return date.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'});
+}
+
+function _calendarShowDragTooltip(state, clientX, clientY) {
+  var tip = document.getElementById('cal-drag-tooltip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'cal-drag-tooltip';
+    tip.className = 'cal-drag-tooltip';
+    document.body.appendChild(tip);
+  }
+  var start = state.nextStart;
+  var end = state.mode === 'resize' ? state.nextEnd : start + state.duration;
+  tip.textContent = _calendarDateLabel(state.nextDate) + ' · ' + fmtTime(_calendarMinutesToTime(start)) + '–' + fmtTime(_calendarMinutesToTime(end));
+  tip.style.left = clientX + 'px';
+  tip.style.top = clientY + 'px';
+}
+
+function _calendarRemoveDragTooltip() {
+  var tip = document.getElementById('cal-drag-tooltip');
+  if (tip && tip.parentNode) tip.parentNode.removeChild(tip);
+}
+
+function calendarEventClick(event, sid) {
+  event.stopPropagation();
+  if (Date.now() < _calendarSuppressClickUntil) return;
+  openEditAppt(sid);
+}
+
+function _calendarWeekDayIndex(ds) {
+  var days = getCalWeekDays(calWeekOf);
+  for (var i = 0; i < days.length; i++) if (fmtDate(days[i]) === ds) return i;
+  return 0;
+}
+
+function _calendarConflictFor(appt) {
+  var start = _calendarTimeMinutes(appt.time);
+  var end = appt.timeEnd ? _calendarTimeMinutes(appt.timeEnd) : start + 60;
+  return (db.appointments || []).some(function(other) {
+    if (String(other.id) === String(appt.id) || other.date !== appt.date || other.status === 'cancelled') return false;
+    var otherStart = _calendarTimeMinutes(other.time);
+    var otherEnd = other.timeEnd ? _calendarTimeMinutes(other.timeEnd) : otherStart + 60;
+    return start < otherEnd && end > otherStart;
+  });
+}
+
+function _calendarCleanupPointer(state) {
+  if (!state) return;
+  if (state.el) {
+    state.el.classList.remove('cal-event-interacting');
+    state.el.style.transform = state.originalTransform;
+    state.el.style.height = state.originalHeight;
+  }
+  document.body.classList.remove('cal-event-dragging');
+  _calendarRemoveDragTooltip();
+  _calendarPointerState = null;
+}
+
+function _calendarCommitPointer(state) {
+  var appt = (db.appointments || []).find(function(item) { return String(item.id) === String(state.apptId); });
+  if (!appt) return;
+  appt.date = state.nextDate;
+  appt.time = _calendarMinutesToTime(state.nextStart);
+  appt.timeEnd = _calendarMinutesToTime(state.mode === 'resize' ? state.nextEnd : state.nextStart + state.duration);
+  _dayAutoScrolledFor = '';
+  saveDB();
+  renderCal();
+  renderDashboard();
+  renderUpcoming();
+  showApptDayPanel(appt.date);
+  updateBlockedTimes();
+  var conflict = _calendarConflictFor(appt);
+  showToast((state.mode === 'resize' ? '↕️ Duración actualizada' : '↔️ Cita movida') + (conflict ? ' · ⚠️ Coincide con otra cita' : ''), conflict ? 'orange' : 'green');
+  if (typeof GCal !== 'undefined') {
+    GCal.updateEvent(appt).catch(function() {
+      showToast('⚠️ Cambio guardado; sincronización con Calendar pendiente', 'orange');
+    });
+  }
+}
+
+document.addEventListener('pointerdown', function(event) {
+  var el = event.target.closest('.wc-appt[data-appt-id],.dv-appt[data-appt-id]');
+  if (!el || event.button !== undefined && event.button !== 0) return;
+  var appt = (db.appointments || []).find(function(item) { return String(item.id) === String(el.getAttribute('data-appt-id')); });
+  if (!appt) return;
+  var slot = el.closest('.wc-slot,.dv-slot');
+  if (!slot) return;
+  var start = _calendarTimeMinutes(appt.time);
+  var end = appt.timeEnd ? _calendarTimeMinutes(appt.timeEnd) : start + 60;
+  if (end <= start) end = Math.min(1440, start + 60);
+  var isWeek = el.classList.contains('wc-appt');
+  var dayIndex = isWeek ? _calendarWeekDayIndex(appt.date) : 0;
+  var weekBody = isWeek ? document.getElementById('week-body-rows') : null;
+  var weekRect = weekBody ? weekBody.getBoundingClientRect() : null;
+  var timeCol = isWeek ? weekBody.querySelector('.wc-time-label') : null;
+  var timeWidth = timeCol ? timeCol.getBoundingClientRect().width : 52;
+  var dayWidth = weekRect ? (weekRect.width - timeWidth) / 7 : 0;
+
+  _calendarPointerState = {
+    pointerId:event.pointerId,
+    el:el,
+    apptId:String(appt.id),
+    mode:event.target.closest('.cal-resize-handle') ? 'resize' : 'move',
+    isWeek:isWeek,
+    startX:event.clientX,
+    startY:event.clientY,
+    rowHeight:slot.getBoundingClientRect().height || (isWeek ? 52 : 64),
+    dayWidth:dayWidth,
+    dayIndex:dayIndex,
+    date:appt.date,
+    start:start,
+    end:end,
+    duration:end-start,
+    nextDate:appt.date,
+    nextStart:start,
+    nextEnd:end,
+    moved:false,
+    originalTransform:el.style.transform || '',
+    originalHeight:el.style.height || ''
+  };
+  el.classList.add('cal-event-interacting');
+  document.body.classList.add('cal-event-dragging');
+  if (el.setPointerCapture) {
+    try { el.setPointerCapture(event.pointerId); } catch(error) {}
+  }
+  _calendarShowDragTooltip(_calendarPointerState, event.clientX, event.clientY);
+  event.stopPropagation();
+});
+
+document.addEventListener('pointermove', function(event) {
+  var state = _calendarPointerState;
+  if (!state || state.pointerId !== event.pointerId) return;
+  var deltaX = event.clientX - state.startX;
+  var deltaY = event.clientY - state.startY;
+  if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) state.moved = true;
+  var deltaMinutes = _calendarSnapMinutes(deltaY / state.rowHeight * 60);
+
+  if (state.mode === 'resize') {
+    var nextEnd = _calendarSnapMinutes(state.end + deltaMinutes);
+    state.nextEnd = Math.max(state.start + 15, Math.min(1440, nextEnd));
+    var previewHeight = Math.max(18, (state.nextEnd - state.start) / 60 * state.rowHeight - 4);
+    state.el.style.height = previewHeight + 'px';
+  } else {
+    state.nextStart = Math.max(0, Math.min(1440 - state.duration, _calendarSnapMinutes(state.start + deltaMinutes)));
+    var dayDelta = 0;
+    if (state.isWeek && state.dayWidth) {
+      var nextIndex = Math.max(0, Math.min(6, state.dayIndex + Math.round(deltaX / state.dayWidth)));
+      dayDelta = nextIndex - state.dayIndex;
+      state.nextDate = fmtDate(getCalWeekDays(calWeekOf)[nextIndex]);
+    }
+    var previewY = (state.nextStart - state.start) / 60 * state.rowHeight;
+    state.el.style.transform = 'translate(' + (dayDelta * state.dayWidth) + 'px,' + previewY + 'px)';
+  }
+  _calendarShowDragTooltip(state, event.clientX, event.clientY);
+  event.preventDefault();
+  event.stopPropagation();
+});
+
+document.addEventListener('pointerup', function(event) {
+  var state = _calendarPointerState;
+  if (!state || state.pointerId !== event.pointerId) return;
+  var changed = state.mode === 'resize'
+    ? state.nextEnd !== state.end
+    : state.nextStart !== state.start || state.nextDate !== state.date;
+  if (state.moved || state.mode === 'resize') _calendarSuppressClickUntil = Date.now() + 500;
+  _calendarCleanupPointer(state);
+  if (changed) _calendarCommitPointer(state);
+  event.stopPropagation();
+});
+
+document.addEventListener('pointercancel', function(event) {
+  var state = _calendarPointerState;
+  if (!state || state.pointerId !== event.pointerId) return;
+  _calendarSuppressClickUntil = Date.now() + 350;
+  _calendarCleanupPointer(state);
+});
 
 // ── ADD APPOINTMENT ──
 function _confirmEarlyAppointmentTime(timeValue) {
@@ -9596,37 +9847,39 @@ function showApptDayPanel(dateStr) {
     var p      = agendaIdx.patientsById[String(a.patientId)];
     var nombre = p ? p.name : (a.calendarName || a.proc || 'Sin paciente');
     var proc   = (a.proc||'—') + (a.notes ? ' · '+a.notes : '');
-    var status = (stIcon[a.status]||'') + ' ' + (stMap[a.status]||'');
+    var statusIcon = stIcon[a.status] || '';
+    var statusText = stMap[a.status] || '';
     var sid    = String(a.id); // usar string para evitar problemas de precisión numérica
     var timeLabel = a.timeEnd ? fmtTime(a.time) + ' – ' + fmtTime(a.timeEnd) : fmtTime(a.time);
     var apptColor = appointmentDisplayColor(a);
 
     var doneBtnHtml   = a.status==='pending'
-      ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Completada">✓</button>' : '';
+      ? '<button class="btn btn-success btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="done" title="Marcar completada" aria-label="Marcar completada">✓</button>' : '';
     var cancelBtnHtml = a.status==='pending'
-      ? '<button class="btn btn-danger btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="cancelled" title="Cancelar">✕</button>' : '';
-    var editBtnHtml   = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="edit" title="Editar cita" style="font-size:.7rem">✏️</button>';
-    var delBtnHtml    = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="delete" title="Eliminar">🗑</button>';
+      ? '<button class="btn btn-danger btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="cancelled" title="Cancelar cita" aria-label="Cancelar cita">✕</button>' : '';
+    var editBtnHtml   = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="edit" title="Editar cita" aria-label="Editar cita">✏️</button>';
+    var delBtnHtml    = '<button class="btn btn-ghost btn-xs appt-action-btn" data-appt-id="'+sid+'" data-action="delete" title="Eliminar cita" aria-label="Eliminar cita">🗑</button>';
 
     var waBtnHtml = '';
     if (a.status==='pending') {
       waBtnHtml = '<button class="wa-appt-btn appt-action-btn" data-appt-id="'+sid+'" data-action="wa"'
-        + ' style="width:100%;justify-content:center;margin-top:8px;padding:7px 10px;font-size:.78rem">'
+        + ' title="Enviar WhatsApp" aria-label="Enviar WhatsApp">'
         + '<svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M.057 24l1.687-6.163C.703 16.033.156 13.988.157 11.891.16 5.335 5.495.001 12.05.001c3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>'
-        + ' Enviar WhatsApp</button>';
+        + ' WhatsApp</button>';
     }
 
     return '<div class="appt-day-card" style="--appt-status-color:'+apptColor+'">'
       + '<div class="appt-day-card-head">'
       +   '<span class="appt-day-time">'+timeLabel+'</span>'
-      +   '<div style="min-width:0">'
+      +   '<div class="appt-day-info">'
       +     '<div class="appt-day-name">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
       +     '<div class="appt-day-proc">'+proc+'</div>'
-      +     '<div class="appt-day-status">'+status+(a.doctorName?' · 👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' '):'')+'</div>'
+      +     '<div class="appt-day-meta"><span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
+      +       (a.doctorName?'<span class="appt-day-doctor">👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' ')+'</span>':'')
+      +     '</div>'
       +   '</div>'
       + '</div>'
-      + '<div class="appt-day-actions">'+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
-      + waBtnHtml
+      + '<div class="appt-day-actions">'+waBtnHtml+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
       + '</div>';
   }).join('');
 }
@@ -21000,6 +21253,21 @@ var _origRefreshUI = null;
 
 
 // ── Horas bloqueadas en el selector ─────────────────────
+function toggleNewApptForm(forceOpen) {
+  var body = document.getElementById('appt-new-form-body');
+  var card = body ? body.closest('.appt-form-card') : null;
+  var button = document.getElementById('appt-form-toggle');
+  if (!card) return;
+  var shouldCollapse = typeof forceOpen === 'boolean'
+    ? !forceOpen
+    : !card.classList.contains('form-collapsed');
+  card.classList.toggle('form-collapsed', shouldCollapse);
+  if (button) {
+    button.textContent = shouldCollapse ? 'Mostrar' : 'Ocultar';
+    button.setAttribute('aria-expanded', shouldCollapse ? 'false' : 'true');
+  }
+}
+
 function updateBlockedTimes() {
   var dateEl  = document.getElementById('appt-date');
   var timeEl  = document.getElementById('appt-time');
@@ -21013,72 +21281,72 @@ function updateBlockedTimes() {
     return a.status !== 'cancelled';
   });
 
-  // Construir lista de horas bloqueadas (HH:00 y HH:30)
-  var blocked = {};
-  dayAppts.forEach(function(a) {
-    if (!a.time) return;
-    var startH = parseInt(a.time.split(':')[0], 10);
-    var startM = parseInt(a.time.split(':')[1] || '0', 10);
-    var endTime = a.timeEnd || (String(startH + 1).padStart(2,'0') + ':00');
-    var endH = parseInt(endTime.split(':')[0], 10);
-    var endM = parseInt(endTime.split(':')[1] || '0', 10);
-    // Marcar cada slot de 30 min dentro del rango
-    var cur = startH * 60 + startM;
-    var end = endH * 60 + endM;
-    while (cur < end) {
-      var hh = Math.floor(cur / 60);
-      var mm = cur % 60;
-      blocked[String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0')] = true;
-      cur += 30;
-    }
-  });
-
-  // Mostrar indicador visual bajo el selector de hora
+  // Panel compacto de disponibilidad bajo los campos de horario.
   var indicator = document.getElementById('appt-time-blocked-info');
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.id = 'appt-time-blocked-info';
-    indicator.style.cssText = 'font-size:.7rem;color:var(--ink-3);margin-top:4px;line-height:1.5';
-    timeEl.parentNode.appendChild(indicator);
+    indicator.className = 'afc-availability';
+    var scheduleGrid = timeEl.closest('.afc-schedule-grid');
+    if (scheduleGrid && scheduleGrid.parentNode) scheduleGrid.parentNode.insertBefore(indicator, scheduleGrid.nextSibling);
   }
 
-  var blockedSlots = Object.keys(blocked).sort();
-  if (blockedSlots.length) {
-    // Agrupar en rangos para mostrar de forma legible
-    var ranges = [];
-    dayAppts.forEach(function(a) {
-      if (a.status !== 'cancelled') {
-        var p = db.patients.find(function(x){ return x.id == a.patientId; });
-        var name = p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Ocupado');
-        ranges.push(a.time + (a.timeEnd ? '–' + a.timeEnd : '') + ' ' + name);
-      }
-    });
-    indicator.innerHTML = '⚠️ Ocupado: ' + ranges.join(' · ');
-    indicator.style.color = 'var(--orange)';
-  } else {
-    indicator.innerHTML = '✅ Día disponible';
-    indicator.style.color = '#1a7a3c';
+  function appointmentLabel(a) {
+    var p = db.patients.find(function(x){ return x.id == a.patientId; });
+    return p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Cita');
   }
 
-  // Advertir si la hora seleccionada está bloqueada
-  timeEl.oninput = timeEl.onchange = function() {
-    _autoSetTimeEnd(this.value);
-    var val = this.value;
-    if (val && blocked[val]) {
-      indicator.innerHTML = '❌ Hora ocupada — ' + val + ' ya tiene cita';
-      indicator.style.color = 'var(--red)';
-      timeEl.style.borderColor = 'var(--red)';
-    } else if (val) {
-      timeEl.style.borderColor = '';
-      if (blockedSlots.length) {
-        indicator.innerHTML = '⚠️ Ocupado: ' + ranges.join(' · ');
-        indicator.style.color = 'var(--orange)';
-      } else {
-        indicator.innerHTML = '✅ Disponible';
-        indicator.style.color = '#1a7a3c';
-      }
+  function renderDayOverview() {
+    timeEl.style.borderColor = '';
+    if (timeEndEl) timeEndEl.style.borderColor = '';
+    if (!dayAppts.length) {
+      indicator.className = 'afc-availability is-free';
+      indicator.innerHTML = '<span>✓</span><span>Día disponible · no hay citas registradas</span>';
+      return;
     }
+    var chips = dayAppts.map(function(a) {
+      var end = a.timeEnd || oneHourAfter(a.time);
+      var color = appointmentDisplayColor(a);
+      return '<button type="button" class="afc-busy-chip" data-existing-appt="' + escapeHTML(String(a.id)) + '" '
+        + 'style="--appt-status-color:' + escapeHTML(color) + '" title="Abrir cita">'
+        + escapeHTML(fmtTime(a.time) + '–' + fmtTime(end) + ' · ' + appointmentLabel(a)) + '</button>';
+    }).join('');
+    indicator.className = 'afc-availability';
+    indicator.innerHTML = '<div class="afc-availability-head"><span>Agenda del día</span><span class="afc-availability-count">'
+      + dayAppts.length + ' cita' + (dayAppts.length === 1 ? '' : 's') + '</span></div>'
+      + '<div class="afc-busy-chips">' + chips + '</div>';
+  }
+
+  function validateSelectedRange(autoEnd) {
+    if (autoEnd) _autoSetTimeEnd(timeEl.value);
+    if (!timeEl.value) { renderDayOverview(); return; }
+    var selectedStart = _calendarTimeMinutes(timeEl.value);
+    var selectedEnd = timeEndEl && timeEndEl.value ? _calendarTimeMinutes(timeEndEl.value) : selectedStart + 60;
+    if (selectedEnd <= selectedStart) selectedEnd = selectedStart + 60;
+    var conflicts = dayAppts.filter(function(a) {
+      var start = _calendarTimeMinutes(a.time);
+      var end = a.timeEnd ? _calendarTimeMinutes(a.timeEnd) : start + 60;
+      return selectedStart < end && selectedEnd > start;
+    });
+    if (!conflicts.length) { renderDayOverview(); return; }
+    var conflictText = conflicts.map(function(a) {
+      var end = a.timeEnd || oneHourAfter(a.time);
+      return fmtTime(a.time) + '–' + fmtTime(end) + ' ' + appointmentLabel(a);
+    }).join(' · ');
+    indicator.className = 'afc-availability is-conflict';
+    indicator.innerHTML = '<div class="afc-conflict-title">Horario ocupado</div><div class="afc-conflict-detail">'
+      + escapeHTML(conflictText) + '</div>';
+    timeEl.style.borderColor = 'var(--red)';
+    if (timeEndEl) timeEndEl.style.borderColor = 'var(--red)';
+  }
+
+  indicator.onclick = function(event) {
+    var chip = event.target.closest('[data-existing-appt]');
+    if (chip) openEditAppt(chip.getAttribute('data-existing-appt'));
   };
+  timeEl.oninput = timeEl.onchange = function() { validateSelectedRange(true); };
+  if (timeEndEl) timeEndEl.oninput = timeEndEl.onchange = function() { validateSelectedRange(false); };
+  validateSelectedRange(false);
 }
 
 // Actualizar horas bloqueadas cuando cambia la fecha
@@ -25658,7 +25926,7 @@ window.addEventListener('resize', function() {
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Vistas: Mes, Semana y Día</div>
-            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Cambia la vista con los botones arriba a la derecha del calendario. Toca cualquier día o cita para ver el detalle y las acciones disponibles.</div>
+            <div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Cambia la vista con los botones arriba a la derecha. En Día y Semana puedes arrastrar una cita para moverla, tirar de su borde inferior para cambiar la duración y tocarla para abrir el editor.</div>
           </div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)">
             <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:4px">Acciones en cada cita</div>
