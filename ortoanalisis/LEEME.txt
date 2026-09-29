@@ -1,0 +1,26 @@
+OrtoAnálisis IDAP — versión para tu propio sitio web
+
+CÓMO SUBIRLO A GITHUB (desde la página, sin programas)
+1. Descomprime los TRES zip. NO subas los .zip: sube las carpetas "ortoanalisis" que salen de ellos.
+2. Subida 1: en el repositorio, Add file > Upload files, arrastra la carpeta "ortoanalisis" de la SUBIDA 1. Commit changes.
+3. Subida 2: repite con la carpeta "ortoanalisis" de la SUBIDA 2. Commit changes.
+4. Subida 3: repite con la carpeta "ortoanalisis" de la SUBIDA 3. Commit changes.
+   Las tres se juntan solas en la misma carpeta. Cada subida pesa menos de 20 MB.
+5. Espera 1-2 minutos y abre https://tu-dominio/ortoanalisis/
+
+IMPORTANTE
+- Debe abrirse desde un sitio web (https). Si abres index.html con doble clic desde tu computadora,
+  la app se ve pero la IA no carga, porque el navegador bloquea leer archivos locales.
+- No necesita servidor especial: cualquier hosting de archivos estáticos sirve
+  (cPanel, Netlify, Vercel, GitHub Pages, Hostinger, etc.).
+- Si tu hosting permite configurar tipos de archivo, los .wasm deben servirse como "application/wasm"
+  (casi todos ya lo hacen por defecto).
+- Todo corre en el navegador de quien la usa: las radiografías, fotos y modelos de los pacientes
+  no se suben a ningún servidor.
+
+CONTENIDO
+index.html        la aplicación
+lib/              librerías (Three.js, TensorFlow.js, PptxGenJS)
+model/            modelos de IA: cefalometría (py-ceph, licencia BSD-3) y malla facial (MediaPipe, licencia Apache 2.0)
+
+Herramienta de apoyo: revisa siempre los puntos antes de usar los resultados.
