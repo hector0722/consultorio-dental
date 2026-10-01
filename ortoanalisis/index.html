@@ -547,23 +547,47 @@ async function aiRunOnce(M,input,prog){
 function simFit(p,q,idx){let pm=[0,0],qm=[0,0];idx.forEach(i=>{pm[0]+=p[i][0];pm[1]+=p[i][1];qm[0]+=q[i][0];qm[1]+=q[i][1];});pm=pm.map(v=>v/idx.length);qm=qm.map(v=>v/idx.length);
   let a=0,b=0;idx.forEach(i=>{const px=p[i][0]-pm[0],py=p[i][1]-pm[1];a+=px*(q[i][0]-qm[0])+py*(q[i][1]-qm[1]);b+=px*px+py*py;});const s=a/b;return{s,tx:qm[0]-s*pm[0],ty:qm[1]-s*pm[1]};}
 /* detección completa: devuelve 19 puntos en coordenadas de la imagen original */
+/* forma: ajuste de similitud (con rotación) al promedio ISBI; devuelve rms y residuo por punto (px del marco 640x800, ≈0.3 mm/px) */
+const AI_STABLE=[0,1,2,3,4,5,6,7,8,9,10,11,16,17,18];
+function aiShape(p){const idx=AI_STABLE;let pm=[0,0],qm=[0,0];idx.forEach(i=>{pm[0]+=p[i][0];pm[1]+=p[i][1];qm[0]+=AI_MEAN[i][0];qm[1]+=AI_MEAN[i][1];});
+  pm=pm.map(v=>v/idx.length);qm=qm.map(v=>v/idx.length);let a=0,b=0,pp=0;
+  idx.forEach(i=>{const px=p[i][0]-pm[0],py=p[i][1]-pm[1],qx=AI_MEAN[i][0]-qm[0],qy=AI_MEAN[i][1]-qm[1];a+=px*qx+py*qy;b+=px*qy-py*qx;pp+=px*px+py*py;});
+  const s=Math.hypot(a,b)/pp,c=a/Math.hypot(a,b)*s,d=b/Math.hypot(a,b)*s;
+  const r=p.map((q,i)=>{const x=q[0]-pm[0],y=q[1]-pm[1];return Math.hypot(c*x-d*y+qm[0]-AI_MEAN[i][0],d*x+c*y+qm[1]-AI_MEAN[i][1]);});
+  const rms=Math.sqrt(idx.reduce((t,i)=>t+r[i]*r[i],0)/idx.length);return{rms,r};}
 async function aiDetect(src,prog){
   const M=await aiLoad(prog);prog&&prog('Analizando radiografía…');await new Promise(r=>setTimeout(r,30));
-  const G=aiGray(src);const sX=640/G.W,sY=800/G.H;
-  const toOrig=(pts,s1,s2,tx,ty,flip)=>pts.map(([x,y])=>{let ox=((x+0.5)-tx)/s1-0.5,oy=((y+0.5)-ty)/s2-0.5;if(flip)ox=G.W-1-ox;return[ox,oy];});
-  let flip=false;let p=await aiRunOnce(M,aiResample(G,sX,sY,0,0,false),prog);
-  if(p[1][0]<p[0][0]){flip=true;prog&&prog('La radiografía mira a la izquierda; ajustando…');p=await aiRunOnce(M,aiResample(G,sX,sY,0,0,true),prog);}
-  let orig=toOrig(p,sX,sY,0,0,flip);
-  // encuadre: si difiere del de entrenamiento, alinear y repetir
-  const stable=[0,1,2,3,4,5,6,7,8,9,10,11,16,17,18];const pn=p;const fit=simFit(pn,AI_MEAN,stable);
-  const aspect=(G.W/G.H)/(1935/2400);const off=Math.hypot(fit.tx,fit.ty);
-  if(Math.abs(aspect-1)>0.06||Math.abs(fit.s-1)>0.08||off>30){
-    prog&&prog('Ajustando encuadre…');
-    const q=p.map(([x,y])=>[x/sX,y/sY]); // en píxeles de la fuente (sin espejo aplicado a x: coordenadas de la imagen volteada)
-    const f2=simFit(q,AI_MEAN,stable);const p2=await aiRunOnce(M,aiResample(G,f2.s,f2.s,f2.tx,f2.ty,flip),prog);
-    orig=toOrig(p2,f2.s,f2.s,f2.tx,f2.ty,flip);
-  }
-  return{pts:orig,flip,W:G.W,H:G.H,G};
+  const G=aiGray(src);const W=G.W,H=G.H;
+  // una pasada con escala uniforme s y desplazamiento t: devuelve puntos en coordenadas de trabajo (imagen volteada si flip)
+  const pass=async(s,tx,ty,flip)=>{const p=await aiRunOnce(M,aiResample(G,s,s,tx,ty,flip),prog);return p.map(([x,y])=>[((x+0.5)-tx)/s-0.5,((y+0.5)-ty)/s-0.5]);};
+  const fit=w=>{const idx=AI_STABLE;let pm=[0,0],qm=[0,0];idx.forEach(i=>{pm[0]+=w[i][0];pm[1]+=w[i][1];qm[0]+=AI_MEAN[i][0];qm[1]+=AI_MEAN[i][1];});pm=pm.map(v=>v/idx.length);qm=qm.map(v=>v/idx.length);
+    let a=0,b=0;idx.forEach(i=>{const px=w[i][0]-pm[0],py=w[i][1]-pm[1];a+=px*(AI_MEAN[i][0]-qm[0])+py*(AI_MEAN[i][1]-qm[1]);b+=px*px+py*py;});const s=a/b;return{s,tx:qm[0]-s*pm[0],ty:qm[1]-s*pm[1]};};
+  const inMean=(w,f)=>w.map(([x,y])=>[f.s*x+f.tx,f.s*y+f.ty]);
+  // 1) encuadre completo sin deformar, en las dos orientaciones; gana la forma anatómica más coherente
+  const s0=Math.min(640/W,800/H),tx0=(640-W*s0)/2,ty0=(800-H*s0)/2;
+  const cands=[];for(const flip of [false,true]){if(flip)prog&&prog('Revisando hacia qué lado mira el paciente…');
+    const w=await pass(s0,tx0,ty0,flip);cands.push({flip,w,rms:aiShape(inMean(w,{s:s0,tx:tx0,ty:ty0})).rms});
+    if(!flip&&cands[0].rms<9&&w[1][0]>w[0][0])break;}  // claramente mira a la derecha: no hace falta probar al revés
+  let best=cands.reduce((a,b)=>b.rms<a.rms?b:a);const flip=best.flip;let w=best.w;
+  // 2) re-encuadre al tamaño y posición del entrenamiento (2 vueltas, con límites)
+  prog&&prog('Ajustando encuadre…');
+  for(let it=0;it<2;it++){const f=fit(w);if(!(f.s>0.25*s0&&f.s<4*s0))break;
+    const w2=await pass(f.s,f.tx,f.ty,flip);if(aiShape(inMean(w2,fit(w2))).rms>aiShape(inMean(w,f)).rms+5)break;w=w2;}
+  // 3) tres pasadas a escalas ligeramente distintas y mediana por punto (más estable); la dispersión indica duda
+  prog&&prog('Afinando puntos…');
+  const f=fit(w);const cx=AI_STABLE.reduce((t,i)=>t+AI_MEAN[i][0],0)/AI_STABLE.length,cy=AI_STABLE.reduce((t,i)=>t+AI_MEAN[i][1],0)/AI_STABLE.length;
+  const runs=[w];for(const k of [0.94,1.06]){const s2=f.s*k;runs.push(await pass(s2,cx-k*(cx-f.tx),cy-k*(cy-f.ty),flip));}
+  const med=a=>a.slice().sort((x,y)=>x-y)[1];
+  w=w.map((_,i)=>[med(runs.map(r=>r[i][0])),med(runs.map(r=>r[i][1]))]);
+  const spread=w.map((q,i)=>Math.max(...runs.map(r=>Math.hypot(r[i][0]-q[0],r[i][1]-q[1]))));
+  const fF=fit(w);const sh=aiShape(inMean(w,fF));const mmPx=0.3*fF.s; // ≈mm por píxel de la imagen original (1 px del marco promedio ≈0.3 mm; fF.s = px del marco por px original)
+  const pts=w.map(([x,y])=>[flip?W-1-x:x,y]);
+  const outside=pts.filter(([x,y])=>x<-W*0.02||y<-H*0.02||x>W*1.02||y>H*1.02).length;
+  if(sh.rms>25||outside>2)throw Object.assign(new Error('La IA no reconoció bien esta radiografía (forma anatómica incoherente).'),{code:'lowconf'});
+  // siempre a revisar: los puntos con más error en las pruebas contra trazados de expertos (Pog blando, B, Or, A, borde incisal sup., ENA, Go)
+  const REV=new Set([15,5,2,4,11,17,9]);
+  const weak=pts.map((q,i)=>REV.has(i)||sh.r[i]>22||spread[i]*mmPx>5||q[0]<0||q[1]<0||q[0]>W-1||q[1]>H-1);
+  return{pts:pts.map(([x,y])=>[Math.min(W-1,Math.max(0,x)),Math.min(H-1,Math.max(0,y))]),weak,flip,rms:sh.rms,spreadMM:spread.map(v=>v*mmPx),resid:sh.r,W,H,G};
 }
 
 /* ===== Puntos derivados a partir de los 19 puntos ISBI + trazo del perfil blando ===== */
@@ -609,6 +633,7 @@ function aiProfile(G,Sn,Ls,ant,u){
 
 /* ===== integración de la IA con la pestaña de radiografía ===== */
 const AI_MANUAL=['R1','R2','U1a','L1a','U6','L6','Ocp'];
+const AI_IDS=['S','N','Or','Po','A','B','Pog','Me','Gn','Go','L1t','U1t','Ls','Li','Sn','PogB','PNS','ANS','Ar'];
 function aiStatus(t,kind){const el=$('#aiStatus');if(el){el.textContent=t;el.className='small'+(kind?' '+kind:'');}}
 async function runCephAI(){
   const an=A.ceph;if(!an.img){toast('Sube primero una radiografía real');return;}
@@ -618,12 +643,13 @@ async function runCephAI(){
     const d=aiDerive(r.pts,r.G);
     const keep={};AI_MANUAL.forEach(k=>{if(S.ceph.pts[k])keep[k]=S.ceph.pts[k];});
     const pts={};for(const k in d.P)pts[k]={x:d.P[k][0],y:d.P[k][1]};
-    S.ceph.pts=Object.assign(pts,keep);S.ceph.est=Object.assign({},d.est);S.ceph.ai=true;
-    const falt=AI_MANUAL.filter(k=>!S.ceph.pts[k]).length;
+    const est=Object.assign({},d.est);r.weak.forEach((w,i)=>{if(w)est[AI_IDS[i]]=1;});
+    S.ceph.pts=Object.assign(pts,keep);S.ceph.est=est;S.ceph.ai=true;
+    const falt=AI_MANUAL.filter(k=>!S.ceph.pts[k]&&!((k==='R1'||k==='R2')&&S.ceph.mmpp>0)).length;
     aiStatus(`Listo en ${Math.round((performance.now()-t0)/1000)} s: ${Object.keys(pts).length} puntos colocados${falt?`, faltan ${falt} para marcar a mano`:''}. Los naranjas son estimados: revísalos.`,'okc');
     an.first();changed();toast(falt?`Puntos detectados · marca los ${falt} que faltan`:'Puntos detectados · revisa los naranjas');
   }catch(e){
-    aiStatus(e&&e.code==='nowebgl'?'Este navegador no permite la detección automática (sin WebGL). Marca los puntos a mano o usa Chrome/Edge en computadora.':'No se pudo completar la detección automática ('+(e&&e.message?e.message:'error')+'). Puedes marcar los puntos a mano.','errc');
+    aiStatus(e&&e.code==='lowconf'?'La IA no reconoció bien esta radiografía y no colocó puntos para no darte valores falsos. Prueba recortarla dejando solo el cráneo y la cara (sin márgenes negros grandes), o marca los puntos a mano.':e&&e.code==='nowebgl'?'Este navegador no permite la detección automática (sin WebGL). Marca los puntos a mano o usa Chrome/Edge en computadora.':'No se pudo completar la detección automática ('+(e&&e.message?e.message:'error')+'). Puedes marcar los puntos a mano.','errc');
   }finally{if(btn)btn.disabled=false;}
 }
 
@@ -781,6 +807,8 @@ function runProfAI(){
     an.active=null;an.refresh();changed();toast('Puntos de perfil detectados · revísalos');}
   catch(e){fStat('prof','No pude seguir la silueta del perfil. Funciona mejor con fondo liso y de color distinto a la piel y el cabello. Marca los puntos a mano.','errc');}}
 
+function imgPrint(im){try{const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');x.drawImage(im,0,0,12,12);const d=x.getImageData(0,0,12,12).data;
+  let h=im.naturalWidth+'x'+im.naturalHeight+':';for(let i=0;i<d.length;i+=4)h+=((d[i]+d[i+1]+d[i+2])/48|0).toString(16);return h;}catch(e){return im.naturalWidth+'x'+im.naturalHeight;}}
 /* ================= anotador 2D ================= */
 class Annot{
   constructor(o){
@@ -848,10 +876,11 @@ class Annot{
     if(!f.type.startsWith('image/')){toast('Ese archivo no es una imagen (usa JPG o PNG)');return;}
     const url=URL.createObjectURL(f);const im=new Image();
     im.onload=()=>{
-      if(S.flags[this.key]){this.st.pts={};S.flags[this.key]=false;}
-      this.img=im;this.st.dims={w:im.naturalWidth,h:im.naturalHeight};
-      this.st.est={};this.st.ai=false;
+      const fp=imgPrint(im);const same=!S.flags[this.key]&&this.st.fp&&this.st.fp===fp&&Object.keys(this.st.pts).length>0;
+      this.img=im;this.st.dims={w:im.naturalWidth,h:im.naturalHeight};this.st.fp=fp;
+      if(!same){this.st.pts={};this.st.est={};this.st.ai=false;S.flags[this.key]=false;if(this.key==='ceph')S.ceph.mmpp=S.ceph.mmpp||null;}
       this.fit();this.first();changed();
+      if(same){toast('Es la misma imagen: se recuperaron tus puntos');return;}
       if(this.key==='ceph')setTimeout(runCephAI,60);if(this.key==='front')setTimeout(runFrontAI,60);if(this.key==='prof')setTimeout(runProfAI,60);
     };
     im.onerror=()=>toast('No se pudo abrir la imagen');
@@ -885,7 +914,7 @@ class Annot{
       const d=this.drag;
       if(d&&d.id===e.pointerId){
         const dx=p.x-d.lx,dy=p.y-d.ly;d.moved+=Math.abs(dx)+Math.abs(dy);d.lx=p.x;d.ly=p.y;
-        if(d.pt){if(d.moved>3){this.pts[d.pt]=this.I(p.x,p.y);this.active=d.pt;this.hover=p;if(this.st.est)delete this.st.est[d.pt];}}
+        if(d.pt){if(d.moved>3){this.pts[d.pt]=this.clampImg(this.I(p.x,p.y));this.active=d.pt;this.hover=p;if(this.st.est)delete this.st.est[d.pt];}}
         else{this.view.x+=dx;this.view.y+=dy;}
         this.draw();return;
       }
@@ -911,8 +940,11 @@ class Annot{
     this.stage.addEventListener('dragleave',()=>this.stage.classList.remove('drop'));
     this.stage.addEventListener('drop',e=>{e.preventDefault();this.stage.classList.remove('drop');const f=e.dataTransfer.files[0];if(f)this.loadFile(f);});
   }
+  inImg(p){const d=this.dims();return!!d&&p.x>=0&&p.y>=0&&p.x<=d.w&&p.y<=d.h;}
+  clampImg(p){const d=this.dims();return d?{x:Math.min(d.w,Math.max(0,p.x)),y:Math.min(d.h,Math.max(0,p.y))}:p;}
   place(p){
     if(!this.src()){toast('Primero sube la imagen');return;}
+    if(!this.inImg(p)){toast('Ese clic quedó fuera de la imagen');return;}
     if(!this.active){toast('Elige en la lista el punto que quieres colocar');return;}
     this.pts[this.active]=p;if(this.st.est)delete this.st.est[this.active];
     const ids=this.lms.map(l=>l.id);const i=ids.indexOf(this.active);let nx=null;
@@ -943,7 +975,8 @@ class Annot{
       const msg=Object.keys(this.pts).length?'Vuelve a subir la imagen de este paciente (los puntos se conservaron)':this.emptyMsg;
       c.fillText(msg,this.cw/2,this.ch/2);c.font='13px Archivo, sans-serif';c.fillText('Arrastra el archivo aquí o usa el botón de la derecha',this.cw/2,this.ch/2+24);}
     const T=p=>this.T(p);
-    if(this.lines&&this.overlay)this.overlay(c,T,this.pts,C,this.set||'todos',1.4);
+    if(this.lines&&this.overlay){const dm=this.dims();c.save();if(dm){const a=T({x:0,y:0}),b=T({x:dm.w,y:dm.h});c.beginPath();c.rect(a.x,a.y,b.x-a.x,b.y-a.y);c.clip();}
+      this.overlay(c,T,this.pts,C,this.set||'todos',1.4);c.restore();}
     for(const id in this.pts){const q=T(this.pts[id]);const on=id===this.active;const es=this.st.est&&this.st.est[id];
       c.beginPath();c.arc(q.x,q.y,on?6.5:4.5,0,Math.PI*2);c.fillStyle=on?C['pt-on']:es?'#ff8a3d':C.pt;c.fill();c.lineWidth=1.5;c.strokeStyle='rgba(0,0,0,.7)';c.stroke();
       c.font='600 11px "IBM Plex Mono", monospace';c.textAlign='left';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.75)';c.strokeText(id,q.x+8,q.y-6);c.fillStyle=on?C['pt-on']:C['film-ink'];c.fillText(id,q.x+8,q.y-6);}
@@ -955,7 +988,7 @@ class Annot{
     else this.lp.hidden=true;
   }
 }
-function segLine(c,a,b,col,ext=0,dash,lw=1.4){if(!a||!b)return;const dx=b.x-a.x,dy=b.y-a.y;c.beginPath();c.setLineDash(dash?[lw*4.5,lw*3.5]:[]);c.moveTo(a.x-dx*ext,a.y-dy*ext);c.lineTo(b.x+dx*ext,b.y+dy*ext);c.strokeStyle=col;c.lineWidth=lw;c.lineCap='round';c.stroke();c.setLineDash([]);}
+function segLine(c,a,b,col,ext=0,dash,lw=1.4){if(!a||!b)return;const L0=Math.hypot(b.x-a.x,b.y-a.y)||1;if(ext*L0>60*lw)ext=60*lw/L0;const dx=b.x-a.x,dy=b.y-a.y;c.beginPath();c.setLineDash(dash?[lw*4.5,lw*3.5]:[]);c.moveTo(a.x-dx*ext,a.y-dy*ext);c.lineTo(b.x+dx*ext,b.y+dy*ext);c.strokeStyle=col;c.lineWidth=lw;c.lineCap='round';c.stroke();c.setLineDash([]);}
 /* catálogo de trazos cefalométricos: [punto1, punto2, color, extensión, discontinua] */
 const CL={SN:['S','N','ln1',.15],FH:['Po','Or','ln1',.15],NA:['N','A','ln2',.1],NB:['N','B','ln2',.1],ND:['N','D','ln2',.05,1],
   MP:['Go','Me','ln3',.12],GoGn:['Go','Gn','ln3',.08,1],NPog:['N','Pog','ln4',.08],BaN:['Ba','N','ln5',.05],PtGn:['Pt','Gn','ln5',.08],
@@ -1116,7 +1149,7 @@ function cephCompute(){
   const raw=S.ceph.pts;if(!raw.S||!raw.N)return null;
   const dir=raw.N.x>=raw.S.x?1:-1;const P=normPts(raw,raw.S,dir);
   const has=(...k)=>k.every(x=>P[x]);
-  const pxmm=has('R1','R2')&&S.ceph.calMM>0?G.dist(P.R1,P.R2)/S.ceph.calMM:null;
+  const pxmm=has('R1','R2')&&S.ceph.calMM>0?G.dist(P.R1,P.R2)/S.ceph.calMM:(S.ceph.mmpp>0?1/S.ceph.mmpp:null);
   const mm=v=>pxmm&&ok(v)?v/pxmm:null;
   const m={};const q=(k,need,fn)=>{m[k]=has(...need)?fn():null;};
   const fh=()=>V(P.Po,P.Or);
@@ -1202,8 +1235,9 @@ function modCompute(){
   const pu=S.mod.pont.U,pl=S.mod.pont.L;const d=(a,b)=>ok(a)&&ok(b)?a-b:null;
   o.dU4=d(pu.p4,o.idP4);o.dU6=d(pu.m6,o.idM6);o.dUs=d(pu.sag,o.idSagU);
   o.dL4=d(pl.p4,o.idP4);o.dL6=d(pl.m6,o.idM6);o.dLs=d(pl.sag,o.idSagL);
-  if(ok(o.SIinf)&&ok(o.SAI)){o.t1=o.SIinf*4;o.t2=o.t1/3;o.tIdealSup=o.t2+0.5;o.tDifSup=o.SAI-o.tIdealSup;
-    o.t3=o.SAI-0.5;o.t4=o.t3*3;o.tIdealInf=o.t4/4;o.tDifInf=o.SIinf-o.tIdealInf;}
+  if(ok(o.SIinf)&&ok(o.SAI)){ // en el orden exacto del formato IDAP
+    o.t1=o.SIinf*4;o.t2=o.t1+0.5;o.tIdealSup=o.t2/3;o.tDifSup=o.SAI-o.tIdealSup;
+    o.t3=o.SAI*3;o.t4=o.t3-0.5;o.tIdealInf=o.t4/4;o.tDifInf=o.SIinf-o.tIdealInf;}
   o.nW=['U','L'].reduce((s,a)=>s+TEETH[a].filter(t=>w[a][t]>0).length,0);
   return o;
 }
@@ -1328,14 +1362,14 @@ function renderResults(){
   mp.push({html:'<div class="note">Pont: 4/4 = SAI × 100 / 80 · 6/6 = SAI × 100 / 64. Korkhaus: sagital sup. = SAI × 100 / 160; inferior = superior − 2 mm.</div>',txt:''});
   mp.push(h5('Tonn'));
   if(ok(md.tIdealSup)){
-    const exSup=md.tDifSup>0;
+    const exSup=md.tDifSup>=md.tDifInf;
     mp.push(lines([
-      `Medida ideal de los incisivos superiores: suma de los 4 incisivos inferiores ${fx(md.SIinf)} × 4 = ${fx(md.t1)} ÷ 3 = ${fx(md.t2)} + 0.5 = ${fx(md.tIdealSup)}`,
+      `Medida ideal de los incisivos superiores: suma de los 4 incisivos inferiores ${fx(md.SIinf)} × 4 = ${fx(md.t1)} + 0.5 = ${fx(md.t2)} / 3 = ${fx(md.tIdealSup)}`,
       `Suma de los 4 incisivos superiores ${fx(md.SAI)} − resultado anterior ${fx(md.tIdealSup)} = ${sg(md.tDifSup)}`,
-      `Medida ideal de los incisivos inferiores: suma de los 4 incisivos superiores ${fx(md.SAI)} − 0.5 = ${fx(md.t3)} × 3 = ${fx(md.t4)} ÷ 4 = ${fx(md.tIdealInf)}`,
+      `Medida ideal de los incisivos inferiores: suma de los 4 incisivos superiores ${fx(md.SAI)} × 3 = ${fx(md.t3)} − 0.5 = ${fx(md.t4)} / 4 = ${fx(md.tIdealInf)}`,
       `Suma de los 4 incisivos inferiores ${fx(md.SIinf)} − resultado anterior ${fx(md.tIdealInf)} = ${sg(md.tDifInf)}`,
-      `Diagnóstico: exceso de material dental de los incisivos ${exSup?'superiores':'inferiores'} de ${fx(exSup?md.tDifSup:md.tDifInf)} mm.`],'tonn'));
-    mp.push({html:'<div class="note">Fórmula de Tonn: SI sup. = (SI inf. × 4 / 3) + 0.5. Si tu formato pide otro orden de pasos, los resultados parciales ya están arriba.</div>',txt:''});
+      (Math.max(md.tDifSup,md.tDifInf)<0.05)?'Diagnóstico: sin exceso de material dental en incisivos.':`Diagnóstico: exceso de material dental de los incisivos ${exSup?'superiores':'inferiores'} de ${fx(exSup?md.tDifSup:md.tDifInf)} mm.`],'tonn'));
+    mp.push({html:'<div class="note">Pasos en el mismo orden que el formato IDAP (×4, +0.5, ÷3 y ×3, −0.5, ÷4).</div>',txt:''});
   } else mp.push({html:'<div class="miss">Faltan anchos de incisivos para calcular Tonn.</div>',txt:''});
   H.push(section('modelos','Análisis de modelos','Pág. 7–8',mp));
 
@@ -1378,7 +1412,7 @@ function renderResults(){
     ['Pno. Md Incisivo Inf','90°',V_(dg(m.L1GoGn)),rng(m.L1GoGn,85,95,'Incisivo inferior retroinclinado','Incisivo inferior proinclinado','Incisivo inferior bien inclinado')],
     ['Línea estética de Steiner · Ls','0 mm',V_(mmf(m.SLs)),rng(m.SLs,-2,2,'Labio superior retrusivo','Labio superior protrusivo','Labio superior en norma')],
     ['Línea estética de Steiner · Li','0 mm',V_(mmf(m.SLi)),rng(m.SLi,-2,2,'Labio inferior retrusivo','Labio inferior protrusivo','Labio inferior en norma')]],'steiner'));
-  if(cc&&!cc.pxmm)sp.push({html:'<div class="miss">Las medidas en mm necesitan la calibración con la regla (puntos R1 y R2).</div>',txt:''});
+  if(cc&&!cc.pxmm)sp.push({html:'<div class="miss">Las medidas en mm necesitan calibración: puntos R1 y R2 sobre la regla, o los mm por píxel del equipo.</div>',txt:''});
   H.push(section('steiner','Steiner','Pág. 9',sp));
 
   /* ---- Downs ---- */
@@ -1389,7 +1423,7 @@ function renderResults(){
     ['A. Pno Md','17° (21.9°) 28°',V_(dg(m.FMA)),rng(m.FMA,17,28,'Plano mandibular bajo (braquifacial)','Plano mandibular alto (dolicofacial)','Norma')],
     ['Eje "Y"','53° (59.4°) 66°',V_(dg(m.Yaxis)),rng(m.Yaxis,53,66,'Crecimiento horizontal','Crecimiento vertical','Crecimiento equilibrado')],
     ['Inc Pno Oc','1.5° (9.3°) 14°',V_(dg(m.OccFH)),rng(m.OccFH,1.5,14,'Plano oclusal plano','Plano oclusal muy inclinado','Norma')],
-    ['A. Interincisal','130° (135.4°) 150.5°',V_(dg(m.II)),rng(m.II,130,150.5,'Incisivos proinclinados','Incisivos retroinclinados','Norma')],
+    ['A. Interincisal','130° (135.4°) 150.4°',V_(dg(m.II)),rng(m.II,130,150.4,'Incisivos proinclinados','Incisivos retroinclinados','Norma')],
     ['Inc 1 Inf Pno Ocl','3.5° (14.5°) 20°',V_(dg(m.L1Occ)),rng(m.L1Occ,3.5,20,'Incisivo inferior retroinclinado','Incisivo inferior proinclinado','Norma')],
     ['Inc 1 Inf Pno Md','−8.5° (1.4°) 7°',V_(dg(m.L1MP)),rng(m.L1MP,-8.5,7,'Incisivo inferior retroinclinado','Incisivo inferior proinclinado','Norma')],
     ['Pno. A-P','−1 (2.7) 5 mm',V_(mmf(m.U1APog)),rng(m.U1APog,-1,5,'Incisivo superior retruido','Incisivo superior protruido','Norma')]],'downs')]));
@@ -1805,8 +1839,9 @@ function syncPac(){$('#pNombre').value=S.pac.nombre||'';$('#pEdad').value=ok(S.p
 function initAnnots(){
   A.ceph=new Annot({key:'ceph',stage:$('#st-ceph'),side:$('#sd-ceph'),lms:LM.ceph,overlay:overlayCeph,upLabel:'Subir radiografía lateral',
     upHint:'JPG o PNG, perfil hacia cualquier lado. Rueda o pellizco para acercar, arrastra para mover. La lupa te ayuda a precisar.',emptyMsg:'Sube la radiografía lateral de cráneo',
-    extra:`<div class="blk guide"><h4>Detección automática (IA)</h4><div class="row"><button class="btn sm pri" type="button" id="aiRun">Detectar puntos con IA</button></div><div class="small" id="aiStatus">Se ejecuta sola al subir la radiografía. La primera vez descarga el modelo (unos 40 MB).</div></div><div class="blk"><h4>Calibración</h4><div class="row"><label for="calmm">Distancia R1–R2</label><input type="number" id="calmm" min="1" step="0.5"><span class="small">mm</span></div><div class="small" id="calinfo"></div></div>`,
-    afterSide(){$('#aiRun').addEventListener('click',runCephAI);const el=$('#calmm');el.value=S.ceph.calMM;el.addEventListener('input',()=>{S.ceph.calMM=parseFloat(el.value)||0;changed();calInfo();});}});
+    extra:`<div class="blk guide"><h4>Detección automática (IA)</h4><div class="row"><button class="btn sm pri" type="button" id="aiRun">Detectar puntos con IA</button></div><div class="small" id="aiStatus">Se ejecuta sola al subir la radiografía. La primera vez descarga el modelo (unos 40 MB).</div></div><div class="blk"><h4>Calibración</h4><div class="row"><label for="calmm">Distancia R1–R2</label><input type="number" id="calmm" min="1" step="0.5"><span class="small">mm</span></div><div class="row"><label for="mmpp">o mm por píxel</label><input type="number" id="mmpp" min="0.01" max="1" step="0.001" placeholder="ej. 0.1"><span class="small">del equipo</span></div><div class="small" id="calinfo"></div></div>`,
+    afterSide(){$('#aiRun').addEventListener('click',runCephAI);const el=$('#calmm');el.value=S.ceph.calMM;el.addEventListener('input',()=>{S.ceph.calMM=parseFloat(el.value)||0;changed();calInfo();});
+      const mp=$('#mmpp');mp.value=S.ceph.mmpp||'';mp.addEventListener('input',()=>{const v=parseFloat(mp.value);S.ceph.mmpp=v>0&&v<1?v:null;changed();calInfo();});}});
   A.front=new Annot({key:'front',stage:$('#st-front'),side:$('#sd-front'),lms:LM.front,overlay:overlayFront,upLabel:'Subir foto frontal',
     upHint:'Foto frontal en reposo, de frente y con la cabeza derecha.',emptyMsg:'Sube la fotografía frontal',
     extra:`<div class="blk guide"><h4>Detección automática (IA)</h4><div class="row"><button class="btn sm pri" type="button" id="aiRun-front">Detectar puntos</button></div><div class="small" id="aiStatus-front">Se ejecuta sola al subir la foto (malla facial de 468 puntos).</div></div>`,
@@ -1817,7 +1852,7 @@ function initAnnots(){
     afterSide(){$('#aiRun-prof').addEventListener('click',runProfAI);}});
   Object.values(A).forEach(a=>a.first());
 }
-function calInfo(){const c=cephCompute();const el=$('#calinfo');if(!el)return;el.textContent=c&&c.pxmm?`Escala: ${fx(c.pxmm,2)} px por mm`:'Marca R1 y R2 sobre la regla para obtener medidas en mm.';}
+function calInfo(){const c=cephCompute();const el=$('#calinfo');if(!el)return;el.textContent=c&&c.pxmm?`Escala: ${fx(c.pxmm,2)} px por mm${S.ceph.pts.R1&&S.ceph.pts.R2?' (regla)':' (dato del equipo)'}`:'Marca R1 y R2 sobre la regla, o escribe los mm por píxel de tu equipo, para tener medidas en mm.';}
 function showTab(t){
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   ['rx','fotos','modelos','res'].forEach(x=>$('#p-'+x).hidden=x!==t);
@@ -1828,9 +1863,10 @@ function showTab(t){
 }
 function resetAll(sample){
   S=blank();if(sample)loadSample();
-  M3.pts={U:{},L:{}};M3.order={U:[],L:[]};M3.active={U:STEPS.U[0].id,L:STEPS.L[0].id};m3markers();
+  M3.pts={U:{},L:{}};M3.order={U:[],L:[]};M3.active={U:STEPS.U[0].id,L:STEPS.L[0].id};
+  ['U','L'].forEach(a=>{if(M3.grp&&M3.grp[a])M3.grp[a].clear();M3.obj[a]=null;M3.weak[a]={};M3.lab[a]=[];M3.autoPerim[a]=false;M3.perimArc[a]=null;M3.status[a]='';M3.size[a]=0;});M3.dims={};m3markers();
   Object.values(A).forEach(a=>{a.img=null;a.first();a.fit();});
-  syncPac();fillModInputs();$('#calmm').value=S.ceph.calMM;calInfo();m3show();changed();
+  syncPac();fillModInputs();$('#calmm').value=S.ceph.calMM;$('#mmpp').value=S.ceph.mmpp||'';calInfo();m3show();changed();
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const had=load();if(!had)loadSample();
