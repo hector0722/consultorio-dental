@@ -12041,9 +12041,38 @@ function openSettings() {
   applyBranding();
 }
 
-function closeSettings(savePendingCustomWATpls) {
-  if (savePendingCustomWATpls && typeof flushCustomWATplEdits === 'function') {
-    flushCustomWATplEdits();
+// La lada se confirma al terminar de editar o al cerrar con la X.
+// No exige pulsar el botón general de guardar ni modifica otros campos.
+function saveCountryCode(value) {
+  var input = document.getElementById('cfg-country-code');
+  var previous = String(cfg.countryCode || '52');
+  var code = String(value || '').trim().replace(/^\+/, '');
+  if (!/^[1-9]\d{0,3}$/.test(code)) {
+    if (input) input.value = previous;
+    return false;
+  }
+  if (input) input.value = code;
+  if (code === previous) return true;
+  cfg.countryCode = code;
+  var saved = true;
+  if (typeof GD !== 'undefined' && GD.saveCfg) saved = GD.saveCfg();
+  else {
+    cfg._savedAt = Date.now();
+    appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+  }
+  if (saved === false) {
+    cfg.countryCode = previous;
+    if (input) input.value = previous;
+    return false;
+  }
+  return true;
+}
+
+function closeSettings(savePendingEdits) {
+  if (savePendingEdits) {
+    var input = document.getElementById('cfg-country-code');
+    if (input) saveCountryCode(input.value);
+    if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
   }
   document.getElementById('settings-overlay').classList.remove('open');
 }
@@ -25098,7 +25127,7 @@ window.addEventListener('resize', function() {
         </div>
         <div class="settings-row">
           <label>Código de país WhatsApp</label>
-          <input type="text" id="cfg-country-code" placeholder="52" maxlength="4"
+          <input type="text" id="cfg-country-code" placeholder="52" maxlength="4" inputmode="numeric" onchange="saveCountryCode(this.value)"
             style="width:70px;flex:none;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);text-align:center">
           <span style="font-size:.79rem;color:var(--ink-3)">MX=52 · RD=1 · CO=57 · AR=54 · US=1 · VE=58 · PE=51</span>
         </div>
