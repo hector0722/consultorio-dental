@@ -405,35 +405,24 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .full { grid-column: 1 / -1; }
 
 /* Editor de plantilla de historia clínica */
-/* Captura de antecedentes heredofamiliares */
-#hc-family-sections .fh-panel{padding:25px;border:1px solid var(--border-med);background:var(--card)}
-.fh-header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding-bottom:22px;border-bottom:1px solid var(--border)}
-.fh-header-main{display:flex;gap:14px;align-items:flex-start;min-width:0}.fh-icon{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;background:var(--blue-pale);color:var(--blue);border-radius:14px}.fh-icon svg{width:27px;height:27px}
-.fh-kicker{font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;font-weight:750;color:var(--blue);margin:1px 0 5px}
-.fh-header .form-sec-title{font-size:1.08rem;color:var(--ink);text-transform:none;letter-spacing:-.02em;border:0;margin:0;padding:0;line-height:1.25}.fh-header p{font-size:.76rem;line-height:1.5;color:var(--ink-3);margin-top:7px;max-width:650px}
-.fh-count{display:flex;align-items:center;gap:9px;white-space:nowrap;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px}.fh-count strong{font-size:1.3rem;line-height:1;color:var(--blue)}.fh-count span{font-size:.65rem;color:var(--ink-3)}
-.fh-status-label{font-size:.72rem;font-weight:700;color:var(--ink-2);margin:20px 0 9px}.fh-status{display:flex;flex-wrap:wrap;gap:8px}
-.fh-status-button{display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid var(--border-med);border-radius:10px;font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;background:var(--card);color:var(--ink-3);transition:border-color .15s,background .15s}.fh-status-button:hover{border-color:var(--blue)}.fh-status-button.is-active{background:var(--blue-pale);border-color:var(--blue);color:var(--blue)}.fh-status-dot{width:7px;height:7px;border:1.5px solid currentColor;border-radius:50%}.is-active .fh-status-dot{background:currentColor}
-.fh-context{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr);max-width:650px;gap:14px;margin:18px 0 0}
-.fh-control{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0}.fh-control>span{font-size:.69rem;font-weight:600;color:var(--ink-3);line-height:1.4}
-#hc-family-sections .fh-control input,#hc-family-sections .fh-control select,#hc-family-sections .fh-control textarea{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--border-med);border-radius:10px;background:var(--bg);font:inherit;font-size:.8rem;line-height:1.45;color:var(--ink);transition:border-color .15s,box-shadow .15s}
-#hc-family-sections .fh-control textarea{resize:vertical;min-height:85px}#hc-family-sections .fh-control input:focus,#hc-family-sections .fh-control select:focus,#hc-family-sections .fh-control textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 12%,transparent)}
-.fh-section-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:24px 0 14px}.fh-section-heading h4{font-size:.85rem;font-weight:700;color:var(--ink);margin:0}.fh-section-heading p{font-size:.72rem;color:var(--ink-3);line-height:1.5;margin:4px 0 0}
-.fh-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 24px}.fh-category-title{font-size:.61rem;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}.fh-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.fh-choice{display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;padding:10px 11px;border:1px solid var(--border-med);border-radius:10px;cursor:pointer;background:var(--card);font-size:.76rem;color:var(--ink-2);line-height:1.4;transition:border-color .15s,background .15s}.fh-choice:hover{border-color:color-mix(in srgb,var(--blue) 55%,var(--border-med))}.fh-choice.is-checked{border-color:var(--blue);background:color-mix(in srgb,var(--card) 88%,var(--blue) 12%);color:var(--ink)}
-#hc-family-sections .fh-choice input[type=checkbox]{width:16px;height:16px;min-width:16px;flex:0 0 16px;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--blue)}.fh-checkmark{margin-left:auto;color:var(--blue);font-size:.8rem;opacity:0}.is-checked .fh-checkmark{opacity:1}
-.fh-other{display:flex;align-items:flex-end;gap:10px;margin-top:18px;max-width:650px}.fh-other .fh-control{flex:1}.fh-other .btn{min-height:40px;flex-shrink:0}
-.fh-details-heading{padding-top:22px;border-top:1px solid var(--border)}.fh-total{font-size:.69rem;color:var(--blue);background:var(--blue-pale);padding:5px 9px;border-radius:20px;white-space:nowrap}
-.fh-condition-records{display:flex;flex-direction:column;gap:14px}.fh-condition-group{border:1px solid var(--border-med);border-radius:14px;overflow:hidden}.fh-condition-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;background:color-mix(in srgb,var(--card) 94%,var(--blue) 6%);border-bottom:1px solid var(--border)}.fh-condition-heading h5{font-size:.82rem;font-weight:700;color:var(--ink);margin:0}.fh-add-relative,.fh-recover{border:0;background:transparent;color:var(--blue);font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;padding:5px}.fh-recover{margin:4px 12px 10px}
-.fh-relative{padding:12px 16px 16px}.fh-relative+.fh-relative{border-top:1px solid var(--border)}.fh-relative-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--ink-3);font-size:.67rem;font-weight:600}.fh-remove{border:0;border-radius:6px;background:transparent;color:var(--ink-3);font:inherit;font-size:.67rem;padding:4px 6px;cursor:pointer}.fh-remove:hover{background:var(--red-bg);color:var(--red)}
-.fh-record-grid{display:grid;grid-template-columns:minmax(140px,1fr) minmax(180px,1.5fr) minmax(110px,.7fr) minmax(140px,1fr);gap:12px}.fh-record-note{grid-column:1/-1}
-.fh-empty{display:flex;flex-direction:column;gap:7px;padding:22px;border:1px dashed var(--border-med);border-radius:12px;background:var(--bg);margin-top:20px;color:var(--ink-3);font-size:.76rem;line-height:1.5}.fh-empty strong{color:var(--ink-2);font-size:.8rem;font-weight:600}.fh-empty small{font-size:.7rem}
-.fh-validation-message{margin-top:18px;padding:10px 12px;border-radius:10px;background:var(--orange-bg);color:var(--ink);font-size:.76rem;line-height:1.5}#hc-family-sections input[aria-invalid="true"]{border-color:var(--orange)}
-.fh-notes{margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}
-.fh-summary{grid-column:1/-1}.fh-summary-header{display:flex;justify-content:space-between;gap:12px;align-items:center}.fh-summary-header .card-title{margin:0}.fh-summary-status{font-size:.67rem;border-radius:20px;padding:5px 9px;background:var(--blue-pale);color:var(--blue)}.fh-summary-meta{font-size:.7rem;color:var(--ink-3);margin:9px 0}.fh-summary-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}.fh-summary-records>div{display:flex;flex-direction:column;gap:5px;padding:11px;border:1px solid var(--border);border-radius:9px}.fh-summary-records strong{font-size:.76rem}.fh-summary-records span{font-size:.72rem;color:var(--ink-3);line-height:1.5}.fh-summary-notes{font-size:.75rem;line-height:1.6;margin:12px 0 0}.fh-summary-previous{margin-top:14px;color:var(--ink-3);font-size:.7rem}.fh-summary-previous summary{cursor:pointer}.fh-summary-previous p{margin-top:7px;line-height:1.5}
-@media(max-width:1000px){.fh-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fh-catalog{gap:18px 16px}.fh-option-grid{grid-template-columns:1fr}}
-@media(max-width:650px){#hc-family-sections .fh-panel{padding:18px}.fh-header{flex-direction:column;gap:14px}.fh-header .form-sec-title{font-size:1rem}.fh-count{padding:7px 10px}.fh-context,.fh-catalog,.fh-summary-records{grid-template-columns:1fr;max-width:none}.fh-status{display:grid;grid-template-columns:1fr 1fr}.fh-status-button{justify-content:flex-start;padding:10px;font-size:.71rem}.fh-option-grid{grid-template-columns:1fr 1fr}.fh-other{align-items:stretch;flex-direction:column}.fh-other .btn{align-self:flex-start}.fh-record-grid{grid-template-columns:1fr}.fh-condition-heading{align-items:flex-start}.fh-condition-heading h5{padding-top:4px}.fh-summary-header{align-items:flex-start;flex-direction:column}}
-@media(max-width:380px){.fh-option-grid,.fh-status{grid-template-columns:1fr}.fh-header-main{gap:10px}.fh-icon{width:38px;height:38px;flex-basis:38px}}
+/* Antecedentes familiares: usa los mismos campos y secciones de la HC. */
+.fh-context{margin-bottom:14px}
+.fh-option-grid{display:flex;flex-direction:column;gap:5px}
+.fg label.fh-choice{display:flex;align-items:center;gap:8px;padding:2px 0;margin:0;font-size:.8rem;font-weight:400;line-height:1.5;color:var(--ink-2);cursor:pointer}
+.fg label.fh-choice.is-checked{font-weight:600;color:var(--ink)}
+#hc-family-sections .fh-choice input[type="checkbox"]{width:16px;height:16px;min-width:16px;margin:0;padding:0;flex:0 0 16px;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--blue)}
+.fh-input-action{display:flex;align-items:center;gap:8px}.fh-input-action input{min-width:0;flex:1}.fh-input-action .btn{flex-shrink:0}
+.fh-subtitle{font-size:.74rem;font-weight:600;color:var(--ink-3);margin:18px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.fh-help,.fh-empty{font-size:.72rem;color:var(--ink-3);line-height:1.55;margin:12px 0}
+.fh-empty{display:flex;flex-direction:column;gap:5px}.fh-empty strong{font-weight:500}.fh-empty small{font:inherit}
+.fh-condition-group+.fh-condition-group{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.fh-condition-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.fh-condition-heading h5{font-size:.8rem;font-weight:600;color:var(--ink-2);margin:0}
+.fh-relative{margin-top:10px}.fh-relative+.fh-relative{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.fh-relative-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.7rem;color:var(--ink-3)}
+.fh-record-note{grid-column:1/-1}.fh-notes{margin-top:14px}
+.fh-validation-message{margin-top:14px;padding:9px 11px;border-radius:var(--r-sm);background:var(--orange-bg);color:var(--ink);font-size:.74rem;line-height:1.5}#hc-family-sections input[aria-invalid="true"]{border-color:var(--orange)}
+.fh-summary{grid-column:1/-1}.fh-summary-previous{margin-top:12px;color:var(--ink-3);font-size:.72rem;line-height:1.5}.fh-summary-previous summary{cursor:pointer}.fh-summary-previous p{margin-top:6px}
+@media(max-width:500px){.fh-condition-heading{align-items:flex-start;flex-wrap:wrap}.fh-input-action{flex-wrap:wrap}.fh-input-action input{flex-basis:180px}}
 
 #hc-editor-overlay{z-index:9400}
 #hc-editor-overlay .hc-core-item{flex-direction:column;align-items:stretch;gap:6px}
@@ -7980,10 +7969,10 @@ function fhSummaryText(state){
 }
 function fhSelect(id,label,options,value,recordId,key){
   var opts=options.slice();if(value&&opts.indexOf(value)<0)opts.push(value);
-  return '<label class="fh-control"><span>'+escapeHTML(label)+'</span><select id="'+id+'" '+(recordId?'data-fh-record="'+recordId+'" data-fh-key="'+key+'"':'')+' onchange="fhSync()"><option value="">Sin precisar</option>'+opts.map(function(v){return '<option value="'+escapeHTML(v)+'"'+(value===v?' selected':'')+'>'+escapeHTML(v)+'</option>';}).join('')+'</select></label>';
+  return '<div class="fg fh-control"><label for="'+id+'">'+escapeHTML(label)+'</label><select id="'+id+'" '+(recordId?'data-fh-record="'+recordId+'" data-fh-key="'+key+'"':'')+' onchange="fhSync()"><option value="">Sin precisar</option>'+opts.map(function(v){return '<option value="'+escapeHTML(v)+'"'+(value===v?' selected':'')+'>'+escapeHTML(v)+'</option>';}).join('')+'</select></div>';
 }
 function fhInput(r,key,label,type,placeholder){
-  return '<label class="fh-control"><span>'+escapeHTML(label)+'</span><input id="fh-'+r.id+'-'+key+'" data-fh-record="'+r.id+'" data-fh-key="'+key+'" type="'+(type||'text')+'" '+(type==='number'?'min="0" max="130" step="1"':'')+' value="'+escapeHTML(r[key]===undefined||r[key]===null?'':r[key])+'" placeholder="'+escapeHTML(placeholder||'Opcional')+'" oninput="fhSync()"></label>';
+  return '<div class="fg fh-control"><label for="fh-'+r.id+'-'+key+'">'+escapeHTML(label)+'</label><input id="fh-'+r.id+'-'+key+'" data-fh-record="'+r.id+'" data-fh-key="'+key+'" type="'+(type||'text')+'" '+(type==='number'?'min="0" max="130" step="1"':'')+' value="'+escapeHTML(r[key]===undefined||r[key]===null?'':r[key])+'" placeholder="'+escapeHTML(placeholder||'Opcional')+'" oninput="fhSync()"></div>';
 }
 function fhCapture(){
   if(!_familyHistoryState)return null;
@@ -8064,7 +8053,7 @@ function fhAddCondition(){
 function fhLifeStatusChanged(){fhCapture();fhRenderCurrent();}
 function fhRecordHTML(r,index){
   var life=fhSelect('fh-'+r.id+'-lifeStatus','Situación del familiar',['Vivo(a)','Fallecido(a)','Desconoce'],r.lifeStatus,r.id,'lifeStatus').replace('onchange="fhSync()"','onchange="fhLifeStatusChanged()"');
-  return '<article class="fh-relative"><div class="fh-relative-heading"><span>Familiar '+(index+1)+'</span><button type="button" class="fh-remove" onclick="fhRemoveRelative(\''+r.id+'\')" aria-label="Quitar familiar de '+escapeHTML(fhLabel(r.condition))+'">Quitar</button></div><div class="fh-record-grid">'
+  return '<article class="fh-relative"><div class="fh-relative-heading"><span>Familiar '+(index+1)+'</span><button type="button" class="btn btn-ghost btn-xs" onclick="fhRemoveRelative(\''+r.id+'\')" aria-label="Quitar familiar de '+escapeHTML(fhLabel(r.condition))+'">Quitar</button></div><div class="fgrid fh-record-grid">'
     +fhSelect('fh-'+r.id+'-relative','Parentesco',FH_RELATIVES,r.relative,r.id,'relative')
     +fhInput(r,'specification','Especificación / tipo','text',r.condition==='Neoplasias'?'Tipo de cáncer y localización':'Tipo de enfermedad, si se conoce')
     +fhInput(r,'diagnosisAge','Edad al diagnóstico','number','Años')+life
@@ -8079,41 +8068,56 @@ function renderFamilyHistoryPanel(fields,values){
   state.records.forEach(function(r){if(options.indexOf(r.condition)<0)options.push(r.condition);});
   var groups=FH_GROUPS.map(function(g){return {label:g.label,items:g.items.filter(function(v){return options.indexOf(v)>=0;})};});
   var categorized=FH_GROUPS.reduce(function(a,g){return a.concat(g.items);},[]),other=options.filter(function(v){return categorized.indexOf(v)<0;});
-  if(other.length)groups.push({label:'Otros antecedentes de esta historia',items:other});
+  if(other.length)groups.push({label:'Otros antecedentes',items:other});
   var html='<section class="form-sec hc-custom-section fh-panel" data-family-history="true"><input type="hidden" id="hc-family-state" value="'+escapeHTML(JSON.stringify(state))+'"><input type="hidden" id="hc-custom-cf_family_history" data-clinical-type="checklist" value="'+escapeHTML(JSON.stringify(state.conditions))+'">'
-    +'<div class="fh-header"><div class="fh-header-main"><div class="fh-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="6" r="3"/><circle cx="5" cy="13" r="2.5"/><circle cx="19" cy="13" r="2.5"/><path d="M7 21v-1a5 5 0 0 1 10 0v1M1 21v-1a4 4 0 0 1 4-4M23 21v-1a4 4 0 0 0-4-4"/></svg></div><div><div class="fh-kicker">Historia familiar</div><h3 class="form-sec-title">'+escapeHTML(definition.label||definition.section||'Antecedentes heredofamiliares')+'</h3><p>Registra enfermedades de familiares consanguíneos y precisa a quién corresponde cada antecedente.</p></div></div><div class="fh-count"><strong>'+state.conditions.length+'</strong><span>antecedente'+(state.conditions.length===1?'':'s')+' referido'+(state.conditions.length===1?'':'s')+'</span></div></div>'
-    +'<div class="fh-status-label">Resultado del interrogatorio</div><div class="fh-status" role="group" aria-label="Resultado del interrogatorio">'+Object.keys(FH_STATUS).map(function(key){return '<button type="button" class="fh-status-button'+(state.status===key?' is-active':'')+'" aria-pressed="'+(state.status===key)+'" onclick="fhSetStatus(\''+key+'\')"><span class="fh-status-dot"></span>'+FH_STATUS[key]+'</button>';}).join('')+'</div>'
-    +'<div class="fh-context">'+fhSelect('fh-source','Fuente de la información',['Paciente','Madre','Padre','Tutor(a)','Otro familiar','Documento previo','No especificado'],state.source)
-    +'<label class="fh-control"><span>Fecha del interrogatorio</span><input type="date" id="fh-interview-date" value="'+escapeHTML(state.interviewDate||'')+'" onchange="fhSync()"></label></div>';
+    +'<div class="form-sec-title">'+escapeHTML(definition.label||definition.section||'Antecedentes heredofamiliares')+'</div>'
+    +'<div class="fgrid fh-context"><div class="fg"><label for="fh-status">Resultado del interrogatorio</label><select id="fh-status" onchange="fhSetStatus(this.value)">'+Object.keys(FH_STATUS).map(function(key){return '<option value="'+key+'"'+(state.status===key?' selected':'')+'>'+FH_STATUS[key]+'</option>';}).join('')+'</select></div>'
+    +fhSelect('fh-source','Fuente de la información',['Paciente','Madre','Padre','Tutor(a)','Otro familiar','Documento previo','No especificado'],state.source)
+    +'<div class="fg"><label for="fh-interview-date">Fecha del interrogatorio</label><input type="date" id="fh-interview-date" value="'+escapeHTML(state.interviewDate||'')+'" onchange="fhSync()"></div></div>';
   if(state.status==='reported'||state.status==='unassessed'){
-    html+='<div class="fh-section-heading"><div><h4>Enfermedades referidas en la familia</h4><p>Puedes marcar varias. Después indica los familiares afectados.</p></div></div><div class="fh-catalog">';
-    var optionIndex=0;groups.forEach(function(group){if(!group.items.length)return;html+='<div class="fh-category"><div class="fh-category-title">'+escapeHTML(group.label)+'</div><div class="fh-option-grid">'+group.items.map(function(condition){var checked=state.conditions.indexOf(condition)>=0;return '<label class="fh-choice'+(checked?' is-checked':'')+'"><input type="checkbox" id="hc-custom-cf_family_history-option-'+(optionIndex++)+'" data-clinical-for="hc-custom-cf_family_history" value="'+escapeHTML(condition)+'" '+(checked?'checked':'')+' onchange="fhToggleCondition(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))"><span>'+escapeHTML(fhLabel(condition))+'</span><span class="fh-checkmark" aria-hidden="true">✓</span></label>';}).join('')+'</div></div>';});
-    html+='</div><div class="fh-other"><label class="fh-control"><span>Agregar un antecedente no incluido</span><input type="text" id="fh-other-condition" maxlength="120" placeholder="Nombre de la enfermedad o condición"></label><button type="button" class="btn btn-ghost btn-sm" onclick="fhAddCondition()">＋ Agregar</button></div>';
-    if(state.conditions.length){html+='<div class="fh-section-heading fh-details-heading"><div><h4>Familiares y detalle de los antecedentes</h4><p>Agrega un registro por cada familiar. Completa únicamente la información que se conozca.</p></div><span class="fh-total">'+active.length+' familiar'+(active.length===1?'':'es')+'</span></div><div class="fh-condition-records">';
-      state.conditions.forEach(function(condition){var rows=active.filter(function(r){return r.condition===condition;}),archived=state.records.filter(function(r){return r.condition===condition&&r.archived;}).length;html+='<section class="fh-condition-group"><div class="fh-condition-heading"><h5>'+escapeHTML(fhLabel(condition))+'</h5><button type="button" class="fh-add-relative" onclick="fhAddRelative(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))">＋ Otro familiar</button></div>'+rows.map(fhRecordHTML).join('')+(archived?'<button type="button" class="fh-recover" onclick="fhRestoreRelatives(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))">↩ Recuperar familiares previos ('+archived+')</button>':'')+'</section>';});html+='</div>';
-    }else html+='<div class="fh-empty">Selecciona una enfermedad o agrega un antecedente para registrar los familiares.</div>';
+    html+='<div class="fgrid fh-catalog">';
+    var optionIndex=0;
+    groups.forEach(function(group){
+      if(!group.items.length)return;
+      html+='<div class="fg fh-category"><label>'+escapeHTML(group.label)+'</label><div class="fh-option-grid">'+group.items.map(function(condition){
+        var checked=state.conditions.indexOf(condition)>=0;
+        return '<label class="fh-choice'+(checked?' is-checked':'')+'"><input type="checkbox" id="hc-custom-cf_family_history-option-'+(optionIndex++)+'" data-clinical-for="hc-custom-cf_family_history" value="'+escapeHTML(condition)+'" '+(checked?'checked':'')+' onchange="fhToggleCondition(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))"><span>'+escapeHTML(fhLabel(condition))+'</span></label>';
+      }).join('')+'</div></div>';
+    });
+    html+='<div class="fg"><label for="fh-other-condition">Otro antecedente</label><div class="fh-input-action"><input type="text" id="fh-other-condition" maxlength="120" placeholder="Especificar enfermedad o condición"><button type="button" class="btn btn-ghost btn-xs" onclick="fhAddCondition()">＋ Agregar</button></div></div></div>';
+    if(state.conditions.length){
+      html+='<div class="fh-subtitle">Familiares afectados y detalle de los antecedentes</div><div class="fh-condition-records">';
+      state.conditions.forEach(function(condition){
+        var rows=active.filter(function(r){return r.condition===condition;}),archived=state.records.filter(function(r){return r.condition===condition&&r.archived;}).length;
+        html+='<div class="fh-condition-group"><div class="fh-condition-heading"><h5>'+escapeHTML(fhLabel(condition))+'</h5><button type="button" class="btn btn-ghost btn-xs" onclick="fhAddRelative(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))">＋ Agregar familiar</button></div>'+rows.map(fhRecordHTML).join('')
+          +(archived?'<button type="button" class="btn btn-ghost btn-xs" onclick="fhRestoreRelatives(decodeURIComponent(\''+encodeURIComponent(condition).replace(/'/g,'%27')+'\'))">↩ Recuperar familiares previos ('+archived+')</button>':'')+'</div>';
+      });
+      html+='</div>';
+    }
   }else{
     var text=state.status==='denied'?'El paciente niega antecedentes heredofamiliares.':state.status==='unknown'?'El paciente desconoce sus antecedentes familiares.':'Aún no se ha registrado el resultado del interrogatorio.';
-    html+='<div class="fh-empty"><strong>'+text+'</strong><span>Selecciona «Refiere antecedentes» para capturar enfermedades y familiares.</span>'+(state.records.length?'<small>Los '+state.records.length+' registros previos se conservan y pueden revisarse al volver a «Refiere antecedentes».</small>':'')+'</div>';
+    html+='<div class="fh-empty"><span>'+text+'</span>'+(state.records.length?'<small>Los '+state.records.length+' registros previos se conservan. Selecciona «Refiere antecedentes» para revisarlos.</small>':'')+'</div>';
   }
   var additional=fields.filter(function(f){return ['cf_family_history','cf_family_history_notes'].indexOf(f.id)<0;});
-  if(additional.length)html+='<div class="fh-additional"><div class="fh-section-heading"><h4>Campos adicionales</h4></div><div class="fgrid">'+additional.map(function(f){return '<div class="fg '+(['textarea','checklist'].indexOf(f.type)>=0?'full':'')+'"><label>'+escapeHTML(f.label)+'</label>'+hcFieldControl(f,values[f.id])+'</div>';}).join('')+'</div></div>';
+  if(additional.length)html+='<div class="fh-additional"><div class="fh-subtitle">Campos adicionales</div><div class="fgrid">'+additional.map(function(f){return '<div class="fg '+(['textarea','checklist'].indexOf(f.type)>=0?'full':'')+'"><label>'+escapeHTML(f.label)+'</label>'+hcFieldControl(f,values[f.id])+'</div>';}).join('')+'</div></div>';
   html+='<div id="fh-validation-message" class="fh-validation-message" role="alert" style="display:none"></div>';
-  if(notesDefinition)html+='<div class="fh-notes"><label class="fh-control"><span>'+escapeHTML(notesDefinition.label)+'</span><textarea id="hc-custom-cf_family_history_notes" rows="3" placeholder="Datos pendientes de confirmar, parentescos adicionales o contexto relevante…" oninput="fhSync()">'+escapeHTML(state.notes||'')+'</textarea></label></div>';
+  if(notesDefinition)html+='<div class="fgrid fh-notes"><div class="fg full"><label for="hc-custom-cf_family_history_notes">'+escapeHTML(notesDefinition.label)+'</label><textarea id="hc-custom-cf_family_history_notes" rows="3" placeholder="Información adicional, datos pendientes de confirmar o contexto relevante" oninput="fhSync()">'+escapeHTML(state.notes||'')+'</textarea></div></div>';
   else html+='<input type="hidden" id="hc-custom-cf_family_history_notes" value="'+escapeHTML(state.notes||'')+'">';
-  html+='</section>';
-  return html;
+  return html+'</section>';
 }
+
 function restoreFamilyHistoryDraft(){
   var hidden=document.getElementById('hc-family-state');if(!hidden)return;
   try{var state=JSON.parse(hidden.value);if(state.schema!=='family-history-v2')return;_familyHistoryState=state;fhRenderCurrent();}catch(e){}
 }
 function familyHistorySummaryHTML(state){
   var active=fhActiveRecords(state),previous=state.records.filter(function(r){return active.indexOf(r)<0;});
-  var html='<div class="card fh-summary"><div class="fh-summary-header"><div class="card-title">Antecedentes heredofamiliares</div><span class="fh-summary-status">'+escapeHTML(FH_STATUS[state.status]||FH_STATUS.unassessed)+'</span></div>';
-  if(state.source||state.interviewDate)html+='<p class="fh-summary-meta">'+escapeHTML([state.source,state.interviewDate].filter(Boolean).join(' · '))+'</p>';
-  if(active.length)html+='<div class="fh-summary-records">'+active.map(function(r){return '<div><strong>'+escapeHTML(fhLabel(r.condition))+'</strong><span>'+escapeHTML(fhRecordText(r).split(' · ').slice(1).join(' · '))+'</span></div>';}).join('')+'</div>';
-  if(state.notes)html+='<p class="fh-summary-notes">'+escapeHTML(state.notes).replace(/\n/g,'<br>')+'</p>';
+  function row(label,value){return '<div class="detail-row"><span class="dl">'+escapeHTML(label)+'</span><span class="dv">'+escapeHTML(value).replace(/\n/g,'<br>')+'</span></div>';}
+  var html='<div class="card fh-summary"><div class="card-title">Antecedentes heredofamiliares</div>'+row('Interrogatorio',FH_STATUS[state.status]||FH_STATUS.unassessed);
+  if(state.source)html+=row('Fuente',state.source);
+  if(state.interviewDate)html+=row('Fecha',state.interviewDate);
+  active.forEach(function(r){html+=row(fhLabel(r.condition),fhRecordText(r).split(' · ').slice(1).join(' · '));});
+  if(state.notes)html+=row('Observaciones',state.notes);
   if(previous.length)html+='<details class="fh-summary-previous"><summary>Registros previos conservados ('+previous.length+')</summary>'+previous.map(function(r){return '<p>'+escapeHTML(fhRecordText(r))+'</p>';}).join('')+'</details>';
   return html+'</div>';
 }
