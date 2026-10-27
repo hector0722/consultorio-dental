@@ -405,6 +405,21 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .full { grid-column: 1 / -1; }
 
 /* Editor de plantilla de historia clínica */
+#hc-editor-overlay{z-index:9400}
+#hc-editor-overlay .hc-core-item{flex-direction:column;align-items:stretch;gap:6px}
+.hc-core-item label{display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--ink-3)}
+.hc-core-item input[type="text"],.hc-editor-extra textarea{width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:9px;background:var(--card);color:var(--ink);font:inherit;font-size:.78rem}
+.hc-editor-extra{grid-column:2/4;display:flex;flex-direction:column;gap:5px;color:var(--ink-3);font-size:.7rem}
+.hc-editor-extra textarea{resize:vertical;line-height:1.45}
+.hc-editor-row .hc-remove{grid-column:4;grid-row:1}
+.hc-editor-help{font-size:.76rem;color:var(--ink-3);line-height:1.5;margin:12px 0}
+.clinical-checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;padding:10px;border:1px solid var(--border-med);border-radius:10px;background:var(--bg)}
+.clinical-checklist label.clinical-check-option{display:flex;align-items:center;gap:9px;margin:0;padding:7px;color:var(--ink);font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:normal}
+.clinical-check-option input[type="checkbox"]{width:17px;height:17px;min-width:17px;margin:0;padding:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--blue)}
+.spec-custom-section{padding:12px;border:1px solid var(--border-med);border-radius:12px;margin:12px 0}
+.spec-custom-section>.spec-u-label{margin-bottom:10px}
+@media(max-width:700px){.hc-editor-row .hc-remove{grid-column:3}.hc-editor-extra{grid-column:2/-1}}
+
 .hc-template-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;margin-right:10px}
 .hc-custom-empty{padding:22px;text-align:center;color:var(--ink-3);border:1px dashed var(--border-med);border-radius:var(--r-sm);font-size:.8rem}
 .hc-editor-row{display:grid;grid-template-columns:42px minmax(150px,1fr) 150px 42px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
@@ -6278,7 +6293,7 @@ body.app-ready #dash-page.active > .card {
 <div class="overlay" id="hc-editor-overlay">
   <div class="overlay-box" style="max-width:760px">
     <div class="ob-header">
-      <div><h2>⚙️ Personalizar historia clínica</h2><p style="font-size:.76rem;color:var(--ink-3);margin-top:3px">Oculta campos originales y crea los que necesite tu clínica.</p></div>
+      <div><h2 id="hc-editor-title">⚙️ Personalizar historia clínica</h2><p style="font-size:.76rem;color:var(--ink-3);margin-top:3px">Renombra u oculta campos y crea secciones con los datos que necesite tu clínica.</p></div>
       <button class="ob-close" onclick="closeHCEditor()">✕</button>
     </div>
     <div class="ob-body">
@@ -6288,6 +6303,8 @@ body.app-ready #dash-page.active > .card {
         <div class="form-sec-title" style="margin:0;flex:1">Campos personalizados</div>
         <button class="btn btn-primary btn-sm" onclick="addHCField()">＋ Agregar campo</button>
       </div>
+      <p class="hc-editor-help">Para reunir varios campos en un recuadro, escribe el mismo nombre de sección. Elige «Casillas múltiples» para marcar varias opciones dentro de un campo.</p>
+      <button type="button" id="hc-family-preset" class="btn btn-ghost btn-sm" onclick="addHCFamilyPreset()">＋ Ejemplo: antecedentes heredofamiliares</button>
       <div id="hc-fields-editor" style="margin-top:8px"></div>
     </div>
     <div class="ob-footer">
@@ -7807,12 +7824,7 @@ var HC_CORE_FIELDS = [
 ];
 var _hcDraft = null;
 function escapeHTML(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function hcTemplate(){
-  if (!cfg.hcTemplate || typeof cfg.hcTemplate !== 'object') cfg.hcTemplate = {hiddenCore:[],fields:[]};
-  if (!Array.isArray(cfg.hcTemplate.hiddenCore)) cfg.hcTemplate.hiddenCore=[];
-  if (!Array.isArray(cfg.hcTemplate.fields)) cfg.hcTemplate.fields=[];
-  return cfg.hcTemplate;
-}
+function hcTemplate(){ return clinicalTemplate('general'); }
 
 // ── Doctor responsable del paciente ──────────────────────
 // Es una asignación administrativa del expediente. Las citas y registros de
@@ -7881,51 +7893,171 @@ function doctorPatientMap(doctors, inPeriod) {
   return result;
 }
 
-function applyHCTemplate(){
+var _hcEditorScope = 'general';
+var _hcCapturedValues = null;
+function clinicalTemplate(scope) {
+  var t;
+  if (!scope || scope === 'general') {
+    if (!cfg.hcTemplate || typeof cfg.hcTemplate !== 'object') cfg.hcTemplate = {};
+    t = cfg.hcTemplate;
+  } else {
+    if (!cfg.specialtyTemplates || typeof cfg.specialtyTemplates !== 'object') cfg.specialtyTemplates = {};
+    t = cfg.specialtyTemplates[scope] || (cfg.specialtyTemplates[scope] = {});
+  }
+  if (!Array.isArray(t.hiddenCore)) t.hiddenCore = [];
+  if (!Array.isArray(t.fields)) t.fields = [];
+  if (!t.labels || typeof t.labels !== 'object') t.labels = {};
+  return t;
+}
+function clinicalValueText(value) { return Array.isArray(value) ? value.join(', ') : String(value == null ? '' : value); }
+function clinicalSelectedValues(value) {
+  if (Array.isArray(value)) return value.map(String);
+  if (!value) return [];
+  try { var parsed = JSON.parse(value); if (Array.isArray(parsed)) return parsed.map(String); } catch(e) {}
+  return [String(value)];
+}
+function clinicalFieldOptions(f) {
+  var options = Array.isArray(f.options) ? f.options : String(f.options || '').split('\n');
+  return options.map(function(v){ return String(v).trim(); }).filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+}
+function hcFieldControl(f, value, prefix) {
+  var id = (prefix || 'hc-custom-') + f.id, val = clinicalValueText(value);
+  if (f.type === 'checklist') {
+    var selected = clinicalSelectedValues(value), options = clinicalFieldOptions(f);
+    selected.forEach(function(v){ if (options.indexOf(v) < 0) options.push(v); });
+    return '<input type="hidden" data-clinical-type="checklist" id="'+escapeHTML(id)+'" value="'+escapeHTML(JSON.stringify(selected))+'"><div class="clinical-checklist">'
+      + options.map(function(v,i){ return '<label class="clinical-check-option"><input type="checkbox" id="'+escapeHTML(id)+'-option-'+i+'" data-clinical-for="'+escapeHTML(id)+'" value="'+escapeHTML(v)+'" '+(selected.indexOf(v)>=0?'checked':'')+' onchange="syncClinicalChecklist(\''+id+'\')"><span>'+escapeHTML(v)+'</span></label>'; }).join('')+'</div>';
+  }
+  if (f.type === 'textarea') return '<textarea id="'+id+'" rows="3">'+escapeHTML(val)+'</textarea>';
+  if (f.type === 'yesno') return '<select id="'+id+'">'+(['','Sí','No'].indexOf(val)<0?['','Sí','No',val]:['','Sí','No']).map(function(v){ return '<option value="'+escapeHTML(v)+'"'+(v===val?' selected':'')+'>'+escapeHTML(v||'—')+'</option>'; }).join('')+'</select>';
+  if (f.type === 'select') {
+    var opts = clinicalFieldOptions(f); if (val && opts.indexOf(val)<0) opts.push(val);
+    return '<select id="'+id+'"><option value="">—</option>'+opts.map(function(v){ return '<option value="'+escapeHTML(v)+'"'+(v===val?' selected':'')+'>'+escapeHTML(v)+'</option>'; }).join('')+'</select>';
+  }
+  var inputType=['number','date'].indexOf(f.type)>=0?f.type:'text';
+  // Si se cambió el tipo de un campo, conservar la respuesta anterior hasta
+  // que el usuario la edite; el navegador vaciaría un valor incompatible.
+  if(val&&((inputType==='number'&&!isFinite(Number(val)))||(inputType==='date'&&!/^\d{4}-\d{2}-\d{2}$/.test(val))))inputType='text';
+  return '<input id="'+id+'" type="'+inputType+'" value="'+escapeHTML(val)+'">';
+}
+function syncClinicalChecklist(id) {
+  var input = document.getElementById(id); if (!input) return;
+  input.value = JSON.stringify(Array.prototype.map.call(document.querySelectorAll('[data-clinical-for="'+id+'"]:checked'),function(el){ return el.value; }));
+  input.dispatchEvent(new Event('input', {bubbles:true}));
+}
+function refreshClinicalChecklists() {
+  document.querySelectorAll('[data-clinical-type="checklist"]').forEach(function(input){
+    var values = clinicalSelectedValues(input.value);
+    document.querySelectorAll('[data-clinical-for="'+input.id+'"]').forEach(function(el){ el.checked = values.indexOf(el.value)>=0; });
+  });
+}
+function readClinicalField(f, prefix) {
+  var el = document.getElementById((prefix || 'hc-custom-')+f.id);
+  return el ? (f.type==='checklist' ? clinicalSelectedValues(el.value) : el.value) : undefined;
+}
+function clinicalFieldsHTML(fields, values, prefix, specialty) {
+  var groups = new Map();
+  fields.forEach(function(f){ var section=String(f.section||'Campos personalizados').trim()||'Campos personalizados'; if(!groups.has(section))groups.set(section,[]);groups.get(section).push(f); });
+  var html='';
+  groups.forEach(function(items,section){
+    html+='<section class="'+(specialty?'spec-custom-section':'form-sec hc-custom-section')+'"><div class="'+(specialty?'spec-u-label':'form-sec-title')+'">'+escapeHTML(section)+'</div><div class="'+(specialty?'spec-form-grid':'fgrid')+'">';
+    html+=items.map(function(f){return '<div class="'+(specialty?'spec-field':'fg')+(['textarea','checklist'].indexOf(f.type)>=0?' full':'')+'"><label for="'+(prefix||'hc-custom-')+f.id+'">'+escapeHTML(f.label)+'</label>'+hcFieldControl(f,values[f.id],prefix)+'</div>';}).join('');
+    html+='</div></section>';
+  });
+  return html;
+}
+function applyHCTemplate(values) {
   var t=hcTemplate();
   HC_CORE_FIELDS.forEach(function(meta){
-    var el=document.getElementById(meta[0]); if(!el)return;
-    var box=el.closest('.fg'); if(box) box.style.display=t.hiddenCore.indexOf(meta[0])>=0?'none':'';
+    var el=document.getElementById(meta[0]);if(!el)return;var box=el.closest('.fg');
+    if(box){box.style.display=t.hiddenCore.indexOf(meta[0])>=0?'none':'';var label=box.querySelector('label');if(label)label.textContent=t.labels[meta[0]]||meta[1];}
   });
-  renderHCCustomFields();
+  renderHCCustomFields(values);
 }
-function hcFieldControl(f,value){
-  var id='hc-custom-'+f.id, val=value==null?'':String(value);
-  if(f.type==='textarea') return '<textarea id="'+id+'" rows="3">'+escapeHTML(val)+'</textarea>';
-  if(f.type==='yesno') return '<select id="'+id+'"><option value="">—</option><option value="Sí"'+(val==='Sí'?' selected':'')+'>Sí</option><option value="No"'+(val==='No'?' selected':'')+'>No</option></select>';
-  return '<input id="'+id+'" type="'+(['number','date'].indexOf(f.type)>=0?f.type:'text')+'" value="'+escapeHTML(val)+'">';
+function renderHCCustomFields(values) {
+  var root=document.getElementById('hc-custom-sections');if(!root)return;
+  var p=curId?db.patients.find(function(x){return x.id==curId;}):null;
+  root.innerHTML=clinicalFieldsHTML(hcTemplate().fields,values||(p&&p.customClinical)||{},'hc-custom-',false);
 }
-function renderHCCustomFields(){
-  var root=document.getElementById('hc-custom-sections'); if(!root)return;
-  var fields=hcTemplate().fields, p=curId?db.patients.find(function(x){return x.id==curId;}):null, vals=p&&p.customClinical||{};
-  if(!fields.length){root.innerHTML='';return;}
-  var groups={}; fields.forEach(function(f){var s=(f.section||'Campos personalizados').trim();(groups[s]||(groups[s]=[])).push(f);});
-  root.innerHTML=Object.keys(groups).map(function(section){return '<div class="form-sec hc-custom-section"><div class="form-sec-title">'+escapeHTML(section)+'</div><div class="fgrid">'+groups[section].map(function(f){return '<div class="fg '+(f.type==='textarea'?'full':'')+'"><label>'+escapeHTML(f.label)+'</label>'+hcFieldControl(f,vals[f.id])+'</div>';}).join('')+'</div></div>';}).join('');
+function collectHCCustomValues() {
+  var p=curId?db.patients.find(function(x){return x.id==curId;}):null;
+  var out=Object.assign({},p&&p.customClinical||{});
+  hcTemplate().fields.forEach(function(f){var value=readClinicalField(f);if(value!==undefined)out[f.id]=value;});
+  return out;
 }
-function collectHCCustomValues(){
-  var out={}; hcTemplate().fields.forEach(function(f){var el=document.getElementById('hc-custom-'+f.id);if(el)out[f.id]=el.value;}); return out;
+function clinicalFieldMetadata(fields, previous) {
+  var meta=Object.assign({},previous||{});
+  fields.forEach(function(f){meta[f.id]={id:f.id,label:f.label,section:f.section||'Campos personalizados',type:f.type};});
+  return meta;
 }
-function openHCEditor(){
-  _hcDraft=JSON.parse(JSON.stringify(hcTemplate()));
-  document.getElementById('hc-core-list').innerHTML=HC_CORE_FIELDS.map(function(m){return '<label class="hc-core-item"><input type="checkbox" data-core="'+m[0]+'" '+(_hcDraft.hiddenCore.indexOf(m[0])<0?'checked':'')+'> <span>'+escapeHTML(m[1])+'</span></label>';}).join('');
-  renderHCEditorFields(); document.getElementById('hc-editor-overlay').classList.add('open');
+function clinicalRecordedFields(fields, metadata, values) {
+  var out=fields.slice(),ids=out.map(function(f){return f.id;});
+  Object.keys(values||{}).forEach(function(id){if(ids.indexOf(id)<0)out.push(Object.assign({id:id,label:id,section:'Campos anteriores'},metadata&&metadata[id]||{}));});
+  return out;
 }
-function closeHCEditor(){document.getElementById('hc-editor-overlay').classList.remove('open');_hcDraft=null;}
-function renderHCEditorFields(){
+function hcEditorCoreFields(scope) {
+  if(!scope||scope==='general')return HC_CORE_FIELDS;
+  var m=_specConfig(scope);
+  return [['site','Diente / zona'],['nextDate','Próxima revisión'],['diagnosis','Diagnóstico / hallazgos'],['procedure','Procedimiento realizado'],['plan','Plan y seguimiento'],['notes','Notas adicionales']].concat(m?m.fields.map(function(f){return [f.id,f.label];}):[]);
+}
+function renderHCEditorCore() {
+  document.getElementById('hc-core-list').innerHTML=hcEditorCoreFields(_hcEditorScope).map(function(meta){
+    return '<div class="hc-core-item"><label><input type="checkbox" data-core="'+meta[0]+'" '+(_hcDraft.hiddenCore.indexOf(meta[0])<0?'checked':'')+' onchange="setHCCoreVisible(\''+meta[0]+'\',this.checked)"> Mostrar</label><input type="text" aria-label="Nombre de '+escapeHTML(meta[1])+'" value="'+escapeHTML(_hcDraft.labels[meta[0]]||meta[1])+'" oninput="_hcDraft.labels[\''+meta[0]+'\']=this.value"></div>';
+  }).join('');
+}
+function setHCCoreVisible(id,visible) {
+  _hcDraft.hiddenCore=_hcDraft.hiddenCore.filter(function(key){return key!==id;});
+  if(!visible)_hcDraft.hiddenCore.push(id);
+}
+function openHCEditor(scope) {
+  _hcEditorScope=typeof scope==='string'?scope:'general';
+  _hcDraft=JSON.parse(JSON.stringify(clinicalTemplate(_hcEditorScope)));
+  _hcCapturedValues=_hcEditorScope==='general'?collectHCCustomValues():captureSpecialtyForm(_specConfig(_hcEditorScope));
+  var title=document.getElementById('hc-editor-title');if(title)title.textContent=_hcEditorScope==='general'?'⚙️ Personalizar historia clínica':'⚙️ Personalizar historia de '+_specConfig(_hcEditorScope).label;
+  var preset=document.getElementById('hc-family-preset');if(preset)preset.style.display=_hcEditorScope==='general'?'':'none';
+  renderHCEditorCore();renderHCEditorFields();document.getElementById('hc-editor-overlay').classList.add('open');
+}
+function closeHCEditor() {document.getElementById('hc-editor-overlay').classList.remove('open');_hcDraft=null;_hcCapturedValues=null;}
+function renderHCEditorFields() {
   var root=document.getElementById('hc-fields-editor');
-  if(!_hcDraft.fields.length){root.innerHTML='<div class="hc-custom-empty">Todavía no hay campos personalizados.</div>';return;}
-  root.innerHTML=_hcDraft.fields.map(function(f,i){return '<div class="hc-editor-row"><div class="hc-drag"><button class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',-1)" title="Subir">↑</button><button class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',1)" title="Bajar">↓</button></div><input type="text" value="'+escapeHTML(f.label)+'" placeholder="Nombre del campo" oninput="_hcDraft.fields['+i+'].label=this.value"><select onchange="_hcDraft.fields['+i+'].type=this.value"><option value="text" '+(f.type==='text'?'selected':'')+'>Texto corto</option><option value="textarea" '+(f.type==='textarea'?'selected':'')+'>Texto largo</option><option value="number" '+(f.type==='number'?'selected':'')+'>Número</option><option value="date" '+(f.type==='date'?'selected':'')+'>Fecha</option><option value="yesno" '+(f.type==='yesno'?'selected':'')+'>Sí / No</option></select><button class="hc-remove" onclick="removeHCField('+i+')" title="Eliminar">🗑</button><input type="text" value="'+escapeHTML(f.section||'Campos personalizados')+'" placeholder="Sección" style="grid-column:2 / 4" oninput="_hcDraft.fields['+i+'].section=this.value"></div>';}).join('');
+  if(!_hcDraft.fields.length){root.innerHTML='<div class="hc-custom-empty">Agrega campos y usa el mismo nombre de sección para agruparlos en un recuadro.</div>';return;}
+  var types=[['text','Texto corto'],['textarea','Texto largo'],['number','Número'],['date','Fecha'],['yesno','Sí / No'],['select','Lista desplegable'],['checklist','Casillas múltiples']];
+  root.innerHTML=_hcDraft.fields.map(function(f,i){
+    return '<div class="hc-editor-row"><div class="hc-drag"><button type="button" class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',-1)" aria-label="Subir campo">↑</button><button type="button" class="btn btn-ghost btn-xs" onclick="moveHCField('+i+',1)" aria-label="Bajar campo">↓</button></div><input type="text" value="'+escapeHTML(f.label)+'" aria-label="Nombre del campo" placeholder="Nombre del campo" oninput="_hcDraft.fields['+i+'].label=this.value"><select aria-label="Tipo de campo" onchange="setHCFieldType('+i+',this.value)">'+types.map(function(t){return '<option value="'+t[0]+'" '+(f.type===t[0]?'selected':'')+'>'+t[1]+'</option>';}).join('')+'</select><button type="button" class="hc-remove" onclick="removeHCField('+i+')" aria-label="Quitar campo">🗑</button>'
+      +'<label class="hc-editor-extra">Sección · mismo nombre = mismo recuadro<input type="text" value="'+escapeHTML(f.section||'Campos personalizados')+'" placeholder="Ej. Antecedentes heredofamiliares" oninput="_hcDraft.fields['+i+'].section=this.value"></label>'
+      +(['select','checklist'].indexOf(f.type)>=0?'<label class="hc-editor-extra">Opciones · una por renglón<textarea rows="4" oninput="_hcDraft.fields['+i+'].options=this.value.split(\'\\n\')">'+escapeHTML(clinicalFieldOptions(f).join('\n'))+'</textarea></label>':'')+'</div>';
+  }).join('');
 }
-function addHCField(){_hcDraft.fields.push({id:'cf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),label:'Nuevo campo',type:'text',section:'Campos personalizados'});renderHCEditorFields();}
-function removeHCField(i){if(confirm('¿Quitar este campo de la plantilla? Los valores anteriores se conservarán en el respaldo.')){_hcDraft.fields.splice(i,1);renderHCEditorFields();}}
-function moveHCField(i,d){var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var x=_hcDraft.fields.splice(i,1)[0];_hcDraft.fields.splice(j,0,x);renderHCEditorFields();}
-function saveHCTemplate(){
-  _hcDraft.hiddenCore=[];document.querySelectorAll('#hc-core-list [data-core]').forEach(function(ch){if(!ch.checked)_hcDraft.hiddenCore.push(ch.dataset.core);});
-  _hcDraft.fields=_hcDraft.fields.filter(function(f){return f.label&&f.label.trim();}); cfg.hcTemplate=_hcDraft;
-  if(typeof GD!=='undefined'&&GD.saveCfg)GD.saveCfg();else appStorage.setItem('dental_cfg_v1',serializeConfigForLocalStorage(cfg));
-  applyHCTemplate();closeHCEditor();showToast('✅ Plantilla de historia clínica guardada','green');
+function setHCFieldType(i,type) {_hcDraft.fields[i].type=type;if(['select','checklist'].indexOf(type)>=0&&!_hcDraft.fields[i].options)_hcDraft.fields[i].options=['Opción 1','Opción 2'];renderHCEditorFields();}
+function addHCField() {_hcDraft.fields.push({id:'cf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),label:'Nuevo campo',type:'text',section:_hcDraft.fields.length?_hcDraft.fields[_hcDraft.fields.length-1].section:'Campos personalizados'});renderHCEditorFields();}
+function addHCFamilyPreset() {
+  if(_hcDraft.fields.some(function(f){return f.id==='cf_family_history';})){showToast('El bloque de antecedentes ya está agregado','orange');return;}
+  _hcDraft.fields.push({id:'cf_family_history',label:'Antecedentes heredofamiliares',type:'checklist',section:'Antecedentes heredofamiliares',options:['Diabetes','Hipertensión','Neoplasias']});
+  _hcDraft.fields.push({id:'cf_family_history_notes',label:'Parentesco y observaciones',type:'textarea',section:'Antecedentes heredofamiliares'});renderHCEditorFields();
 }
-function resetHCTemplate(){if(!confirm('¿Mostrar todos los campos originales y quitar los personalizados?'))return;_hcDraft={hiddenCore:[],fields:[]};renderHCEditorFields();document.querySelectorAll('#hc-core-list [data-core]').forEach(function(x){x.checked=true;});}
+function removeHCField(i) {if(confirm('¿Quitar este campo de la plantilla? Sus valores guardados se conservarán en los expedientes.')){_hcDraft.fields.splice(i,1);renderHCEditorFields();}}
+function moveHCField(i,d) {var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var f=_hcDraft.fields.splice(i,1)[0];_hcDraft.fields.splice(j,0,f);renderHCEditorFields();}
+function saveHCTemplate() {
+  var draft=JSON.parse(JSON.stringify(_hcDraft));
+  draft.fields=draft.fields.filter(function(f){return f.label&&f.label.trim();});
+  for(var i=0;i<draft.fields.length;i++){
+    var f=draft.fields[i];f.label=f.label.trim();f.section=String(f.section||'Campos personalizados').trim()||'Campos personalizados';
+    if(['select','checklist'].indexOf(f.type)>=0){f.options=clinicalFieldOptions(f);if(!f.options.length){showToast('Agrega al menos una opción a '+f.label,'orange');return;}}
+  }
+  var scope=_hcEditorScope,previous=JSON.parse(JSON.stringify(clinicalTemplate(scope))),values=_hcCapturedValues;
+  if(scope==='general')cfg.hcTemplate=draft;else cfg.specialtyTemplates[scope]=draft;
+  var saved=true;
+  if(typeof GD!=='undefined'&&GD.saveCfg)saved=GD.saveCfg();else appStorage.setItem('dental_cfg_v1',serializeConfigForLocalStorage(cfg));
+  if(saved===false){if(scope==='general')cfg.hcTemplate=previous;else cfg.specialtyTemplates[scope]=previous;return;}
+  if(scope==='general')applyHCTemplate(values);
+  else {var root=document.getElementById('spec-content');if(root)renderSpecModule(root,_specConfig(scope),values);}
+  closeHCEditor();showToast('✅ Plantilla guardada para esta clínica','green');
+}
+function resetHCTemplate() {
+  if(!confirm('¿Restablecer esta plantilla? Los datos guardados en pacientes se conservan.'))return;
+  _hcDraft={hiddenCore:[],fields:[],labels:{}};renderHCEditorCore();renderHCEditorFields();
+}
+
 function printPatientForm(){
   var w=window.open('','_blank');
   if(!w){showToast('⚠️ Permite ventanas emergentes para imprimir','red');return;}
@@ -7940,6 +8072,7 @@ function printPatientForm(){
       if(!input||hidden.indexOf(input.id)>=0||box.style.display==='none')return;
       var label=box.querySelector('label');
       var value=input.value;
+      if(input.getAttribute('data-clinical-type')==='checklist')value=clinicalValueText(clinicalSelectedValues(value));
       if(input.tagName==='SELECT'&&input.selectedIndex>=0)value=input.options[input.selectedIndex].textContent;
       if(input.type==='date'&&value){var d=value.split('-');if(d.length===3)value=d[2]+'/'+d[1]+'/'+d[0];}
       fields.push({label:label?label.textContent.replace('*','').trim():'Campo',value:value||'—',wide:box.classList.contains('full')||input.tagName==='TEXTAREA'});
@@ -8066,6 +8199,7 @@ function _applyPatientDraftFields(fields) {
     if (el.type === 'checkbox') el.checked = !!fields[id];
     else el.value = fields[id] == null ? '' : String(fields[id]);
   });
+  refreshClinicalChecklists();
 }
 
 function restorePatientDraftAfterReconnect(force) {
@@ -8215,6 +8349,8 @@ function savePatient() {
   const id = fv('fp-id');
   const assignedDoctor = selectedPatientDoctor();
   const data = { name, expediente:fv("fp-expediente"), phone:fv('fp-phone'), dob:fv('fp-dob'), sex:fv('fp-sex'), assignedDoctorId:assignedDoctor?assignedDoctor.id:null, assignedDoctorName:assignedDoctor?assignedDoctor.name:'', curp:fv('fp-curp').toUpperCase(), email:fv('fp-email'), repLegal:fv('fp-rep-legal'), repParentesco:fv('fp-rep-parentesco'), residence:fv('fp-city'), maritalStatus:fv('fp-civil'), occupation:fv('fp-occ'), contactSocial:fv('fp-social'), heightCm:fv('fp-height'), weightKg:fv('fp-weight'), weightNote:fv('fp-wnote'), hasKids:fv('fp-kids'), isPregnant:fv('fp-preg'), fiscalData:{rfc:fv('fp-fiscal-rfc').trim().toUpperCase(),name:fv('fp-fiscal-name').trim().toUpperCase(),postalCode:fv('fp-fiscal-zip').trim(),regime:fv('fp-fiscal-regime'),use:fv('fp-fiscal-use'),email:fv('fp-fiscal-email').trim()}, medsCondition:fv('fp-meds'), allergies:fv('fp-allergy'), supplements:fv('fp-supps'), smokeVape:fv('fp-smoke'), substances:fv('fp-subst'), alcohol:fv('fp-alc'), sodaCoffee:fv('fp-soda'), diet:fv('fp-diet'), snacks:fv('fp-snacks'), otherHealth:fv('fp-other'), hygieneBrushCount:fv('fp-brush'), hygienePaste:fv('fp-paste'), hygieneFloss:fv('fp-floss'), hygieneMouthwash:fv('fp-mouth'), dentalHistory:fv('fp-dental'), cie10:fv('fp-cie10'), pronostico:fv('fp-pronostico'), avisoPrv:fv('fp-aviso-priv'), customClinical:collectHCCustomValues() };
+  var previousPatient = id ? db.patients.find(function(patient){return patient.id==id;}) : null;
+  data.customClinicalMeta = clinicalFieldMetadata(hcTemplate().fields, previousPatient&&previousPatient.customClinicalMeta);
   if (id) { const idx = db.patients.findIndex(x => x.id == id); db.patients[idx] = { ...db.patients[idx], ...data }; curId = parseInt(id); }
   else { data.id = Date.now(); data.orthoControls = []; data.tags = []; data.clinicalNotes = ''; db.patients.push(data); curId = data.id; assignHCNumbers(); }
   // Conservar el formulario hasta que Drive confirme la escritura. Si el token
@@ -12947,10 +13083,10 @@ function printHistoriaClinica() {
 
   // Campos creados por la clínica. Se imprimen con la misma plantilla y
   // permanecen asociados al paciente aunque después se oculten del formulario.
-  var customPrintFields = (cfg.hcTemplate && cfg.hcTemplate.fields || []);
   var customPrintValues = p.customClinical || {};
+  var customPrintFields = clinicalRecordedFields(hcTemplate().fields,p.customClinicalMeta,customPrintValues);
   var customPrintHTML = customPrintFields.length ? '<h2>Campos personalizados de la clínica</h2><table>'
-    + customPrintFields.map(function(f){ return row(f.label, customPrintValues[f.id] || '—'); }).join('') + '</table>' : '';
+    + customPrintFields.map(function(f){ return row(escapeHTML((f.section?f.section+' · ':'')+f.label), escapeHTML(clinicalValueText(customPrintValues[f.id])) || '—'); }).join('') + '</table>' : '';
 
   // Ortho controls
   var orthoControls = (p.orthoData && p.orthoData.controls || []).slice(-3).map(function(c){
@@ -24685,6 +24821,34 @@ function specLaunchExisting(id) {
   else if(m.open==='openOdontogramPed')openOdontogramPed();
 }
 
+var _specFormSeed = null;
+function specialtyTemplateFields(id) {return clinicalTemplate(id).fields;}
+function captureSpecialtyForm(m) {
+  if(!m)return {};
+  var records=_specRecords(m.id),previous=_specEditingId?records.find(function(r){return String(r.id)===String(_specEditingId);}):null;
+  var seed=_specFormSeed&&_specFormSeed.module===m.id&&String(_specFormSeed.patient)===String(_specPatId)&&String(_specFormSeed.record||'')===String(_specEditingId||'')?_specFormSeed.values:previous;
+  var record=Object.assign({},seed||{});record.fields=Object.assign({},record.fields||{});record.customFields=Object.assign({},record.customFields||{});
+  ['date','site','status','nextDate','diagnosis','procedure','plan','notes'].forEach(function(id){var el=document.getElementById('spec-field-'+id);if(el)record[id]=el.value;});
+  m.fields.forEach(function(f){var el=document.getElementById('spec-field-'+f.id);if(el)record.fields[f.id]=el.value;});
+  specialtyTemplateFields(m.id).forEach(function(f){var value=readClinicalField(f,'spec-custom-');if(value!==undefined)record.customFields[f.id]=value;});
+  record.customFieldMeta=clinicalFieldMetadata(specialtyTemplateFields(m.id),record.customFieldMeta);
+  return record;
+}
+function applySpecialtyTemplate(el,m) {
+  if(m.id!=='endodoncia')return;
+  var t=clinicalTemplate(m.id);
+  hcEditorCoreFields(m.id).forEach(function(meta){
+    var input=el.querySelector('#spec-field-'+meta[0]);if(!input)return;
+    var box=input.closest('[data-spec-core]')||input.closest('.spec-field')||input.closest('.spec-u-section');if(!box)return;
+    box.style.display=t.hiddenCore.indexOf(meta[0])>=0?'none':'';
+    var label=box.querySelector('label,.spec-u-label');if(label)label.textContent=t.labels[meta[0]]||meta[1];
+  });
+}
+function specialtyCustomPrint(record,moduleId) {
+  var values=record.customFields||{},fields=clinicalRecordedFields(specialtyTemplateFields(moduleId),record.customFieldMeta,values);
+  return fields.filter(function(f){return clinicalValueText(values[f.id]);}).map(function(f){return '<div><b>'+escapeHTML((f.section?f.section+' · ':'')+f.label)+':</b> '+escapeHTML(clinicalValueText(values[f.id])).replace(/\n/g,'<br>')+'</div>';}).join('');
+}
+
 function _specFieldHtml(field,value) {
   value=value===undefined||value===null?'':String(value); var full=field.full?' full':'';
   if(field.type==='select') return '<div class="spec-field'+full+'"><label>'+escapeHTML(field.label)+'</label><select id="spec-field-'+field.id+'">'+field.options.map(function(o){return '<option'+(o===value?' selected':'')+'>'+escapeHTML(o)+'</option>';}).join('')+'</select></div>';
@@ -24721,11 +24885,13 @@ function specUpdateRiskGauge(){var input=document.getElementById('spec-field-ris
 
 function _specEndoCanvas(m,e){
   var pulpal=_specValue(e,'pulpalDx'),apical=_specValue(e,'apicalDx'),sym=_specValue(e,'symptoms'),iso=_specValue(e,'isolation');
-  return '<div class="spec-unique spec-endo-dx"><div class="spec-unique-head"><div class="spec-unique-title"><span>🔬</span>Mapa diagnóstico endodóncico</div><div class="spec-unique-hint">Diagnóstico AAE y configuración del sistema de conductos</div></div><div class="spec-u-grid">'
-    +'<div class="spec-u-section"><div class="spec-u-label">Diagnóstico pulpar</div>'+_specChoices('pulpalDx',['Pulpa normal','Pulpitis reversible','Pulpitis irreversible sintomática','Pulpitis irreversible asintomática','Necrosis pulpar','Previamente tratado'],pulpal,2)+'</div>'
-    +'<div class="spec-u-section"><div class="spec-u-label">Diagnóstico apical</div>'+_specChoices('apicalDx',['Tejidos apicales normales','Periodontitis apical sintomática','Periodontitis apical asintomática','Absceso apical agudo','Absceso apical crónico','Osteítis condensante'],apical,2)+'</div>'
-    +'<div class="spec-u-section full"><div class="spec-u-label">Pruebas y síntomas</div>'+_specMulti('symptoms',['Dolor espontáneo','Frío positivo','Calor positivo','Percusión positiva','Palpación positiva','Movilidad','Fístula','Sin síntomas'],sym)+'</div>'
-    +'<div class="spec-u-section full"><div class="spec-endo-canal"><div class="spec-endo-tooth">🦷</div><div><div class="spec-u-label">Sistema de conductos</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+_specInput('canals',_specValue(e,'canals'),'MV, DV, P / número de conductos')+_specInput('workingLength',_specValue(e,'workingLength'),'Longitudes, lima apical, localizador')+'</div><div style="margin-top:7px">'+_specChoices('isolation',['Absoluto','Relativo','No realizado'],iso,3,'center')+'</div></div></div></div></div></div>';
+  return '<div class="spec-unique spec-endo-dx"><div class="spec-unique-head"><div class="spec-unique-title"><span>🔬</span>Mapa diagnóstico endodóncico</div><div class="spec-unique-hint">Diagnóstico y sistema de conductos</div></div><div class="spec-u-grid">'
+    +'<div class="spec-u-section" data-spec-core="pulpalDx"><div class="spec-u-label">Diagnóstico pulpar</div>'+_specChoices('pulpalDx',m.fields.find(function(f){return f.id==='pulpalDx';}).options,pulpal,2)+'</div>'
+    +'<div class="spec-u-section" data-spec-core="apicalDx"><div class="spec-u-label">Diagnóstico apical</div>'+_specChoices('apicalDx',m.fields.find(function(f){return f.id==='apicalDx';}).options,apical,2)+'</div>'
+    +'<div class="spec-u-section full" data-spec-core="symptoms"><div class="spec-u-label">Pruebas y síntomas</div>'+_specMulti('symptoms',['Dolor espontáneo','Frío positivo','Calor positivo','Percusión positiva','Palpación positiva','Movilidad','Fístula','Sin síntomas'],sym)+'</div>'
+    +'<div class="spec-u-section" data-spec-core="canals"><div class="spec-u-label">Conductos localizados</div>'+_specInput('canals',_specValue(e,'canals'),'MV, DV, P / número de conductos')+'</div>'
+    +'<div class="spec-u-section" data-spec-core="workingLength"><div class="spec-u-label">Conductometría / longitud de trabajo</div>'+_specInput('workingLength',_specValue(e,'workingLength'),'Longitudes, lima apical, localizador')+'</div>'
+    +'<div class="spec-u-section full" data-spec-core="isolation"><div class="spec-u-label">Aislamiento</div>'+_specChoices('isolation',['Sin registrar','Absoluto','Relativo','No realizado'],iso,3,'center')+'</div></div></div>';
 }
 function _specSurgeryCanvas(m,e){
   return '<div class="spec-unique"><div class="spec-unique-head"><div class="spec-unique-title"><span>⚕️</span>Planeación y seguridad quirúrgica</div><div class="spec-unique-hint">Valoración preoperatoria, procedimiento y salida segura</div></div><div class="spec-u-grid">'
@@ -24786,26 +24952,30 @@ function _specClinicalCanvas(m,e){
   if(m.id==='endodoncia')return _specEndoCanvas(m,e);if(m.id==='cirugia')return _specSurgeryCanvas(m,e);if(m.id==='implantologia')return _specImplantCanvas(m,e);if(m.id==='protesis')return _specProsthoCanvas(m,e);if(m.id==='restauradora')return _specRestorativeCanvas(m,e);if(m.id==='medicinaoral')return _specOralMedicineCanvas(m,e);if(m.id==='atm')return _specAtmCanvas(m,e);return _specPreventiveCanvas(m,e);
 }
 
-function renderSpecModule(el,m) {
+function renderSpecModule(el,m,draftValues) {
   if(!m){renderSpecDashboard(el);return;} var rec=_specRecords(m.id),latest=_specLatest(rec),today=fmtDate(new Date()),active=rec.filter(function(r){return ['Alta','Referido'].indexOf(r.status)===-1;}).length,overdue=rec.filter(function(r){return r.nextDate&&r.nextDate<today&&r.status!=='Alta';}).length;
   var editing=_specEditingId?rec.find(function(r){return String(r.id)===String(_specEditingId);}):null;
+  var values=draftValues||editing;
   var html='<div style="'+_specStyle(m)+'"><div class="spec-page-head"><div><div class="spec-page-kicker">Especialidad</div><div class="spec-page-title">'+m.icon+' '+escapeHTML(m.label)+'</div><div class="spec-page-desc">'+escapeHTML(m.desc)+'</div></div><button class="btn btn-ghost btn-sm" onclick="printSpecialtyModule()">🖨️ Imprimir evolución</button></div>';
   html+='<div class="spec-summary">'+_specSummaryCard('Evoluciones',rec.length,'registros clínicos')+_specSummaryCard('Casos activos',active,'en atención')+_specSummaryCard('Seguimientos',overdue,overdue?'vencidos':'sin vencidos')+_specSummaryCard('Último registro',latest?_specDateLabel(latest.date):'—',latest?latest.status:'sin actividad')+'</div>';
   if(overdue)html+='<div class="spec-alert"><span>📌</span><div>Hay '+overdue+' seguimiento'+(overdue===1?'':'s')+' con fecha vencida en esta especialidad.</div></div>';
-  html+='<div class="spec-workspace"><section class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">'+(editing?'Editar evolución':'Nueva evolución clínica')+'</div><span style="font-size:.62rem;color:var(--ink-4)">Herramientas propias de '+escapeHTML(m.label)+'</span></div><div class="spec-clinical-intake">'
-    +_specFieldHtml({id:'date',label:'Fecha',type:'date'},editing?editing.date:today)
-    +_specFieldHtml({id:'site',label:'Diente / zona',type:'text',placeholder:'FDI, cuadrante o región'},editing?editing.site:'')
-    +'<div class="spec-field"><label>Estado clínico</label><select id="spec-field-status">'+_specStatusOptions(editing?editing.status:'Valoración')+'</select></div>'
-    +_specFieldHtml({id:'nextDate',label:'Próxima revisión',type:'date'},editing?editing.nextDate:'')+'</div>'
-    +_specClinicalCanvas(m,editing)
+  html+='<div class="spec-workspace"><section class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">'+(editing?'Editar evolución':'Nueva evolución clínica')+'</div>'+(m.id==='endodoncia'?'<button type="button" class="btn btn-ghost btn-xs" onclick="openHCEditor(\'endodoncia\')">⚙️ Personalizar historia</button>':'<span style="font-size:.62rem;color:var(--ink-4)">Herramientas propias de '+escapeHTML(m.label)+'</span>')+'</div><div class="spec-clinical-intake">'
+    +_specFieldHtml({id:'date',label:'Fecha',type:'date'},values?values.date:today)
+    +_specFieldHtml({id:'site',label:'Diente / zona',type:'text',placeholder:'FDI, cuadrante o región'},values?values.site:'')
+    +'<div class="spec-field"><label>Estado clínico</label><select id="spec-field-status">'+_specStatusOptions(values?values.status:'Valoración')+'</select></div>'
+    +_specFieldHtml({id:'nextDate',label:'Próxima revisión',type:'date'},values?values.nextDate:'')+'</div>'
+    +_specClinicalCanvas(m,values)
+    +clinicalFieldsHTML(specialtyTemplateFields(m.id),(values&&values.customFields)||{},'spec-custom-',true)
     +'<div class="spec-note-grid">'
-    +'<div class="spec-field full"><label>Diagnóstico / hallazgos</label><textarea id="spec-field-diagnosis" rows="3" placeholder="Hallazgos clínicos, radiográficos y diagnóstico…">'+escapeHTML(editing?editing.diagnosis||'':'')+'</textarea></div>'
-    +'<div class="spec-field full"><label>Procedimiento realizado</label><textarea id="spec-field-procedure" rows="3" placeholder="Procedimiento, técnica, materiales y respuesta clínica…">'+escapeHTML(editing?editing.procedure||'':'')+'</textarea></div>'
-    +'<div class="spec-field full"><label>Plan y seguimiento</label><textarea id="spec-field-plan" rows="2" placeholder="Siguiente etapa, indicaciones, interconsulta o estudios…">'+escapeHTML(editing?editing.plan||'':'')+'</textarea></div>'
-    +'<div class="spec-field full"><label>Notas adicionales</label><textarea id="spec-field-notes" rows="2" placeholder="Observaciones relevantes…">'+escapeHTML(editing?editing.notes||'':'')+'</textarea></div></div>'
+    +'<div class="spec-field full"><label>Diagnóstico / hallazgos</label><textarea id="spec-field-diagnosis" rows="3" placeholder="Hallazgos clínicos, radiográficos y diagnóstico…">'+escapeHTML(values?values.diagnosis||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Procedimiento realizado</label><textarea id="spec-field-procedure" rows="3" placeholder="Procedimiento, técnica, materiales y respuesta clínica…">'+escapeHTML(values?values.procedure||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Plan y seguimiento</label><textarea id="spec-field-plan" rows="2" placeholder="Siguiente etapa, indicaciones, interconsulta o estudios…">'+escapeHTML(values?values.plan||'':'')+'</textarea></div>'
+    +'<div class="spec-field full"><label>Notas adicionales</label><textarea id="spec-field-notes" rows="2" placeholder="Observaciones relevantes…">'+escapeHTML(values?values.notes||'':'')+'</textarea></div></div>'
     +'<div class="spec-form-actions"><button class="btn btn-primary btn-sm" onclick="saveSpecialtyRecord()">'+(editing?'✓ Guardar cambios':'＋ Agregar evolución')+'</button>'+(editing?'<button class="btn btn-ghost btn-sm" onclick="cancelSpecialtyEdit()">Cancelar</button>':'')+'</div></section>'
     +'<aside class="spec-panel"><div class="spec-panel-head"><div class="spec-panel-title">Evolución y seguimiento</div><span style="font-size:.62rem;color:var(--ink-4)">'+rec.length+' registro'+(rec.length===1?'':'s')+'</span></div><div id="spec-record-list">'+renderSpecialtyRecords(m,rec)+'</div></aside></div></div>';
   el.innerHTML=html;
+  _specFormSeed={module:m.id,patient:_specPatId,record:_specEditingId,values:JSON.parse(JSON.stringify(values||{}))};
+  applySpecialtyTemplate(el,m);
 }
 
 function renderSpecialtyRecords(m,records) {
@@ -24817,11 +24987,13 @@ function renderSpecialtyRecords(m,records) {
 }
 
 function saveSpecialtyRecord() {
-  var m=_specConfig(_specCurrent);if(!m)return;var date=document.getElementById('spec-field-date').value,diagnosis=document.getElementById('spec-field-diagnosis').value.trim(),procedure=document.getElementById('spec-field-procedure').value.trim();
-  if(!date){showToast('Selecciona la fecha de la evolución','red');return;}
-  if(!diagnosis&&!procedure){showToast('Registra al menos el diagnóstico o el procedimiento','red');return;}
-  var fields={};m.fields.forEach(function(f){fields[f.id]=document.getElementById('spec-field-'+f.id).value;});
-  var record={id:_specEditingId||Date.now(),stamp:Date.now(),date:date,site:document.getElementById('spec-field-site').value.trim(),status:document.getElementById('spec-field-status').value,nextDate:document.getElementById('spec-field-nextDate').value,fields:fields,diagnosis:diagnosis,procedure:procedure,plan:document.getElementById('spec-field-plan').value.trim(),notes:document.getElementById('spec-field-notes').value.trim()};
+  var m=_specConfig(_specCurrent);if(!m)return;
+  var record=captureSpecialtyForm(m);
+  if(!record.date){showToast('Selecciona la fecha de la evolución','red');return;}
+  if(!String(record.diagnosis||'').trim()&&!String(record.procedure||'').trim()&&!Object.keys(record.customFields||{}).some(function(key){return clinicalValueText(record.customFields[key]).trim();})){
+    showToast('Registra el diagnóstico, un procedimiento o los campos de tu historia personalizada','red');return;
+  }
+  record.id=_specEditingId||Date.now();record.stamp=Date.now();
   var records=_specRecords(m.id),idx=records.findIndex(function(r){return String(r.id)===String(record.id);});if(idx>=0)records[idx]=record;else records.push(record);
   saveDB();_specEditingId=null;renderSpecialtiesHub();showToast('Evolución de '+m.label+' guardada','green');
 }
@@ -24866,7 +25038,7 @@ function printStoredOrthoSummary(p) {
 
 function printSpecialtyModule() {
   var m=_specConfig(_specCurrent),p=_specPatient();if(!m||!p){showToast('Selecciona una especialidad clínica','red');return;}var records=_specRecords(m.id).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
-  var rows=records.map(function(r){var extra=m.fields.map(function(f){var v=(r.fields||{})[f.id];return v?'<div><b>'+escapeHTML(f.label)+':</b> '+escapeHTML(v)+'</div>':'';}).join('');return '<article><div class="row"><h3>'+escapeHTML(r.site||'Consulta')+'</h3><span>'+_specDateLabel(r.date)+' · '+escapeHTML(r.status||'')+'</span></div>'+extra+(r.diagnosis?'<h4>Diagnóstico / hallazgos</h4><p>'+escapeHTML(r.diagnosis).replace(/\n/g,'<br>')+'</p>':'')+(r.procedure?'<h4>Procedimiento</h4><p>'+escapeHTML(r.procedure).replace(/\n/g,'<br>')+'</p>':'')+(r.plan?'<h4>Plan y seguimiento</h4><p>'+escapeHTML(r.plan).replace(/\n/g,'<br>')+'</p>':'')+(r.nextDate?'<div class="next"><b>Próxima revisión:</b> '+_specDateLabel(r.nextDate)+'</div>':'')+'</article>';}).join('');
+  var rows=records.map(function(r){var extra=m.fields.map(function(f){var v=(r.fields||{})[f.id];return v?'<div><b>'+escapeHTML(clinicalTemplate(m.id).labels[f.id]||f.label)+':</b> '+escapeHTML(v)+'</div>':'';}).join('')+specialtyCustomPrint(r,m.id);return '<article><div class="row"><h3>'+escapeHTML(r.site||'Consulta')+'</h3><span>'+_specDateLabel(r.date)+' · '+escapeHTML(r.status||'')+'</span></div>'+extra+(r.diagnosis?'<h4>Diagnóstico / hallazgos</h4><p>'+escapeHTML(r.diagnosis).replace(/\n/g,'<br>')+'</p>':'')+(r.procedure?'<h4>Procedimiento</h4><p>'+escapeHTML(r.procedure).replace(/\n/g,'<br>')+'</p>':'')+(r.plan?'<h4>Plan y seguimiento</h4><p>'+escapeHTML(r.plan).replace(/\n/g,'<br>')+'</p>':'')+(r.notes?'<h4>Notas adicionales</h4><p>'+escapeHTML(r.notes).replace(/\n/g,'<br>')+'</p>':'')+(r.nextDate?'<div class="next"><b>Próxima revisión:</b> '+_specDateLabel(r.nextDate)+'</div>':'')+'</article>';}).join('');
   var html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+escapeHTML(m.label)+' · '+escapeHTML(p.name)+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#171717;padding:26px 32px;font-size:11px;max-width:850px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:2px solid #171717;padding-bottom:10px;margin-bottom:14px}.clinic{font-size:15px;font-weight:800}.muted{color:#666}.empty{padding:35px;text-align:center;color:#777;border:1px dashed #ccc;border-radius:10px}article{padding:12px 0;border-bottom:1px solid #ddd;page-break-inside:avoid}.row{display:flex;justify-content:space-between;gap:10px}.row h3{margin:0;font-size:12px}.row span{color:#666;font-size:9px}h4{font-size:8px;text-transform:uppercase;color:#777;letter-spacing:.05em;margin:8px 0 2px}p{margin:0;line-height:1.5}.next{margin-top:7px;padding:6px 8px;background:#f5f5f7;border-radius:6px}@media print{@page{size:letter;margin:12mm}body{padding:0}}</style></head><body><div class="head"><div><div class="clinic">'+escapeHTML((typeof cfg!=='undefined'&&cfg.name)||'Consultorio Dental')+'</div><div class="muted">'+escapeHTML((typeof cfg!=='undefined'&&cfg.sub)||'')+'</div></div><div style="text-align:right"><b>'+escapeHTML(m.label.toUpperCase())+'</b><br>'+escapeHTML(p.name)+'<br><span class="muted">'+new Date().toLocaleDateString('es-MX')+'</span></div></div>'+(rows||'<div class="empty">Sin evoluciones registradas.</div>')+'</body></html>';
   var w=window.open('','_blank');if(!w)return;w.document.write(html);w.document.close();_printWindow(w);
 }
@@ -26161,7 +26333,7 @@ window.addEventListener('resize', function() {
       <div id="h-documentos" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">📄 Historia clínica y documentos</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Historia clínica editable</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar o editar un paciente toca <strong>⚙️ Personalizar historia</strong>. Puedes ocultar campos originales, crear secciones, agregar campos de texto, número, fecha o Sí/No y acomodarlos con ↑ y ↓. La plantilla se usa para todos los pacientes, pero cada paciente conserva sus propias respuestas.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Historia clínica editable</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar o editar un paciente toca <strong>⚙️ Personalizar historia</strong>. Puedes renombrar u ocultar campos, agruparlos por sección y agregar texto, número, fecha, Sí/No, listas desplegables o casillas múltiples. El ejemplo de antecedentes reúne diabetes, hipertensión y neoplasias en un recuadro. La plantilla se usa para todos los pacientes, pero cada paciente conserva sus propias respuestas.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Imprimir expediente completo</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la ficha usa <strong>🖨️ Imprimir expediente</strong>. El documento incluye identificación, historia clínica, antecedentes, evolución y un resumen de todas las especialidades con actividad. Los botones de resumen dentro de cada módulo imprimen únicamente esa área.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Guardado de módulos clínicos</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Abre el módulo desde la barra del paciente, registra los datos y usa su botón <strong>Guardar</strong> o <strong>Guardar sesión</strong>. Los indicadores numéricos y el Resumen clínico se actualizan con los registros existentes; los datos anteriores no se reemplazan por abrir un módulo nuevo.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Consentimientos e indicaciones</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Consentimientos</strong> selecciona procedimiento y paciente, revisa el texto e imprime para firma. Puedes editar riesgos, alternativas y cuidados. En <strong>Indicaciones</strong> elige la hoja postoperatoria, personalízala y envíala o imprímela.</div></div>
