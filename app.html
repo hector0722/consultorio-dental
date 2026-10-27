@@ -6462,7 +6462,8 @@ function hideAppLoading(immediate) {
 // ═══ DRIVE-ONLY STORAGE ═══
 // Los datos clínicos y la configuración viven en memoria durante la sesión;
 // su única copia persistente es Google Drive. El navegador solo conserva
-// marcadores mínimos de acceso/activación, nunca información de la clínica.
+// marcadores de acceso y una cola temporal de preferencias pendientes de
+// confirmación. Esa cola se retira al verificar la escritura en Drive.
 var appStorage = (function(nativeStorage) {
   var memory = Object.create(null);
   var dirty = Object.create(null);
@@ -6470,8 +6471,42 @@ var appStorage = (function(nativeStorage) {
   var hydrationDepth = 0;
   var drivePersistTimer = null;
   var READY_KEY = 'dental_drive_only_ready_v1';
+  var PENDING_KEY = 'dental_pending_preferences_v1';
+  var pendingAccount = '';
+  var recoverableKeys = { dental_cfg_v1:1, dental_rx_edits_v1:1 };
+
+  function readPendingPreferences() {
+    try { return JSON.parse(nativeStorage.getItem(PENDING_KEY) || '{}'); }
+    catch(e) { return {}; }
+  }
+  function writePendingPreferences(pending) {
+    if (Object.keys(pending).length) nativeStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+    else nativeStorage.removeItem(PENDING_KEY);
+  }
+  function stagePreference(key, value) {
+    if (!pendingAccount || !recoverableKeys[key] || hydrationDepth) return;
+    var pending = readPendingPreferences();
+    var values = pending[pendingAccount] || {};
+    values[key] = value;
+    pending[pendingAccount] = values;
+    // Es síncrono: una recarga inmediata conserva incluso el último cambio.
+    writePendingPreferences(pending);
+  }
+  function restorePendingPreferences(accountId) {
+    pendingAccount = String(accountId || '').trim().toLowerCase();
+    var values = readPendingPreferences()[pendingAccount] || {};
+    var restored = false;
+    Object.keys(values).forEach(function(key) {
+      if (!recoverableKeys[key]) return;
+      memory[key] = values[key];
+      dirty[key] = ++dirtyRevision;
+      restored = true;
+    });
+    return restored;
+  }
   var LOCAL_OPERATIONAL_KEYS = {
     dental_drive_only_ready_v1:1,
+    dental_pending_preferences_v1:1,
     dental_gd_mode:1,
     dental_gd_token_hint:1,
     dental_device_id_v1:1,
@@ -6518,6 +6553,7 @@ var appStorage = (function(nativeStorage) {
     else {
       var next = String(value);
       var changed = !memoryHas(key) || memory[key] !== next;
+      if (changed) stagePreference(key, next);
       memory[key] = next;
       if (!hydrationDepth && changed) {
         dirty[key] = ++dirtyRevision;
@@ -6530,6 +6566,7 @@ var appStorage = (function(nativeStorage) {
     if (isOperational(key)) nativeStorage.removeItem(key);
     else {
       var changed = !memoryHas(key) || memory[key] !== null;
+      if (changed) stagePreference(key, null);
       memory[key] = null;
       if (!hydrationDepth && changed) {
         dirty[key] = ++dirtyRevision;
@@ -6596,6 +6633,7 @@ var appStorage = (function(nativeStorage) {
   function clearSessionClinicalData() {
     memory = Object.create(null);
     dirty = Object.create(null);
+    pendingAccount = '';
   }
   function beginHydration() { hydrationDepth++; }
   function endHydration() { hydrationDepth = Math.max(0, hydrationDepth - 1); }
@@ -6610,11 +6648,21 @@ var appStorage = (function(nativeStorage) {
       dirty = Object.create(null);
       return;
     }
+    var pending = readPendingPreferences();
+    var values = pending[pendingAccount] || {};
     Object.keys(snapshot).forEach(function(key) {
       // Si el usuario volvió a modificar esta clave mientras Drive guardaba,
       // conservarla pendiente para el siguiente lote.
-      if (dirty[key] === snapshot[key]) delete dirty[key];
+      if (dirty[key] === snapshot[key]) {
+        delete dirty[key];
+        delete values[key];
+      }
     });
+    if (pendingAccount) {
+      if (Object.keys(values).length) pending[pendingAccount] = values;
+      else delete pending[pendingAccount];
+      writePendingPreferences(pending);
+    }
   }
 
   if (!isReady()) {
@@ -6643,6 +6691,7 @@ var appStorage = (function(nativeStorage) {
     isDirty:isDirty,
     dirtySnapshot:dirtySnapshot,
     markClean:markClean,
+    restorePendingPreferences:restorePendingPreferences,
     isReady:isReady
   };
 })(window.localStorage);
@@ -6745,7 +6794,7 @@ function reloadDriveAuxRuntimeState() {
 }
 
 function persistAuxStateToDrive() {
-  if (typeof GD !== 'undefined' && GD.saveNow && GD._token && GD._token()) GD.saveNow();
+  if (typeof GD !== 'undefined' && GD.saveNow) GD.saveNow();
 }
 
 const loadDB = () => {
@@ -7328,6 +7377,34 @@ function neutralizeUnsafeText(value, seen) {
     Object.keys(value).forEach(function(k){ value[k] = neutralizeUnsafeText(value[k], seen); });
   }
   return value;
+}
+
+// Los campos serializados deben seguir siendo JSON válido al descargar Drive.
+function neutralizeDentalSyncPayload(data) {
+  var serialized = {};
+  var fields = ['_auxStore','_caja','_cajaTrash','_production','_productionTrash',
+    '_doctorRates','_catalog','_waTpls','_quickNotes','_doctors'];
+  fields.forEach(function(key) {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      serialized[key] = data[key];
+      delete data[key];
+    }
+  });
+  neutralizeUnsafeText(data);
+  function cleanStored(value) {
+    if (typeof value !== 'string') return neutralizeUnsafeText(value);
+    try { return JSON.stringify(neutralizeUnsafeText(JSON.parse(value))); }
+    catch(e) { return neutralizeUnsafeText(value); }
+  }
+  Object.keys(serialized).forEach(function(key) {
+    if (key === '_auxStore' && serialized[key] && typeof serialized[key] === 'object') {
+      data[key] = {};
+      Object.keys(serialized[key]).forEach(function(storeKey) {
+        data[key][storeKey] = cleanStored(serialized[key][storeKey]);
+      });
+    } else data[key] = cleanStored(serialized[key]);
+  });
+  return data;
 }
 
 const calcAge = dob => { if (!dob) return null; const b = new Date(dob), t = new Date(); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return a; };
@@ -11964,9 +12041,38 @@ function openSettings() {
   applyBranding();
 }
 
-function closeSettings(savePendingCustomWATpls) {
-  if (savePendingCustomWATpls && typeof flushCustomWATplEdits === 'function') {
-    flushCustomWATplEdits();
+// La lada se confirma al terminar de editar o al cerrar con la X.
+// No exige pulsar el botón general de guardar ni modifica otros campos.
+function saveCountryCode(value) {
+  var input = document.getElementById('cfg-country-code');
+  var previous = String(cfg.countryCode || '52');
+  var code = String(value || '').trim().replace(/^\+/, '');
+  if (!/^[1-9]\d{0,3}$/.test(code)) {
+    if (input) input.value = previous;
+    return false;
+  }
+  if (input) input.value = code;
+  if (code === previous) return true;
+  cfg.countryCode = code;
+  var saved = true;
+  if (typeof GD !== 'undefined' && GD.saveCfg) saved = GD.saveCfg();
+  else {
+    cfg._savedAt = Date.now();
+    appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+  }
+  if (saved === false) {
+    cfg.countryCode = previous;
+    if (input) input.value = previous;
+    return false;
+  }
+  return true;
+}
+
+function closeSettings(savePendingEdits) {
+  if (savePendingEdits) {
+    var input = document.getElementById('cfg-country-code');
+    if (input) saveCountryCode(input.value);
+    if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
   }
   document.getElementById('settings-overlay').classList.remove('open');
 }
@@ -12016,8 +12122,8 @@ function pickPresetColor(hex) {
 function saveSettings() {
   if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
   cfg.name     = document.getElementById('cfg-name').value  || cfg.name;
-  cfg.sub      = document.getElementById('cfg-sub').value   || cfg.sub;
-  cfg.city     = document.getElementById('cfg-city').value  || cfg.city;
+  cfg.sub      = document.getElementById('cfg-sub').value.trim();
+  cfg.city     = document.getElementById('cfg-city').value.trim();
   cfg.address  = (document.getElementById('cfg-address') || {}).value || cfg.address || '';
   cfg.phone    = (document.getElementById('cfg-phone')   || {}).value || cfg.phone   || '';
   cfg.logo     = document.getElementById('cfg-logo').value  || cfg.logo;
@@ -12032,6 +12138,10 @@ function saveSettings() {
     var el = document.getElementById('cfg-'+f);
     if (el) cfg[f] = el.value.trim();
   });
+  // Mantener los nombres antiguos que aún usan algunos documentos.
+  cfg.address = cfg.direccion;
+  cfg.phone = cfg.telefono;
+  cfg.email = cfg.correo;
   // En cuentas de un solo doctor, los datos generales y el perfil profesional
   // representan a la misma persona. Mantenerlos sincronizados evita que al
   // recargar el doctor activo restaure el nombre y la cédula predeterminados.
@@ -12049,7 +12159,9 @@ function saveSettings() {
   // Guardar la misma lista dentro de configuración para compatibilidad con
   // respaldos antiguos y para que todos los dispositivos reciban el cambio.
   cfg.doctors = settingsDoctors;
-  if (typeof GD !== 'undefined') GD.saveCfg(); else appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+  if (typeof GD !== 'undefined') {
+    if (GD.saveCfg() === false) return;
+  } else appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   applyBranding();
   if (document.getElementById('dash-page').classList.contains('active')) renderDashboard();
   if (document.getElementById('budget-page').classList.contains('active')) { buildCatalogUI(); renderBudgetPanel(); }
@@ -12059,8 +12171,9 @@ function saveSettings() {
 
 function resetSettings() {
   if (!confirm('Restablecer configuracion por defecto?')) return;
-  appStorage.removeItem('dental_cfg_v1');
-  cfg = { name:'Consultorio Dental', sub:'Gestión clínica', city:'', logo:'🦷', color:'#0071e3', currency:'MXN', countryCode:'52' };
+  cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
+  if (typeof GD !== 'undefined') GD.saveCfg();
+  else appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
   applyBranding();
   closeSettings();
 }
@@ -18040,7 +18153,8 @@ var GD = (function() {
     'dental_production_v1','dental_production_trash_v1',
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
     'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
-    'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
+    'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1',
+    'dental_rx_edits_v1'
   ];
 
   function _accountId(user) {
@@ -18108,6 +18222,7 @@ var GD = (function() {
         throw new Error('No hay espacio para proteger los datos de la cuenta anterior');
       }
       if (typeof clearPhotoSessionCache === 'function') clearPhotoSessionCache();
+      appStorage.restorePendingPreferences('');
       _clearAccountLocalData();
       _restoreAccountSnapshot(nextId);
       // Ninguna marca de la cuenta anterior debe hacer que el caché vacío
@@ -18120,6 +18235,12 @@ var GD = (function() {
       showToast('🔐 Cuenta distinta: cargando únicamente sus datos de Drive', 'green');
     }
     appStorage.setItem(ACCOUNT_ID_KEY, nextId);
+    if (appStorage.restorePendingPreferences(nextId)) {
+      loadSettings();
+      reloadDriveAuxRuntimeState();
+      _dirty = true;
+      _cfgDirty = appStorage.isDirty('dental_cfg_v1');
+    }
     var accountEmail = user.emailAddress || user.email || '';
     _accountEmail = accountEmail || nextId;
     if (accountEmail) appStorage.setItem('dental_gd_email', accountEmail);
@@ -18475,7 +18596,7 @@ var GD = (function() {
           _dirty = true;
           return;
         }
-        neutralizeUnsafeText(data);
+        neutralizeDentalSyncPayload(data);
 
         if (data._auxStore && typeof data._auxStore === 'object') {
           appStorage.importDriveData(data._auxStore);
@@ -18484,7 +18605,7 @@ var GD = (function() {
         if (data._configState && typeof data._configState === 'object') {
           var dbConfigUpdatedAt = parseInt(data._configState._savedAt || '0', 10) || 0;
           var memoryConfigUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
-          if (dbConfigUpdatedAt >= memoryConfigUpdatedAt) {
+          if (!appStorage.isDirty('dental_cfg_v1') && dbConfigUpdatedAt >= memoryConfigUpdatedAt) {
             _applyDriveConfigPreservingImages(data._configState);
           }
         }
@@ -18854,6 +18975,9 @@ var GD = (function() {
       if (!cfg.logoImageDriveId && previousLogoId) cfg.logoImageDriveId = previousLogoId;
       cfg.logoImageUpdatedAt = Math.max(previousLogoUpdatedAt, remoteLogoUpdatedAt);
     }
+    appStorage.beginHydration();
+    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); }
+    finally { appStorage.endHydration(); }
   }
 
   // ── Leer Config desde Drive ──────────────────────────────
@@ -18871,22 +18995,23 @@ var GD = (function() {
           + ' configuraciones de Drive; se usó la más reciente sin borrar ninguna.');
       }
 
-      // Si hay cambios pendientes, solo identificar el archivo; no reemplazar
-      // la configuración de la sesión antes de subirla.
-      if (_preferLocalAfterReconnect) return;
+      // Los cambios pendientes de pacientes no deben impedir cargar la
+      // configuración. Sus propias marcas deciden qué versión conservar.
       return _readFile(_cfgFileId).then(function(data) {
         if (data && data.name) {
           if (files[0].modifiedTime) _lastCfgModifiedTime = files[0].modifiedTime;
           neutralizeUnsafeText(data);
           var localCfgUpdatedAt = parseInt(cfg._savedAt || '0', 10) || 0;
           var remoteCfgUpdatedAt = parseInt(data._savedAt || '0', 10) || 0;
-          if (localCfgUpdatedAt > remoteCfgUpdatedAt) {
+          if (_cfgDirty || appStorage.isDirty('dental_cfg_v1') || localCfgUpdatedAt > remoteCfgUpdatedAt) {
             _cfgDirty = true;
           } else {
             _applyDriveConfigPreservingImages(data);
           }
           _legacyImageMigrationPending = _legacyImageMigrationPending || containsInlineImage(cfg);
-          appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg));
+          appStorage.beginHydration();
+          try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); }
+          finally { appStorage.endHydration(); }
           if (typeof applyBranding === 'function') applyBranding();
           if (_cfgDirty) {
             if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
@@ -19235,6 +19360,26 @@ var GD = (function() {
       merged._waTplsUpdatedAt = Math.max(0, bestWaUpdatedAt);
     }
 
+    var bestConfig = null;
+    var rxEdits = {};
+    allPayloads.forEach(function(payload) {
+      var candidateCfg = payload._configState;
+      if (candidateCfg && (!bestConfig || Number(candidateCfg._savedAt || 0) > Number(bestConfig._savedAt || 0))) {
+        bestConfig = candidateCfg;
+      }
+      var raw = payload._auxStore && payload._auxStore.dental_rx_edits_v1;
+      try {
+        var edits = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        Object.keys(edits || {}).forEach(function(key) {
+          var edit = edits[key];
+          if (!edit || typeof edit !== 'object') return;
+          if (!rxEdits[key] || Number(edit._savedAt || 0) > Number(rxEdits[key]._savedAt || 0)) {
+            rxEdits[key] = edit;
+          }
+        });
+      } catch(e) {}
+    });
+
     var tombstones = merged._patientTombstones || {};
     (mirrors || []).forEach(function(mirror) {
       tombstones = mergeTimestampMaps(tombstones, mirror._patientTombstones);
@@ -19256,6 +19401,12 @@ var GD = (function() {
         merged.catalogState = JSON.parse(JSON.stringify(mirror.catalogState));
       }
     });
+    if (bestConfig) merged._configState = JSON.parse(JSON.stringify(bestConfig));
+    if (Object.keys(rxEdits).length) {
+      merged._auxStore = Object.assign({}, merged._auxStore || {}, {
+        dental_rx_edits_v1: JSON.stringify(rxEdits)
+      });
+    }
     merged._patientTombstones = tombstones;
     return merged;
   }
@@ -19874,6 +20025,7 @@ var GD = (function() {
       if (typeof renderReportePage === 'function') renderReportePage();
     }
     if (activeId === 'caja-page' && typeof cajaRender === 'function') cajaRender();
+    if (activeId === 'rx-page' && typeof renderRxGrid === 'function') renderRxGrid();
     if (activeId === 'budget-page') {
       if (typeof buildCatalogUI === 'function') buildCatalogUI();
       if (typeof renderBudgetPanel === 'function') renderBudgetPanel();
@@ -20133,8 +20285,8 @@ var GD = (function() {
       showToast('⚠️ No se pudo preparar la configuración para Drive.', 'red');
     }
     if (typeof scheduleAutoFileBackup === 'function') scheduleAutoFileBackup();
+    _cfgDirty = true;
     if (_mode === 'google' && _hasUsableToken() && !_saving) {
-      _cfgDirty = true;
       if (_cfgSaveTimer) clearTimeout(_cfgSaveTimer);
       _cfgSaveTimer = setTimeout(_doSaveCfg, 0);
     } else if (!_token) {
@@ -20142,6 +20294,9 @@ var GD = (function() {
       _preferLocalAfterReconnect = true;
       _showReconnectRequired('Reconecta Drive para guardar la configuración');
     }
+    // La base principal también contiene la configuración y confirma la cola
+    // local. Guardar solo el archivo independiente dejaba copias divergentes.
+    if (localCfgSaved) saveNow();
     return localCfgSaved;
   }
 
@@ -20452,7 +20607,8 @@ function _interactionStateFingerprint() {
       + '|' + [
         'dental_catalog_v1','dental_caja_v1','dental_caja_trash_v1','dental_caja_updated_at','dental_production_v1',
         'dental_production_trash_v1','dental_doctor_rates_v1','dental_doctors_v1',
-        'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1'
+        'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1',
+        'dental_rx_edits_v1'
       ].map(function(k){ return appStorage.getItem(k) || ''; }).join('|');
   } catch(e) { return ''; }
   // Huella corta para no conservar otra copia completa de los datos en memoria.
@@ -21620,7 +21776,7 @@ function saveRxEdit() {
     return { name: parts[0]||'', dose: parts[1]||'', note: parts[2]||'', icon: '💊' };
   });
 
-  _rxCustomEdits[_rxEditIdx] = { title: title, drugs: drugs, indicaciones: indsRaw };
+  _rxCustomEdits[_rxEditIdx] = { title: title, drugs: drugs, indicaciones: indsRaw, _savedAt: Date.now() };
   appStorage.setItem('dental_rx_edits_v1', JSON.stringify(_rxCustomEdits));
   persistAuxStateToDrive();
   closeRxEdit();
@@ -24971,7 +25127,7 @@ window.addEventListener('resize', function() {
         </div>
         <div class="settings-row">
           <label>Código de país WhatsApp</label>
-          <input type="text" id="cfg-country-code" placeholder="52" maxlength="4"
+          <input type="text" id="cfg-country-code" placeholder="52" maxlength="4" inputmode="numeric" onchange="saveCountryCode(this.value)"
             style="width:70px;flex:none;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);text-align:center">
           <span style="font-size:.79rem;color:var(--ink-3)">MX=52 · RD=1 · CO=57 · AR=54 · US=1 · VE=58 · PE=51</span>
         </div>
