@@ -6027,6 +6027,7 @@ body.app-ready #dash-page.active > .card {
           <div class="detail-row"><span class="dl">Dieta / Snacks</span><span class="dv" id="dd-diet">—</span></div>
           <div class="detail-row"><span class="dl">Otros problemas</span><span class="dv" id="dd-other">—</span></div>
         </div>
+        <div id="patient-clinical-sections" style="display:contents"></div>
         <div class="card">
           <div class="card-title">Higiene oral</div>
           <div class="detail-row"><span class="dl">Cepillado</span><span class="dv" id="dd-brush">—</span></div>
@@ -6266,6 +6267,7 @@ body.app-ready #dash-page.active > .card {
           <div class="fg full"><label>Otros problemas de salud</label><textarea id="fp-other" rows="2"></textarea></div>
         </div>
       </div>
+      <div id="hc-family-sections"></div>
       <div class="form-sec">
         <div class="form-sec-title">Higiene oral e historial</div>
         <div class="fgrid">
@@ -6304,7 +6306,6 @@ body.app-ready #dash-page.active > .card {
         <button class="btn btn-primary btn-sm" onclick="addHCField()">＋ Agregar campo</button>
       </div>
       <p class="hc-editor-help">Para reunir varios campos en un recuadro, escribe el mismo nombre de sección. Elige «Casillas múltiples» para marcar varias opciones dentro de un campo.</p>
-      <button type="button" id="hc-family-preset" class="btn btn-ghost btn-sm" onclick="addHCFamilyPreset()">＋ Ejemplo: antecedentes heredofamiliares</button>
       <div id="hc-fields-editor" style="margin-top:8px"></div>
     </div>
     <div class="ob-footer">
@@ -7754,6 +7755,7 @@ function _renderDetailBase(id) {
   document.getElementById('dd-mouth').textContent  = s(p.hygieneMouthwash);
   document.getElementById('dd-dental').textContent = s(p.dentalHistory);
   document.getElementById('notes-ta').value = p.clinicalNotes || '';
+  renderClinicalPatientSections(p);
   renderSignosVitales(p);
   renderTags(p.tags || []);
   renderOrtho(p.orthoControls || []);
@@ -7895,6 +7897,12 @@ function doctorPatientMap(doctors, inPeriod) {
 
 var _hcEditorScope = 'general';
 var _hcCapturedValues = null;
+function hcDefaultFields() {
+  return [
+    {id:'cf_family_history',label:'Antecedentes heredofamiliares',type:'checklist',section:'Antecedentes heredofamiliares',options:['Diabetes','Hipertensión','Neoplasias']},
+    {id:'cf_family_history_notes',label:'Parentesco y observaciones',type:'textarea',section:'Antecedentes heredofamiliares'}
+  ];
+}
 function clinicalTemplate(scope) {
   var t;
   if (!scope || scope === 'general') {
@@ -7906,6 +7914,13 @@ function clinicalTemplate(scope) {
   }
   if (!Array.isArray(t.hiddenCore)) t.hiddenCore = [];
   if (!Array.isArray(t.fields)) t.fields = [];
+  // Incorporar la sección en historias nuevas y plantillas anteriores sin
+  // cambiar sus respuestas ni duplicar el bloque creado en la versión previa.
+  if ((!scope || scope==='general') && !t.familyHistoryDefaultsVersion) {
+    var missing=hcDefaultFields().filter(function(field){return !t.fields.some(function(existing){return existing.id===field.id;});});
+    t.fields=missing.concat(t.fields);
+    t.familyHistoryDefaultsVersion=1;
+  }
   if (!t.labels || typeof t.labels !== 'object') t.labels = {};
   return t;
 }
@@ -7977,7 +7992,20 @@ function applyHCTemplate(values) {
 function renderHCCustomFields(values) {
   var root=document.getElementById('hc-custom-sections');if(!root)return;
   var p=curId?db.patients.find(function(x){return x.id==curId;}):null;
-  root.innerHTML=clinicalFieldsHTML(hcTemplate().fields,values||(p&&p.customClinical)||{},'hc-custom-',false);
+  var fields=hcTemplate().fields,answers=values||(p&&p.customClinical)||{};
+  var familyRoot=document.getElementById('hc-family-sections');
+  if(!familyRoot){root.innerHTML=clinicalFieldsHTML(fields,answers,'hc-custom-',false);return;}
+  var sections=fields.filter(function(f){return f.id==='cf_family_history'||f.id==='cf_family_history_notes';}).map(function(f){return f.section||'Campos personalizados';});
+  familyRoot.innerHTML=clinicalFieldsHTML(fields.filter(function(f){return sections.indexOf(f.section||'Campos personalizados')>=0;}),answers,'hc-custom-',false);
+  root.innerHTML=clinicalFieldsHTML(fields.filter(function(f){return sections.indexOf(f.section||'Campos personalizados')<0;}),answers,'hc-custom-',false);
+}
+function renderClinicalPatientSections(patient) {
+  var root=document.getElementById('patient-clinical-sections');if(!root)return;
+  var values=patient.customClinical||{},fields=clinicalRecordedFields(hcTemplate().fields,patient.customClinicalMeta,values),sections=new Map();
+  fields.forEach(function(f){var section=f.section||'Campos personalizados';if(!sections.has(section))sections.set(section,[]);sections.get(section).push(f);});
+  var html='';sections.forEach(function(items,section){
+    html+='<div class="card"><div class="card-title">'+escapeHTML(section)+'</div>'+items.map(function(f){return '<div class="detail-row"><span class="dl">'+escapeHTML(f.label)+'</span><span class="dv">'+escapeHTML(clinicalValueText(values[f.id])||'Sin registrar').replace(/\n/g,'<br>')+'</span></div>';}).join('')+'</div>';
+  });root.innerHTML=html;
 }
 function collectHCCustomValues() {
   var p=curId?db.patients.find(function(x){return x.id==curId;}):null;
@@ -8014,7 +8042,6 @@ function openHCEditor(scope) {
   _hcDraft=JSON.parse(JSON.stringify(clinicalTemplate(_hcEditorScope)));
   _hcCapturedValues=_hcEditorScope==='general'?collectHCCustomValues():captureSpecialtyForm(_specConfig(_hcEditorScope));
   var title=document.getElementById('hc-editor-title');if(title)title.textContent=_hcEditorScope==='general'?'⚙️ Personalizar historia clínica':'⚙️ Personalizar historia de '+_specConfig(_hcEditorScope).label;
-  var preset=document.getElementById('hc-family-preset');if(preset)preset.style.display=_hcEditorScope==='general'?'':'none';
   renderHCEditorCore();renderHCEditorFields();document.getElementById('hc-editor-overlay').classList.add('open');
 }
 function closeHCEditor() {document.getElementById('hc-editor-overlay').classList.remove('open');_hcDraft=null;_hcCapturedValues=null;}
@@ -8030,11 +8057,7 @@ function renderHCEditorFields() {
 }
 function setHCFieldType(i,type) {_hcDraft.fields[i].type=type;if(['select','checklist'].indexOf(type)>=0&&!_hcDraft.fields[i].options)_hcDraft.fields[i].options=['Opción 1','Opción 2'];renderHCEditorFields();}
 function addHCField() {_hcDraft.fields.push({id:'cf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),label:'Nuevo campo',type:'text',section:_hcDraft.fields.length?_hcDraft.fields[_hcDraft.fields.length-1].section:'Campos personalizados'});renderHCEditorFields();}
-function addHCFamilyPreset() {
-  if(_hcDraft.fields.some(function(f){return f.id==='cf_family_history';})){showToast('El bloque de antecedentes ya está agregado','orange');return;}
-  _hcDraft.fields.push({id:'cf_family_history',label:'Antecedentes heredofamiliares',type:'checklist',section:'Antecedentes heredofamiliares',options:['Diabetes','Hipertensión','Neoplasias']});
-  _hcDraft.fields.push({id:'cf_family_history_notes',label:'Parentesco y observaciones',type:'textarea',section:'Antecedentes heredofamiliares'});renderHCEditorFields();
-}
+
 function removeHCField(i) {if(confirm('¿Quitar este campo de la plantilla? Sus valores guardados se conservarán en los expedientes.')){_hcDraft.fields.splice(i,1);renderHCEditorFields();}}
 function moveHCField(i,d) {var j=i+d;if(j<0||j>=_hcDraft.fields.length)return;var f=_hcDraft.fields.splice(i,1)[0];_hcDraft.fields.splice(j,0,f);renderHCEditorFields();}
 function saveHCTemplate() {
@@ -8055,7 +8078,7 @@ function saveHCTemplate() {
 }
 function resetHCTemplate() {
   if(!confirm('¿Restablecer esta plantilla? Los datos guardados en pacientes se conservan.'))return;
-  _hcDraft={hiddenCore:[],fields:[],labels:{}};renderHCEditorCore();renderHCEditorFields();
+  _hcDraft={hiddenCore:[],fields:_hcEditorScope==='general'?hcDefaultFields():[],labels:{},familyHistoryDefaultsVersion:1};renderHCEditorCore();renderHCEditorFields();
 }
 
 function printPatientForm(){
@@ -26333,7 +26356,7 @@ window.addEventListener('resize', function() {
       <div id="h-documentos" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px">📄 Historia clínica y documentos</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Historia clínica editable</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar o editar un paciente toca <strong>⚙️ Personalizar historia</strong>. Puedes renombrar u ocultar campos, agruparlos por sección y agregar texto, número, fecha, Sí/No, listas desplegables o casillas múltiples. El ejemplo de antecedentes reúne diabetes, hipertensión y neoplasias en un recuadro. La plantilla se usa para todos los pacientes, pero cada paciente conserva sus propias respuestas.</div></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Historia clínica editable</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Al registrar o editar un paciente toca <strong>⚙️ Personalizar historia</strong>. Puedes renombrar u ocultar campos, agruparlos por sección y agregar texto, número, fecha, Sí/No, listas desplegables o casillas múltiples. La historia incluye directamente un recuadro de antecedentes heredofamiliares con diabetes, hipertensión y neoplasias, que también puedes editar aquí. La plantilla se usa para todos los pacientes, pero cada paciente conserva sus propias respuestas.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Imprimir expediente completo</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En la ficha usa <strong>🖨️ Imprimir expediente</strong>. El documento incluye identificación, historia clínica, antecedentes, evolución y un resumen de todas las especialidades con actividad. Los botones de resumen dentro de cada módulo imprimen únicamente esa área.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Guardado de módulos clínicos</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">Abre el módulo desde la barra del paciente, registra los datos y usa su botón <strong>Guardar</strong> o <strong>Guardar sesión</strong>. Los indicadores numéricos y el Resumen clínico se actualizan con los registros existentes; los datos anteriores no se reemplazan por abrir un módulo nuevo.</div></div>
           <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)"><div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Consentimientos e indicaciones</div><div style="font-size:.78rem;color:var(--ink-2);line-height:1.6">En <strong>Consentimientos</strong> selecciona procedimiento y paciente, revisa el texto e imprime para firma. Puedes editar riesgos, alternativas y cuidados. En <strong>Indicaciones</strong> elige la hoja postoperatoria, personalízala y envíala o imprímela.</div></div>
