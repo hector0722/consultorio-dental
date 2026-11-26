@@ -930,8 +930,8 @@ tbody tr:hover td { background: rgba(0,113,227,0.03); }
 .settings-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .settings-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
 .settings-row label{font-size:.8rem;font-weight:600;color:var(--ink-2);min-width:130px;flex-shrink:0;}
-.settings-row input[type=text],.settings-row input[type=url]{flex:1;padding:8px 11px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);}
-.settings-row input[type=text]:focus,.settings-row input[type=url]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1);}
+.settings-row input[type=text],.settings-row input[type=email],.settings-row input[type=tel],.settings-row input[type=url]{flex:1;padding:9px 12px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink);transition:border-color .18s ease,box-shadow .18s ease;}
+.settings-row input[type=text]:focus,.settings-row input[type=email]:focus,.settings-row input[type=tel]:focus,.settings-row input[type=url]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 15%,transparent);}
 .settings-row input[type=color]{width:42px;height:34px;border:1px solid var(--border-med);border-radius:var(--r-sm);cursor:pointer;padding:2px;background:var(--card);}
 .doctor-config-card{width:100%;max-width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-med);border-radius:18px;padding:15px;margin-bottom:10px;overflow:hidden;}
 .doctor-config-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0;}
@@ -5229,32 +5229,111 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   transform: scale(.98);
 }
 
-/* ══ ARQUITECTURA NEXT-GEN v6.0: DOCK LATERAL FLOTANTE + COMMAND BAR ══ */
-/* Escritorio (>= 1025px): sustituye la barra superior comprimida por un dock
-   lateral flotante y colapsable con legibilidad total en los 15 módulos. */
+/* ══ ARQUITECTURA NEXT-GEN v6.2: STUDIO DOCK LATERAL SVG + RAIL DE PRECISIÓN ══ */
+#sidebar .nav-icon svg,
+#sidebar .sb-footer svg,
+#sidebar .sb-collapse-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+#sb-rail-tooltip {
+  position: fixed;
+  left: 92px;
+  top: 0;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: rgba(12, 16, 26, .96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #f8fafc;
+  font-size: .75rem;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, .45);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .15s ease, transform .18s var(--ease-spring), visibility .15s ease;
+  z-index: 9999;
+  white-space: nowrap;
+}
+#sb-rail-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Estilizado elegante para #backup-badge dentro del sidebar oscuro */
+#sidebar #backup-badge {
+  border: 1px solid rgba(255, 255, 255, .10) !important;
+  background: rgba(255, 255, 255, .05) !important;
+  color: rgba(255, 255, 255, .74) !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s var(--ease-spring) !important;
+}
+#sidebar #backup-badge.ok {
+  background: rgba(16, 185, 129, .13) !important;
+  border-color: rgba(52, 211, 153, .28) !important;
+  color: #6ee7b7 !important;
+}
+#sidebar #backup-badge.warn,
+#sidebar #backup-badge.never {
+  background: rgba(245, 158, 11, .13) !important;
+  border-color: rgba(251, 191, 36, .28) !important;
+  color: #fcd34d !important;
+}
+#sidebar #backup-badge:hover {
+  opacity: 1 !important;
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+#sidebar #backup-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  font-size: 0 !important;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
 @media (min-width: 1025px) {
   #sidebar {
     position: fixed !important;
-    top: 14px !important;
-    left: 14px !important;
-    bottom: 14px !important;
+    top: 12px !important;
+    left: 12px !important;
+    bottom: 12px !important;
     right: auto !important;
-    width: 262px !important;
-    max-width: 262px !important;
-    height: calc(100dvh - 28px) !important;
+    width: 248px !important;
+    max-width: 248px !important;
+    height: calc(100dvh - 24px) !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
     grid-template-columns: none !important;
-    border-radius: 26px !important;
-    border: 1px solid rgba(255, 255, 255, .11) !important;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--user-sidebar, #121622) 94%, #25324c 6%), var(--user-sidebar, #0b0e17)) !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(255, 255, 255, .10) !important;
+    background:
+      radial-gradient(240px circle at 0% 0%, color-mix(in srgb, var(--blue) 16%, transparent), transparent 72%),
+      linear-gradient(180deg, color-mix(in srgb, var(--user-sidebar, #111520) 94%, #1e293b 6%), var(--user-sidebar, #0b0e16)) !important;
     backdrop-filter: blur(26px) saturate(185%) !important;
     -webkit-backdrop-filter: blur(26px) saturate(185%) !important;
-    box-shadow: 0 24px 64px -18px rgba(4, 8, 22, .45), inset 0 1px 0 rgba(255, 255, 255, .14) !important;
+    box-shadow: 0 22px 54px -18px rgba(4, 8, 22, .46), inset 0 1px 0 rgba(255, 255, 255, .11) !important;
     transform: none !important;
     overflow: visible !important;
-    transition: width .34s var(--ease-expo), max-width .34s var(--ease-expo), box-shadow .3s ease !important;
+    transition: width .3s var(--ease-expo), max-width .3s var(--ease-expo), box-shadow .28s ease !important;
     z-index: 220 !important;
   }
 
@@ -5264,31 +5343,31 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     align-items: center !important;
     gap: 11px !important;
     height: auto !important;
-    min-height: 74px !important;
-    padding: 16px 14px 14px 16px !important;
+    min-height: 66px !important;
+    padding: 14px 16px 13px !important;
     border: 0 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .07) !important;
     position: relative !important;
-    z-index: 3 !important;
+    z-index: 5 !important;
   }
 
   #sidebar .sb-logo-icon {
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
     margin: 0 !important;
-    border-radius: 11px !important;
-    font-size: 1.2rem !important;
-    transition: transform .35s var(--ease-spring), box-shadow .3s ease !important;
+    border-radius: 10px !important;
+    font-size: 1.1rem !important;
+    transition: transform .3s var(--ease-spring), box-shadow .25s ease !important;
   }
   #sidebar .sb-logo-icon.has-custom-logo {
     background: #ffffff !important;
     padding: 3px !important;
-    border: 1px solid rgba(255, 255, 255, .25) !important;
+    border: 1px solid rgba(255, 255, 255, .22) !important;
     box-shadow: 0 6px 16px rgba(0, 0, 0, .24) !important;
   }
   #sidebar .sb-logo:hover .sb-logo-icon {
-    transform: scale(1.07) rotate(-4deg);
+    transform: scale(1.05);
   }
 
   #sidebar .sb-logo-copy {
@@ -5297,8 +5376,8 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     overflow: hidden;
   }
   #sidebar .sb-logo h1 {
-    font-size: .92rem !important;
-    font-weight: 750 !important;
+    font-size: .87rem !important;
+    font-weight: 760 !important;
     color: #f8fafc !important;
     letter-spacing: -.02em !important;
     line-height: 1.2 !important;
@@ -5308,7 +5387,7 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   }
   #sidebar .sb-logo p {
     display: block !important;
-    font-size: .67rem !important;
+    font-size: .65rem !important;
     color: rgba(255, 255, 255, .48) !important;
     margin-top: 2px !important;
     white-space: nowrap !important;
@@ -5316,24 +5395,36 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     text-overflow: ellipsis !important;
   }
 
+  /* Botón flotante sobre el borde derecho: cero espacio vertical desperdiciado */
   .sb-collapse-btn {
+    position: absolute !important;
+    right: -12px !important;
+    top: 21px !important;
     display: grid !important;
     place-items: center;
-    width: 28px;
-    height: 28px;
-    flex: 0 0 28px;
-    border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, .12);
-    background: rgba(255, 255, 255, .06);
-    color: rgba(255, 255, 255, .75);
-    font-size: .82rem;
-    font-weight: 700;
+    width: 24px !important;
+    height: 24px !important;
+    flex: 0 0 24px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, .18) !important;
+    background: color-mix(in srgb, var(--user-sidebar, #151a28) 88%, #334155 12%) !important;
+    color: rgba(255, 255, 255, .82) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .36) !important;
     cursor: pointer;
-    transition: transform .28s var(--ease-spring), background .2s ease, color .2s ease !important;
+    z-index: 12 !important;
+    transition: transform .28s var(--ease-spring), background .18s ease, color .18s ease, border-color .18s ease !important;
+  }
+  .sb-collapse-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+    stroke-width: 2.2 !important;
   }
   .sb-collapse-btn:hover {
-    background: rgba(255, 255, 255, .15);
-    color: #fff;
+    background: var(--blue) !important;
+    border-color: var(--blue) !important;
+    color: #fff !important;
+    transform: scale(1.1);
   }
 
   #sidebar .sb-nav {
@@ -5346,26 +5437,32 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     flex-direction: column !important;
     align-items: stretch !important;
     justify-content: flex-start !important;
-    gap: 3px !important;
-    padding: 10px 11px 12px !important;
+    gap: 2px !important;
+    padding: 8px 10px 10px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .14) transparent;
     clip-path: none !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
   }
+  #sidebar .sb-nav::-webkit-scrollbar { width: 4px; }
+  #sidebar .sb-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .14); border-radius: 99px; }
 
   #sidebar .sb-section {
-    display: block !important;
-    padding: 14px 10px 5px !important;
-    font-size: .61rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 10px 4px !important;
+    font-size: .58rem !important;
     font-weight: 800 !important;
-    letter-spacing: .12em !important;
+    letter-spacing: .11em !important;
     text-transform: uppercase !important;
-    color: rgba(255, 255, 255, .38) !important;
+    color: rgba(255, 255, 255, .36) !important;
   }
   #sidebar .sb-section:first-child {
-    padding-top: 4px !important;
+    padding-top: 2px !important;
   }
 
   #sidebar .sb-nav .nav-item {
@@ -5373,33 +5470,39 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    gap: 11px !important;
+    gap: 10px !important;
     width: 100% !important;
-    min-height: 41px !important;
+    min-height: 35px !important;
+    height: 35px !important;
     margin: 0 !important;
-    padding: 7px 11px !important;
-    border-radius: 13px !important;
-    color: rgba(255, 255, 255, .72) !important;
-    font-size: .83rem !important;
+    padding: 0 11px !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, .68) !important;
+    font-size: .81rem !important;
     font-weight: 560 !important;
     white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     position: relative !important;
-    transition: background .2s var(--ease-soft), color .2s ease, transform .2s var(--ease-spring), box-shadow .24s ease !important;
+    transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s var(--ease-spring) !important;
   }
 
+  /* Ícono limpio sin caja gris pesada */
   #sidebar .sb-nav .nav-item .nav-icon {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    border-radius: 9px !important;
-    background: rgba(255, 255, 255, .065) !important;
-    font-size: .92rem !important;
-    transition: transform .24s var(--ease-spring), background .2s ease !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, .56) !important;
+    filter: none !important;
+    animation: none !important;
+    transition: color .18s ease, transform .2s var(--ease-spring) !important;
   }
 
   #sidebar .sb-nav .nav-item .nav-lbl {
@@ -5410,25 +5513,39 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   }
 
   #sidebar .sb-nav .nav-item:hover {
-    background: rgba(255, 255, 255, .085) !important;
-    color: #fff !important;
-    transform: translateX(3px) !important;
+    background: rgba(255, 255, 255, .065) !important;
+    color: #ffffff !important;
+    transform: none !important;
   }
   #sidebar .sb-nav .nav-item:hover .nav-icon {
-    transform: scale(1.1) !important;
-    background: rgba(255, 255, 255, .12) !important;
+    color: #ffffff !important;
+    background: transparent !important;
+    transform: scale(1.06) !important;
   }
 
+  /* Estado activo tipo Linear / macOS Studio */
   #sidebar .sb-nav .nav-item.active {
-    background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 70%, #6366f1)) !important;
-    color: #fff !important;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--blue) 30%, rgba(255, 255, 255, .09)), color-mix(in srgb, var(--blue) 12%, rgba(255, 255, 255, .03))) !important;
+    border-color: color-mix(in srgb, var(--blue) 45%, rgba(255, 255, 255, .14)) !important;
+    color: #ffffff !important;
     font-weight: 700 !important;
     transform: none !important;
-    box-shadow: 0 8px 22px -5px color-mix(in srgb, var(--blue) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, .32) !important;
+    box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--blue) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+  }
+  #sidebar .sb-nav .nav-item.active::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 7px !important;
+    bottom: 7px !important;
+    width: 3px !important;
+    border-radius: 0 4px 4px 0 !important;
+    background: var(--blue-light, var(--blue)) !important;
+    box-shadow: 0 0 10px var(--blue) !important;
   }
   #sidebar .sb-nav .nav-item.active .nav-icon {
-    background: rgba(255, 255, 255, .20) !important;
-    color: #fff !important;
+    background: transparent !important;
+    color: #ffffff !important;
   }
 
   #sidebar .sb-footer {
@@ -5438,16 +5555,15 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     width: 100% !important;
     max-width: none !important;
     height: auto !important;
-    padding: 11px 12px 12px !important;
+    padding: 9px 10px 10px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 7px !important;
-    background: color-mix(in srgb, var(--user-sidebar, #0b0e17) 96%, #000 4%) !important;
+    gap: 6px !important;
+    background: rgba(0, 0, 0, .18) !important;
     border-left: 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, .10) !important;
-    border-radius: 0 0 25px 25px !important;
-    box-shadow: 0 -8px 20px rgba(0, 0, 0, .24) !important;
+    border-top: 1px solid rgba(255, 255, 255, .07) !important;
+    border-radius: 0 0 17px 17px !important;
   }
 
   #sidebar .sb-footer #active-doctor-badge[style*="display:none"],
@@ -5462,120 +5578,202 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   }
   #sidebar .sb-footer #active-doctor-badge .doctor-active-badge {
     width: 100% !important;
-    border-radius: 12px !important;
-    background: rgba(255, 255, 255, .08) !important;
-    border: 1px solid rgba(255, 255, 255, .11) !important;
-    color: #f8fafc !important;
+    height: 33px !important;
+    padding: 0 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, .055) !important;
+    border: 1px solid rgba(255, 255, 255, .09) !important;
+    color: #f1f5f9 !important;
+    font-size: .76rem !important;
+    font-weight: 650 !important;
+    transition: background .18s ease, border-color .18s ease !important;
   }
+  #sidebar .sb-footer #active-doctor-badge .doctor-active-badge:hover {
+    background: rgba(255, 255, 255, .10) !important;
+    border-color: rgba(255, 255, 255, .18) !important;
+  }
+  #sidebar .sb-footer .sb-doc-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--blue) 35%, rgba(255,255,255,.12));
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  #sidebar .sb-footer .sb-doc-avatar svg { width: 13px; height: 13px; }
 
   #sidebar .sb-footer-row {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
-    gap: 7px;
+    gap: 6px;
     width: 100%;
   }
   #sidebar .sb-footer .sb-settings-btn,
+  #sidebar .sb-footer button[title="Configuración"],
   #sidebar .sb-footer .sb-help-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 6px !important;
     width: 100% !important;
-    height: 36px !important;
-    min-height: 36px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 1 1 auto !important;
+    height: 32px !important;
+    min-height: 32px !important;
     margin: 0 !important;
-    padding: 0 10px !important;
-    border-radius: 11px !important;
-    border: 1px solid rgba(255, 255, 255, .11) !important;
-    background: rgba(255, 255, 255, .07) !important;
-    color: rgba(255, 255, 255, .85) !important;
-    font-size: .74rem !important;
-    font-weight: 650 !important;
+    padding: 0 9px !important;
+    border-radius: 9px !important;
+    border: 1px solid rgba(255, 255, 255, .09) !important;
+    background: rgba(255, 255, 255, .05) !important;
+    color: rgba(255, 255, 255, .78) !important;
+    font-size: .73rem !important;
+    font-weight: 620 !important;
     cursor: pointer;
+  }
+  #sidebar .sb-footer .sb-settings-btn svg,
+  #sidebar .sb-footer .sb-help-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
   #sidebar .sb-footer .sb-settings-btn:hover,
   #sidebar .sb-footer .sb-help-btn:hover {
-    background: rgba(255, 255, 255, .15) !important;
+    background: rgba(255, 255, 255, .12) !important;
     color: #fff !important;
     transform: translateY(-1px) !important;
   }
 
   #sidebar .sb-footer #backup-badge {
     display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    gap: 7px !important;
     width: 100% !important;
-    padding: 5px 10px !important;
+    height: 27px !important;
+    padding: 0 10px !important;
     margin: 0 !important;
-    border-radius: 10px !important;
-    font-size: .68rem !important;
+    border-radius: 8px !important;
+    font-size: .66rem !important;
+    font-weight: 620 !important;
   }
 
-  /* Modo Rail Colapsado (78px) */
+  /* ── Modo Rail Colapsado de Precisión (68px, sin cajas dobles) ── */
   body.sb-collapsed #sidebar {
-    width: 78px !important;
-    max-width: 78px !important;
+    width: 68px !important;
+    max-width: 68px !important;
+    border-radius: 16px !important;
   }
   body.sb-collapsed #sidebar .sb-logo {
-    flex-direction: column !important;
-    padding: 14px 8px 12px !important;
-    gap: 8px !important;
+    justify-content: center !important;
+    padding: 13px 0 12px !important;
+    min-height: 64px !important;
   }
   body.sb-collapsed #sidebar .sb-logo-copy,
-  body.sb-collapsed #sidebar .sb-section,
   body.sb-collapsed #sidebar .nav-lbl,
   body.sb-collapsed #sidebar .sb-btn-lbl,
   body.sb-collapsed #sidebar #backup-badge-txt,
-  body.sb-collapsed #sidebar #active-doctor-name {
+  body.sb-collapsed #sidebar #active-doctor-name,
+  body.sb-collapsed #sidebar .sb-doc-chev {
     display: none !important;
   }
-  body.sb-collapsed #sidebar .sb-collapse-btn {
+  body.sb-collapsed #sidebar .sb-section {
+    font-size: 0 !important;
+    height: 1px !important;
+    width: 28px !important;
+    margin: 5px auto !important;
+    padding: 0 !important;
+    background: rgba(255, 255, 255, .09) !important;
+  }
+  body.sb-collapsed #sidebar .sb-section:first-child {
+    display: none !important;
+  }
+  body.sb-collapsed #sidebar .sb-collapse-btn svg {
     transform: rotate(180deg);
   }
-  body.sb-collapsed #sidebar .sb-nav .nav-item {
-    justify-content: center !important;
+  body.sb-collapsed #sidebar .sb-nav {
     padding: 8px 0 !important;
+    align-items: center !important;
+    gap: 3px !important;
   }
-  body.sb-collapsed #sidebar .sb-nav .nav-item:hover {
-    transform: scale(1.05) !important;
-  }
-  body.sb-collapsed #sidebar .sb-nav .nav-item:hover::after {
-    content: attr(data-tip);
-    position: fixed;
-    left: 100px;
-    padding: 6px 11px;
-    border-radius: 10px;
-    background: #0f172a;
-    color: #fff;
-    font-size: .74rem;
-    font-weight: 650;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .3);
-    border: 1px solid rgba(255, 255, 255, .14);
-    pointer-events: none;
-    z-index: 999;
-    white-space: nowrap;
-  }
-  body.sb-collapsed #sidebar .sb-footer {
-    padding: 10px 8px !important;
-  }
-  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge .doctor-active-badge {
+  body.sb-collapsed #sidebar .sb-nav .nav-item {
+    width: 42px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     justify-content: center !important;
-    padding: 7px 0 !important;
+    padding: 0 !important;
+    border-radius: 11px !important;
   }
-  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge .doctor-active-badge span:last-child {
+  body.sb-collapsed #sidebar .sb-nav .nav-item.active {
+    background: linear-gradient(145deg, var(--blue), color-mix(in srgb, var(--blue) 74%, #4f46e5)) !important;
+    border-color: rgba(255, 255, 255, .2) !important;
+    box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--blue) 65%, transparent) !important;
+  }
+  body.sb-collapsed #sidebar .sb-nav .nav-item.active::before {
     display: none !important;
   }
+  body.sb-collapsed #sidebar .sb-footer {
+    padding: 8px 0 10px !important;
+    align-items: center !important;
+    gap: 5px !important;
+    border-radius: 0 0 15px 15px !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge {
+    width: auto !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge .doctor-active-badge {
+    width: 38px !important;
+    height: 36px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer .sb-doc-avatar {
+    background: transparent !important;
+    width: auto;
+    height: auto;
+  }
+  body.sb-collapsed #sidebar .sb-footer .sb-doc-avatar svg {
+    width: 16px;
+    height: 16px;
+  }
   body.sb-collapsed #sidebar .sb-footer-row {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 5px !important;
+    width: auto !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer .sb-settings-btn,
+  body.sb-collapsed #sidebar .sb-footer button[title="Configuración"],
+  body.sb-collapsed #sidebar .sb-footer .sb-help-btn {
+    width: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    flex: 0 0 36px !important;
+    border-radius: 10px !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer #backup-badge {
+    width: 38px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    border-radius: 9px !important;
   }
 
   #main {
-    margin-left: 288px !important;
-    padding-top: 14px !important;
+    margin-left: 272px !important;
+    padding-top: 12px !important;
     min-height: 100dvh !important;
-    transition: margin-left .34s var(--ease-expo) !important;
+    transition: margin-left .3s var(--ease-expo) !important;
   }
   body.sb-collapsed #main {
-    margin-left: 104px !important;
+    margin-left: 92px !important;
   }
   #mobile-menu-btn {
     display: none !important;
@@ -5671,13 +5869,17 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   }
   #sidebar .sb-nav .nav-item .nav-icon {
     display: inline-flex !important;
-    flex: 0 0 30px !important;
-    width: 30px !important;
-    height: 30px !important;
-    background: rgba(255,255,255,.08) !important;
-    border-radius: 9px !important;
+    flex: 0 0 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    background: transparent !important;
+    color: rgba(255,255,255,.72) !important;
+    border-radius: 0 !important;
     align-items: center !important;
     justify-content: center !important;
+  }
+  #sidebar .sb-nav .nav-item.active .nav-icon {
+    color: #fff !important;
   }
   #sidebar .sb-nav .nav-item.active {
     background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 70%, #6366f1)) !important;
@@ -6878,62 +7080,6 @@ body.user-custom-theme .spec-header {
   border-color: color-mix(in srgb, var(--blue) 45%, var(--border-med)) !important;
   transform: translateY(-1px);
 }
-#rad-panel .rad-contact-bar {
-  display: grid;
-  grid-template-columns: auto minmax(180px, 1fr) minmax(220px, 1.2fr);
-  align-items: center;
-  gap: 12px 16px;
-  padding: 14px 20px;
-  margin-bottom: 18px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--border-med));
-  background: color-mix(in srgb, var(--blue) 6%, var(--card));
-}
-#rad-panel .rad-contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-#rad-panel .rad-contact-info strong {
-  font-size: .8rem;
-  font-weight: 750;
-  color: var(--ink);
-}
-#rad-panel .rad-contact-info span {
-  font-size: .71rem;
-  color: var(--ink-3);
-}
-#rad-panel .rad-contact-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--ink-3);
-}
-#rad-panel .rad-contact-field input {
-  height: 38px;
-  padding: 0 11px;
-  border-radius: 9px;
-  border: 1px solid var(--border-med);
-  background: var(--card);
-  color: var(--ink);
-  font: inherit;
-  font-size: .83rem;
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: normal;
-}
-#rad-panel .rad-contact-field input:focus {
-  outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 16%, transparent);
-}
-@media (max-width: 900px) {
-  #rad-panel .rad-contact-bar { grid-template-columns: 1fr; }
-}
 /* Estado vacío elegante cuando aún no se ha elegido paciente en Radiografías */
 #rad-panel:has(#rad-workspace[hidden])::after {
   content: "Selecciona un paciente en el selector superior para elegir estudios extraorales, intraorales o tomografía CBCT, previsualizar la orden con folio e imprimirla.";
@@ -7333,6 +7479,7 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
 </div>
 
 <div id="sidebar-scrim" aria-hidden="true" onclick="closeMobileNav()"></div>
+<div id="sb-rail-tooltip" role="tooltip" aria-hidden="true"></div>
 <nav id="sidebar" aria-label="Navegación principal">
   <div class="sb-logo">
     <div class="sb-logo-icon" id="sb-logo-icon-wrap">🦷</div>
@@ -7340,72 +7487,73 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
       <h1>Consultorio Dental</h1>
       <p>Gestión clínica</p>
     </div>
-    <button type="button" id="sb-collapse-btn" class="sb-collapse-btn" onclick="toggleSidebarRail()" title="Contraer o expandir menú" aria-label="Contraer o expandir menú">⟨</button>
+    <button type="button" id="sb-collapse-btn" class="sb-collapse-btn" onclick="toggleSidebarRail()" title="Contraer o expandir menú" aria-label="Contraer o expandir menú"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
   </div>
   <div class="sb-nav">
     <div class="sb-section">Principal</div>
     <div class="nav-item active" data-tip="Inicio" onclick="goPage('dash-page',this)">
-      <div class="nav-icon">⌂</div><span class="nav-lbl">Inicio</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.5"/><path d="M9.5 21v-6h5v6"/></svg></div><span class="nav-lbl">Inicio</span>
     </div>
     <!-- filtro doctor eliminado -->
     <div class="nav-item" data-tip="Pacientes" onclick="goPage('list-page',this)">
-      <div class="nav-icon">👥</div><span class="nav-lbl">Pacientes</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span class="nav-lbl">Pacientes</span>
     </div>
     <div class="nav-item" data-tip="Agenda" onclick="goPage('agenda-page',this)">
-      <div class="nav-icon">📅</div><span class="nav-lbl">Agenda</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></div><span class="nav-lbl">Agenda</span>
     </div>
     <div class="nav-item" data-tip="Presupuestos" onclick="goPage('budget-page',this)">
-      <div class="nav-icon">💰</div><span class="nav-lbl">Presupuestos</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2.5"/><path d="M8 6h8M8 11h8M8 15h5"/><circle cx="15.5" cy="16.5" r="1.5"/></svg></div><span class="nav-lbl">Presupuestos</span>
     </div>
     <div class="nav-item" data-tip="Recibos" onclick="goPage('receipts-page',this)">
-      <div class="nav-icon">🧾</div><span class="nav-lbl">Recibos</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 2v20l2.5-1.8L9 22l3-2 3 2 2.5-1.8L20 22V2l-2.5 1.8L15 2l-3 2-3-2-2.5 1.8Z"/><path d="M8 9h8M8 13h6"/></svg></div><span class="nav-lbl">Recibos</span>
     </div>
-    <div class="sb-section">Clínica y gestión</div>
+    <div class="sb-section">Clínica</div>
     <div class="nav-item" data-tip="Estadísticas" onclick="goPage('stats-page',this)">
-      <div class="nav-icon">📊</div><span class="nav-lbl">Estadísticas</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 16v-5M13 16V8M18 16v-3"/></svg></div><span class="nav-lbl">Estadísticas</span>
     </div>
     <div class="nav-item" data-tip="Búsqueda clínica" onclick="goPage('search-page',this)">
-      <div class="nav-icon">🔍</div><span class="nav-lbl">Búsqueda clínica</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div><span class="nav-lbl">Búsqueda clínica</span>
     </div>
     <div class="nav-item" data-tip="Recetas" onclick="goPage('rx-page',this)">
-      <div class="nav-icon">💊</div><span class="nav-lbl">Recetas</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></div><span class="nav-lbl">Recetas</span>
     </div>
     <div class="nav-item" id="rad-nav" data-tip="Radiografías" onclick="goPage('rad-page',this)">
-      <div class="nav-icon">🩻</div><span class="nav-lbl">Radiografías</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="10" x="7" y="7" rx="2"/><path d="M10 12h4M12 10v4"/></svg></div><span class="nav-lbl">Radiografías</span>
     </div>
     <div class="nav-item" data-tip="Consentimientos" onclick="goPage('ci-page',this)">
-      <div class="nav-icon">📋</div><span class="nav-lbl">Consentimientos</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div><span class="nav-lbl">Consentimientos</span>
     </div>
     <div class="nav-item" data-tip="Indicaciones" onclick="goPage('ind-page',this)">
-      <div class="nav-icon">📄</div><span class="nav-lbl">Indicaciones</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></div><span class="nav-lbl">Indicaciones</span>
     </div>
+    <div class="sb-section">Gestión y caja</div>
     <div class="nav-item" data-tip="Confirmaciones" onclick="goPage('confirm-page',this)">
-      <div class="nav-icon">✅</div><span class="nav-lbl">Confirmaciones</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="m9 12 2 2 4-4"/></svg></div><span class="nav-lbl">Confirmaciones</span>
     </div>
     <div class="nav-item" data-tip="Recordatorios" onclick="goPage('recall-page',this)">
-      <div class="nav-icon">🔔</div><span class="nav-lbl">Recordatorios</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div><span class="nav-lbl">Recordatorios</span>
     </div>
     <div class="nav-item" data-tip="Reportes" onclick="goPage('reporte-page',this)">
-      <div class="nav-icon">💵</div><span class="nav-lbl">Reportes</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 7 13.5 15.5l-5-5L2 17"/><path d="M16 7h6v6"/></svg></div><span class="nav-lbl">Reportes</span>
     </div>
     <div class="nav-item" data-tip="Caja" onclick="goPage('caja-page',this)">
-      <div class="nav-icon">🏦</div><span class="nav-lbl">Caja</span>
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2.5"/><path d="M2 10h20M6 15h3"/></svg></div><span class="nav-lbl">Caja</span>
     </div>
   </div>
   <div class="sb-footer">
-    <div id="active-doctor-badge" onclick="openDoctorSelect()" style="display:none">
+    <div id="active-doctor-badge" data-tip="Cambiar doctor activo" onclick="openDoctorSelect()" style="display:none">
       <div class="doctor-active-badge">
-        <span>👨‍⚕️</span>
-        <span id="active-doctor-name">Sin doctor</span>
-        <span style="opacity:.6;font-size:.65rem">▼</span>
+        <span class="sb-doc-avatar"><svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span id="active-doctor-name" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Sin doctor</span>
+        <span class="sb-doc-chev" style="opacity:.55;font-size:.65rem">⌄</span>
       </div>
     </div>
     <div class="sb-footer-row">
-      <button class="sb-settings-btn" onclick="openSettings()" title="Configuración" aria-label="Abrir configuración">⚙️ <span class="sb-btn-lbl">Ajustes</span></button>
-      <button class="sb-help-btn" onclick="openHelp()" title="Ayuda y tutorial" aria-label="Abrir ayuda y tutorial">❓ <span class="sb-btn-lbl">Ayuda</span></button>
+      <button class="sb-settings-btn" data-tip="Ajustes de la clínica" onclick="openSettings()" title="Configuración" aria-label="Abrir configuración"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.77 1.02 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg> <span class="sb-btn-lbl">Ajustes</span></button>
+      <button class="sb-help-btn" data-tip="Ayuda y guía rápida" onclick="openHelp()" title="Ayuda y tutorial" aria-label="Abrir ayuda y tutorial"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> <span class="sb-btn-lbl">Ayuda</span></button>
     </div>
-    <div id="backup-badge" onclick="showBackupReminder(false)" title="Ver recordatorio de respaldo">
-      <span id="backup-badge-icon">💾</span>
+    <div id="backup-badge" data-tip="Estado de respaldo local" onclick="showBackupReminder(false)" title="Ver recordatorio de respaldo">
+      <span id="backup-badge-icon"></span>
       <span id="backup-badge-txt">Cargando...</span>
     </div>
   </div>
@@ -7961,18 +8109,6 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
 </style>
 <div id="rad-page" class="page"><section id="rad-panel" aria-labelledby="rad-heading">
 <header class="rad-head"><h2 id="rad-heading">Órdenes de radiografías</h2><label>Paciente<select id="rad-select" onchange="setRadiologyPatient()"></select></label></header>
-<div class="rad-contact-bar" aria-label="Datos del consultorio para recibir estudios">
-  <div class="rad-contact-info">
-    <strong>📩 Datos de envío en la orden impresa</strong>
-    <span>Se incluyen automáticamente en el encabezado y pie de tu orden para que el gabinete envíe ahí los estudios.</span>
-  </div>
-  <label class="rad-contact-field">📞 Teléfono / WhatsApp consultorio
-    <input type="tel" id="rad-clinic-phone" placeholder="Ej. 614 123 4567" oninput="syncRadClinicContact()">
-  </label>
-  <label class="rad-contact-field">✉️ Correo para recibir radiografías
-    <input type="email" id="rad-clinic-email" placeholder="doctor@consultorio.com" oninput="syncRadClinicContact()">
-  </label>
-</div>
 <div id="rad-workspace" class="rad-columns" hidden>
 <form id="rad-form" class="rad-stack"><section class="rad-box"><h3>Estudios solicitados</h3>
 <fieldset><legend>Extraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Panorámica">Panorámica</label><label class="rad-choice"><input type="checkbox" name="study" value="Lateral de cráneo">Lateral de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Posteroanterior de cráneo">Posteroanterior de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie de ATM">Serie de ATM</label></div></fieldset><fieldset><legend>Intraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Periapical">Periapical</label><label class="rad-choice"><input type="checkbox" name="study" value="Interproximal">Interproximal</label><label class="rad-choice"><input type="checkbox" name="study" value="Oclusal">Oclusal</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie periapical completa">Serie periapical completa</label></div></fieldset><fieldset><legend>Volumetría</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Tomografía (CBCT)">Tomografía (CBCT)</label></div></fieldset>
@@ -8972,6 +9108,7 @@ var appStorage = (function(nativeStorage) {
     dental_device_appearance_v1:1,
     dental_clinic_phone_v1:1,
     dental_clinic_email_v1:1,
+    dental_clinic_identity_v1:1,
     // Respaldo mínimo, no clínico, para que una recarga inmediata no pierda
     // el porcentaje mientras Google Drive termina de confirmar el cambio.
     dental_pending_doctor_rates_v1:1
@@ -14696,6 +14833,12 @@ function loadSettings() {
   ['cedula','cedula2','rfc','direccion','telefono','correo','institucion','ssa'].forEach(function(f){
     if (cfg[f] === undefined) cfg[f] = '';
   });
+  var vault = readClinicIdentityVault();
+  if (vault) {
+    ['name','sub','city','direccion','telefono','correo','cedula','cedula2','institucion','rfc','ssa'].forEach(function(k) {
+      if (!cfg[k] && vault[k]) cfg[k] = vault[k];
+    });
+  }
   cfg.telefono = cfg.telefono || cfg.phone || appStorage.getItem('dental_clinic_phone_v1') || '';
   cfg.phone = cfg.telefono;
   cfg.correo = cfg.correo || cfg.email || appStorage.getItem('dental_clinic_email_v1') || '';
@@ -14885,13 +15028,128 @@ function removeHeroImage() {
   });
 }
 
+var CLINIC_IDENTITY_VAULT_KEY = 'dental_clinic_identity_v1';
+var _settingsAutoSaveTimer = null;
+
+function readClinicIdentityVault() {
+  try {
+    var raw = appStorage.getItem(CLINIC_IDENTITY_VAULT_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object') ? parsed : null;
+  } catch (e) { return null; }
+}
+
+function writeClinicIdentityVault() {
+  try {
+    var snap = {
+      _updatedAt: Date.now(),
+      name: cfg.name || '',
+      sub: cfg.sub || '',
+      city: cfg.city || '',
+      direccion: cfg.direccion || cfg.address || '',
+      telefono: cfg.telefono || cfg.phone || '',
+      correo: cfg.correo || cfg.email || '',
+      cedula: cfg.cedula || '',
+      cedula2: cfg.cedula2 || '',
+      institucion: cfg.institucion || '',
+      rfc: cfg.rfc || '',
+      ssa: cfg.ssa || ''
+    };
+    appStorage.setItem(CLINIC_IDENTITY_VAULT_KEY, JSON.stringify(snap));
+    appStorage.setItem('dental_clinic_phone_v1', snap.telefono);
+    appStorage.setItem('dental_clinic_email_v1', snap.correo);
+  } catch (e) {}
+}
+
+function commitSettingsIdentityFields(persistToDrive) {
+  var overlay = document.getElementById('settings-overlay');
+  if (!overlay) return false;
+  var changed = false;
+  function readVal(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : null;
+  }
+  var nVal = readVal('cfg-name');
+  if (nVal !== null && nVal && nVal !== cfg.name) { cfg.name = nVal; changed = true; }
+  var sVal = readVal('cfg-sub');
+  if (sVal !== null && sVal !== (cfg.sub || '')) { cfg.sub = sVal; changed = true; }
+  var cVal = readVal('cfg-city');
+  if (cVal !== null && cVal !== (cfg.city || '')) { cfg.city = cVal; changed = true; }
+
+  ['cedula','cedula2','rfc','direccion','telefono','correo','institucion','ssa'].forEach(function(f) {
+    var v = readVal('cfg-' + f);
+    if (v !== null && v !== String(cfg[f] || '')) {
+      cfg[f] = v;
+      changed = true;
+    }
+  });
+  cfg.address = cfg.direccion || '';
+  cfg.phone   = cfg.telefono  || '';
+  cfg.email   = cfg.correo    || '';
+
+  var currSel = document.getElementById('cfg-currency');
+  if (currSel && (currSel.value || 'MXN') !== (cfg.currency || 'MXN')) {
+    cfg.currency = currSel.value || 'MXN';
+    changed = true;
+  }
+  if (!changed) return false;
+
+  cfg._contactUpdatedAt = Date.now();
+  writeClinicIdentityVault();
+  var settingsDoctors = loadDoctors();
+  if (settingsDoctors.length === 1) {
+    settingsDoctors[0].name = cfg.name;
+    settingsDoctors[0].specialty = cfg.sub;
+    settingsDoctors[0].cedula = cfg.cedula || '';
+    settingsDoctors[0].cedula2 = cfg.cedula2 || '';
+    settingsDoctors[0].telefono = cfg.telefono || '';
+    settingsDoctors[0].correo = cfg.correo || '';
+    appStorage.setItem(DOCTORS_KEY, JSON.stringify(settingsDoctors));
+    appStorage.setItem(DOCTORS_UPDATED_KEY, String(Date.now()));
+    cfg.doctors = settingsDoctors;
+    if (_activeDoctor && String(_activeDoctor.id) === String(settingsDoctors[0].id)) {
+      applyActiveDoctorRuntime(settingsDoctors[0]);
+      appStorage.setItem(ACTIVE_DOC_KEY, JSON.stringify(settingsDoctors[0]));
+    }
+  }
+  applyBranding();
+  var badge = document.getElementById('settings-autosave-pill');
+  if (badge) {
+    badge.textContent = '✓ Guardado';
+    badge.style.opacity = '1';
+  }
+  if (persistToDrive) {
+    if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+    else {
+      cfg._savedAt = Date.now();
+      try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch (e) {}
+    }
+  }
+  return true;
+}
+
+function scheduleSettingsAutoSave() {
+  var badge = document.getElementById('settings-autosave-pill');
+  if (badge) {
+    badge.textContent = 'Guardando…';
+    badge.style.opacity = '1';
+  }
+  if (_settingsAutoSaveTimer) clearTimeout(_settingsAutoSaveTimer);
+  _settingsAutoSaveTimer = setTimeout(function() {
+    _settingsAutoSaveTimer = null;
+    commitSettingsIdentityFields(true);
+  }, 550);
+}
+
 function openSettings() {
+  var vault = readClinicIdentityVault() || {};
   document.getElementById('cfg-name').value  = cfg.name;
   document.getElementById('cfg-sub').value   = cfg.sub;
-  document.getElementById('cfg-city').value  = cfg.city;
-  var resolvedDir  = (typeof getClinicAddress === 'function') ? getClinicAddress() : (cfg.direccion || cfg.address || '');
-  var resolvedTel  = (typeof getClinicPhone === 'function')   ? getClinicPhone()   : (cfg.telefono || cfg.phone || '');
-  var resolvedMail = (typeof getClinicEmail === 'function')   ? getClinicEmail()   : (cfg.correo || cfg.email || '');
+  document.getElementById('cfg-city').value  = cfg.city || vault.city || '';
+  var resolvedDir  = cfg.direccion || cfg.address || vault.direccion || '';
+  var resolvedTel  = cfg.telefono  || cfg.phone   || vault.telefono  || appStorage.getItem('dental_clinic_phone_v1') || '';
+  var resolvedMail = cfg.correo    || cfg.email   || vault.correo    || appStorage.getItem('dental_clinic_email_v1') || '';
   if (document.getElementById('cfg-address'))   document.getElementById('cfg-address').value   = resolvedDir;
   if (document.getElementById('cfg-phone'))     document.getElementById('cfg-phone').value     = resolvedTel;
   document.getElementById('cfg-logo').value  = cfg.logo;
@@ -14905,11 +15163,13 @@ function openSettings() {
   // COFEPRIS fields
   ['cedula','cedula2','rfc','direccion','telefono','correo','institucion','ssa'].forEach(function(f) {
     var el = document.getElementById('cfg-'+f);
-    if (el) el.value = cfg[f] || '';
+    if (el) el.value = cfg[f] || vault[f] || '';
   });
   if (document.getElementById('cfg-direccion')) document.getElementById('cfg-direccion').value = resolvedDir;
   if (document.getElementById('cfg-telefono'))  document.getElementById('cfg-telefono').value  = resolvedTel;
   if (document.getElementById('cfg-correo'))    document.getElementById('cfg-correo').value    = resolvedMail;
+  var badge = document.getElementById('settings-autosave-pill');
+  if (badge) badge.textContent = '✓ Guardado automático';
   var grid = document.getElementById('emoji-grid');
   grid.innerHTML = LOGO_EMOJIS.map(function(e) {
     var active = e === cfg.logo ? ' active' : '';
@@ -14957,7 +15217,12 @@ function saveCountryCode(value) {
 }
 
 function closeSettings(savePendingEdits) {
+  if (_settingsAutoSaveTimer) {
+    clearTimeout(_settingsAutoSaveTimer);
+    _settingsAutoSaveTimer = null;
+  }
   if (savePendingEdits) {
+    commitSettingsIdentityFields(true);
     var input = document.getElementById('cfg-country-code');
     if (input) saveCountryCode(input.value);
     if (typeof flushCustomWATplEdits === 'function') flushCustomWATplEdits();
@@ -15042,12 +15307,8 @@ function saveSettings() {
   cfg.telefono  = cfg.telefono  || phoneLegacy;
   cfg.phone     = cfg.telefono;
   cfg.email     = cfg.correo;
-  if (cfg.telefono) appStorage.setItem('dental_clinic_phone_v1', cfg.telefono);
-  if (cfg.correo)   appStorage.setItem('dental_clinic_email_v1', cfg.correo);
-  var radPh = document.getElementById('rad-clinic-phone');
-  if (radPh) radPh.value = cfg.telefono || '';
-  var radEm = document.getElementById('rad-clinic-email');
-  if (radEm) radEm.value = (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || '');
+  cfg._contactUpdatedAt = Date.now();
+  writeClinicIdentityVault();
   // En cuentas de un solo doctor, los datos generales y el perfil profesional
   // representan a la misma persona. Mantenerlos sincronizados evita que al
   // recargar el doctor activo restaure el nombre y la cédula predeterminados.
@@ -16652,20 +16913,27 @@ function updateBackupBadge() {
   var ts = getLastBackupTs();
   if (!ts) {
     badge.className = 'never';
-    iconEl.textContent = '⚠️';
-    txtEl.textContent = 'Sin respaldo guardado';
+    if (iconEl) iconEl.textContent = '⚠️';
+    if (txtEl)  txtEl.textContent = 'Sin respaldo guardado';
+    badge.setAttribute('data-tip', 'Sin respaldo local guardado');
     badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:500;padding:2px 7px;border-radius:20px;cursor:pointer;background:#fff1f0;color:#c0000a;margin-top:5px';
     return;
   }
   var diasDesde = Math.floor((Date.now() - ts) / 86400000);
   if (diasDesde < 7) {
+    badge.className = 'ok';
     badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:500;padding:2px 7px;border-radius:20px;cursor:pointer;background:#e9faf0;color:#1a7a3c;margin-top:5px';
-    iconEl.textContent = '✅';
-    txtEl.textContent  = diasDesde === 0 ? 'Respaldo hoy' : 'Respaldo hace ' + diasDesde + 'd';
+    if (iconEl) iconEl.textContent = '✅';
+    var okLabel = diasDesde === 0 ? 'Respaldo hoy' : 'Respaldo hace ' + diasDesde + 'd';
+    if (txtEl) txtEl.textContent = okLabel;
+    badge.setAttribute('data-tip', okLabel);
   } else {
+    badge.className = 'warn';
     badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:500;padding:2px 7px;border-radius:20px;cursor:pointer;background:#fff3e0;color:#c05000;margin-top:5px';
-    iconEl.textContent = '⚠️';
-    txtEl.textContent  = 'Respaldo hace ' + diasDesde + 'd';
+    if (iconEl) iconEl.textContent = '⚠️';
+    var warnLabel = 'Respaldo hace ' + diasDesde + 'd';
+    if (txtEl) txtEl.textContent = warnLabel;
+    badge.setAttribute('data-tip', warnLabel);
   }
 }
 
@@ -21870,15 +22138,25 @@ var GD = (function() {
 
     cfg = Object.assign(cfg, remoteConfig);
 
-    // Unificar campos de contacto para no perder teléfono ni correo
-    cfg.telefono = cfg.telefono || cfg.phone || previousTel || appStorage.getItem('dental_clinic_phone_v1') || '';
+    // Unificar campos de contacto y proteger ediciones locales frente a copias remotas vacías
+    var localVault = (typeof readClinicIdentityVault === 'function') ? readClinicIdentityVault() : null;
+    var remoteContactAt = parseInt(remoteConfig._contactUpdatedAt || '0', 10) || 0;
+    var localVaultAt = localVault ? (parseInt(localVault._updatedAt || '0', 10) || 0) : 0;
+    if (localVault && localVaultAt > remoteContactAt) {
+      ['city','direccion','telefono','correo','cedula','cedula2','institucion','rfc','ssa'].forEach(function(k) {
+        if (localVault[k]) cfg[k] = localVault[k];
+      });
+      cfg._contactUpdatedAt = localVaultAt;
+    }
+    cfg.telefono = cfg.telefono || cfg.phone || previousTel || (localVault && localVault.telefono) || appStorage.getItem('dental_clinic_phone_v1') || '';
     cfg.phone = cfg.telefono;
-    cfg.correo = cfg.correo || cfg.email || previousMail || appStorage.getItem('dental_clinic_email_v1') || '';
+    cfg.correo = cfg.correo || cfg.email || previousMail || (localVault && localVault.correo) || appStorage.getItem('dental_clinic_email_v1') || '';
     cfg.email = cfg.correo;
-    cfg.direccion = cfg.direccion || cfg.address || previousDir || '';
+    cfg.direccion = cfg.direccion || cfg.address || previousDir || (localVault && localVault.direccion) || '';
     cfg.address = cfg.direccion;
-    if (cfg.telefono) appStorage.setItem('dental_clinic_phone_v1', cfg.telefono);
-    if (cfg.correo) appStorage.setItem('dental_clinic_email_v1', cfg.correo);
+    if (typeof writeClinicIdentityVault === 'function' && (cfg.telefono || cfg.correo || cfg.direccion)) {
+      writeClinicIdentityVault();
+    }
 
     // Conservar siempre el tema visual propio de este dispositivo (PC vs celular)
     if (typeof restoreDeviceAppearanceOnCfg === 'function') restoreDeviceAppearanceOnCfg();
@@ -24499,24 +24777,28 @@ function _logoHTML(size) {
 }
 
 function getClinicPhone() {
+  var vault = (typeof readClinicIdentityVault === 'function') ? readClinicIdentityVault() : null;
   var cTel = (typeof cfg !== 'undefined' && cfg) ? (cfg.telefono || cfg.phone || '') : '';
   var dTel = (typeof _activeDoctor !== 'undefined' && _activeDoctor) ? (_activeDoctor.telefono || _activeDoctor.phone || '') : '';
+  var vTel = vault ? (vault.telefono || '') : '';
   var sTel = (typeof appStorage !== 'undefined' && appStorage) ? (appStorage.getItem('dental_clinic_phone_v1') || '') : '';
-  return String(cTel || dTel || sTel || '').trim();
+  return String(cTel || dTel || vTel || sTel || '').trim();
 }
 
 function getClinicEmail() {
+  var vault = (typeof readClinicIdentityVault === 'function') ? readClinicIdentityVault() : null;
   var cMail = (typeof cfg !== 'undefined' && cfg) ? (cfg.correo || cfg.email || '') : '';
   var dMail = (typeof _activeDoctor !== 'undefined' && _activeDoctor) ? (_activeDoctor.correo || _activeDoctor.email || '') : '';
+  var vMail = vault ? (vault.correo || '') : '';
   var sMail = (typeof appStorage !== 'undefined' && appStorage) ? (appStorage.getItem('dental_clinic_email_v1') || '') : '';
-  var gdMail = (typeof GD !== 'undefined' && GD && typeof GD._account === 'function') ? String(GD._account() || '') : '';
-  if (gdMail && gdMail.indexOf('@') === -1) gdMail = '';
-  return String(cMail || dMail || sMail || gdMail || '').trim();
+  return String(cMail || dMail || vMail || sMail || '').trim();
 }
 
 function getClinicAddress() {
+  var vault = (typeof readClinicIdentityVault === 'function') ? readClinicIdentityVault() : null;
   var cDir = (typeof cfg !== 'undefined' && cfg) ? (cfg.direccion || cfg.address || '') : '';
-  return String(cDir || '').trim();
+  var vDir = vault ? (vault.direccion || '') : '';
+  return String(cDir || vDir || '').trim();
 }
 
 function _clinicContactParts() {
@@ -28037,40 +28319,47 @@ window.addEventListener('resize', function() {
 </div>
 
 <!-- SETTINGS OVERLAY -->
-<div class="settings-overlay" id="settings-overlay">
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings(true)">
   <div class="settings-box">
     <div class="settings-header">
-      <h2>⚙️ Personalización</h2>
-      <button onclick="closeSettings(true)" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <h2>⚙️ Personalización</h2>
+        <span id="settings-autosave-pill" style="font-size:.67rem;font-weight:650;color:var(--green,#1a7a3c);background:color-mix(in srgb,var(--green,#1a7a3c) 12%,var(--bg));padding:3px 9px;border-radius:99px;white-space:nowrap">✓ Guardado automático</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveSettings()" style="border-radius:9px;padding:6px 13px;font-size:.76rem">💾 Guardar</button>
+        <button type="button" onclick="closeSettings(true)" title="Guardar y cerrar" style="width:30px;height:30px;border-radius:50%;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:.9rem;color:var(--ink-3)">✕</button>
+      </div>
     </div>
     <div class="settings-body">
 
       <!-- Identidad -->
       <div class="settings-section">
-        <div class="settings-section-title">Identidad del consultorio</div>
+        <div class="settings-section-title">Identidad y contacto del consultorio</div>
+        <div style="font-size:.73rem;color:var(--ink-3);margin-bottom:12px;line-height:1.5">Estos datos se guardan automáticamente y aparecen en tus órdenes de radiografía, recetas, consentimientos, indicaciones y presupuestos.</div>
         <div class="settings-row">
           <label>Nombre / Doctor</label>
-          <input type="text" id="cfg-name" placeholder="Nombre del consultorio" oninput="previewBranding()">
+          <input type="text" id="cfg-name" placeholder="Nombre del consultorio" oninput="previewBranding();scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Especialidad</label>
-          <input type="text" id="cfg-sub" placeholder="Especialidad o descripción" oninput="previewBranding()">
+          <input type="text" id="cfg-sub" placeholder="Especialidad o descripción" oninput="previewBranding();scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Ciudad</label>
-          <input type="text" id="cfg-city" placeholder="Ciudad" oninput="previewBranding()">
+          <input type="text" id="cfg-city" placeholder="Ciudad" oninput="previewBranding();scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Dirección completa</label>
-          <input type="text" id="cfg-direccion" placeholder="Calle, No., Colonia, CP" oninput="var a=document.getElementById('cfg-address');if(a)a.value=this.value">
+          <input type="text" id="cfg-direccion" placeholder="Calle, No., Colonia, CP" oninput="var a=document.getElementById('cfg-address');if(a)a.value=this.value;scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
-          <label>Teléfono consultorio</label>
-          <input type="text" id="cfg-telefono" placeholder="614-000-0000" oninput="var p=document.getElementById('cfg-phone');if(p)p.value=this.value">
+          <label>Teléfono / WhatsApp</label>
+          <input type="tel" id="cfg-telefono" placeholder="614-000-0000" oninput="var p=document.getElementById('cfg-phone');if(p)p.value=this.value;scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Correo electrónico</label>
-          <input type="email" id="cfg-correo" placeholder="doctor@consultorio.com">
+          <input type="email" id="cfg-correo" placeholder="doctor@consultorio.com" oninput="scheduleSettingsAutoSave()">
         </div>
       </div>
 
@@ -28080,32 +28369,26 @@ window.addEventListener('resize', function() {
         <div style="font-size:.73rem;color:var(--ink-3);margin-bottom:10px;line-height:1.5">Requeridos para que los documentos impresos cumplan con la NOM-004-SSA3-2012</div>
         <div class="settings-row">
           <label>Cédula profesional</label>
-          <input type="text" id="cfg-cedula" placeholder="Ej. 12345678">
+          <input type="text" id="cfg-cedula" placeholder="Ej. 12345678" oninput="scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Cédula de especialidad</label>
-          <input type="text" id="cfg-cedula2" placeholder="Ej. 87654321 (si aplica)">
+          <input type="text" id="cfg-cedula2" placeholder="Ej. 87654321 (si aplica)" oninput="scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>Institución de estudios</label>
-          <input type="text" id="cfg-institucion" placeholder="Ej. UACH, UNAM, UAG">
+          <input type="text" id="cfg-institucion" placeholder="Ej. UACH, UNAM, UAG" oninput="scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>RFC del consultorio</label>
-          <input type="text" id="cfg-rfc" placeholder="Ej. AOHX900101ABC" maxlength="13" style="text-transform:uppercase">
+          <input type="text" id="cfg-rfc" placeholder="Ej. AOHX900101ABC" maxlength="13" style="text-transform:uppercase" oninput="scheduleSettingsAutoSave()">
         </div>
         <div class="settings-row">
           <label>No. registro SSA / COFEPRIS</label>
-          <input type="text" id="cfg-ssa" placeholder="Ej. 123456 (si aplica)">
+          <input type="text" id="cfg-ssa" placeholder="Ej. 123456 (si aplica)" oninput="scheduleSettingsAutoSave()">
         </div>
-        <div class="settings-row">
-          <label>Dirección del consultorio</label>
-          <input type="text" id="cfg-address" placeholder="Ej. Av. Tecnológico 123, Col. Centro" oninput="var d=document.getElementById('cfg-direccion');if(d)d.value=this.value">
-        </div>
-        <div class="settings-row">
-          <label>Teléfono del consultorio</label>
-          <input type="text" id="cfg-phone" placeholder="Ej. 614 123 4567" oninput="var t=document.getElementById('cfg-telefono');if(t)t.value=this.value">
-        </div>
+        <input type="hidden" id="cfg-address">
+        <input type="hidden" id="cfg-phone">
       </div>
 
       <!-- Identidad continuación -->
@@ -29350,33 +29633,6 @@ window.addEventListener('resize', function() {
 <script>
 const radSelect = document.getElementById('rad-select');
 const radForm = document.getElementById('rad-form');
-let _radContactSaveTimer = null;
-function hydrateRadClinicContactInputs() {
-  const phEl = document.getElementById('rad-clinic-phone');
-  const emEl = document.getElementById('rad-clinic-email');
-  if (phEl && document.activeElement !== phEl) phEl.value = (typeof getClinicPhone === 'function') ? getClinicPhone() : (cfg.telefono || cfg.phone || '');
-  if (emEl && document.activeElement !== emEl) emEl.value = (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || cfg.email || '');
-}
-function syncRadClinicContact() {
-  const phEl = document.getElementById('rad-clinic-phone');
-  const emEl = document.getElementById('rad-clinic-email');
-  const tel = phEl ? phEl.value.trim() : '';
-  const mail = emEl ? emEl.value.trim() : '';
-  cfg.telefono = tel;
-  cfg.phone = tel;
-  cfg.correo = mail;
-  cfg.email = mail;
-  appStorage.setItem('dental_clinic_phone_v1', tel);
-  appStorage.setItem('dental_clinic_email_v1', mail);
-  updateRadPreview();
-  if (_radContactSaveTimer) clearTimeout(_radContactSaveTimer);
-  _radContactSaveTimer = setTimeout(() => {
-    if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
-    else {
-      try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch (e) {}
-    }
-  }, 600);
-}
 function radPatient() {
   return db.patients.find(p => String(p.id) === radSelect.value);
 }
@@ -29384,7 +29640,6 @@ function openRadiologyOrders() {
   goPage('rad-page', document.getElementById('rad-nav'));
 }
 function refreshRadiologyPage(selectedId, preserveDraft) {
-  hydrateRadClinicContactInputs();
   const previousId = radSelect.value;
   const patients = (db.patients || []).slice().sort((a,b) => String(a.name).localeCompare(String(b.name),'es'));
   radSelect.replaceChildren(new Option(patients.length ? 'Selecciona un paciente' : 'Sin pacientes registrados', ''));
@@ -29393,7 +29648,6 @@ function refreshRadiologyPage(selectedId, preserveDraft) {
   setRadiologyPatient(preserveDraft === true && previousId === radSelect.value);
 }
 function setRadiologyPatient(preserveDraft) {
-  hydrateRadClinicContactInputs();
   const patient = radPatient();
   if (!preserveDraft) radForm.reset();
   document.getElementById('rad-error').textContent = '';
@@ -29654,8 +29908,40 @@ function printRadiologyOrder(order) {
 
     window.toggleSidebarRail = function() {
       var collapsed = document.body.classList.toggle('sb-collapsed');
+      var tip = document.getElementById('sb-rail-tooltip');
+      if (tip) tip.classList.remove('visible');
       try { localStorage.setItem('dental_ui_sb_collapsed', collapsed ? '1' : '0'); } catch (e) {}
     };
+
+    /* Tooltips flotantes sin recorte para el modo Rail colapsado */
+    (function initSidebarRailTooltips() {
+      var sb = document.getElementById('sidebar');
+      var tip = document.getElementById('sb-rail-tooltip');
+      if (!sb || !tip) return;
+      sb.addEventListener('mouseover', function(ev) {
+        if (!document.body.classList.contains('sb-collapsed') || window.innerWidth < 1025) {
+          tip.classList.remove('visible');
+          return;
+        }
+        var target = ev.target && ev.target.closest ? ev.target.closest('[data-tip]') : null;
+        if (!target || !sb.contains(target)) {
+          tip.classList.remove('visible');
+          return;
+        }
+        var label = target.getAttribute('data-tip');
+        if (!label) { tip.classList.remove('visible'); return; }
+        var rect = target.getBoundingClientRect();
+        tip.textContent = label;
+        tip.style.top = Math.round(rect.top + rect.height / 2) + 'px';
+        tip.style.left = Math.round(rect.right + 12) + 'px';
+        tip.classList.add('visible');
+      });
+      sb.addEventListener('mouseleave', function() {
+        tip.classList.remove('visible');
+      });
+      var sbNav = sb.querySelector('.sb-nav');
+      if (sbNav) sbNav.addEventListener('scroll', function() { tip.classList.remove('visible'); }, { passive: true });
+    })();
 
     /* 2. Spotlight Command Palette (Ctrl+K / Cmd+K) */
     var cmdActions = [
