@@ -5011,24 +5011,22 @@ body.app-ready #dash-page.active > .card {
     <div style="display:flex;align-items:center;gap:14px;padding-right:42px;margin-bottom:14px">
       <div style="width:58px;height:58px;flex:0 0 auto;border-radius:18px;background:linear-gradient(145deg,#1689ff,#6257e8);display:flex;align-items:center;justify-content:center;color:white;font-size:1.7rem;box-shadow:0 10px 24px rgba(22,137,255,.28)">✨</div>
       <div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><span style="font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)">Nueva actualización</span><span style="font-size:.62rem;font-weight:800;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 7px;border-radius:999px">23 AGO 2026</span></div>
-        <h2 id="update-notice-title" style="font-size:1.42rem;line-height:1.2;margin:0;color:var(--ink)">Tu consultorio clínico ahora es mucho más completo</h2>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><span style="font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)">Nueva actualización</span><span style="font-size:.62rem;font-weight:800;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 7px;border-radius:999px">26 NOV 2026</span></div>
+        <h2 id="update-notice-title" style="font-size:1.42rem;line-height:1.2;margin:0;color:var(--ink)">Del odontograma al presupuesto</h2>
       </div>
     </div>
-    <p style="font-size:.82rem;line-height:1.6;color:var(--ink-3);margin:0 0 18px">Renovamos los módulos, las recetas, las fotografías y la conexión con Google. <strong style="color:var(--ink)">Tus expedientes anteriores se conservan.</strong></p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px;margin-bottom:20px">
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>🦷</span><span style="font-size:.77rem;line-height:1.45"><strong>Especialidades renovadas</strong><br><span style="color:var(--ink-3)">Ortodoncia, cefalometría, periodoncia, odontogramas y expedientes especializados más completos y visuales.</span></span></div>
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>✨</span><span style="font-size:.77rem;line-height:1.45"><strong>Expediente multidisciplinario</strong><br><span style="color:var(--ink-3)">Todas las especialidades están en la ficha del paciente y la impresión reúne su resumen clínico.</span></span></div>
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>💊</span><span style="font-size:.77rem;line-height:1.45"><strong>Recetario clínico ampliado</strong><br><span style="color:var(--ink-3)">Protocolos odontológicos, vademécum, selección manual y calculadora pediátrica por peso.</span></span></div>
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>📸</span><span style="font-size:.77rem;line-height:1.45"><strong>Fotografías por paciente</strong><br><span style="color:var(--ink-3)">Galerías separadas, carga anticipada y avisos claros mientras Drive descarga las miniaturas.</span></span></div>
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>📅</span><span style="font-size:.77rem;line-height:1.45"><strong>Agenda más rápida</strong><br><span style="color:var(--ink-3)">Mejor lectura de citas y actualización rápida desde Google Calendar, incluido el celular.</span></span></div>
-      <div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--border)"><span>☁️</span><span style="font-size:.77rem;line-height:1.45"><strong>Drive más ágil y seguro</strong><br><span style="color:var(--ink-3)">Menos esperas, estados de guardado más claros y protección al intentar salir con cambios pendientes.</span></span></div>
-    </div>
+    <p style="line-height:1.5;margin:0 0 14px">Elige el tratamiento para cada pieza y su precio del catálogo aparecerá en el presupuesto del paciente.</p>
+    <ul style="padding-left:20px;margin:0 0 18px;font-size:.85rem;line-height:1.6">
+      <li><strong>Plan y pagos en vivo.</strong> Al guardar, verás las piezas, superficies e importe del borrador en el expediente y el saldo estimado en Pagos y abonos.</li>
+      <li><strong>Órdenes de radiografías.</strong> Solicita varios estudios en una orden con folio y vuelve a imprimirla desde el historial del paciente.</li>
+      <li><strong>Plantillas editables.</strong> Los consentimientos e indicaciones conservan tus cambios al imprimir. WhatsApp también usa las indicaciones editadas.</li>
+    </ul>
     <label for="update-notice-dont-show" style="display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:12px;border-radius:13px;background:color-mix(in srgb,var(--blue) 8%,var(--bg));border:1px solid color-mix(in srgb,var(--blue) 24%,var(--border));font-size:.78rem;cursor:pointer;user-select:none">
       <input type="checkbox" id="update-notice-dont-show" style="width:18px;height:18px;accent-color:var(--blue);margin:0">
       <span><strong>No volver a mostrar esta actualización</strong><br><span style="color:var(--ink-3);font-size:.7rem">La preferencia se guardará únicamente en este dispositivo.</span></span>
     </label>
-    <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:780;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido, explorar mejoras</button>
+    <button type="button" onclick="closeUpdateNotice()" style="width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;padding:12px 16px;font:inherit;font-size:.84rem;font-weight:780;cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--blue) 28%,transparent)">Entendido</button>
+    <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;justify-content:center" onclick="closeUpdateNotice();openHelp();document.getElementById('h-novedades').scrollIntoView({block:'start'})">Ver cómo se usa en Ayuda</button>
   </div>
 </div>
 
@@ -18152,7 +18150,7 @@ function renderBdayList() {
 // AVISO DE ACTUALIZACIÓN — una vez por sesión o permanentemente si se elige
 // “No volver a mostrar” en este dispositivo.
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_08_23_clinical_suite_v30';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_11_26_odontograma';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -18185,7 +18183,7 @@ function showUpdateNoticeOnce() {
     if (overlay) {
       _updateNoticeShownThisSession = true;
       var dontShow = document.getElementById('update-notice-dont-show');
-      if (dontShow) dontShow.checked = false;
+      if (dontShow) dontShow.checked = true;
       overlay.style.display = 'flex';
     }
   }, 900);
@@ -26262,6 +26260,7 @@ window.addEventListener('resize', function() {
 
     <!-- Índice rápido -->
     <div style="display:flex;flex-wrap:wrap;gap:6px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg)">
+      <a href="#h-novedades" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">Novedades</a>
       <a href="#h-inicio" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🚀 Inicio</a>
       <a href="#h-pacientes" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">👥 Pacientes</a>
       <a href="#h-especialidades" onclick="scrollHelp(this)" style="font-size:.72rem;padding:4px 10px;background:var(--card);border:1px solid var(--border-med);border-radius:12px;color:var(--blue);text-decoration:none">🦷 Especialidades</a>
@@ -26282,6 +26281,15 @@ window.addEventListener('resize', function() {
     <div id="help-content" style="padding:24px 28px;max-height:70vh;overflow-y:auto">
       <div id="help-no-results" style="display:none;text-align:center;padding:50px 20px;color:var(--ink-3)"><div style="font-size:2rem;margin-bottom:8px">🔎</div>No encontramos ese tema. Prueba con otra palabra.</div>
 
+      <section id="h-novedades" style="margin-bottom:28px">
+        <h3>Novedades del 26 de noviembre de 2026</h3>
+        <div style="display:grid;gap:14px;margin-top:12px;font-size:.85rem;line-height:1.55">
+          <div><h4>Del odontograma al presupuesto</h4><p>En el odontograma adulto o pediátrico, selecciona una pieza y pulsa <strong>Planear tratamiento</strong>. También puedes partir de un hallazgo registrado en <strong>Plan de tratamiento</strong> o en el resumen de <strong>Presupuestos</strong> con <strong>Elegir tratamiento</strong>. Revisa la pieza FDI y las superficies, elige el procedimiento del catálogo y pulsa <strong>Agregar al plan y al presupuesto</strong>.</p></div>
+          <div><h4>Consultar el saldo estimado y corregir el borrador</h4><p>El tratamiento aparece al momento en el plan y en la sección de presupuestos del expediente. <strong>Pagos y abonos</strong> muestra el importe estimado teniendo en cuenta el saldo previo. Por ejemplo, dos tratamientos de $5,000 y $1,000 suman $6,000. Con un abono de $500 y sin otros cargos, el pendiente estimado es $5,500.</p><p>Usa <strong>Editar</strong> en el tratamiento planeado para corregir la pieza o las superficies. Cuando esté listo, genera el presupuesto. La impresión y el historial incluyen el detalle por pieza.</p></div>
+          <div><h4>Emitir una orden de radiografías</h4><p>Abre <strong>Radiografías</strong> junto a <strong>Recetas</strong> y elige al paciente. Marca los estudios, escribe el motivo clínico y completa la región, lateralidad, centro destinatario y formato de entrega según corresponda. Pulsa <strong>Emitir orden</strong>. En <strong>Órdenes emitidas</strong>, usa <strong>Imprimir / PDF</strong> para imprimirla o guardarla como PDF desde el navegador.</p></div>
+          <div><h4>Personalizar consentimientos e indicaciones</h4><p>En <strong>Consentimientos</strong> o <strong>Indicaciones</strong>, abre la plantilla, pulsa <strong>Editar</strong> y luego <strong>Guardar cambios</strong>. Verás el texto actualizado en la tarjeta y en la impresión. En Indicaciones, <strong>Enviar por WhatsApp</strong> también toma ese texto. Para recuperar la versión inicial, abre el editor y pulsa <strong>Restaurar original</strong>.</p></div>
+        </div>
+      </section>
       <!-- INICIO -->
       <div id="h-inicio" style="margin-bottom:28px">
         <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px">
