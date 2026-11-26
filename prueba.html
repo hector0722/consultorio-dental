@@ -5180,25 +5180,33 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
   }
 
   #sidebar .sb-logo {
+    flex: 0 0 auto !important;
     display: flex !important;
     align-items: center !important;
     gap: 11px !important;
     height: auto !important;
-    min-height: 76px !important;
-    padding: 18px 14px 15px 16px !important;
+    min-height: 74px !important;
+    padding: 16px 14px 14px 16px !important;
     border: 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
     position: relative !important;
+    z-index: 3 !important;
   }
 
   #sidebar .sb-logo-icon {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
     margin: 0 !important;
-    border-radius: 13px !important;
+    border-radius: 11px !important;
     font-size: 1.2rem !important;
     transition: transform .35s var(--ease-spring), box-shadow .3s ease !important;
+  }
+  #sidebar .sb-logo-icon.has-custom-logo {
+    background: #ffffff !important;
+    padding: 3px !important;
+    border: 1px solid rgba(255, 255, 255, .25) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .24) !important;
   }
   #sidebar .sb-logo:hover .sb-logo-icon {
     transform: scale(1.07) rotate(-4deg);
@@ -5250,7 +5258,8 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
   }
 
   #sidebar .sb-nav {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
     width: 100% !important;
     max-width: none !important;
     height: auto !important;
@@ -5259,7 +5268,7 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
     align-items: stretch !important;
     justify-content: flex-start !important;
     gap: 3px !important;
-    padding: 10px 11px 14px !important;
+    padding: 10px 11px 12px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     clip-path: none !important;
@@ -5344,19 +5353,22 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
   }
 
   #sidebar .sb-footer {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    z-index: 4 !important;
     width: 100% !important;
     max-width: none !important;
     height: auto !important;
-    padding: 12px !important;
+    padding: 11px 12px 12px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 8px !important;
-    background: rgba(0, 0, 0, .18) !important;
+    gap: 7px !important;
+    background: color-mix(in srgb, var(--user-sidebar, #0b0e17) 96%, #000 4%) !important;
     border-left: 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, .08) !important;
+    border-top: 1px solid rgba(255, 255, 255, .10) !important;
     border-radius: 0 0 25px 25px !important;
-    box-shadow: none !important;
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, .24) !important;
   }
 
   #sidebar .sb-footer #active-doctor-badge[style*="display:none"],
@@ -5463,6 +5475,16 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
     z-index: 999;
     white-space: nowrap;
   }
+  body.sb-collapsed #sidebar .sb-footer {
+    padding: 10px 8px !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge .doctor-active-badge {
+    justify-content: center !important;
+    padding: 7px 0 !important;
+  }
+  body.sb-collapsed #sidebar .sb-footer #active-doctor-badge .doctor-active-badge span:last-child {
+    display: none !important;
+  }
   body.sb-collapsed #sidebar .sb-footer-row {
     grid-template-columns: 1fr;
   }
@@ -5568,23 +5590,24 @@ html.dark .gd-reconnect-box, html.dark #backup-reminder-box {
   #mobile-menu-btn { display: inline-flex !important; }
 }
 
-/* ══ COMMAND TOPBAR FLOTANTE ══ */
+/* ══ COMMAND TOPBAR FLOTANTE (SIN CORTES A LA DERECHA) ══ */
 .topbar {
   position: sticky !important;
   top: 14px !important;
   margin: 0 22px !important;
-  height: 60px !important;
-  min-height: 60px !important;
-  padding: 8px 18px !important;
-  border-radius: 20px !important;
-  background: color-mix(in srgb, var(--card) 84%, transparent) !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 8px 16px !important;
+  border-radius: 14px !important;
+  background: color-mix(in srgb, var(--card) 88%, transparent) !important;
   backdrop-filter: blur(22px) saturate(185%) !important;
   -webkit-backdrop-filter: blur(22px) saturate(185%) !important;
   border: 1px solid color-mix(in srgb, var(--border-med) 78%, rgba(255, 255, 255, .55)) !important;
-  box-shadow: 0 12px 32px -16px rgba(15, 23, 42, .14), inset 0 1px 0 rgba(255, 255, 255, .62) !important;
+  box-shadow: 0 10px 28px -16px rgba(15, 23, 42, .14), inset 0 1px 0 rgba(255, 255, 255, .62) !important;
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 10px !important;
+  overflow: hidden !important;
   z-index: 140 !important;
 }
 html.dark .topbar,
@@ -5600,18 +5623,24 @@ html.dark .topbar h2 {
   background: transparent !important;
   padding: 0 !important;
   color: var(--ink) !important;
-  font-size: 1.06rem !important;
+  font-size: 1.02rem !important;
   font-weight: 800 !important;
   letter-spacing: -.025em !important;
   text-transform: none !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 9px !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 .topbar h2::before {
   content: "" !important;
   width: 8px !important;
   height: 8px !important;
+  flex: 0 0 8px !important;
   border-radius: 50% !important;
   background: var(--blue) !important;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 18%, transparent) !important;
@@ -5621,16 +5650,17 @@ html.dark .topbar h2 {
 .cmd-search-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  flex: 0 1 310px;
-  height: 38px;
+  gap: 8px;
+  flex: 0 1 250px;
+  min-width: 38px;
+  height: 36px;
   margin-left: auto;
-  padding: 0 11px 0 13px;
-  border-radius: 12px;
+  padding: 0 10px 0 12px;
+  border-radius: 10px;
   border: 1px solid var(--border-med);
   background: color-mix(in srgb, var(--bg) 78%, var(--card));
   color: var(--ink-3);
-  font-size: .78rem;
+  font-size: .76rem;
   font-weight: 550;
   cursor: pointer;
   transition: border-color .2s ease, box-shadow .22s ease, transform .2s var(--ease-spring), background .2s ease;
@@ -5642,23 +5672,46 @@ html.dark .topbar h2 {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--blue) 28%, rgba(0, 0, 0, .12));
 }
-.cmd-search-ico { font-size: .95rem; color: var(--blue); font-weight: 700; }
+.cmd-search-ico { font-size: .92rem; color: var(--blue); font-weight: 700; }
 .cmd-search-ph { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cmd-search-trigger kbd {
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 2px 5px;
+  border-radius: 5px;
   background: color-mix(in srgb, var(--ink) 7%, var(--card));
   border: 1px solid var(--border);
   font-family: var(--font-mono) !important;
-  font-size: .64rem;
+  font-size: .62rem;
   font-weight: 600;
   color: var(--ink-3);
 }
-.topbar-actions { margin-left: 0 !important; align-items: center !important; gap: 7px !important; }
-
-@media (max-width: 1180px) {
-  .cmd-search-trigger { flex: 0 0 auto; width: 38px; padding: 0; justify-content: center; margin-left: auto; }
+.topbar-actions {
+  margin-left: 0 !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+}
+#gd-sync-badge {
+  max-width: 185px !important;
+  overflow: hidden !important;
+  border-radius: 10px !important;
+}
+#gd-sync-txt {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+#btn-add {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+/* En escritorio Ayuda ya vive fija en el dock lateral, liberando espacio en Topbar */
+@media (min-width: 1025px) {
+  #desktop-help-btn { display: none !important; }
+}
+@media (max-width: 1380px) {
+  .cmd-search-trigger { flex: 0 0 38px; width: 38px; padding: 0; justify-content: center; }
   .cmd-search-ph, .cmd-search-trigger kbd { display: none; }
+  #gd-sync-badge { max-width: 135px !important; }
 }
 @media (max-width: 1024px) {
   .topbar {
@@ -6073,20 +6126,24 @@ select:focus, textarea:focus {
   box-shadow: var(--ring-focus) !important;
 }
 
-/* ══ HERO PANORÁMICO BENTO v6.0 ══ */
+/* ══ HERO CINEMÁTICO BENTO v6.0 (PORTADA MÁS GRANDE Y LUMINOSA) ══ */
 .dashboard-hero {
   position: relative !important;
   overflow: hidden !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1.15fr) minmax(240px, .85fr) !important;
-  grid-template-rows: auto auto !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(260px, .92fr) !important;
+  grid-template-rows: 1fr auto !important;
   align-items: center !important;
-  gap: 14px 24px !important;
-  min-height: 232px !important;
-  padding: 28px 34px !important;
-  border-radius: var(--user-radius-xl, 28px) !important;
+  gap: 18px 28px !important;
+  min-height: 330px !important;
+  padding: 36px 40px !important;
+  border-radius: 18px !important;
   border: 1px solid rgba(255, 255, 255, .14) !important;
   box-shadow: 0 24px 56px -22px color-mix(in srgb, var(--blue) 32%, rgba(7, 11, 22, .45)), inset 0 1px 0 rgba(255, 255, 255, .20) !important;
+}
+.dashboard-hero.has-photo {
+  min-height: 430px !important;
+  padding: 44px 48px !important;
 }
 .dashboard-hero::after {
   content: "";
@@ -6095,22 +6152,22 @@ select:focus, textarea:focus {
   z-index: 1;
   pointer-events: none;
   background-image:
-    radial-gradient(460px circle at var(--mx, 80%) var(--my, 20%), rgba(255, 255, 255, .11), transparent 65%),
-    radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px);
+    radial-gradient(460px circle at var(--mx, 80%) var(--my, 20%), rgba(255, 255, 255, .10), transparent 65%),
+    radial-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px);
   background-size: 100% 100%, 24px 24px;
-  mask-image: linear-gradient(125deg, rgba(0, 0, 0, .48), transparent 75%);
-  -webkit-mask-image: linear-gradient(125deg, rgba(0, 0, 0, .48), transparent 75%);
+  mask-image: linear-gradient(125deg, rgba(0, 0, 0, .42), transparent 70%);
+  -webkit-mask-image: linear-gradient(125deg, rgba(0, 0, 0, .42), transparent 70%);
 }
 .dashboard-hero .dashboard-eyebrow {
   display: inline-flex !important;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px;
-  border-radius: 999px;
+  padding: 6px 13px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, .10);
-  border: 1px solid rgba(255, 255, 255, .15);
+  border: 1px solid rgba(255, 255, 255, .16);
   backdrop-filter: blur(10px);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .dashboard-hero .dashboard-eyebrow::before {
   content: "";
@@ -6122,19 +6179,19 @@ select:focus, textarea:focus {
   animation: syncBeacon 2.6s ease-in-out infinite;
 }
 .dashboard-hero #dash-greeting {
-  font-size: clamp(2rem, 3.1vw, 3.05rem) !important;
+  font-size: clamp(2.25rem, 3.6vw, 3.5rem) !important;
   font-weight: 800 !important;
-  line-height: 1.04 !important;
+  line-height: 1.03 !important;
   letter-spacing: -.045em !important;
 }
 .dashboard-hero #dash-date-lbl {
-  margin-top: 8px !important;
-  font-size: .86rem !important;
-  color: rgba(248, 250, 252, .68) !important;
+  margin-top: 10px !important;
+  font-size: .9rem !important;
+  color: rgba(248, 250, 252, .74) !important;
 }
 .hero-reference-art {
-  min-height: 175px !important;
-  max-height: 210px !important;
+  min-height: 240px !important;
+  max-height: 290px !important;
 }
 .hero-reference-art .organic-shape.shape-a,
 .hero-reference-art .organic-shape.shape-c {
@@ -6153,24 +6210,28 @@ select:focus, textarea:focus {
   will-change: transform;
 }
 .dashboard-hero-photo {
-  background-position: center 22% !important;
+  background-position: center 16% !important;
+  background-size: cover !important;
   transition: transform .45s var(--ease-soft);
-  transform: translate3d(calc(var(--px, 0px) * 0.45), calc(var(--py, 0px) * 0.45), 0);
+  transform: translate3d(calc(var(--px, 0px) * 0.35), calc(var(--py, 0px) * 0.35), 0);
+}
+.dashboard-hero-photo::after {
+  background: linear-gradient(90deg, rgba(6, 9, 16, .88) 0%, rgba(6, 9, 16, .52) 40%, rgba(6, 9, 16, .08) 76%, rgba(6, 9, 16, .02) 100%) !important;
 }
 .dashboard-quick-actions {
-  margin-top: 6px !important;
-  max-width: 540px;
-  border: 1px solid rgba(255, 255, 255, .14) !important;
-  background: rgba(255, 255, 255, .08) !important;
-  border-radius: 16px !important;
+  margin-top: 10px !important;
+  max-width: 550px;
+  border: 1px solid rgba(255, 255, 255, .15) !important;
+  background: rgba(12, 16, 26, .42) !important;
+  border-radius: 14px !important;
   padding: 6px !important;
   backdrop-filter: blur(18px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
 }
 .dashboard-action {
-  min-height: 40px !important;
-  border-radius: 12px !important;
-  font-size: .78rem !important;
+  min-height: 42px !important;
+  border-radius: 10px !important;
+  font-size: .79rem !important;
   font-weight: 650 !important;
   transition: transform .24s var(--ease-spring), box-shadow .24s var(--ease-soft), background .2s ease, color .2s ease !important;
 }
@@ -6181,16 +6242,16 @@ select:focus, textarea:focus {
 .dashboard-action:active { transform: scale(.97) !important; }
 
 @media (max-width: 860px) {
-  .dashboard-hero {
+  .dashboard-hero, .dashboard-hero.has-photo {
     grid-template-columns: 1fr !important;
-    min-height: 250px !important;
-    padding: 24px 20px !important;
+    min-height: 320px !important;
+    padding: 26px 22px !important;
   }
   .hero-reference-art { display: none !important; }
   .dashboard-quick-actions { position: relative !important; left: auto !important; right: auto !important; bottom: auto !important; max-width: none; }
 }
 
-/* ══ TARJETAS KPI BENTO VERTICALES — NUEVA SILUETA v6.0 ══ */
+/* ══ TARJETAS KPI CUADRADAS Y PERFECTAMENTE ALINEADAS ══ */
 .stat-card::after,
 .stats-row .stat-card::after {
   display: none !important;
@@ -6200,9 +6261,9 @@ select:focus, textarea:focus {
 .stats-row {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 16px !important;
-  margin-top: 20px !important;
-  margin-bottom: 22px !important;
+  gap: 14px !important;
+  margin-top: 18px !important;
+  margin-bottom: 18px !important;
 }
 
 .stats-row .stat-card {
@@ -6211,52 +6272,52 @@ select:focus, textarea:focus {
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: space-between !important;
-  min-height: 138px !important;
-  padding: 20px 22px !important;
+  min-height: 132px !important;
+  padding: 18px 20px !important;
   overflow: hidden !important;
-  border-radius: var(--user-radius-lg, 24px) !important;
-  border: 1px solid color-mix(in srgb, var(--border-med) 72%, rgba(255, 255, 255, .55)) !important;
+  border-radius: 14px !important;
+  border: 1px solid color-mix(in srgb, var(--border-med) 82%, rgba(255, 255, 255, .5)) !important;
   background:
-    radial-gradient(150px circle at 100% 0%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 72%),
+    radial-gradient(140px circle at 100% 0%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 72%),
     var(--card) !important;
-  box-shadow: 0 12px 30px -16px rgba(15, 23, 42, .14), inset 0 1px 0 rgba(255, 255, 255, .68) !important;
-  transition: transform .26s var(--ease-spring), box-shadow .26s var(--ease-soft), border-color .22s ease !important;
+  box-shadow: 0 8px 24px -14px rgba(15, 23, 42, .12), inset 0 1px 0 rgba(255, 255, 255, .68) !important;
+  transition: transform .24s var(--ease-spring), box-shadow .24s var(--ease-soft), border-color .22s ease !important;
 }
 .stats-row .stat-card:nth-child(2) {
   background:
-    radial-gradient(150px circle at 100% 0%, rgba(99, 102, 241, .13), transparent 72%),
+    radial-gradient(140px circle at 100% 0%, rgba(99, 102, 241, .11), transparent 72%),
     var(--card) !important;
 }
 .stats-row .stat-card:nth-child(3) {
   background:
-    radial-gradient(150px circle at 100% 0%, rgba(255, 59, 48, .12), transparent 72%),
+    radial-gradient(140px circle at 100% 0%, rgba(255, 59, 48, .10), transparent 72%),
     var(--card) !important;
 }
 .stats-row .stat-card:nth-child(4) {
   background:
-    radial-gradient(150px circle at 100% 0%, rgba(36, 138, 61, .13), transparent 72%),
+    radial-gradient(140px circle at 100% 0%, rgba(36, 138, 61, .11), transparent 72%),
     var(--card) !important;
 }
 
 html.dark .stats-row .stat-card,
 body.user-theme-dark-card .stats-row .stat-card {
-  border-color: rgba(255, 255, 255, .10) !important;
-  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, .62), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  border-color: rgba(255, 255, 255, .11) !important;
+  box-shadow: 0 14px 32px -16px rgba(0, 0, 0, .62), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
 }
-html.dark .stats-row .stat-card:nth-child(1) { background: radial-gradient(160px circle at 100% 0%, color-mix(in srgb, var(--blue) 22%, transparent), transparent 72%), var(--card) !important; }
-html.dark .stats-row .stat-card:nth-child(2) { background: radial-gradient(160px circle at 100% 0%, rgba(129, 140, 248, .20), transparent 72%), var(--card) !important; }
-html.dark .stats-row .stat-card:nth-child(3) { background: radial-gradient(160px circle at 100% 0%, rgba(255, 69, 58, .20), transparent 72%), var(--card) !important; }
-html.dark .stats-row .stat-card:nth-child(4) { background: radial-gradient(160px circle at 100% 0%, rgba(48, 209, 88, .20), transparent 72%), var(--card) !important; }
+html.dark .stats-row .stat-card:nth-child(1) { background: radial-gradient(150px circle at 100% 0%, color-mix(in srgb, var(--blue) 20%, transparent), transparent 72%), var(--card) !important; }
+html.dark .stats-row .stat-card:nth-child(2) { background: radial-gradient(150px circle at 100% 0%, rgba(129, 140, 248, .18), transparent 72%), var(--card) !important; }
+html.dark .stats-row .stat-card:nth-child(3) { background: radial-gradient(150px circle at 100% 0%, rgba(255, 69, 58, .18), transparent 72%), var(--card) !important; }
+html.dark .stats-row .stat-card:nth-child(4) { background: radial-gradient(150px circle at 100% 0%, rgba(48, 209, 88, .18), transparent 72%), var(--card) !important; }
 
-/* Píldora luminosa superior en cada Bento KPI */
+/* Barra superior arquitectónica limpia */
 .stats-row .stat-card::before {
   content: "" !important;
   display: block !important;
   position: absolute !important;
-  inset: 0 auto auto 22px !important;
-  width: 38px !important;
-  height: 3.5px !important;
-  border-radius: 0 0 6px 6px !important;
+  inset: 0 0 auto 0 !important;
+  width: 100% !important;
+  height: 3px !important;
+  border-radius: 0 !important;
   background: var(--blue) !important;
 }
 .stats-row .stat-card:nth-child(2)::before { background: #6366f1 !important; }
@@ -6265,47 +6326,50 @@ html.dark .stats-row .stat-card:nth-child(4) { background: radial-gradient(160px
 html.dark .stats-row .stat-card:nth-child(4)::before { background: #30d158 !important; }
 
 .stats-row .stat-card:hover {
-  transform: translateY(-5px) !important;
+  transform: translateY(-4px) !important;
   border-color: color-mix(in srgb, var(--blue) 38%, var(--border-med)) !important;
-  box-shadow: 0 22px 44px -16px color-mix(in srgb, var(--blue) 28%, rgba(15, 23, 42, .2)), inset 0 1px 0 rgba(255, 255, 255, .72) !important;
+  box-shadow: 0 18px 36px -16px color-mix(in srgb, var(--blue) 26%, rgba(15, 23, 42, .18)), inset 0 1px 0 rgba(255, 255, 255, .72) !important;
 }
 
 .stats-row .stat-icon {
-  width: 44px !important;
-  height: 44px !important;
+  align-self: flex-start !important;
+  width: 42px !important;
+  height: 42px !important;
   margin: 0 0 12px 0 !important;
   display: grid !important;
   place-items: center !important;
-  border-radius: 14px !important;
-  font-size: 1.15rem !important;
-  background: color-mix(in srgb, var(--blue) 13%, var(--card)) !important;
+  border-radius: 10px !important;
+  font-size: 1.12rem !important;
+  background: color-mix(in srgb, var(--blue) 12%, var(--card)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 18%, rgba(255,255,255,.45)) !important;
   transition: transform .3s var(--ease-spring) !important;
 }
 .stats-row .stat-card:nth-child(2) .stat-icon {
-  background: color-mix(in srgb, #6366f1 13%, var(--card)) !important;
+  background: color-mix(in srgb, #6366f1 12%, var(--card)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, #6366f1 18%, rgba(255,255,255,.45)) !important;
 }
 .stats-row .stat-card:nth-child(3) .stat-icon {
-  background: color-mix(in srgb, #ff3b30 13%, var(--card)) !important;
+  background: color-mix(in srgb, #ff3b30 12%, var(--card)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, #ff3b30 18%, rgba(255,255,255,.45)) !important;
 }
 .stats-row .stat-card:nth-child(4) .stat-icon {
-  background: color-mix(in srgb, #248a3d 13%, var(--card)) !important;
+  background: color-mix(in srgb, #248a3d 12%, var(--card)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, #248a3d 18%, rgba(255,255,255,.45)) !important;
 }
 .stats-row .stat-card:hover .stat-icon {
-  transform: scale(1.12) rotate(-5deg);
+  transform: scale(1.1) rotate(-4deg);
 }
 
 .stats-row .stat-card:nth-child(n) .stat-label {
-  margin: auto 0 3px 0 !important;
+  align-self: flex-start !important;
+  text-align: left !important;
+  margin: auto 0 4px 0 !important;
   color: var(--ink-3) !important;
   opacity: 1 !important;
   font-size: .68rem !important;
   font-weight: 760 !important;
   line-height: 1.2 !important;
-  letter-spacing: .08em !important;
+  letter-spacing: .07em !important;
   text-transform: uppercase !important;
   white-space: nowrap !important;
   overflow: hidden !important;
@@ -6314,9 +6378,11 @@ html.dark .stats-row .stat-card:nth-child(4)::before { background: #30d158 !impo
 }
 
 .stats-row .stat-card:nth-child(n) .stat-value {
+  align-self: flex-start !important;
+  text-align: left !important;
   margin: 0 !important;
   color: var(--ink) !important;
-  font-size: 2.08rem !important;
+  font-size: 2.05rem !important;
   font-weight: 820 !important;
   line-height: 1.02 !important;
   letter-spacing: -.045em !important;
@@ -6333,7 +6399,7 @@ body.user-theme-dark-card .stats-row #dash-owe { color: #ff6961 !important; }
 #reporte-page #rep-kpis .stat-card:nth-child(n) .stat-label { color: var(--ink-3) !important; opacity: 1 !important; }
 #reporte-page #rep-kpis .stat-card:nth-child(n) .stat-value { color: var(--ink) !important; opacity: 1 !important; }
 
-/* ══ LIENZO DE TRABAJO, TARJETAS BENTO, BARRAS DE FILTRO Y TABLAS ══ */
+/* ══ LIENZO DE TRABAJO, TARJETAS CUADRADAS, PACIENTES Y RADIOGRAFÍAS ══ */
 #main {
   background-image:
     radial-gradient(920px 460px at 8% 0%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 65%),
@@ -6341,11 +6407,13 @@ body.user-theme-dark-card .stats-row #dash-owe { color: #ff6961 !important; }
 }
 .content {
   max-width: 1580px !important;
-  padding: 20px 22px 76px !important;
+  padding: 18px 22px 76px !important;
+}
+.card, .table-wrap, .cal-main, .appt-form-card, .budget-panel {
+  border-radius: 14px !important;
 }
 .card {
-  border-radius: var(--user-radius-lg, 24px) !important;
-  padding: 22px 24px !important;
+  padding: 20px 22px !important;
 }
 .card-title {
   padding-bottom: 12px !important;
@@ -6357,14 +6425,119 @@ body.user-theme-dark-card .stats-row #dash-owe { color: #ff6961 !important; }
   border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent) !important;
 }
 
-/* Barra flotante de controles en Pacientes y Búsqueda */
+/* Pacientes: barra cuadrada alineada a la tabla y acciones en una sola fila */
 #list-page .list-controls {
   padding: 12px 14px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--card) 90%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: 0 10px 26px -16px rgba(15, 23, 42, .12);
-  margin-bottom: 18px;
+  border-radius: 14px !important;
+  background: var(--card) !important;
+  border: 1px solid var(--border-med) !important;
+  box-shadow: 0 8px 22px -16px rgba(15, 23, 42, .12);
+  margin-bottom: 16px;
+}
+#list-page .list-controls input,
+#list-page .list-controls select {
+  height: 40px !important;
+  border-radius: 10px !important;
+}
+@media (min-width: 761px) {
+  #list-page table td {
+    vertical-align: middle !important;
+  }
+  #list-page td.patient-actions {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+  }
+}
+
+/* Corrección global de <header> internos y rediseño completo de Órdenes de Radiografías */
+body.user-custom-theme #main header,
+body.user-custom-theme .rad-head,
+body.user-custom-theme .odo-header,
+body.user-custom-theme .ped-header,
+body.user-custom-theme .spec-header {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+}
+
+#rad-panel {
+  max-width: 100% !important;
+  margin: 0 0 48px !important;
+}
+#rad-panel .rad-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  padding: 24px 28px !important;
+  margin-bottom: 18px !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border-med) !important;
+  border-left: 4px solid var(--blue) !important;
+  background:
+    radial-gradient(380px circle at 0% 0%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 70%),
+    var(--card) !important;
+  box-shadow: 0 10px 28px -16px rgba(15, 23, 42, .14) !important;
+}
+#rad-panel .rad-head h2 {
+  color: var(--ink) !important;
+  font-size: clamp(1.35rem, 2.1vw, 1.75rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.03em !important;
+}
+#rad-panel .rad-head h2::before {
+  content: "🩻 ";
+}
+#rad-panel .rad-head label {
+  width: min(380px, 100%) !important;
+  color: var(--ink-2) !important;
+  font-size: .74rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+#rad-panel .rad-head select {
+  height: 42px !important;
+  border-radius: 10px !important;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--border-med) !important;
+  font-size: .86rem !important;
+  font-weight: 600 !important;
+}
+#rad-panel .rad-box,
+#rad-panel .rad-preview {
+  border-radius: 14px !important;
+  border: 1px solid var(--border-med) !important;
+  background: var(--card) !important;
+  box-shadow: 0 8px 24px -16px rgba(15, 23, 42, .12) !important;
+}
+#rad-panel .rad-preview {
+  border-top: 4px solid var(--blue) !important;
+}
+#rad-panel .rad-choice {
+  border-radius: 10px !important;
+  background: var(--bg) !important;
+  transition: transform .16s var(--ease-spring), border-color .16s ease, background .16s ease;
+}
+#rad-panel .rad-choice:hover {
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--border-med)) !important;
+  transform: translateY(-1px);
+}
+/* Estado vacío elegante cuando aún no se ha elegido paciente en Radiografías */
+#rad-panel:has(#rad-workspace[hidden])::after {
+  content: "Selecciona un paciente en el selector superior para elegir estudios extraorales, intraorales o tomografía CBCT, previsualizar la orden con folio e imprimirla.";
+  display: block;
+  padding: 44px 28px;
+  text-align: center;
+  border-radius: 14px;
+  border: 1px dashed var(--border-med);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  color: var(--ink-3);
+  font-size: .88rem;
+  font-weight: 550;
+  line-height: 1.6;
 }
 
 /* ══ ACABADOS DE SUPERFICIE (CRISTAL / SUAVE / NÍTIDO) ══ */
@@ -13969,10 +14142,47 @@ function applyColor(hex) {
   root.style.setProperty('--blue-mid',   mid);
   var grad = 'linear-gradient(145deg,' + light + ',' + hex + ')';
   var sbi = document.querySelector('.sb-logo-icon');
-  if (sbi) { sbi.style.background = grad; sbi.style.boxShadow = '0 4px 12px ' + hex + '55'; }
+  if (sbi) {
+    if (cfg && cfg.logoImageUrl) {
+      sbi.style.background = '#ffffff';
+      sbi.style.boxShadow = '0 6px 16px rgba(0,0,0,.22)';
+    } else {
+      sbi.style.background = grad;
+      sbi.style.boxShadow = '0 4px 12px ' + hex + '55';
+    }
+  }
   document.querySelectorAll('.avatar').forEach(function(a) {
     a.style.background = grad; a.style.boxShadow = '0 4px 12px ' + hex + '55';
   });
+}
+
+function syncLogoSettingsUI() {
+  var hasImg = !!(cfg && cfg.logoImageUrl);
+  var prevBox = document.getElementById('cfg-logo-preview');
+  var emojiBlock = document.getElementById('cfg-emoji-picker-wrap');
+  var imgPrev = document.getElementById('cfg-logo-img-preview');
+  var imgRem = document.getElementById('cfg-logo-img-remove');
+  var statusNote = document.getElementById('cfg-logo-mode-note');
+  if (prevBox) {
+    if (hasImg) {
+      prevBox.innerHTML = '<img src="' + cfg.logoImageUrl + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px">';
+      prevBox.style.background = '#ffffff';
+      prevBox.style.padding = '3px';
+      prevBox.style.border = '1px solid var(--border-med)';
+    } else {
+      prevBox.textContent = cfg.logo || '🦷';
+      prevBox.style.background = 'var(--blue)';
+      prevBox.style.padding = '0';
+      prevBox.style.border = 'none';
+    }
+  }
+  if (emojiBlock) emojiBlock.style.display = hasImg ? 'none' : 'block';
+  if (statusNote) statusNote.textContent = hasImg ? '✅ Mostrando tu logo en imagen (sin ícono encima)' : 'Elige un emoji o sube el logo de tu clínica abajo';
+  if (imgPrev) {
+    imgPrev.src = hasImg ? cfg.logoImageUrl : '';
+    imgPrev.style.display = hasImg ? 'block' : 'none';
+  }
+  if (imgRem) imgRem.style.display = hasImg ? 'inline-flex' : 'none';
 }
 
 function applyBranding() {
@@ -13990,10 +14200,11 @@ function applyBranding() {
   if (subEl)   subEl.textContent   = cfg.sub;
   if (cityLbl) cityLbl.textContent = (cfg.city ? cfg.city + ' · ' : '') + 'v5.3';
   document.title = cfg.name + ' · Consultorio Dental';
-  // Mostrar logo imagen o emoji
+  // Mostrar exclusivamente el logo subido O el emoji, nunca ambos superpuestos
   if (iconEl) {
+    iconEl.classList.toggle('has-custom-logo', !!cfg.logoImageUrl);
     if (cfg.logoImageUrl) {
-      iconEl.innerHTML = '<img src="' + cfg.logoImageUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">';
+      iconEl.innerHTML = '<img src="' + cfg.logoImageUrl + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">';
     } else {
       iconEl.textContent = cfg.logo || '🦷';
     }
@@ -14001,6 +14212,7 @@ function applyBranding() {
   applyColor(cfg.color);
   applyAppearance();
   applyHeroImage();
+  syncLogoSettingsUI();
 }
 
 function applyHeroImage() {
@@ -14170,11 +14382,17 @@ function previewBranding() {
 }
 
 function previewLogo(val) {
-  var v = val || cfg.logo;
-  document.getElementById('cfg-logo-preview').textContent = v;
+  var v = (val || '').trim() || cfg.logo || '🦷';
+  document.querySelectorAll('.emoji-opt').forEach(function(el){ el.classList.remove('active'); });
+  // Si el usuario tiene un logo en imagen activo, nunca sobreescribirlo con el emoji
+  if (cfg && cfg.logoImageUrl) {
+    syncLogoSettingsUI();
+    return;
+  }
+  var prev = document.getElementById('cfg-logo-preview');
+  if (prev) prev.textContent = v;
   var icon = document.querySelector('.sb-logo-icon');
   if (icon) icon.textContent = v;
-  document.querySelectorAll('.emoji-opt').forEach(function(el){ el.classList.remove('active'); });
 }
 
 function selectEmoji(e) {
@@ -23629,10 +23847,7 @@ function uploadLogoImage(input) {
   }
   showToast('📤 Subiendo logo a Drive…', 'green');
   GD.uploadImageAsset('logo', file).then(function() {
-    var prev = document.getElementById('cfg-logo-img-preview');
-    var rem  = document.getElementById('cfg-logo-img-remove');
-    if (prev) { prev.src = cfg.logoImageUrl || ''; prev.style.display = 'block'; }
-    if (rem) rem.style.display = 'inline';
+    if (typeof applyBranding === 'function') applyBranding();
     showToast('✅ Logo guardado en Drive', 'green');
   }).catch(function(error) {
     console.error('No se pudo subir el logo:', error);
@@ -23644,11 +23859,8 @@ function uploadLogoImage(input) {
 function removeLogoImage() {
   if (typeof GD === 'undefined' || !GD.removeImageAsset) return;
   GD.removeImageAsset('logo').then(function() {
-    var prev = document.getElementById('cfg-logo-img-preview');
-    var rem  = document.getElementById('cfg-logo-img-remove');
-    if (prev) { prev.src = ''; prev.style.display = 'none'; }
-    if (rem) rem.style.display = 'none';
-    showToast('Logo eliminado de Drive', 'green');
+    if (typeof applyBranding === 'function') applyBranding();
+    showToast('Logo eliminado — usando ícono emoji', 'green');
   }).catch(function() {
     showToast('No se pudo eliminar el logo de Drive', 'red');
   });
@@ -23658,12 +23870,7 @@ function removeLogoImage() {
 var _origOpenSettingsLogo = openSettings;
 openSettings = function() {
   _origOpenSettingsLogo();
-  var prev = document.getElementById('cfg-logo-img-preview');
-  var rem  = document.getElementById('cfg-logo-img-remove');
-  if (cfg.logoImageUrl && prev) {
-    prev.src = cfg.logoImageUrl; prev.style.display = 'block';
-    if (rem) rem.style.display = 'inline';
-  }
+  if (typeof syncLogoSettingsUI === 'function') syncLogoSettingsUI();
 };
 
 // Helper: generar HTML del logo para impresiones
@@ -27325,24 +27532,25 @@ window.addEventListener('resize', function() {
         </div>
       </div>
 
-      <!-- Logo emoji -->
+      <!-- Logo / Ícono -->
       <div class="settings-section">
-        <div class="settings-section-title">Ícono / Logo</div>
-        <div class="settings-row" style="align-items:flex-start;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;gap:10px">
+        <div class="settings-section-title">Logo o Ícono de la clínica</div>
+        <div class="settings-row" style="align-items:stretch;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
             <div class="logo-preview" id="cfg-logo-preview">🦷</div>
-            <span style="font-size:.8rem;color:var(--ink-3)">Elige un emoji o escribe el tuyo</span>
+            <span id="cfg-logo-mode-note" style="font-size:.78rem;color:var(--ink-3);line-height:1.4">Elige un emoji o sube el logo de tu clínica abajo</span>
           </div>
-          <div class="emoji-grid" id="emoji-grid"></div>
-          <input type="text" id="cfg-logo" maxlength="4" placeholder="🦷 o texto" oninput="previewLogo(this.value)" style="width:80px;padding:8px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:1.1rem;text-align:center;background:var(--bg)">
-          <div style="margin-top:8px">
-            <label style="font-size:.72rem;color:var(--ink-3);display:block;margin-bottom:4px">O sube tu logo (imagen)</label>
-            <label class="btn btn-ghost" style="cursor:pointer;font-size:.78rem;padding:6px 12px;justify-content:center">
-              📁 Subir imagen
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--border)">
+            <label class="btn btn-primary btn-sm" style="cursor:pointer;justify-content:center">
+              📁 Subir logo en imagen
               <input type="file" accept="image/*" style="display:none" onchange="uploadLogoImage(this)">
             </label>
-            <img id="cfg-logo-img-preview" style="display:none;max-width:80px;max-height:50px;margin-top:6px;border-radius:var(--r-sm);object-fit:contain;border:1px solid var(--border)" src="">
-            <button id="cfg-logo-img-remove" onclick="removeLogoImage()" style="display:none;background:none;border:none;color:var(--red);font-size:.72rem;cursor:pointer;margin-left:6px">✕ Quitar</button>
+            <img id="cfg-logo-img-preview" style="display:none;max-width:90px;max-height:42px;border-radius:8px;object-fit:contain;background:#fff;padding:3px;border:1px solid var(--border)" src="" alt="Vista previa de logo">
+            <button type="button" id="cfg-logo-img-remove" class="btn btn-ghost btn-sm" onclick="removeLogoImage()" style="display:none;color:var(--red)">✕ Quitar logo y usar emoji</button>
+          </div>
+          <div id="cfg-emoji-picker-wrap">
+            <div class="emoji-grid" id="emoji-grid" style="margin-bottom:8px"></div>
+            <input type="text" id="cfg-logo" maxlength="4" placeholder="🦷 o texto" oninput="previewLogo(this.value)" style="width:90px;padding:7px 8px;border:1px solid var(--border-med);border-radius:10px;font-family:inherit;font-size:1.05rem;text-align:center;background:var(--bg)">
           </div>
         </div>
       </div>
