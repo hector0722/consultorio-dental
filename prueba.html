@@ -8627,6 +8627,15 @@ function openToothPlanner(num,ped,key,context='chart',faces) {
   form.querySelectorAll('[name=face]').forEach(box => box.checked = selectedFaces.includes(box.value));
   dialog.showModal();
 }
+function refreshPatientPlanning(patient) {
+  if (!patient || patient.id != curId) return;
+  renderTxp(patient);
+  renderPayments(patient);
+  renderPatientBudgetInDetail(patient.id);
+}
+function draftTreatmentTotal(lines) {
+  return lines.reduce((total,[,line]) => total + Number(line.price || 0) * Number(line.qty || 1),0);
+}
 function savePlannedTooth(event) {
   event.preventDefault();
   const form = event.target, dialog = form.closest('dialog');
@@ -8652,7 +8661,7 @@ function savePlannedTooth(event) {
     else { _odoSurfTooth=Number(tooth);renderOdontogram(); }
   }
   if (_budgetPatId == patient.id) { updateBudgetToothLines(patient); renderBudgetPanel(); }
-  if (curId == patient.id) renderTxp(patient);
+  refreshPatientPlanning(patient);
   showToast('Plan y presupuesto actualizados · FDI '+tooth,'green');
 }
 
@@ -8762,7 +8771,7 @@ function changeQty(id, d) {
 function removeTx(id) {
   if (selectedTx[id]?.fromChart) {
     const patient = db.patients.find(p => p.id == _budgetPatId);
-    if (patient) { archiveToothLine(patient,id); saveDB(); if(curId==patient.id)renderTxp(patient); }
+    if (patient) { archiveToothLine(patient,id); saveDB(); refreshPatientPlanning(patient); }
   }
   delete selectedTx[id];
   const chip = document.getElementById('chip-' + id);
@@ -8774,7 +8783,7 @@ function clearVisibleBudget() {
   const p = db.patients.find(p => p.id == _budgetPatId);
   if (p && liveToothLines(p).length) {
     if (!confirm('¿Quitar también los tratamientos planeados del borrador de este paciente?')) return;
-    liveToothLines(p).forEach(([id])=>archiveToothLine(p,id)); saveDB();
+    liveToothLines(p).forEach(([id])=>archiveToothLine(p,id)); saveDB(); refreshPatientPlanning(p);
   }
   clearBudget();
   _budgetPatId = document.getElementById('budget-patient-sel').value;
@@ -10516,9 +10525,18 @@ function renderPayments(p) {
   const cls = balance<0?'owe':balance>0?'paid':'zero';
   const label = balance<0?'Saldo pendiente':balance>0?'A favor':'Sin saldo';
   sumBox.innerHTML = `<div class="pay-summary ${cls}">
-    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos pagos y abonos':financial.source==='plan'?'Plan menos pagos y abonos':'Sin presupuesto ni plan'}</small></span>
+    <span class="ps-label">${label}<small style="display:block;font-size:.62rem;font-weight:500;margin-top:2px;opacity:.75">${financial.source==='budget'?'Presupuesto menos pagos y abonos':financial.source==='plan'?'Plan menos pagos y abonos':financial.source==='ledger'?'Cargos menos pagos y abonos':'Sin presupuesto ni plan'}</small></span>
     <span class="ps-amount" style="color:${balance<0?'var(--red)':balance>0?'#248a3d':'var(--ink-3)'}">${fmt$(Math.abs(balance))}</span>
   </div>`;
+  const draft = liveToothLines(p);
+  if (draft.length) {
+    const estimate = draftTreatmentTotal(draft);
+    const projected = financial.balance - estimate;
+    const draftBox = '<div class="pay-summary" style="margin-top:6px"><span class="ps-label">Presupuesto en borrador<small style="display:block;font-size:.65rem">Tratamientos planeados · '+fmt$(estimate)+'</small></span>'
+      + '<span style="text-align:right"><small style="display:block">'+(projected>0?'A favor estimado':'Pendiente estimado')+'</small><strong class="ps-amount">'+fmt$(Math.abs(projected))+'</strong></span></div>';
+    if (financial.source==='none' && !pays.length) sumBox.innerHTML=draftBox;
+    else sumBox.insertAdjacentHTML('beforeend',draftBox);
+  }
   if (badge) {
     if (balance < 0) badge.innerHTML = `<span class="badge b-red">Debe ${fmt$(Math.abs(balance))}</span>`;
     else if (balance > 0) badge.innerHTML = `<span class="badge b-green">A favor ${fmt$(balance)}</span>`;
@@ -20259,6 +20277,7 @@ var GD = (function() {
     // Solo renderizar la página que está activa — no forzar cambio de página
     var activePage = document.querySelector('.page.active');
     var activeId = activePage ? activePage.id : '';
+    if (activeId === 'detail-page') refreshPatientPlanning(db.patients.find(p=>p.id==curId));
     if (activeId === 'list-page' && typeof renderList === 'function') renderList(db.patients);
     if (activeId === 'agenda-page' && typeof renderCal === 'function') renderCal();
     if (activeId === 'reporte-page') {
@@ -23620,11 +23639,15 @@ function renderPatientBudgetInDetail(patientId) {
   var p = db.patients.find(function(x){ return x.id == patientId; });
   if (!p) return;
   var budgets = patientBudgets(p);
+  const draft = liveToothLines(p);
+  const pending = draft.length ? '<section class="rad-box" style="margin-bottom:12px"><strong>Presupuesto en borrador</strong>'
+    + draft.map(([,line])=>'<div class="finding-action"><span>'+budgetItemHTML(line)+'</span><strong>'+fmt$(Number(line.price)*Number(line.qty||1))+'</strong></div>').join('')
+    + '<div style="text-align:right;margin-top:8px">Total del borrador · <strong>'+fmt$(draftTreatmentTotal(draft))+'</strong></div></section>' : '';
   if (!budgets.length) {
-    el.innerHTML = '<p style="color:var(--ink-3);font-size:.79rem">Sin presupuestos generados aún.</p>';
+    el.innerHTML = pending || '<p style="color:var(--ink-3);font-size:.79rem">Sin presupuestos generados aún.</p>';
     return;
   }
-  el.innerHTML = budgets.slice().reverse().map(function(b, ri) {
+  el.innerHTML = pending + budgets.slice().reverse().map(function(b, ri) {
     var realIdx = budgets.length - 1 - ri;
     var itemsHTML = b.items ? b.items.map(function(it){
       var sub = fmt$(it.price * it.qty);
@@ -23752,7 +23775,7 @@ function saveBudgetToPatient() {
   if (btn) { btn.textContent = '✅ Guardado'; btn.disabled = true; }
 
   // Si estamos viendo ese paciente, actualizar la card
-  if (typeof renderPatientBudgetInDetail === 'function') {
+  if (curId==lb.patId && typeof renderPatientBudgetInDetail === 'function') {
     renderPatientBudgetInDetail(lb.patId);
   }
   if(curId==lb.patId&&typeof renderTxp==='function'){renderTxp(p);renderPayments(p);}renderDashboard();
