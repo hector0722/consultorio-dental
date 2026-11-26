@@ -5676,7 +5676,7 @@ html.dark .stats-row .stat-card:hover {
   transform: scale(1.1) rotate(-4deg);
 }
 
-.stats-row .stat-label {
+.stats-row .stat-card:nth-child(n) .stat-label {
   grid-column: 2 !important;
   grid-row: 1 !important;
   align-self: end !important;
@@ -5693,7 +5693,7 @@ html.dark .stats-row .stat-card:hover {
   text-overflow: ellipsis !important;
 }
 
-.stats-row .stat-value {
+.stats-row .stat-card:nth-child(n) .stat-value {
   grid-column: 2 !important;
   grid-row: 2 !important;
   align-self: start !important;
@@ -5714,8 +5714,26 @@ html.dark .stats-row #dash-owe,
 body.user-theme-dark-card .stats-row #dash-owe { color: #ff6961 !important; }
 
 /* Reportes KPI 4 nunca hereda blanco */
-#reporte-page #rep-kpis .stat-card .stat-label { color: var(--ink-3) !important; opacity: 1 !important; }
-#reporte-page #rep-kpis .stat-card .stat-value { color: var(--ink) !important; opacity: 1 !important; }
+#reporte-page #rep-kpis .stat-card:nth-child(n) .stat-label { color: var(--ink-3) !important; opacity: 1 !important; }
+#reporte-page #rep-kpis .stat-card:nth-child(n) .stat-value { color: var(--ink) !important; opacity: 1 !important; }
+
+/* Lienzo atmosférico y espacio inferior para que el pie no tape tarjetas */
+#main {
+  background-image:
+    radial-gradient(900px 440px at 12% 0%, color-mix(in srgb, var(--blue) 7%, transparent), transparent 65%),
+    radial-gradient(760px 420px at 92% 18%, color-mix(in srgb, #6366f1 5%, transparent), transparent 65%) !important;
+}
+.content {
+  padding-bottom: 72px !important;
+}
+.card-title {
+  padding-bottom: 10px;
+  margin-bottom: 14px !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+}
+@media (max-width: 1200px) {
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
 
 /* ══ ACABADOS DE SUPERFICIE (CRISTAL / SUAVE / NÍTIDO) ══ */
 body.surface-glass .card,
@@ -5797,14 +5815,29 @@ body.app-ready #dash-page.active .dash-2col > .card:nth-child(1),
 body.app-ready #dash-page.active .dash-2col > .card:nth-child(2),
 .page.active .dash-2col > .card:nth-child(2) { animation-delay: .16s !important; }
 
-/* Ítems dentro del Dashboard */
+/* Ítems dentro del Dashboard y listas animadas */
 .today-appt, .pay-item, .bday-item {
-  border-radius: 14px !important;
-  transition: transform .2s var(--ease-spring), background-color .2s ease, border-color .2s ease !important;
+  border-radius: 15px !important;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent) !important;
+  transition: transform .22s var(--ease-spring), background-color .2s ease, border-color .2s ease, box-shadow .2s ease !important;
 }
 .today-appt:hover, .pay-item:hover, .bday-item:hover {
-  transform: translateX(3px);
+  transform: translateX(4px);
+  border-color: color-mix(in srgb, var(--blue) 30%, var(--border-med)) !important;
+  box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--blue) 28%, rgba(0,0,0,.12));
 }
+.page.active .today-appt,
+.page.active .pay-item,
+.page.active .bday-item,
+.page.active tbody tr,
+.page.active .patient-mobile-card,
+.page.active .spec-module-card {
+  animation: cardStaggerIn .4s var(--ease-expo) both;
+}
+.page.active .today-appt:nth-child(2), .page.active .pay-item:nth-child(2), .page.active tbody tr:nth-child(2) { animation-delay: .04s; }
+.page.active .today-appt:nth-child(3), .page.active .pay-item:nth-child(3), .page.active tbody tr:nth-child(3) { animation-delay: .08s; }
+.page.active .today-appt:nth-child(4), .page.active .pay-item:nth-child(4), .page.active tbody tr:nth-child(4) { animation-delay: .12s; }
+.page.active .today-appt:nth-child(n+5), .page.active .pay-item:nth-child(n+5), .page.active tbody tr:nth-child(n+5) { animation-delay: .15s; }
 
 /* ══ TABLAS, LISTADOS, AGENDA, PRESUPUESTOS Y MÓDULOS CLÍNICOS ══ */
 .table-wrap { border-radius: var(--user-radius-lg, 18px) !important; overflow: hidden; }
@@ -28084,99 +28117,6 @@ function printRadiologyOrder(order) {
           activeHero = null;
         }
       }, { passive: true });
-    }
-
-    if (!reducedMotion && typeof MutationObserver !== 'undefined') {
-      var kpiIds = ['dash-today', 'dash-total', 'dash-owe', 'dash-done'];
-      var kpiState = new WeakMap();
-
-      function parseFormattedNumber(str) {
-        var trimmed = (str || '').trim();
-        var m = trimmed.match(/^([^\d-]*?)(-?\d[\d,]*(?:\.\d+)?)(.*)$/);
-        if (!m) return null;
-        var numRaw = m[2].replace(/,/g, '');
-        var val = parseFloat(numRaw);
-        if (!isFinite(val)) return null;
-        var decMatch = numRaw.match(/\.(\d+)$/);
-        var decimals = decMatch ? decMatch[1].length : 0;
-        var hasCommas = m[2].indexOf(',') !== -1;
-        return { raw: trimmed, prefix: m[1], value: val, decimals: decimals, hasCommas: hasCommas, suffix: m[3] };
-      }
-
-      function formatAnimatedNumber(num, info) {
-        var fixed = info.decimals > 0 ? num.toFixed(info.decimals) : String(Math.round(num));
-        if (info.hasCommas) {
-          var parts = fixed.split('.');
-          parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-          fixed = parts.join('.');
-        }
-        return info.prefix + fixed + info.suffix;
-      }
-
-      function animateKpiElement(el) {
-        var st = kpiState.get(el) || { internalUpdate: false, rafId: 0, lastTarget: '', lastNum: 0 };
-        kpiState.set(el, st);
-        if (st.internalUpdate) return;
-
-        var rawText = (el.textContent || '').trim();
-        if (!rawText || rawText === st.lastTarget) return;
-
-        var parsed = parseFormattedNumber(rawText);
-        if (!parsed || parsed.value === 0) {
-          st.lastTarget = rawText;
-          st.lastNum = parsed ? parsed.value : 0;
-          return;
-        }
-
-        if (st.rafId) cancelAnimationFrame(st.rafId);
-        var fromVal = isFinite(st.lastNum) ? st.lastNum : 0;
-        var toVal = parsed.value;
-        st.lastTarget = rawText;
-        st.lastNum = toVal;
-        if (Math.abs(toVal - fromVal) < 0.001) return;
-
-        var startTs = performance.now();
-        var duration = 420;
-
-        function step(now) {
-          var t = Math.min(1, (now - startTs) / duration);
-          var eased = 1 - Math.pow(1 - t, 3);
-          var current = fromVal + (toVal - fromVal) * eased;
-
-          st.internalUpdate = true;
-          el.textContent = t >= 1 ? parsed.raw : formatAnimatedNumber(current, parsed);
-          st.internalUpdate = false;
-
-          if (t < 1) {
-            st.rafId = requestAnimationFrame(step);
-          } else {
-            st.rafId = 0;
-          }
-        }
-
-        st.rafId = requestAnimationFrame(step);
-      }
-
-      var kpiObserver = new MutationObserver(function(mutations) {
-        for (var i = 0; i < mutations.length; i++) {
-          var target = mutations[i].target;
-          if (target.nodeType === 3) target = target.parentNode;
-          if (target && target.nodeType === 1) animateKpiElement(target);
-        }
-      });
-
-      kpiIds.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        var initialParsed = parseFormattedNumber(el.textContent || '');
-        kpiState.set(el, {
-          internalUpdate: false,
-          rafId: 0,
-          lastTarget: (el.textContent || '').trim(),
-          lastNum: initialParsed ? initialParsed.value : 0
-        });
-        kpiObserver.observe(el, { childList: true, characterData: true, subtree: true });
-      });
     }
   } catch (e) {
     /* Never interfere with clinical runtime */
