@@ -5545,37 +5545,62 @@ body.app-ready #dash-page.active > .card {
     </div>
 
 <style>
-#rad-panel{max-width:760px;padding:clamp(16px,3vw,32px);background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
-#rad-select{display:block;width:100%;margin:6px 0 18px;padding:10px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}
-#rad-panel header,#rad-history li{display:flex;justify-content:space-between;align-items:center;gap:12px}
-#rad-panel fieldset{border:1px solid var(--border);padding:12px;border-radius:8px;margin:14px 0}
-#rad-panel legend,#rad-form>label{font-size:.82rem;font-weight:650}
-#rad-panel fieldset label{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
-#rad-form>label{display:block;margin:10px 0}
-#rad-form>label input,#rad-form textarea{display:block;width:100%;margin-top:5px;padding:9px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px;font:inherit}
-#rad-history{list-style:none;padding:0}#rad-history li{padding:10px 0;border-bottom:1px solid var(--border)}#rad-panel h3{margin:18px 0 6px}
+#rad-panel{max-width:1240px;margin:0 auto 52px;--rad-accent:var(--blue,#0071e3);--rad-line:var(--border-med,var(--border));color:var(--ink)}
+#rad-panel *{box-sizing:border-box}
+#rad-panel [hidden]{display:none!important}
+.rad-head,.rad-box,.rad-preview{border:1px solid var(--rad-line);border-radius:18px;background:var(--card);padding:clamp(16px,2vw,26px)}
+.rad-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px;background:linear-gradient(105deg,rgba(57,137,226,.13),transparent 67%),var(--card)}
+.rad-head h2{font-size:clamp(1.3rem,2.4vw,2rem);letter-spacing:-.035em;margin:0}
+.rad-head label{width:min(350px,45%)}
+.rad-columns{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:18px;align-items:start}
+.rad-stack,.rad-side{display:grid;gap:14px;min-width:0}
+#rad-panel h3{font-size:1.02rem;margin:0 0 16px;letter-spacing:-.02em}
+#rad-panel label{display:grid;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink-2)}
+#rad-panel :is(input:not([type=checkbox]),textarea,select){width:100%;min-width:0;border:1px solid var(--rad-line);border-radius:9px;background:var(--bg);color:var(--ink);padding:9px 11px;font:inherit;font-weight:450;min-height:40px}
+#rad-panel :is(input,textarea,select,button):focus-visible{outline:2px solid var(--rad-accent);outline-offset:2px}
+#rad-panel textarea{resize:vertical}
+.rad-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.rad-wide{grid-column:1/-1}
+#rad-panel fieldset{border:0;margin:0 0 15px;padding:0}
+#rad-panel legend,.rad-caption{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.rad-choices{display:flex;flex-wrap:wrap;gap:7px}
+#rad-panel .rad-choice{display:inline-flex;align-items:center;padding:8px 11px;gap:8px;border:1px solid var(--rad-line);border-radius:8px;cursor:pointer;color:var(--ink);font-weight:500;line-height:1.25}
+.rad-choice:has(:checked){background:var(--blue-pale);border-color:var(--rad-accent)!important}
+.rad-choice input{accent-color:var(--rad-accent);margin:0}
+.rad-preview{border-top:3px solid var(--rad-accent)}
+.rad-preview strong{display:block;font-size:1.12rem}.rad-preview p{margin:8px 0;color:var(--ink-2);font-size:.85rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.rad-preview hr{border:0;border-top:1px solid var(--rad-line);margin:15px 0}
+#rad-preview-list{padding-left:20px;margin:10px 0;font-size:.87rem}
+#rad-history{list-style:none;padding:0;margin:0;font-size:.83rem;color:var(--ink-2)}
+#rad-history li{display:grid;gap:7px;border-top:1px solid var(--rad-line);padding:12px 0;overflow-wrap:anywhere}
+#rad-history button{justify-self:start}#rad-error{color:var(--red,#db5353);margin:0}#rad-error:empty{display:none}
+@media(max-width:840px){.rad-columns{grid-template-columns:1fr}.rad-head{align-items:stretch;flex-direction:column}.rad-head label{width:100%}}
+@media(max-width:480px){.rad-fields{grid-template-columns:1fr}.rad-wide{grid-column:auto}}
 </style>
 <div id="rad-page" class="page"><section id="rad-panel" aria-labelledby="rad-heading">
-<h2 id="rad-heading">Órdenes de radiografías</h2>
-<label for="rad-select">Paciente</label>
-<select id="rad-select" onchange="setRadiologyPatient()"></select>
-<div id="rad-workspace" hidden>
-<form id="rad-form">
-<fieldset><legend>Estudios solicitados</legend>
-<label><input type="checkbox" name="study" value="Panorámica">Panorámica</label>
-<label><input type="checkbox" name="study" value="Lateral de cráneo">Lateral de cráneo</label>
-<label><input type="checkbox" name="study" value="Periapical">Periapical</label>
-<label><input type="checkbox" name="study" value="Interproximal">Interproximal</label>
-<label><input type="checkbox" name="study" value="Oclusal">Oclusal</label>
-<label><input type="checkbox" name="study" value="Tomografía (CBCT)">Tomografía (CBCT)</label>
-</fieldset>
-<label>Otro estudio<input name="other" maxlength="180"></label>
-<label>Diente, región o lateralidad<input name="region" maxlength="180" placeholder="Ej. 16 y 17, lado derecho"></label>
-<label>Motivo clínico e indicaciones<textarea name="reason" rows="2" required maxlength="1400"></textarea></label>
-<p id="rad-error" role="alert"></p>
-<button class="btn btn-primary" type="submit">Emitir orden</button>
-</form><h3>Órdenes emitidas</h3><ul id="rad-history"></ul>
-</div></section></div>
+<header class="rad-head"><h2 id="rad-heading">Órdenes de radiografías</h2><label>Paciente<select id="rad-select" onchange="setRadiologyPatient()"></select></label></header>
+<div id="rad-workspace" class="rad-columns" hidden>
+<form id="rad-form" class="rad-stack"><section class="rad-box"><h3>Estudios solicitados</h3>
+<fieldset><legend>Extraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Panorámica">Panorámica</label><label class="rad-choice"><input type="checkbox" name="study" value="Lateral de cráneo">Lateral de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Posteroanterior de cráneo">Posteroanterior de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie de ATM">Serie de ATM</label></div></fieldset><fieldset><legend>Intraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Periapical">Periapical</label><label class="rad-choice"><input type="checkbox" name="study" value="Interproximal">Interproximal</label><label class="rad-choice"><input type="checkbox" name="study" value="Oclusal">Oclusal</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie periapical completa">Serie periapical completa</label></div></fieldset><fieldset><legend>Volumetría</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Tomografía (CBCT)">Tomografía (CBCT)</label></div></fieldset>
+<label>Otro estudio<input name="other" placeholder="Nombre o proyección adicional" maxlength="180"></label>
+</section><section class="rad-box"><h3>Localización e indicación clínica</h3><div class="rad-fields">
+<label>Dientes o región<input name="region" placeholder="Ej. 13 a 23, sector anterior" maxlength="180"></label>
+<label>Lateralidad<select name="side"><option value="">Seleccionar…</option><option value="Derecha">Derecha</option><option value="Izquierda">Izquierda</option><option value="Bilateral">Bilateral</option><option value="Línea media">Línea media</option></select></label>
+<label>Arcada<select name="arch"><option value="">Seleccionar…</option><option value="Maxilar superior">Maxilar superior</option><option value="Mandíbula">Mandíbula</option><option value="Ambas arcadas">Ambas arcadas</option></select></label>
+<label>Proyección o protocolo solicitado<input name="protocol" placeholder="Ej. campo de visión o trazado requerido" maxlength="180"></label>
+<label class="rad-wide">Motivo clínico <textarea name="reason" rows="3" required maxlength="1400" placeholder="¿Qué pregunta debe responder el estudio?"></textarea></label>
+<label>Diagnóstico presuntivo<input name="diagnosis" placeholder="Si aplica" maxlength="180"></label>
+<label>Estudio previo para comparación<input name="prior" placeholder="Fecha o referencia" maxlength="180"></label>
+</div></section>
+<section class="rad-box"><h3>Centro radiológico y entrega</h3><div class="rad-fields">
+<label>Centro destinatario<input name="center" placeholder="Nombre del centro radiológico" maxlength="180"></label>
+<label>Prioridad<select name="priority"><option value="Ordinaria">Ordinaria</option><option value="Preferente">Preferente</option><option value="Urgente">Urgente</option></select></label>
+<label>Formato de entrega<select name="format"><option value="">Seleccionar…</option><option value="Digital">Digital</option><option value="DICOM">DICOM</option><option value="Impreso">Impreso</option><option value="Digital e impreso">Digital e impreso</option></select></label>
+<label>Entregar a<input name="delivery" placeholder="Paciente, consultorio o correo de recepción" maxlength="180"></label>
+<label class="rad-wide">Indicaciones para el centro<textarea name="notes" rows="2" maxlength="1000" placeholder="Detalles adicionales para la adquisición o entrega"></textarea></label>
+</div></section><p id="rad-error" role="alert"></p><button class="btn btn-primary" type="submit" style="justify-self:start">Emitir orden</button></form>
+<aside class="rad-side"><section class="rad-preview"><h3>Vista previa de la solicitud</h3><strong id="rad-preview-name"></strong><p id="rad-preview-doctor"></p><hr><div class="rad-caption">Estudios</div><ul id="rad-preview-list"></ul><p id="rad-preview-detail"></p></section>
+<section class="rad-box"><h3>Órdenes emitidas</h3><ul id="rad-history"></ul></section></aside></div></section></div>
 
     <!-- RECETAS PAGE -->
     <div id="rx-page" class="page">
@@ -26392,9 +26417,32 @@ function setRadiologyPatient(preserveDraft) {
   if (!preserveDraft) radForm.reset();
   document.getElementById('rad-error').textContent = '';
   document.getElementById('rad-workspace').hidden = !patient;
+  updateRadPreview();
   if (patient) renderRadiologyHistory(patient);
   else document.getElementById('rad-history').replaceChildren();
 }
+function readRadRequest() {
+  const data = new FormData(radForm);
+  const value = key => String(data.get(key) || '').trim();
+  const studies = data.getAll('study');
+  if (value('other')) studies.push(value('other'));
+  return { studies, region:value('region'), side:value('side'), arch:value('arch'), protocol:value('protocol'),
+    reason:value('reason'), diagnosis:value('diagnosis'), prior:value('prior'), center:value('center'),
+    priority:value('priority'), format:value('format'), delivery:value('delivery'), notes:value('notes') };
+}
+function updateRadPreview() {
+  const patient = radPatient();
+  const request = readRadRequest();
+  document.getElementById('rad-preview-name').textContent = patient ? patient.name : '';
+  document.getElementById('rad-preview-doctor').textContent = getActiveDoctorName() || '';
+  const list = document.getElementById('rad-preview-list');
+  list.replaceChildren();
+  (request.studies.length ? request.studies : ['Selecciona los estudios']).forEach(study => {
+    const item = document.createElement('li'); item.textContent = study; list.append(item);
+  });
+  document.getElementById('rad-preview-detail').textContent = [request.region,request.arch,request.side,request.reason,request.center].filter(Boolean).join('\n');
+}
+radForm.addEventListener('input', updateRadPreview);
 function renderRadiologyHistory(patient) {
   const history = document.getElementById('rad-history');
   history.replaceChildren();
@@ -26403,7 +26451,7 @@ function renderRadiologyHistory(patient) {
   orders.slice().reverse().forEach(order => {
     const row = document.createElement('li');
     const summary = document.createElement('span');
-    summary.textContent = order.date + ' · ' + order.studies.join(', ');
+    summary.textContent = [order.folio, order.date, order.studies.join(', '), order.center].filter(Boolean).join(' · ');
     const print = document.createElement('button');
     print.className = 'btn btn-ghost';
     print.textContent = 'Imprimir / PDF';
@@ -26416,24 +26464,23 @@ radForm.addEventListener('submit', event => {
   event.preventDefault();
   const patient = radPatient();
   if (!patient) return;
-  const fields = new FormData(radForm);
-  const studies = fields.getAll('study');
-  const other = fields.get('other').trim();
-  if (other) studies.push(other);
-  const reason = fields.get('reason').trim();
+  const request = readRadRequest();
+  const { studies, reason } = request;
   const error = document.getElementById('rad-error');
   if (!studies.length || !reason) {
     error.textContent = !studies.length ? 'Selecciona un estudio o escribe otro.' : 'Escribe el motivo clínico.';
     return;
   }
   const now = new Date();
-  const order = {id: crypto.randomUUID(), createdAt: now.getTime(), date: now.toLocaleDateString('es-MX'),
+  const id = crypto.randomUUID();
+  const order = {...request, id, folio:'RX-' + now.getFullYear() + '-' + id.slice(0,8).toUpperCase(), dob:patient.dob || '', createdAt: now.getTime(), date: now.toLocaleDateString('es-MX'),
     patient: patient.name, record: String(patient.id), doctor: getActiveDoctorName(), license: getActiveDoctorCedula(),
-    clinic: cfg.name || '', studies, region: fields.get('region').trim(), reason};
+    clinic: cfg.name || ''};
   (patient.radiologyOrders ||= []).push(order);
   saveDB();
   radForm.reset();
   error.textContent = '';
+  updateRadPreview();
   renderRadiologyHistory(patient);
   if (patient.id == curId) renderPatientModulesBar(patient);
 });
@@ -26441,7 +26488,17 @@ function printRadiologyOrder(order) {
   const w = window.open('', '_blank');
   if (!w) return showToast('Permite las ventanas emergentes para imprimir la orden.');
   const e = escapeHTML;
-  w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><title>Orden de radiografías</title><style>@page{margin:18mm}body{font:15px/1.5 Arial;color:#182829;max-width:720px;margin:30px auto}h1{border-bottom:2px solid #176779}h2{font-size:16px;margin-top:22px}p,li{white-space:pre-wrap;overflow-wrap:anywhere}footer{margin-top:65px}</style><h1>Orden de radiografías</h1><p>'+e(order.clinic)+' · '+e(order.date)+'</p><p><b>Paciente</b> '+e(order.patient)+'<br><b>Expediente</b> '+e(order.record)+'</p><h2>Estudios solicitados</h2><ul>'+order.studies.map(s=>'<li>'+e(s)+'</li>').join('')+'</ul>'+(order.region?'<h2>Diente o región</h2><p>'+e(order.region)+'</p>':'')+'<h2>Motivo clínico e indicaciones</h2><p>'+e(order.reason)+'</p><footer>____________________________<br>Firma · '+e(order.doctor)+(order.license?'<br>Cédula profesional '+e(order.license):'')+'</footer></html>');
+  const field = (label,value) => value ? '<div class="field"><dt>'+e(label)+'</dt><dd>'+e(value)+'</dd></div>' : '';
+  const group = (title,content) => content ? '<section><h2>'+e(title)+'</h2><dl>'+content+'</dl></section>' : '';
+  const html = '<!doctype html><html lang="es"><meta charset="utf-8"><title>'+e(order.folio || 'Orden de radiografías')+'</title><style>'
+    + '@page{margin:16mm}*{box-sizing:border-box}body{max-width:780px;margin:0 auto;font:14px/1.5 Arial,sans-serif;color:#172c42}header{display:flex;gap:14px;align-items:center;border-bottom:3px solid #24597a;padding:0 0 14px}header h1{font-size:24px;margin:0}.meta{margin-left:auto;text-align:right}section{margin:20px 0}h2,dt{color:#345775}h2{font-size:14px;border-bottom:1px solid #bacbd6;padding-bottom:4px;break-after:avoid}dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;margin:0}dt{font-size:11px;font-weight:bold}dd{margin:1px 0;white-space:pre-wrap}.field,li{break-inside:avoid}dd,li{overflow-wrap:anywhere}ul{padding-left:19px}footer{margin:44px 0 0;break-inside:avoid}footer strong{display:block;border-top:1px solid #425367;width:240px;padding-top:6px}</style><body>'
+    + '<header><div data-print-logo-slot></div><div>'+e(order.clinic)+'<h1>Orden de radiografías</h1></div><div class="meta">'+e(order.date)+(order.folio?'<br>'+e(order.folio):'')+'</div></header>'
+    + group('Paciente',field('Nombre',order.patient)+field('Expediente',order.record)+field('Fecha de nacimiento',order.dob))
+    + '<section><h2>Estudios solicitados</h2><ul>'+order.studies.map(study=>'<li>'+e(study)+'</li>').join('')+'</ul></section>'
+    + group('Información clínica',field('Motivo clínico',order.reason)+field('Diagnóstico presuntivo',order.diagnosis)+field('Dientes o región',order.region)+field('Arcada',order.arch)+field('Lateralidad',order.side)+field('Proyección o protocolo',order.protocol)+field('Estudio previo',order.prior))
+    + group('Centro radiológico y entrega',field('Centro destinatario',order.center)+field('Prioridad',order.priority)+field('Formato',order.format)+field('Entregar a',order.delivery)+field('Indicaciones para el centro',order.notes))
+    + '<footer><strong>'+e(order.doctor || 'Profesional solicitante')+'</strong>Firma del solicitante'+(order.license?' · Cédula '+e(order.license):'')+'</footer></body></html>';
+  w.document.write(html);
   w.document.close();
   _printWindow(w);
 }
