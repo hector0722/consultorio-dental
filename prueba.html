@@ -5448,6 +5448,7 @@ body.app-ready #dash-page.active > .card {
               <span class="bp-title">Resumen</span>
               <button class="btn btn-ghost btn-xs" onclick="clearVisibleBudget()">Limpiar</button>
             </div>
+            <div id="budget-findings"></div>
             <div id="budget-lines">
               <div class="empty" style="padding:28px 10px"><div class="empty-icon">🦷</div><p>Selecciona tratamientos del catálogo</p></div>
             </div>
@@ -6171,6 +6172,7 @@ body.app-ready #dash-page.active > .card {
             <span id="txp-progress" style="font-size:.72rem;font-weight:600;color:var(--ink-3)"></span>
           </div>
           <div style="font-size:.7rem;color:var(--ink-3);margin:-5px 0 10px;line-height:1.45">Al completar un tratamiento se registra automáticamente en la producción del doctor activo.</div>
+          <div id="plan-findings"></div>
           <div id="txp-list" style="margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
           <div style="display:flex;gap:6px;margin-bottom:6px">
             <select id="txp-sel" style="flex:1;padding:7px 9px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.79rem;background:var(--bg);-webkit-appearance:none"><option value="">Del catálogo…</option></select>
@@ -8546,14 +8548,59 @@ function openChartBudget(ped) {
   if (ped) closeOdontogramPed(); else closeOdontogram();
   quickBudget(id);
 }
-function openToothPlanner(num,ped,key) {
-  const patient = db.patients.find(p => p.id == (ped ? _odoPedCurPatId : _odoCurPatId));
+function recordedToothFindings(patient) {
+  const result = [];
+  for (const ped of [false,true]) {
+    const chart = (ped ? patient?.odontogramaPed : patient?.odontogram) || {};
+    for (const [tooth,t] of Object.entries(chart)) {
+      if (!(ped ? /^[5-8][1-5]$/ : /^[1-4][1-8]$/).test(tooth) || !t) continue;
+      const faces = ['M','O','D','V','L'].filter(face => (ped ? (t[face] || 'sano') : _odoAdultEffective(t,face)) !== 'sano');
+      if (faces.length) result.push({tooth,ped,faces,label:ped ? _odoPedFindingForTooth(t) : _odoAdultFinding(t)});
+    }
+  }
+  return result;
+}
+function renderFindingActions(patient,context) {
+  const el = document.getElementById(context+'-findings');
+  if (!el) return;
+  el.replaceChildren();
+  if (!patient) return;
+  const draft = liveToothLines(patient);
+  const findings = recordedToothFindings(patient);
+  if (findings.length) {
+    const title = document.createElement('strong');
+    title.textContent = 'Hallazgos del odontograma';
+    el.append(title);
+    for (const f of findings) {
+      const row = document.createElement('div'); row.className='finding-action';
+      const label = document.createElement('span'); label.textContent='FDI '+f.tooth+' · '+f.label;
+      const button = document.createElement('button'); button.type='button';button.className='btn btn-ghost btn-sm';
+      button.textContent='Elegir tratamiento';
+      button.onclick=()=>openToothPlanner(Number(f.tooth),f.ped,'',context,f.faces);
+      row.append(label,button);el.append(row);
+    }
+  }
+  if (context==='plan' && draft.length) {
+    const title=document.createElement('strong');title.textContent='Tratamientos planeados · presupuesto en borrador';el.append(title);
+    for (const [key,line] of draft) {
+      const row=document.createElement('div');row.className='finding-action';
+      const label=document.createElement('span');label.textContent=line.name+' · '+budgetToothLabel(line)+' · '+fmt$(line.price);
+      const edit=document.createElement('button');edit.type='button';edit.className='btn btn-ghost btn-sm';edit.textContent='Editar';
+      edit.onclick=()=>openToothPlanner(Number(line.tooth),Number(line.tooth)>=51,key,context);
+      row.append(label,edit);el.append(row);
+    }
+  }
+}
+function openToothPlanner(num,ped,key,context='chart',faces) {
+  const owner = context==='budget' ? _budgetPatId : context==='plan' ? curId : (ped ? _odoPedCurPatId : _odoCurPatId);
+  const patient = db.patients.find(p => p.id == owner);
   if (!patient) return;
   const dialog = document.getElementById('tooth-planner');
   const form = dialog.querySelector('form');
   const old = key && patient.toothBudgetDraft?.[key];
   if (key && (!old || old.deleted)) return showToast('El renglón ya cambió. Vuelve a abrir el odontograma.');
   form.reset();
+  dialog.dataset.context = context;
   dialog.dataset.patient = patient.id;
   dialog.dataset.ped = String(ped);
   dialog.dataset.key = key || '';
@@ -8576,14 +8623,16 @@ function openToothPlanner(num,ped,key) {
     if (!Array.from(select.options).some(o=>o.value===old.catalogId)) select.add(new Option(old.name+' · '+fmt$(old.price),old.catalogId));
     select.value = old.catalogId;
   }
-  form.querySelectorAll('[name=face]').forEach(box => box.checked = !!old?.surfaces?.includes(box.value));
+  const selectedFaces = old?.surfaces || faces || recordedToothFindings(patient).find(f=>f.tooth===String(num) && f.ped===ped)?.faces || [];
+  form.querySelectorAll('[name=face]').forEach(box => box.checked = selectedFaces.includes(box.value));
   dialog.showModal();
 }
 function savePlannedTooth(event) {
   event.preventDefault();
   const form = event.target, dialog = form.closest('dialog');
   const patient = db.patients.find(p => String(p.id) === dialog.dataset.patient);
-  if (!patient || patient.id != curId) return dialog.close();
+  const owner = dialog.dataset.context==='budget' ? _budgetPatId : curId;
+  if (!patient || patient.id != owner) return dialog.close();
   const key = dialog.dataset.key || 'odo-'+crypto.randomUUID();
   const old = patient.toothBudgetDraft?.[key];
   if (dialog.dataset.key && (!old || old.deleted || String(old.updatedAt)!==dialog.dataset.revision)) {
@@ -8598,9 +8647,13 @@ function savePlannedTooth(event) {
   (patient.toothBudgetDraft ||= {})[key] = {fromChart:true,catalogId,name:item.name,price:Number(item.price)||0,qty:1,tooth,surfaces,note:item.note || '',updatedAt:Math.max(Date.now(),(old?.updatedAt||0)+1)};
   saveDB();
   dialog.close();
-  if (dialog.dataset.ped === 'true') { _odoPedSurfTooth=Number(tooth);renderOdoPed(); }
-  else { _odoSurfTooth=Number(tooth);renderOdontogram(); }
-  showToast('Presupuesto actualizado · FDI '+tooth,'green');
+  if (dialog.dataset.context === 'chart') {
+    if (dialog.dataset.ped === 'true') { _odoPedSurfTooth=Number(tooth);renderOdoPed(); }
+    else { _odoSurfTooth=Number(tooth);renderOdontogram(); }
+  }
+  if (_budgetPatId == patient.id) { updateBudgetToothLines(patient); renderBudgetPanel(); }
+  if (curId == patient.id) renderTxp(patient);
+  showToast('Plan y presupuesto actualizados · FDI '+tooth,'green');
 }
 
 function buildCatalogUI() {
@@ -8651,6 +8704,7 @@ function toggleTx(id, name, price, note) {
 }
 
 function renderBudgetPanel() {
+  renderFindingActions(db.patients.find(p=>p.id==_budgetPatId),'budget');
   const lines  = document.getElementById('budget-lines');
   const totRow = document.getElementById('budget-total-row');
   const amtEl  = document.getElementById('bt-amount');
@@ -8708,7 +8762,7 @@ function changeQty(id, d) {
 function removeTx(id) {
   if (selectedTx[id]?.fromChart) {
     const patient = db.patients.find(p => p.id == _budgetPatId);
-    if (patient) { archiveToothLine(patient,id); saveDB(); }
+    if (patient) { archiveToothLine(patient,id); saveDB(); if(curId==patient.id)renderTxp(patient); }
   }
   delete selectedTx[id];
   const chip = document.getElementById('chip-' + id);
@@ -11262,12 +11316,14 @@ function populateTxpSelect() {
 }
 
 function renderTxp(p) {
+  renderFindingActions(p,'plan');
   const list = document.getElementById('txp-list');
   const prog = document.getElementById('txp-progress');
   if (!list) return;
   const plan = p.treatmentPlan || [];
   const done = plan.filter(x=>x.done).length;
   if (prog) prog.textContent = plan.length ? `${done}/${plan.length} completados` : '';
+  if (!plan.length && liveToothLines(p).length) { list.innerHTML=''; return; }
   if (!plan.length) { list.innerHTML = '<p style="font-size:.8rem;color:var(--ink-3);margin-bottom:4px">Sin tratamientos planificados.</p>'; return; }
   list.innerHTML = plan.map((t,i) => `
     <div class="txp-item ${t.done?'done':''}">
@@ -16361,6 +16417,7 @@ function openOdontogram() {
 
 function closeOdontogram() {
   odoAdultFlushNote(false);
+  const p=db.patients.find(x=>x.id==curId); if(p) renderTxp(p);
   var overlay = document.getElementById('odo-overlay'); if (overlay) overlay.classList.remove('open');
   document.body.classList.remove('odo-open');
   _odoSurfTooth = null;
@@ -24504,6 +24561,7 @@ function openOdontogramPed() {
 
 function closeOdontogramPed() {
   odoPedFlushNote(false);
+  const p=db.patients.find(x=>x.id==curId); if(p) renderTxp(p);
   document.getElementById('odo-ped-overlay').classList.remove('open');
   document.body.classList.remove('ped-open');
 }
@@ -26624,8 +26682,8 @@ function printRadiologyOrder(order) {
   _printWindow(w);
 }
 </script>
-<style>.tooth-plan{display:grid;gap:8px;border-top:1px solid var(--border);margin-top:12px;padding:12px 0;font-size:.8rem}.tooth-plan>button{white-space:normal;text-align:left}#tooth-planner{margin:auto;width:min(470px,94vw);padding:22px;border:1px solid var(--border);border-radius:16px;background:var(--card);color:var(--ink)}#tooth-planner::backdrop{background:#0009}#tooth-planner form{display:grid;gap:14px}#tooth-planner select{display:block;width:100%;padding:9px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}#tooth-planner fieldset{padding:9px;border:1px solid var(--border);border-radius:8px}#tooth-planner fieldset label{display:inline-flex;align-items:center;gap:3px;margin:4px}</style>
-<dialog id="tooth-planner"><form onsubmit="savePlannedTooth(event)"><h3>Planear tratamiento</h3><label>Pieza FDI<select required name="tooth"></select></label><label>Tratamiento y precio<select required name="treatment"></select></label><fieldset><legend>Superficies · opcional</legend><label><input type="checkbox" name="face" value="M">Mesial</label><label><input type="checkbox" name="face" value="O">Oclusal/incisal</label><label><input type="checkbox" name="face" value="D">Distal</label><label><input type="checkbox" name="face" value="V">Vestibular</label><label><input type="checkbox" name="face" value="L">Lingual/palatina</label></fieldset><div><button type="submit" class="btn btn-primary">Guardar en presupuesto</button> <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button></div></form></dialog>
+<style>.finding-action{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--border);font-size:.8rem}#plan-findings>strong,#budget-findings>strong{display:block;margin:12px 0 5px;font-size:.8rem}#budget-findings:not(:empty),#plan-findings:not(:empty){margin-bottom:14px}.tooth-plan{display:grid;gap:8px;border-top:1px solid var(--border);margin-top:12px;padding:12px 0;font-size:.8rem}.tooth-plan>button{white-space:normal;text-align:left}#tooth-planner{margin:auto;width:min(470px,94vw);padding:22px;border:1px solid var(--border);border-radius:16px;background:var(--card);color:var(--ink)}#tooth-planner::backdrop{background:#0009}#tooth-planner form{display:grid;gap:14px}#tooth-planner select{display:block;width:100%;padding:9px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}#tooth-planner fieldset{padding:9px;border:1px solid var(--border);border-radius:8px}#tooth-planner fieldset label{display:inline-flex;align-items:center;gap:3px;margin:4px}</style>
+<dialog id="tooth-planner"><form onsubmit="savePlannedTooth(event)"><h3>Planear tratamiento</h3><label>Pieza FDI<select required name="tooth"></select></label><label>Tratamiento y precio<select required name="treatment"></select></label><fieldset><legend>Superficies · opcional</legend><label><input type="checkbox" name="face" value="M">Mesial</label><label><input type="checkbox" name="face" value="O">Oclusal/incisal</label><label><input type="checkbox" name="face" value="D">Distal</label><label><input type="checkbox" name="face" value="V">Vestibular</label><label><input type="checkbox" name="face" value="L">Lingual/palatina</label></fieldset><div><button type="submit" class="btn btn-primary">Agregar al plan y al presupuesto</button> <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button></div></form></dialog>
 <!-- ══ MODAL EDITAR CONSENTIMIENTO ══ -->
 <div id="ci-edit-overlay" style="display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
   <div style="background:var(--card);border-radius:var(--r-xl);padding:26px 24px;max-width:620px;width:94%;margin:auto;box-shadow:var(--sh-xl)">
