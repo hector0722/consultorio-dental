@@ -5093,6 +5093,9 @@ body.app-ready #dash-page.active > .card {
     <div class="nav-item" onclick="goPage('rx-page',this)">
       <div class="nav-icon">💊</div> Recetas
     </div>
+    <div class="nav-item" id="rad-nav" onclick="goPage('rad-page',this)">
+      <div class="nav-icon">🩻</div> Radiografías
+    </div>
     <div class="nav-item" onclick="goPage('ci-page',this)">
       <div class="nav-icon">📋</div> Consentimientos
     </div>
@@ -5540,6 +5543,39 @@ body.app-ready #dash-page.active > .card {
       </div>
       <div id="as-results"></div>
     </div>
+
+<style>
+#rad-panel{max-width:760px;padding:clamp(16px,3vw,32px);background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
+#rad-select{display:block;width:100%;margin:6px 0 18px;padding:10px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}
+#rad-panel header,#rad-history li{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#rad-panel fieldset{border:1px solid var(--border);padding:12px;border-radius:8px;margin:14px 0}
+#rad-panel legend,#rad-form>label{font-size:.82rem;font-weight:650}
+#rad-panel fieldset label{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+#rad-form>label{display:block;margin:10px 0}
+#rad-form>label input,#rad-form textarea{display:block;width:100%;margin-top:5px;padding:9px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px;font:inherit}
+#rad-history{list-style:none;padding:0}#rad-history li{padding:10px 0;border-bottom:1px solid var(--border)}#rad-panel h3{margin:18px 0 6px}
+</style>
+<div id="rad-page" class="page"><section id="rad-panel" aria-labelledby="rad-heading">
+<h2 id="rad-heading">Órdenes de radiografías</h2>
+<label for="rad-select">Paciente</label>
+<select id="rad-select" onchange="setRadiologyPatient()"></select>
+<div id="rad-workspace" hidden>
+<form id="rad-form">
+<fieldset><legend>Estudios solicitados</legend>
+<label><input type="checkbox" name="study" value="Panorámica">Panorámica</label>
+<label><input type="checkbox" name="study" value="Lateral de cráneo">Lateral de cráneo</label>
+<label><input type="checkbox" name="study" value="Periapical">Periapical</label>
+<label><input type="checkbox" name="study" value="Interproximal">Interproximal</label>
+<label><input type="checkbox" name="study" value="Oclusal">Oclusal</label>
+<label><input type="checkbox" name="study" value="Tomografía (CBCT)">Tomografía (CBCT)</label>
+</fieldset>
+<label>Otro estudio<input name="other" maxlength="180"></label>
+<label>Diente, región o lateralidad<input name="region" maxlength="180" placeholder="Ej. 16 y 17, lado derecho"></label>
+<label>Motivo clínico e indicaciones<textarea name="reason" rows="2" required maxlength="1400"></textarea></label>
+<p id="rad-error" role="alert"></p>
+<button class="btn btn-primary" type="submit">Emitir orden</button>
+</form><h3>Órdenes emitidas</h3><ul id="rad-history"></ul>
+</div></section></div>
 
     <!-- RECETAS PAGE -->
     <div id="rx-page" class="page">
@@ -6473,7 +6509,7 @@ var appStorage = (function(nativeStorage) {
   var READY_KEY = 'dental_drive_only_ready_v1';
   var PENDING_KEY = 'dental_pending_preferences_v1';
   var pendingAccount = '';
-  var recoverableKeys = { dental_cfg_v1:1, dental_rx_edits_v1:1 };
+  var recoverableKeys = { dental_cfg_v1:1, dental_rx_edits_v1:1, dental_ci_edits_v1:1, dental_ind_edits_v1:1 };
 
   function readPendingPreferences() {
     try { return JSON.parse(nativeStorage.getItem(PENDING_KEY) || '{}'); }
@@ -7147,6 +7183,13 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
       budgets:true,
       _budgetTombstones:true
     });
+    if (Array.isArray(remotePatient.radiologyOrders) || Array.isArray(localPatient.radiologyOrders)) {
+      var orders = new Map();
+      (remotePatient.radiologyOrders || []).concat(localPatient.radiologyOrders || []).forEach(function(order) {
+        if (order && order.id) orders.set(order.id, order);
+      });
+      selected.radiologyOrders = Array.from(orders.values()).sort(function(a,b){return a.createdAt - b.createdAt;});
+    }
     var budgetMerge = mergePatientBudgets(remotePatient, localPatient, useLocal);
     if (budgetMerge.budgets.length
         || Array.isArray(remotePatient.budgets)
@@ -7265,11 +7308,12 @@ function resetPageScroll() {
 }
 
 function goPage(id, el) {
+  const fromPatient = document.getElementById('detail-page').classList.contains('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
-  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','receipts-page':'Recibos y cortes','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
+  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','receipts-page':'Recibos y cortes','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rad-page':'Órdenes de radiografías','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
   document.getElementById('topbar-title').textContent = map[id] || '';
   document.getElementById('btn-add').style.display = id === 'list-page' ? '' : 'none';
   closeMobileNav();
@@ -7283,6 +7327,7 @@ function goPage(id, el) {
     if (typeof filterList === 'function') filterList();
     else if (typeof renderList === 'function') renderList(db.patients || []);
   }
+  if (id === 'rad-page') refreshRadiologyPage(fromPatient ? String(curId) : '');
   if (id === 'stats-page') buildStats();
   if (id === 'budget-page') {
     resetBudgetWorkspace();
@@ -12878,24 +12923,25 @@ function renderCiGrid() {
     anestesia:'Anestesia'
   };
 
-  grid.innerHTML = list.map(function(ci) {
+  grid.innerHTML = list.map(function(base) {
+    var ci = _getCI(base.id);
     var tags = ci.cats.map(function(c){
       return '<span class="rx-tag '+(tagColorMap[c]||'rx-tag-blue')+'">'+(tagLabel[c]||c)+'</span>';
     }).join('');
 
-    var riesgosHtml = ci.riesgos.map(function(r){ return '<li>'+r+'</li>'; }).join('');
-    var altHtml     = ci.alternativas.map(function(a){ return '<li>'+a+'</li>'; }).join('');
-    var postHtml    = ci.postop.map(function(p){ return '<li>'+p+'</li>'; }).join('');
+    var riesgosHtml = ci.riesgos.map(function(r){ return '<li>'+escapeHTML(r)+'</li>'; }).join('');
+    var altHtml     = ci.alternativas.map(function(a){ return '<li>'+escapeHTML(a)+'</li>'; }).join('');
+    var postHtml    = ci.postop.map(function(p){ return '<li>'+escapeHTML(p)+'</li>'; }).join('');
 
     return '<div class="ci-card">'
       + '<div class="ci-card-header">'
       +   '<div class="ci-icon" style="background:'+ci.iconBg+'">'+ci.icon+'</div>'
-      +   '<div style="flex:1"><div class="ci-title">'+ci.title+'</div><div class="ci-subtitle">'+ci.subtitle+'</div></div>'
+      +   '<div style="flex:1"><div class="ci-title">'+escapeHTML(ci.title)+'</div><div class="ci-subtitle">'+ci.subtitle+'</div></div>'
       + '</div>'
       + '<div class="ci-tags">'+tags+'</div>'
       + '<div class="ci-body">'
       +   '<div class="ci-section-title">📋 Descripción</div>'
-      +   '<p style="font-size:.77rem;color:var(--ink-2);line-height:1.6;margin-bottom:6px">'+ci.descripcion+'</p>'
+      +   '<p style="font-size:.77rem;color:var(--ink-2);line-height:1.6;margin-bottom:6px">'+escapeHTML(ci.descripcion)+'</p>'
       +   '<div class="ci-section-title">⚠️ Riesgos y complicaciones</div>'
       +   '<ul>'+riesgosHtml+'</ul>'
       +   '<div class="ci-section-title">🔄 Alternativas de tratamiento</div>'
@@ -13151,7 +13197,7 @@ function printHistoriaClinica() {
 }
 
 function ciPrint(id, patientId) {
-  var ci = CI_DB.find(function(x){ return x.id === id; });
+  var ci = _getCI(id);
   if (!ci) return;
   // Get patient data if provided
   var pat = null;
@@ -13175,12 +13221,12 @@ function ciPrint(id, patientId) {
   var patTel  = pat ? (pat.phone || '_______________') : '_______________';
   var patId   = pat ? pat.id : '_______________';
   var patAllg = pat ? (pat.allergies || 'Sin alergias conocidas') : '_______________';
-  var riesgosList  = ci.riesgos.map(function(r){ return '<li>'+r+'</li>'; }).join('');
-  var altList      = ci.alternativas.map(function(a){ return '<li>'+a+'</li>'; }).join('');
-  var postList     = ci.postop.map(function(p){ return '<li>'+p+'</li>'; }).join('');
+  var riesgosList  = ci.riesgos.map(function(r){ return '<li>'+escapeHTML(r)+'</li>'; }).join('');
+  var altList      = ci.alternativas.map(function(a){ return '<li>'+escapeHTML(a)+'</li>'; }).join('');
+  var postList     = ci.postop.map(function(p){ return '<li>'+escapeHTML(p)+'</li>'; }).join('');
 
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    + '<title>Consentimiento Informado — '+ci.title+'</title>'
+    + '<title>Consentimiento Informado — '+escapeHTML(ci.title)+'</title>'
     + '<style>'
     + '*{box-sizing:border-box;margin:0;padding:0;}'
     + 'body{font-family:"Times New Roman",Times,serif;color:#000;font-size:11.5px;line-height:1.55;padding:22px 32px;background:#fff;}'
@@ -13231,7 +13277,7 @@ function ciPrint(id, patientId) {
 
     // ── TÍTULO ──
     + '<div class="doc-title">Carta de Consentimiento Informado<br>'
-    +   '<span style="font-size:11.5px">'+ci.title+' — '+ci.subtitle+'</span>'
+    +   '<span style="font-size:11.5px">'+escapeHTML(ci.title)+' — '+ci.subtitle+'</span>'
     + '</div>'
     + '<div class="nom-ref">Elaborado conforme a la NOM-004-SSA3-2012 y NOM-168-SSA1-1998 (Expediente Clínico)</div>'
 
@@ -13257,7 +13303,7 @@ function ciPrint(id, patientId) {
 
     // ── DESCRIPCIÓN ──
     + '<h2>II. Descripción del procedimiento</h2>'
-    + '<div class="section-box"><p>'+ci.descripcion+'</p></div>'
+    + '<div class="section-box"><p>'+escapeHTML(ci.descripcion)+'</p></div>'
 
     // ── RIESGOS ──
     + '<h2>III. Riesgos, complicaciones y efectos secundarios</h2>'
@@ -13329,7 +13375,7 @@ function ciPrint(id, patientId) {
     // ── FOOTER ──
     + '<div class="footer-bar">'
     +   '<span>'+cn+' · Cédula: '+ced+' · '+ccity+'</span>'
-    +   '<span>NOM-004-SSA3-2012 · '+ci.title+' · '+today+'</span>'
+    +   '<span>NOM-004-SSA3-2012 · '+escapeHTML(ci.title)+' · '+today+'</span>'
     + '</div>'
     + '</body></html>';
 
@@ -14757,14 +14803,15 @@ function renderIndGrid() {
     blanqueamiento:'Blanqueamiento', operatoria:'Operatoria', ninos:'👶 Niños'
   };
 
-  grid.innerHTML = list.map(function(ind) {
+  grid.innerHTML = list.map(function(base) {
+    var ind = _getInd(base.id);
     var tags = ind.cats.map(function(c){
       return '<span class="rx-tag '+(tagColorMap[c]||'rx-tag-blue')+'">'+(tagLabel[c]||c)+'</span>';
     }).join('');
 
     var seccionesHtml = ind.secciones.map(function(sec){
-      var items = sec.items.map(function(it){ return '<li>'+it+'</li>'; }).join('');
-      return '<div class="ind-section">'+sec.titulo+'</div><ul class="ind-items">'+items+'</ul>';
+      var items = sec.items.map(function(it){ return '<li>'+escapeHTML(it)+'</li>'; }).join('');
+      return '<div class="ind-section">'+escapeHTML(sec.titulo)+'</div><ul class="ind-items">'+items+'</ul>';
     }).join('');
 
     var warnHtml = ind.urgencias
@@ -14774,7 +14821,7 @@ function renderIndGrid() {
     return '<div class="ind-card">'
       + '<div class="ind-card-header">'
       +   '<div class="ind-icon" style="background:'+ind.iconBg+'">'+ind.icon+'</div>'
-      +   '<div style="flex:1"><div class="ind-title">'+ind.title+'</div><div class="ind-subtitle">'+ind.subtitle+'</div></div>'
+      +   '<div style="flex:1"><div class="ind-title">'+escapeHTML(ind.title)+'</div><div class="ind-subtitle">'+ind.subtitle+'</div></div>'
       + '</div>'
       + '<div class="rx-tags">'+tags+'</div>'
       + warnHtml
@@ -14787,7 +14834,7 @@ function renderIndGrid() {
 
 // ── Imprimir indicaciones ────────────────────────────────────
 function indPrint(id) {
-  var ind = IND_DB.find(function(x){ return x.id === id; });
+  var ind = _getInd(id);
   if (!ind) return;
   var clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Consultorio Dental';
   var clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : '';
@@ -14796,8 +14843,8 @@ function indPrint(id) {
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   var seccionesHtml = ind.secciones.map(function(sec){
-    var items = sec.items.map(function(it){ return '<li>'+it+'</li>'; }).join('');
-    return '<h2>'+sec.titulo+'</h2><ul>'+items+'</ul>';
+    var items = sec.items.map(function(it){ return '<li>'+escapeHTML(it)+'</li>'; }).join('');
+    return '<h2>'+escapeHTML(sec.titulo)+'</h2><ul>'+items+'</ul>';
   }).join('');
 
   var warnHtml = ind.urgencias
@@ -14805,7 +14852,7 @@ function indPrint(id) {
     : '';
 
   var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    + '<title>Indicaciones – '+ind.title+'</title>'
+    + '<title>Indicaciones – '+escapeHTML(ind.title)+'</title>'
     + '<style>'
     + '*{box-sizing:border-box;margin:0;padding:0;}'
     + 'body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#1d1d1f;font-size:12px;line-height:1.55;padding:28px 36px;background:#fff;}'
@@ -14833,7 +14880,7 @@ function indPrint(id) {
     +   '<div><div class="clinic-name">'+clinicName+'</div><div class="clinic-sub">'+clinicSub+' · '+clinicCity+'</div></div>'
     +   '<div class="date-info">Fecha: '+today+'<br>Indicaciones postoperatorias</div>'
     + '</div>'
-    + '<div class="title-box"><h1>'+ind.title+'</h1><p>'+ind.subtitle+'</p></div>'
+    + '<div class="title-box"><h1>'+escapeHTML(ind.title)+'</h1><p>'+ind.subtitle+'</p></div>'
     + '<div class="patient-row">'
     +   '<div class="pf">Paciente<strong>_________________________</strong></div>'
     +   '<div class="pf">Fecha del procedimiento<strong>_________________________</strong></div>'
@@ -14845,7 +14892,7 @@ function indPrint(id) {
     +   '<div class="sign-box">Firma del paciente / Enterado<div style="margin-top:36px">___________________________________</div></div>'
     +   '<div class="sign-box">Teléfono del consultorio<div style="margin-top:10px;font-size:.82rem;font-weight:700;color:#0071e3">'+clinicCity+'</div></div>'
     + '</div>'
-    + '<div class="footer"><span>'+clinicName+' · '+clinicSub+'</span><span>'+ind.title+' · '+today+'</span></div>'
+    + '<div class="footer"><span>'+clinicName+' · '+clinicSub+'</span><span>'+escapeHTML(ind.title)+' · '+today+'</span></div>'
     + '<\/body><\/html>';
 
   var w = window.open('', '_blank');
@@ -14856,13 +14903,13 @@ function indPrint(id) {
 
 // ── Enviar indicaciones por WhatsApp ────────────────────────
 function indWA(id) {
-  var ind = IND_DB.find(function(x){ return x.id === id; });
+  var ind = _getInd(id);
   if (!ind) return;
   var clinicName = (typeof cfg !== 'undefined') ? cfg.name : 'el consultorio';
   var nl = '\n';
   var msg = 'Hola! Te comparto las indicaciones de *'+ind.title+'*:' + nl + nl;
   ind.secciones.forEach(function(sec){
-    msg += '*' + sec.titulo + '*' + nl;
+    if (sec.titulo) msg += '*' + sec.titulo + '*' + nl;
     sec.items.forEach(function(it){ msg += '• ' + it + nl; });
     msg += nl;
   });
@@ -20025,6 +20072,7 @@ var GD = (function() {
       if (typeof renderReportePage === 'function') renderReportePage();
     }
     if (activeId === 'caja-page' && typeof cajaRender === 'function') cajaRender();
+    if (activeId === 'rad-page') refreshRadiologyPage(document.getElementById('rad-select').value, true);
     if (activeId === 'rx-page' && typeof renderRxGrid === 'function') renderRxGrid();
     if (activeId === 'budget-page') {
       if (typeof buildCatalogUI === 'function') buildCatalogUI();
@@ -23842,13 +23890,18 @@ function resetIndEdit() {
   persistAuxStateToDrive();
   closeIndEdit(); renderIndGrid(); showToast('↩️ Restaurado al original', 'green');
 }
+function parseIndSections(text) {
+  return text.trim().split(/\n\s*\n/).filter(Boolean).map(function(block) {
+    var lines = block.split('\n').map(function(line){ return line.trim(); }).filter(Boolean);
+    var title = lines.length > 1 && !/^[•*-]/.test(lines[0]) && /^[•*-]/.test(lines[1]) ? lines.shift() : '';
+    return { titulo: title, items: lines.map(function(line){ return line.replace(/^[•*-]\s*/, ''); }) };
+  });
+}
 function saveIndEdit() {
   if (!_indEditId) return;
   _indEdits[_indEditId] = {
     title: document.getElementById('ind-edit-title').value,
-    // Guardar como sección única con los items
-    secciones: [{ titulo: '', items: document.getElementById('ind-edit-items').value
-      .split('\n').map(function(l){ return l.replace(/^[•\-\*]\s*/,'').trim(); }).filter(Boolean) }]
+    secciones: parseIndSections(document.getElementById('ind-edit-items').value)
   };
   appStorage.setItem('dental_ind_edits_v1', JSON.stringify(_indEdits));
   persistAuxStateToDrive();
@@ -24601,6 +24654,7 @@ function renderPatientModulesBar(patient){
   var specialtyData=patient.specialtyModules||{},specialtyTotal=0;
   SPECIALTY_MODULES.forEach(function(m){specialtyTotal+=(specialtyData[m.id]||[]).length;});
   var integrated=[
+    {id:'radiologia',icon:'🩻',label:'Órdenes de radiografías',color:'#086d80',pale:'#e5f5f7',count:(patient.radiologyOrders||[]).length,action:'openRadiologyOrders()'},
     {id:'odontograma',icon:'🦷',label:'Odontograma',color:'#0071e3',pale:'#eaf3ff',count:_patientModuleNumericCount(patient.odontogram),action:'openOdontogram()'},
     {id:'odontopediatria',icon:'🧒',label:'Odontopediatría',color:'#d97706',pale:'#fff7e8',count:_patientModuleNumericCount(patient.odontogramaPed),action:'openOdontogramPed()'},
     {id:'periodoncia',icon:'📊',label:'Periodoncia',color:'#168a45',pale:'#eaf8ef',count:(patient.perioSessions||[]).length,action:'openPeriodontogram()'},
@@ -26316,6 +26370,82 @@ window.addEventListener('resize', function() {
 
   </div>
 </div>
+<script>
+const radSelect = document.getElementById('rad-select');
+const radForm = document.getElementById('rad-form');
+function radPatient() {
+  return db.patients.find(p => String(p.id) === radSelect.value);
+}
+function openRadiologyOrders() {
+  goPage('rad-page', document.getElementById('rad-nav'));
+}
+function refreshRadiologyPage(selectedId, preserveDraft) {
+  const previousId = radSelect.value;
+  const patients = (db.patients || []).slice().sort((a,b) => String(a.name).localeCompare(String(b.name),'es'));
+  radSelect.replaceChildren(new Option(patients.length ? 'Selecciona un paciente' : 'Sin pacientes registrados', ''));
+  patients.forEach(p => radSelect.add(new Option(p.name + ' · ' + p.id, String(p.id))));
+  radSelect.value = selectedId || '';
+  setRadiologyPatient(preserveDraft === true && previousId === radSelect.value);
+}
+function setRadiologyPatient(preserveDraft) {
+  const patient = radPatient();
+  if (!preserveDraft) radForm.reset();
+  document.getElementById('rad-error').textContent = '';
+  document.getElementById('rad-workspace').hidden = !patient;
+  if (patient) renderRadiologyHistory(patient);
+  else document.getElementById('rad-history').replaceChildren();
+}
+function renderRadiologyHistory(patient) {
+  const history = document.getElementById('rad-history');
+  history.replaceChildren();
+  const orders = patient.radiologyOrders || [];
+  if (!orders.length) history.textContent = 'Sin órdenes emitidas.';
+  orders.slice().reverse().forEach(order => {
+    const row = document.createElement('li');
+    const summary = document.createElement('span');
+    summary.textContent = order.date + ' · ' + order.studies.join(', ');
+    const print = document.createElement('button');
+    print.className = 'btn btn-ghost';
+    print.textContent = 'Imprimir / PDF';
+    print.onclick = () => printRadiologyOrder(order);
+    row.append(summary, print);
+    history.append(row);
+  });
+}
+radForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const patient = radPatient();
+  if (!patient) return;
+  const fields = new FormData(radForm);
+  const studies = fields.getAll('study');
+  const other = fields.get('other').trim();
+  if (other) studies.push(other);
+  const reason = fields.get('reason').trim();
+  const error = document.getElementById('rad-error');
+  if (!studies.length || !reason) {
+    error.textContent = !studies.length ? 'Selecciona un estudio o escribe otro.' : 'Escribe el motivo clínico.';
+    return;
+  }
+  const now = new Date();
+  const order = {id: crypto.randomUUID(), createdAt: now.getTime(), date: now.toLocaleDateString('es-MX'),
+    patient: patient.name, record: String(patient.id), doctor: getActiveDoctorName(), license: getActiveDoctorCedula(),
+    clinic: cfg.name || '', studies, region: fields.get('region').trim(), reason};
+  (patient.radiologyOrders ||= []).push(order);
+  saveDB();
+  radForm.reset();
+  error.textContent = '';
+  renderRadiologyHistory(patient);
+  if (patient.id == curId) renderPatientModulesBar(patient);
+});
+function printRadiologyOrder(order) {
+  const w = window.open('', '_blank');
+  if (!w) return showToast('Permite las ventanas emergentes para imprimir la orden.');
+  const e = escapeHTML;
+  w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><title>Orden de radiografías</title><style>@page{margin:18mm}body{font:15px/1.5 Arial;color:#182829;max-width:720px;margin:30px auto}h1{border-bottom:2px solid #176779}h2{font-size:16px;margin-top:22px}p,li{white-space:pre-wrap;overflow-wrap:anywhere}footer{margin-top:65px}</style><h1>Orden de radiografías</h1><p>'+e(order.clinic)+' · '+e(order.date)+'</p><p><b>Paciente</b> '+e(order.patient)+'<br><b>Expediente</b> '+e(order.record)+'</p><h2>Estudios solicitados</h2><ul>'+order.studies.map(s=>'<li>'+e(s)+'</li>').join('')+'</ul>'+(order.region?'<h2>Diente o región</h2><p>'+e(order.region)+'</p>':'')+'<h2>Motivo clínico e indicaciones</h2><p>'+e(order.reason)+'</p><footer>____________________________<br>Firma · '+e(order.doctor)+(order.license?'<br>Cédula profesional '+e(order.license):'')+'</footer></html>');
+  w.document.close();
+  _printWindow(w);
+}
+</script>
 <!-- ══ MODAL EDITAR CONSENTIMIENTO ══ -->
 <div id="ci-edit-overlay" style="display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
   <div style="background:var(--card);border-radius:var(--r-xl);padding:26px 24px;max-width:620px;width:94%;margin:auto;box-shadow:var(--sh-xl)">
@@ -26350,7 +26480,7 @@ window.addEventListener('resize', function() {
       <div style="font-size:.95rem;font-weight:700;color:var(--ink)">✏️ Editar indicaciones</div>
       <button onclick="closeIndEdit()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ink-3)">✕</button>
     </div>
-    <div style="font-size:.72rem;color:var(--ink-3);margin-bottom:14px">Edita el texto libremente. Escribe las indicaciones como quieras.</div>
+    <div style="font-size:.72rem;color:var(--ink-3);margin-bottom:14px">Separa las secciones con una línea en blanco. Escribe el encabezado y debajo cada indicación con una viñeta (•).</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Título</label>
         <input type="text" id="ind-edit-title" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.88rem;background:var(--bg);color:var(--ink);font-weight:600"></div>
