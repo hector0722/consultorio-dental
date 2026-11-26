@@ -4733,13 +4733,9 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
   }
 }
 
-/* Móvil: contraste estable y componentes adaptados a pantallas estrechas. */
+/* Móvil: contraste estable y componentes adaptados a pantallas estrechas (respetando el tema elegido en este dispositivo). */
 @media (max-width:760px) {
   body.user-custom-theme {
-    --ink:#1d1d1f !important; --ink-2:#3a3a3c !important;
-    --ink-3:#6e6e73 !important; --ink-4:#8e8e93 !important;
-    --card:#fff !important; --bg:#f5f5f7 !important;
-    --border:#e5e5ea !important; --border-med:#d1d1d6 !important;
     color:var(--ink) !important; font-size:15px !important;
   }
   .topbar h2 { color:var(--ink) !important; font-size:.78rem !important; }
@@ -4785,22 +4781,6 @@ html.dark #reporte-page #rep-kpis .rep-kpi-count .stat-value{
   #reporte-page .prod-table td:nth-child(7)::before{content:'Porcentaje'}
   #reporte-page .prod-table td:nth-child(8)::before{content:'Pago'}
   #reporte-page .prod-table td:nth-child(9)::before{content:'Eliminar'}
-
-  html.dark body.user-custom-theme {
-    --ink:#f5f5f7 !important; --ink-2:#d1d1d6 !important;
-    --ink-3:#a1a1a6 !important; --ink-4:#8e8e93 !important;
-    --card:#1c1c1e !important; --bg:#000 !important;
-    --border:rgba(255,255,255,.10) !important;
-    --border-med:rgba(255,255,255,.18) !important;
-  }
-  html.dark #list-page tr.patient-mobile-card,
-  html.dark #agenda-page .cal-main,
-  html.dark #agenda-page .cal-header,
-  html.dark #agenda-page .month-grid,
-  html.dark #reporte-page .prod-table tr { background:#1c1c1e !important; }
-  html.dark #agenda-page .month-dh { background:#242426 !important; }
-  html.dark #agenda-page .month-cell { background:#1c1c1e !important; }
-  html.dark #agenda-page .month-cell.other-month { background:#151517 !important; }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -5602,7 +5582,7 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   }
 }
 
-/* Tablets y móviles (<= 1024px): drawer deslizable suave */
+/* Tablets y móviles (<= 1024px): drawer deslizable suave y lista completa desde Inicio */
 @media (max-width: 1024px) {
   .sb-collapse-btn { display: none !important; }
   #sidebar {
@@ -5611,12 +5591,17 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
     left: 0 !important;
     bottom: 0 !important;
     right: auto !important;
-    width: min(88vw, 310px) !important;
-    max-width: 310px !important;
+    width: min(86vw, 304px) !important;
+    max-width: 304px !important;
     height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    border-radius: 0 24px 24px 0 !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+    border-radius: 0 22px 22px 0 !important;
     background: var(--user-sidebar, #111521) !important;
     transform: translateX(-106%) !important;
     transition: transform .32s var(--ease-expo) !important;
@@ -5625,66 +5610,121 @@ html.dark #app-loading-screen, html.dark #pass-screen, html.dark #gd-login-scree
   body.mobile-nav-open #sidebar { transform: translateX(0) !important; }
   body.mobile-nav-open #sidebar-scrim { display: block !important; }
   #sidebar .sb-logo {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: none !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     gap: 12px !important;
     height: auto !important;
-    min-height: 78px !important;
-    padding: 18px 18px 14px !important;
+    min-height: 68px !important;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 12px !important;
     border: 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, .09) !important;
   }
-  #sidebar .sb-logo h1 { color: #fff !important; font-size: .92rem !important; }
-  #sidebar .sb-logo p { display: block !important; color: rgba(255,255,255,.5) !important; }
+  #sidebar .sb-logo h1 { color: #fff !important; font-size: .92rem !important; text-align: left !important; }
+  #sidebar .sb-logo p { display: block !important; color: rgba(255,255,255,.55) !important; text-align: left !important; }
   #sidebar .sb-nav {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    padding: 10px 12px !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    gap: 3px !important;
+    padding: 10px 12px 16px !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
   }
-  #sidebar .sb-section { display: block !important; color: rgba(255,255,255,.4) !important; padding: 12px 10px 5px !important; font-size: .62rem !important; }
+  #sidebar .sb-section {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    text-align: left !important;
+    color: rgba(255,255,255,.45) !important;
+    padding: 10px 10px 4px !important;
+    font-size: .62rem !important;
+    font-weight: 800 !important;
+    letter-spacing: .09em !important;
+  }
+  #sidebar .sb-section:first-child { padding-top: 2px !important; }
   #sidebar .sb-nav .nav-item {
     display: flex !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
     align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
     gap: 11px !important;
-    min-height: 44px !important;
-    padding: 8px 12px !important;
-    border-radius: 13px !important;
-    color: rgba(255,255,255,.78) !important;
+    min-height: 42px !important;
+    padding: 7px 12px !important;
+    border-radius: 12px !important;
+    color: rgba(255,255,255,.84) !important;
     font-size: .85rem !important;
   }
-  #sidebar .sb-nav .nav-item .nav-icon { display: inline-flex !important; width: 30px !important; height: 30px !important; background: rgba(255,255,255,.08) !important; border-radius: 9px !important; align-items: center; justify-content: center; }
+  #sidebar .sb-nav .nav-item .nav-icon {
+    display: inline-flex !important;
+    flex: 0 0 30px !important;
+    width: 30px !important;
+    height: 30px !important;
+    background: rgba(255,255,255,.08) !important;
+    border-radius: 9px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
   #sidebar .sb-nav .nav-item.active {
     background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 70%, #6366f1)) !important;
     color: #fff !important;
+    box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--blue) 55%, transparent) !important;
   }
   #sidebar .sb-footer {
+    flex: 0 0 auto !important;
     display: flex !important;
     flex-direction: column !important;
+    align-items: stretch !important;
     gap: 8px !important;
     height: auto !important;
     width: 100% !important;
     max-width: none !important;
-    padding: 12px 14px calc(14px + env(safe-area-inset-bottom)) !important;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     border-top: 1px solid rgba(255,255,255,.09) !important;
-    background: rgba(0,0,0,.2) !important;
+    background: rgba(0,0,0,.22) !important;
   }
-  #sidebar .sb-footer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  #sidebar .sb-footer-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
   #sidebar .sb-footer .sb-settings-btn,
+  #sidebar .sb-footer button[title="Configuración"],
   #sidebar .sb-footer .sb-help-btn {
     display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 38px;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 1 1 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 40px !important;
+    padding: 0 12px !important;
     border-radius: 11px !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
     background: rgba(255,255,255,.08) !important;
     color: #fff !important;
-    font-size: .76rem !important;
+    font-size: .78rem !important;
+    font-weight: 650 !important;
+    white-space: nowrap !important;
   }
-  #sidebar .sb-footer #backup-badge { display: inline-flex !important; justify-content: center; width: 100%; }
+  #sidebar .sb-footer #backup-badge { display: inline-flex !important; justify-content: center !important; width: 100% !important; }
   #main { margin-left: 0 !important; padding-top: 0 !important; }
   #mobile-menu-btn { display: inline-flex !important; }
 }
@@ -6656,8 +6696,28 @@ body.user-theme-dark-card .stats-row #dash-owe { color: #ff6961 !important; }
   height: 40px !important;
   min-height: 40px !important;
   margin: 0 !important;
-  padding: 0 14px !important;
+  padding: 0 16px !important;
   border-radius: 10px !important;
+  border: 1px solid color-mix(in srgb, var(--blue) 45%, transparent) !important;
+  background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 74%, #4f46e5)) !important;
+  color: #ffffff !important;
+  font-size: .8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -.01em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--blue) 42%, rgba(0, 0, 0, .25)) !important;
+  transition: transform .18s var(--ease-spring), filter .18s ease, box-shadow .18s ease !important;
+}
+.ci-print-btn:hover, .ind-print-btn:hover {
+  filter: brightness(1.08) !important;
+  transform: translateY(-1px) !important;
+  color: #ffffff !important;
+}
+.ci-print-btn:active, .ind-print-btn:active {
+  transform: scale(.98) !important;
 }
 .ci-edit-btn, .ind-edit-btn {
   flex: 0 0 auto !important;
@@ -6817,6 +6877,62 @@ body.user-custom-theme .spec-header {
 #rad-panel .rad-choice:hover {
   border-color: color-mix(in srgb, var(--blue) 45%, var(--border-med)) !important;
   transform: translateY(-1px);
+}
+#rad-panel .rad-contact-bar {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) minmax(220px, 1.2fr);
+  align-items: center;
+  gap: 12px 16px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--border-med));
+  background: color-mix(in srgb, var(--blue) 6%, var(--card));
+}
+#rad-panel .rad-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#rad-panel .rad-contact-info strong {
+  font-size: .8rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+#rad-panel .rad-contact-info span {
+  font-size: .71rem;
+  color: var(--ink-3);
+}
+#rad-panel .rad-contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+}
+#rad-panel .rad-contact-field input {
+  height: 38px;
+  padding: 0 11px;
+  border-radius: 9px;
+  border: 1px solid var(--border-med);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: .83rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+#rad-panel .rad-contact-field input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 16%, transparent);
+}
+@media (max-width: 900px) {
+  #rad-panel .rad-contact-bar { grid-template-columns: 1fr; }
 }
 /* Estado vacío elegante cuando aún no se ha elegido paciente en Radiografías */
 #rad-panel:has(#rad-workspace[hidden])::after {
@@ -7845,6 +7961,18 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
 </style>
 <div id="rad-page" class="page"><section id="rad-panel" aria-labelledby="rad-heading">
 <header class="rad-head"><h2 id="rad-heading">Órdenes de radiografías</h2><label>Paciente<select id="rad-select" onchange="setRadiologyPatient()"></select></label></header>
+<div class="rad-contact-bar" aria-label="Datos del consultorio para recibir estudios">
+  <div class="rad-contact-info">
+    <strong>📩 Datos de envío en la orden impresa</strong>
+    <span>Se incluyen automáticamente en el encabezado y pie de tu orden para que el gabinete envíe ahí los estudios.</span>
+  </div>
+  <label class="rad-contact-field">📞 Teléfono / WhatsApp consultorio
+    <input type="tel" id="rad-clinic-phone" placeholder="Ej. 614 123 4567" oninput="syncRadClinicContact()">
+  </label>
+  <label class="rad-contact-field">✉️ Correo para recibir radiografías
+    <input type="email" id="rad-clinic-email" placeholder="doctor@consultorio.com" oninput="syncRadClinicContact()">
+  </label>
+</div>
 <div id="rad-workspace" class="rad-columns" hidden>
 <form id="rad-form" class="rad-stack"><section class="rad-box"><h3>Estudios solicitados</h3>
 <fieldset><legend>Extraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Panorámica">Panorámica</label><label class="rad-choice"><input type="checkbox" name="study" value="Lateral de cráneo">Lateral de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Posteroanterior de cráneo">Posteroanterior de cráneo</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie de ATM">Serie de ATM</label></div></fieldset><fieldset><legend>Intraorales</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Periapical">Periapical</label><label class="rad-choice"><input type="checkbox" name="study" value="Interproximal">Interproximal</label><label class="rad-choice"><input type="checkbox" name="study" value="Oclusal">Oclusal</label><label class="rad-choice"><input type="checkbox" name="study" value="Serie periapical completa">Serie periapical completa</label></div></fieldset><fieldset><legend>Volumetría</legend><div class="rad-choices"><label class="rad-choice"><input type="checkbox" name="study" value="Tomografía (CBCT)">Tomografía (CBCT)</label></div></fieldset>
@@ -8840,6 +8968,10 @@ var appStorage = (function(nativeStorage) {
     dental_device_id_v1:1,
     dental_license_activated_v1:1,
     dental_seen_version:1,
+    dental_dark_mode_v1:1,
+    dental_device_appearance_v1:1,
+    dental_clinic_phone_v1:1,
+    dental_clinic_email_v1:1,
     // Respaldo mínimo, no clínico, para que una recarga inmediata no pierda
     // el porcentaje mientras Google Drive termina de confirmar el cambio.
     dental_pending_doctor_rates_v1:1
@@ -14364,6 +14496,53 @@ function syncStyleUIActiveStates() {
   });
 }
 
+var DEVICE_APPEARANCE_KEY = 'dental_device_appearance_v1';
+var APPEARANCE_LOCAL_FIELDS = [
+  'color','appearanceBg','appearanceCard','appearanceSidebar','appearanceText',
+  'appearanceHeroA','appearanceHeroB','appearanceOverlay','appearanceRadius',
+  'appearanceScale','appearanceFont','appearanceSurface','appearancePreset'
+];
+
+function readDeviceAppearance() {
+  try {
+    var raw = appStorage.getItem(DEVICE_APPEARANCE_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object') ? parsed : null;
+  } catch (e) { return null; }
+}
+
+function saveDeviceAppearance() {
+  try {
+    var snap = {};
+    APPEARANCE_LOCAL_FIELDS.forEach(function(k) {
+      if (cfg[k] !== undefined) snap[k] = cfg[k];
+    });
+    appStorage.setItem(DEVICE_APPEARANCE_KEY, JSON.stringify(snap));
+    var darkNow = isDarkAppearance(appearanceValue('appearanceCard'));
+    appStorage.setItem('dental_dark_mode_v1', darkNow ? '1' : '0');
+  } catch (e) {}
+}
+
+function restoreDeviceAppearanceOnCfg() {
+  var saved = readDeviceAppearance();
+  if (saved) {
+    APPEARANCE_LOCAL_FIELDS.forEach(function(k) {
+      if (saved[k] !== undefined && saved[k] !== '') cfg[k] = saved[k];
+    });
+    return;
+  }
+  // Primera carga por dispositivo: aislar la preferencia visual local para que
+  // el tema oscuro del celular nunca sobreescriba el tema claro de la computadora.
+  var wantsDark = appStorage.getItem('dental_dark_mode_v1') === '1';
+  if (!wantsDark && typeof window !== 'undefined' && window.innerWidth > 768) {
+    var lightPreset = APPEARANCE_PRESETS.apple;
+    Object.keys(lightPreset).forEach(function(k) { cfg[k] = lightPreset[k]; });
+    cfg.appearancePreset = 'apple';
+  }
+  saveDeviceAppearance();
+}
+
 function applyAppearance() {
   if (!document.body) return;
   var root = document.documentElement;
@@ -14396,17 +14575,18 @@ function applyAppearance() {
   document.body.classList.add('surface-' + surf);
   document.body.classList.add('user-custom-theme');
   document.body.classList.toggle('user-theme-dark-card', darkCard);
-  /* Evitar mezclar un tema claro con reglas oscuras guardadas de una sesión
-     anterior. El brillo real de las tarjetas define el contraste global. */
   document.documentElement.classList.toggle('dark', darkCard);
+  var chk = document.getElementById('cfg-dark-mode');
+  if (chk) chk.checked = darkCard;
+  var lbl = document.getElementById('dark-mode-label');
+  if (lbl) lbl.textContent = darkCard ? 'Activado (en este dispositivo)' : 'Desactivado (en este dispositivo)';
   syncStyleUIActiveStates();
 }
 
 function persistAppearanceCfg() {
-  if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
-  else {
-    try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch(e) {}
-  }
+  // La apariencia visual (tema claro/oscuro, tipografía, superficie) se guarda
+  // localmente en cada dispositivo para que celular y PC mantengan su propio estilo.
+  saveDeviceAppearance();
 }
 
 function applyAppearanceFont(fontKey) {
@@ -14512,10 +14692,17 @@ function loadSettings() {
   }
   if (!cfg.currency) cfg.currency = 'MXN';
   if (!cfg.countryCode) cfg.countryCode = '52';
-  // Ensure COFEPRIS fields exist
+  // Ensure COFEPRIS fields exist and unify legacy contact aliases
   ['cedula','cedula2','rfc','direccion','telefono','correo','institucion','ssa'].forEach(function(f){
     if (cfg[f] === undefined) cfg[f] = '';
   });
+  cfg.telefono = cfg.telefono || cfg.phone || appStorage.getItem('dental_clinic_phone_v1') || '';
+  cfg.phone = cfg.telefono;
+  cfg.correo = cfg.correo || cfg.email || appStorage.getItem('dental_clinic_email_v1') || '';
+  cfg.email = cfg.correo;
+  cfg.direccion = cfg.direccion || cfg.address || '';
+  cfg.address = cfg.direccion;
+  restoreDeviceAppearanceOnCfg();
   applyBranding();
 }
 
@@ -14615,6 +14802,7 @@ function applyBranding() {
   applyAppearance();
   applyHeroImage();
   syncLogoSettingsUI();
+  if (typeof hydrateRadClinicContactInputs === 'function') hydrateRadClinicContactInputs();
 }
 
 function applyHeroImage() {
@@ -14701,8 +14889,11 @@ function openSettings() {
   document.getElementById('cfg-name').value  = cfg.name;
   document.getElementById('cfg-sub').value   = cfg.sub;
   document.getElementById('cfg-city').value  = cfg.city;
-  if (document.getElementById('cfg-address')) document.getElementById('cfg-address').value = cfg.address||'';
-  if (document.getElementById('cfg-phone'))   document.getElementById('cfg-phone').value   = cfg.phone||'';
+  var resolvedDir  = (typeof getClinicAddress === 'function') ? getClinicAddress() : (cfg.direccion || cfg.address || '');
+  var resolvedTel  = (typeof getClinicPhone === 'function')   ? getClinicPhone()   : (cfg.telefono || cfg.phone || '');
+  var resolvedMail = (typeof getClinicEmail === 'function')   ? getClinicEmail()   : (cfg.correo || cfg.email || '');
+  if (document.getElementById('cfg-address'))   document.getElementById('cfg-address').value   = resolvedDir;
+  if (document.getElementById('cfg-phone'))     document.getElementById('cfg-phone').value     = resolvedTel;
   document.getElementById('cfg-logo').value  = cfg.logo;
   document.getElementById('cfg-color').value = cfg.color;
   document.getElementById('cfg-color-hex').textContent = cfg.color;
@@ -14716,6 +14907,9 @@ function openSettings() {
     var el = document.getElementById('cfg-'+f);
     if (el) el.value = cfg[f] || '';
   });
+  if (document.getElementById('cfg-direccion')) document.getElementById('cfg-direccion').value = resolvedDir;
+  if (document.getElementById('cfg-telefono'))  document.getElementById('cfg-telefono').value  = resolvedTel;
+  if (document.getElementById('cfg-correo'))    document.getElementById('cfg-correo').value    = resolvedMail;
   var grid = document.getElementById('emoji-grid');
   grid.innerHTML = LOGO_EMOJIS.map(function(e) {
     var active = e === cfg.logo ? ' active' : '';
@@ -14807,16 +15001,20 @@ function selectEmoji(e) {
 
 function previewColor(hex) {
   document.getElementById('cfg-color-hex').textContent = hex;
+  cfg.color = hex;
   applyColor(hex);
+  saveDeviceAppearance();
   document.querySelectorAll('.color-preset').forEach(function(el){ el.classList.remove('active'); });
 }
 
 function pickPresetColor(hex) {
   document.getElementById('cfg-color').value = hex;
   document.getElementById('cfg-color-hex').textContent = hex;
+  cfg.color = hex;
   applyColor(hex);
+  saveDeviceAppearance();
   document.querySelectorAll('.color-preset').forEach(function(el){ el.classList.remove('active'); });
-  if (event && event.target) event.target.classList.add('active');
+  if (typeof event !== 'undefined' && event && event.target) event.target.classList.add('active');
 }
 
 function saveSettings() {
@@ -14824,8 +15022,8 @@ function saveSettings() {
   cfg.name     = document.getElementById('cfg-name').value  || cfg.name;
   cfg.sub      = document.getElementById('cfg-sub').value.trim();
   cfg.city     = document.getElementById('cfg-city').value.trim();
-  cfg.address  = (document.getElementById('cfg-address') || {}).value || cfg.address || '';
-  cfg.phone    = (document.getElementById('cfg-phone')   || {}).value || cfg.phone   || '';
+  var addrLegacy = ((document.getElementById('cfg-address') || {}).value || '').trim();
+  var phoneLegacy = ((document.getElementById('cfg-phone') || {}).value || '').trim();
   cfg.logo     = document.getElementById('cfg-logo').value  || cfg.logo;
   cfg.color    = document.getElementById('cfg-color').value || cfg.color;
   previewAdvancedAppearance();
@@ -14838,10 +15036,18 @@ function saveSettings() {
     var el = document.getElementById('cfg-'+f);
     if (el) cfg[f] = el.value.trim();
   });
-  // Mantener los nombres antiguos que aún usan algunos documentos.
-  cfg.address = cfg.direccion;
-  cfg.phone = cfg.telefono;
-  cfg.email = cfg.correo;
+  // Unificar ambos bloques (Identidad + COFEPRIS) sin que un campo vacío pise al otro
+  cfg.direccion = cfg.direccion || addrLegacy;
+  cfg.address   = cfg.direccion;
+  cfg.telefono  = cfg.telefono  || phoneLegacy;
+  cfg.phone     = cfg.telefono;
+  cfg.email     = cfg.correo;
+  if (cfg.telefono) appStorage.setItem('dental_clinic_phone_v1', cfg.telefono);
+  if (cfg.correo)   appStorage.setItem('dental_clinic_email_v1', cfg.correo);
+  var radPh = document.getElementById('rad-clinic-phone');
+  if (radPh) radPh.value = cfg.telefono || '';
+  var radEm = document.getElementById('rad-clinic-email');
+  if (radEm) radEm.value = (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || '');
   // En cuentas de un solo doctor, los datos generales y el perfil profesional
   // representan a la misma persona. Mantenerlos sincronizados evita que al
   // recargar el doctor activo restaure el nombre y la cédula predeterminados.
@@ -14851,6 +15057,8 @@ function saveSettings() {
     settingsDoctors[0].specialty = cfg.sub;
     settingsDoctors[0].cedula = cfg.cedula || '';
     settingsDoctors[0].cedula2 = cfg.cedula2 || '';
+    settingsDoctors[0].telefono = cfg.telefono || '';
+    settingsDoctors[0].correo = cfg.correo || '';
     saveDoctors(settingsDoctors);
     if (_activeDoctor && String(_activeDoctor.id) === String(settingsDoctors[0].id)) {
       setActiveDoctor(settingsDoctors[0]);
@@ -14897,7 +15105,11 @@ function applyBrandingToBudgetDoc() {
       lg.style.height = cfg.logoImageUrl ? 'auto' : '40px';
       lg.style.boxShadow = cfg.logoImageUrl ? 'none' : '0 4px 12px rgba(0,113,227,0.25)';
     }
-    if (ft[0]) ft[0].textContent = cfg.name + ' · ' + cfg.sub + ' · ' + cfg.city;
+    if (ft[0]) {
+      var bTel = (typeof getClinicPhone === 'function') ? getClinicPhone() : '';
+      var bMail = (typeof getClinicEmail === 'function') ? getClinicEmail() : '';
+      ft[0].textContent = [cfg.name, cfg.sub, cfg.city, bTel ? 'Tel: ' + bTel : '', bMail].filter(Boolean).join(' · ');
+    }
   }, 0);
 }
 
@@ -20191,39 +20403,19 @@ function printOrthoSummary() {
 var DARK_KEY = 'dental_dark_mode_v1';
 
 function initDarkMode() {
-  var isDark = appStorage.getItem(DARK_KEY) === '1';
-  if (document.body && document.body.classList.contains('user-custom-theme')) {
-    isDark = document.body.classList.contains('user-theme-dark-card');
-  }
-  document.documentElement.classList.toggle('dark', isDark);
-  var chk = document.getElementById('cfg-dark-mode');
-  if (chk) {
-    chk.checked = isDark;
-    var _lbl = document.getElementById('dark-mode-label'); if (_lbl) _lbl.textContent = isDark ? 'Activado' : 'Desactivado';
-  }
+  if (typeof restoreDeviceAppearanceOnCfg === 'function') restoreDeviceAppearanceOnCfg();
+  if (typeof applyAppearance === 'function') applyAppearance();
 }
 
 function toggleDarkMode(on) {
-  if (document.body && document.body.classList.contains('user-custom-theme')) {
-    var themeIsDark = document.body.classList.contains('user-theme-dark-card');
-    document.documentElement.classList.toggle('dark', themeIsDark);
-    appStorage.setItem(DARK_KEY, themeIsDark ? '1' : '0');
-    var themeChk = document.getElementById('cfg-dark-mode');
-    if (themeChk) themeChk.checked = themeIsDark;
-    var themeLbl = document.getElementById('dark-mode-label');
-    if (themeLbl) themeLbl.textContent = themeIsDark ? 'Activado por el estilo' : 'Desactivado por el estilo';
-    if (on !== themeIsDark) showToast('El modo claro u oscuro se define con el estilo visual elegido', 'green');
+  appStorage.setItem(DARK_KEY, on ? '1' : '0');
+  if (typeof applyAppearancePreset === 'function') {
+    applyAppearancePreset(on ? 'obsidian' : 'apple');
     return;
   }
-  if (on) {
-    document.documentElement.classList.add('dark');
-    appStorage.setItem(DARK_KEY, '1');
-  } else {
-    document.documentElement.classList.remove('dark');
-    appStorage.setItem(DARK_KEY, '0');
-  }
+  document.documentElement.classList.toggle('dark', !!on);
   var lbl = document.getElementById('dark-mode-label');
-  if (lbl) lbl.textContent = on ? 'Activado' : 'Desactivado';
+  if (lbl) lbl.textContent = on ? 'Activado (en este dispositivo)' : 'Desactivado (en este dispositivo)';
 }
 
 // ══════════════════════════════════════════════════════════
@@ -21672,7 +21864,24 @@ var GD = (function() {
     var remoteLogoId = remoteConfig.logoImageDriveId || '';
     var remoteLogoUpdatedAt = parseInt(remoteConfig.logoImageUpdatedAt || '0', 10) || 0;
 
+    var previousTel = cfg.telefono || cfg.phone || '';
+    var previousMail = cfg.correo || cfg.email || '';
+    var previousDir = cfg.direccion || cfg.address || '';
+
     cfg = Object.assign(cfg, remoteConfig);
+
+    // Unificar campos de contacto para no perder teléfono ni correo
+    cfg.telefono = cfg.telefono || cfg.phone || previousTel || appStorage.getItem('dental_clinic_phone_v1') || '';
+    cfg.phone = cfg.telefono;
+    cfg.correo = cfg.correo || cfg.email || previousMail || appStorage.getItem('dental_clinic_email_v1') || '';
+    cfg.email = cfg.correo;
+    cfg.direccion = cfg.direccion || cfg.address || previousDir || '';
+    cfg.address = cfg.direccion;
+    if (cfg.telefono) appStorage.setItem('dental_clinic_phone_v1', cfg.telefono);
+    if (cfg.correo) appStorage.setItem('dental_clinic_email_v1', cfg.correo);
+
+    // Conservar siempre el tema visual propio de este dispositivo (PC vs celular)
+    if (typeof restoreDeviceAppearanceOnCfg === 'function') restoreDeviceAppearanceOnCfg();
 
     if (previousHeroUrl && ((previousHeroId && remoteHeroId === previousHeroId)
         || (!remoteHeroId && remoteHeroUpdatedAt <= previousHeroUpdatedAt))) {
@@ -24289,11 +24498,31 @@ function _logoHTML(size) {
   return '<span data-clinic-print-logo="1" style="font-size:' + Math.round(size * 0.7) + 'px">' + (cfg.logo || '🦷') + '</span>';
 }
 
+function getClinicPhone() {
+  var cTel = (typeof cfg !== 'undefined' && cfg) ? (cfg.telefono || cfg.phone || '') : '';
+  var dTel = (typeof _activeDoctor !== 'undefined' && _activeDoctor) ? (_activeDoctor.telefono || _activeDoctor.phone || '') : '';
+  var sTel = (typeof appStorage !== 'undefined' && appStorage) ? (appStorage.getItem('dental_clinic_phone_v1') || '') : '';
+  return String(cTel || dTel || sTel || '').trim();
+}
+
+function getClinicEmail() {
+  var cMail = (typeof cfg !== 'undefined' && cfg) ? (cfg.correo || cfg.email || '') : '';
+  var dMail = (typeof _activeDoctor !== 'undefined' && _activeDoctor) ? (_activeDoctor.correo || _activeDoctor.email || '') : '';
+  var sMail = (typeof appStorage !== 'undefined' && appStorage) ? (appStorage.getItem('dental_clinic_email_v1') || '') : '';
+  var gdMail = (typeof GD !== 'undefined' && GD && typeof GD._account === 'function') ? String(GD._account() || '') : '';
+  if (gdMail && gdMail.indexOf('@') === -1) gdMail = '';
+  return String(cMail || dMail || sMail || gdMail || '').trim();
+}
+
+function getClinicAddress() {
+  var cDir = (typeof cfg !== 'undefined' && cfg) ? (cfg.direccion || cfg.address || '') : '';
+  return String(cDir || '').trim();
+}
+
 function _clinicContactParts() {
-  if (typeof cfg === 'undefined' || !cfg) return [];
-  var tel = String(cfg.telefono || cfg.phone || '').trim();
-  var mail = String(cfg.correo || cfg.email || '').trim();
-  var addr = String(cfg.direccion || cfg.address || '').trim();
+  var tel = getClinicPhone();
+  var mail = getClinicEmail();
+  var addr = getClinicAddress();
   var parts = [];
   if (tel) parts.push('Tel: ' + tel);
   if (mail) parts.push('Correo: ' + mail);
@@ -24303,8 +24532,9 @@ function _clinicContactParts() {
 
 function _ensurePrintClinicContact(doc) {
   if (!doc || !doc.body || doc.querySelector('[data-clinic-contact-strip="1"]')) return;
-  var tel = String((cfg && (cfg.telefono || cfg.phone)) || '').trim();
-  var mail = String((cfg && (cfg.correo || cfg.email)) || '').trim();
+  var tel = getClinicPhone();
+  var mail = getClinicEmail();
+  var addr = getClinicAddress();
   if (!tel && !mail) return;
   var text = doc.body.textContent || '';
   var missingTel = tel && text.indexOf(tel) === -1;
@@ -24318,7 +24548,7 @@ function _ensurePrintClinicContact(doc) {
   if (cfg && cfg.name) items.push('<strong>' + escapeHTML(cfg.name) + '</strong>');
   if (tel) items.push('📞 Tel / WhatsApp: <strong>' + escapeHTML(tel) + '</strong>');
   if (mail) items.push('✉️ Correo: <strong>' + escapeHTML(mail) + '</strong>');
-  if (cfg && (cfg.direccion || cfg.address)) items.push('📍 ' + escapeHTML(cfg.direccion || cfg.address));
+  if (addr) items.push('📍 ' + escapeHTML(addr));
   strip.innerHTML = items.join(' &nbsp;·&nbsp; ');
   doc.body.appendChild(strip);
 }
@@ -27665,6 +27895,10 @@ function forceReloadFromDrive() {
 // ── Navegación móvil y mejoras de teclado ──────────────────
 function setMobileNav(open) {
   document.body.classList.toggle('mobile-nav-open', open);
+  if (open) {
+    var sbNav = document.querySelector('#sidebar .sb-nav');
+    if (sbNav) sbNav.scrollTop = 0;
+  }
   var btn = document.getElementById('mobile-menu-btn');
   if (btn) {
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -27828,11 +28062,11 @@ window.addEventListener('resize', function() {
         </div>
         <div class="settings-row">
           <label>Dirección completa</label>
-          <input type="text" id="cfg-direccion" placeholder="Calle, No., Colonia, CP">
+          <input type="text" id="cfg-direccion" placeholder="Calle, No., Colonia, CP" oninput="var a=document.getElementById('cfg-address');if(a)a.value=this.value">
         </div>
         <div class="settings-row">
           <label>Teléfono consultorio</label>
-          <input type="text" id="cfg-telefono" placeholder="614-000-0000">
+          <input type="text" id="cfg-telefono" placeholder="614-000-0000" oninput="var p=document.getElementById('cfg-phone');if(p)p.value=this.value">
         </div>
         <div class="settings-row">
           <label>Correo electrónico</label>
@@ -27866,11 +28100,11 @@ window.addEventListener('resize', function() {
         </div>
         <div class="settings-row">
           <label>Dirección del consultorio</label>
-          <input type="text" id="cfg-address" placeholder="Ej. Av. Tecnológico 123, Col. Centro">
+          <input type="text" id="cfg-address" placeholder="Ej. Av. Tecnológico 123, Col. Centro" oninput="var d=document.getElementById('cfg-direccion');if(d)d.value=this.value">
         </div>
         <div class="settings-row">
           <label>Teléfono del consultorio</label>
-          <input type="text" id="cfg-phone" placeholder="Ej. 614 123 4567">
+          <input type="text" id="cfg-phone" placeholder="Ej. 614 123 4567" oninput="var t=document.getElementById('cfg-telefono');if(t)t.value=this.value">
         </div>
       </div>
 
@@ -29116,6 +29350,33 @@ window.addEventListener('resize', function() {
 <script>
 const radSelect = document.getElementById('rad-select');
 const radForm = document.getElementById('rad-form');
+let _radContactSaveTimer = null;
+function hydrateRadClinicContactInputs() {
+  const phEl = document.getElementById('rad-clinic-phone');
+  const emEl = document.getElementById('rad-clinic-email');
+  if (phEl && document.activeElement !== phEl) phEl.value = (typeof getClinicPhone === 'function') ? getClinicPhone() : (cfg.telefono || cfg.phone || '');
+  if (emEl && document.activeElement !== emEl) emEl.value = (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || cfg.email || '');
+}
+function syncRadClinicContact() {
+  const phEl = document.getElementById('rad-clinic-phone');
+  const emEl = document.getElementById('rad-clinic-email');
+  const tel = phEl ? phEl.value.trim() : '';
+  const mail = emEl ? emEl.value.trim() : '';
+  cfg.telefono = tel;
+  cfg.phone = tel;
+  cfg.correo = mail;
+  cfg.email = mail;
+  appStorage.setItem('dental_clinic_phone_v1', tel);
+  appStorage.setItem('dental_clinic_email_v1', mail);
+  updateRadPreview();
+  if (_radContactSaveTimer) clearTimeout(_radContactSaveTimer);
+  _radContactSaveTimer = setTimeout(() => {
+    if (typeof GD !== 'undefined' && GD.saveCfg) GD.saveCfg();
+    else {
+      try { appStorage.setItem('dental_cfg_v1', serializeConfigForLocalStorage(cfg)); } catch (e) {}
+    }
+  }, 600);
+}
 function radPatient() {
   return db.patients.find(p => String(p.id) === radSelect.value);
 }
@@ -29123,6 +29384,7 @@ function openRadiologyOrders() {
   goPage('rad-page', document.getElementById('rad-nav'));
 }
 function refreshRadiologyPage(selectedId, preserveDraft) {
+  hydrateRadClinicContactInputs();
   const previousId = radSelect.value;
   const patients = (db.patients || []).slice().sort((a,b) => String(a.name).localeCompare(String(b.name),'es'));
   radSelect.replaceChildren(new Option(patients.length ? 'Selecciona un paciente' : 'Sin pacientes registrados', ''));
@@ -29131,6 +29393,7 @@ function refreshRadiologyPage(selectedId, preserveDraft) {
   setRadiologyPatient(preserveDraft === true && previousId === radSelect.value);
 }
 function setRadiologyPatient(preserveDraft) {
+  hydrateRadClinicContactInputs();
   const patient = radPatient();
   if (!preserveDraft) radForm.reset();
   document.getElementById('rad-error').textContent = '';
@@ -29151,8 +29414,10 @@ function readRadRequest() {
 function updateRadPreview() {
   const patient = radPatient();
   const request = readRadRequest();
+  const tel = (typeof getClinicPhone === 'function') ? getClinicPhone() : '';
+  const mail = (typeof getClinicEmail === 'function') ? getClinicEmail() : '';
   document.getElementById('rad-preview-name').textContent = patient ? patient.name : '';
-  document.getElementById('rad-preview-doctor').textContent = getActiveDoctorName() || '';
+  document.getElementById('rad-preview-doctor').textContent = [getActiveDoctorName() || '', tel ? 'Tel: ' + tel : '', mail ? 'Correo: ' + mail : ''].filter(Boolean).join(' · ');
   const list = document.getElementById('rad-preview-list');
   list.replaceChildren();
   (request.studies.length ? request.studies : ['Selecciona los estudios']).forEach(study => {
@@ -29189,14 +29454,17 @@ radForm.addEventListener('submit', event => {
     error.textContent = !studies.length ? 'Selecciona un estudio o escribe otro.' : 'Escribe el motivo clínico.';
     return;
   }
+  const resolvedTel  = (typeof getClinicPhone === 'function') ? getClinicPhone() : (cfg.telefono || cfg.phone || '');
+  const resolvedMail = (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || cfg.email || '');
+  const resolvedAddr = (typeof getClinicAddress === 'function') ? getClinicAddress() : (cfg.direccion || cfg.address || '');
   const now = new Date();
   const id = crypto.randomUUID();
   const order = {...request, id, folio:'RX-' + now.getFullYear() + '-' + id.slice(0,8).toUpperCase(), dob:patient.dob || '', createdAt: now.getTime(), date: now.toLocaleDateString('es-MX'),
     patient: patient.name, record: String(patient.id), doctor: getActiveDoctorName(), license: getActiveDoctorCedula(),
     clinic: cfg.name || '', clinicSub: cfg.sub || '',
-    clinicPhone: cfg.telefono || cfg.phone || '',
-    clinicEmail: cfg.correo || cfg.email || '',
-    clinicAddress: cfg.direccion || cfg.address || ''};
+    clinicPhone: resolvedTel,
+    clinicEmail: resolvedMail,
+    clinicAddress: resolvedAddr};
   (patient.radiologyOrders ||= []).push(order);
   saveDB();
   radForm.reset();
@@ -29210,26 +29478,37 @@ function printRadiologyOrder(order) {
   const w = window.open('', '_blank');
   if (!w) return showToast('Permite las ventanas emergentes para imprimir la orden.');
   const e = escapeHTML;
-  const clinicPhone = String(order.clinicPhone || (cfg && (cfg.telefono || cfg.phone)) || '').trim();
-  const clinicEmail = String(order.clinicEmail || (cfg && (cfg.correo || cfg.email)) || '').trim();
-  const clinicAddr  = String(order.clinicAddress || (cfg && (cfg.direccion || cfg.address)) || '').trim();
+  const liveTel   = (typeof getClinicPhone === 'function') ? getClinicPhone() : '';
+  const liveMail  = (typeof getClinicEmail === 'function') ? getClinicEmail() : '';
+  const liveAddr  = (typeof getClinicAddress === 'function') ? getClinicAddress() : '';
+  const clinicPhone = String(liveTel || order.clinicPhone || '').trim();
+  const clinicEmail = String(liveMail || order.clinicEmail || '').trim();
+  const clinicAddr  = String(liveAddr || order.clinicAddress || '').trim();
   const clinicSub   = String(order.clinicSub || (cfg && cfg.sub) || '').trim();
-  const headerContact = [clinicPhone ? 'Tel: ' + clinicPhone : '', clinicEmail ? 'Correo: ' + clinicEmail : '', clinicAddr].filter(Boolean).map(e).join(' · ');
+  const headerContact = [
+    clinicPhone ? '📞 Tel / WhatsApp: ' + e(clinicPhone) : '',
+    clinicEmail ? '✉️ Correo: ' + e(clinicEmail) : '',
+    clinicAddr ? '📍 ' + e(clinicAddr) : ''
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
   const sendToBox = (clinicEmail || clinicPhone)
-    ? '<div class="send-box"><strong>📩 Enviar estudios digitales / resultados al consultorio:</strong><div>'
-      + [clinicEmail ? '✉️ Correo electrónico: <b>' + e(clinicEmail) + '</b>' : '', clinicPhone ? '📞 Teléfono / WhatsApp: <b>' + e(clinicPhone) + '</b>' : ''].filter(Boolean).join(' &nbsp;·&nbsp; ')
+    ? '<div class="send-box"><strong>📩 Favor de enviar estudios digitales / resultados al consultorio:</strong><div>'
+      + [
+          clinicEmail ? '✉️ Correo electrónico: <b>' + e(clinicEmail) + '</b>' : '',
+          clinicPhone ? '📞 Teléfono / WhatsApp: <b>' + e(clinicPhone) + '</b>' : ''
+        ].filter(Boolean).join(' &nbsp;&nbsp;|&nbsp;&nbsp; ')
       + '</div></div>'
     : '';
+  const defaultDelivery = [clinicEmail ? 'Correo: ' + clinicEmail : '', clinicPhone ? 'WhatsApp/Tel: ' + clinicPhone : ''].filter(Boolean).join(' · ');
   const field = (label,value) => value ? '<div class="field"><dt>'+e(label)+'</dt><dd>'+e(value)+'</dd></div>' : '';
   const group = (title,content) => content ? '<section><h2>'+e(title)+'</h2><dl>'+content+'</dl></section>' : '';
   const html = '<!doctype html><html lang="es"><meta charset="utf-8"><title>'+e(order.folio || 'Orden de radiografías')+'</title><style>'
-    + '@page{margin:15mm}*{box-sizing:border-box}body{max-width:780px;margin:0 auto;font:13.5px/1.5 Arial,sans-serif;color:#172c42}header{display:flex;gap:14px;align-items:center;border-bottom:3px solid #24597a;padding:0 0 14px}header h1{font-size:23px;margin:2px 0 0}.clinic-line{font-weight:700;font-size:13px;color:#1e3a5f}.clinic-contact{font-size:11.5px;color:#334155;margin-top:3px}.meta{margin-left:auto;text-align:right;font-size:12.5px}section{margin:18px 0}h2,dt{color:#24597a}h2{font-size:13.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #bacbd6;padding-bottom:4px;break-after:avoid}dl{display:grid;grid-template-columns:1fr 1fr;gap:11px 22px;margin:0}dt{font-size:11px;font-weight:bold}dd{margin:1px 0;white-space:pre-wrap}.field,li{break-inside:avoid}dd,li{overflow-wrap:anywhere}ul{padding-left:19px;margin:8px 0}.send-box{margin:16px 0;padding:11px 14px;border:1.5px solid #24597a;border-radius:8px;background:#f0f7ff;font-size:12.5px;line-height:1.55;break-inside:avoid}.send-box strong{display:block;color:#172c42;margin-bottom:2px}footer{margin:38px 0 0;break-inside:avoid;display:flex;justify-content:space-between;align-items:flex-end;gap:20px}footer .sig strong{display:block;border-top:1px solid #425367;width:250px;padding-top:6px}</style><body>'
+    + '@page{margin:15mm}*{box-sizing:border-box}body{max-width:780px;margin:0 auto;font:13.5px/1.5 Arial,sans-serif;color:#172c42}header{display:flex;gap:14px;align-items:center;border-bottom:3px solid #24597a;padding:0 0 14px}header h1{font-size:23px;margin:2px 0 0}.clinic-line{font-weight:700;font-size:13px;color:#1e3a5f}.clinic-contact{font-size:11.5px;color:#1e293b;margin-top:4px;font-weight:600}.meta{margin-left:auto;text-align:right;font-size:12.5px}section{margin:18px 0}h2,dt{color:#24597a}h2{font-size:13.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #bacbd6;padding-bottom:4px;break-after:avoid}dl{display:grid;grid-template-columns:1fr 1fr;gap:11px 22px;margin:0}dt{font-size:11px;font-weight:bold}dd{margin:1px 0;white-space:pre-wrap}.field,li{break-inside:avoid}dd,li{overflow-wrap:anywhere}ul{padding-left:19px;margin:8px 0}.send-box{margin:16px 0;padding:11px 14px;border:1.5px solid #24597a;border-radius:8px;background:#f0f7ff;font-size:12.5px;line-height:1.55;break-inside:avoid}.send-box strong{display:block;color:#172c42;margin-bottom:3px}footer{margin:38px 0 0;break-inside:avoid;display:flex;justify-content:space-between;align-items:flex-end;gap:20px}footer .sig strong{display:block;border-top:1px solid #425367;width:250px;padding-top:6px}</style><body>'
     + '<header><div data-print-logo-slot></div><div><div class="clinic-line">'+e(order.clinic)+(clinicSub?' · '+e(clinicSub):'')+'</div><h1>Orden de radiografías</h1>'+(headerContact?'<div class="clinic-contact">'+headerContact+'</div>':'')+'</div><div class="meta"><strong>'+e(order.date)+'</strong>'+(order.folio?'<br>'+e(order.folio):'')+'</div></header>'
     + sendToBox
     + group('Paciente',field('Nombre',order.patient)+field('Expediente',order.record)+field('Fecha de nacimiento',order.dob))
     + '<section><h2>Estudios solicitados</h2><ul>'+order.studies.map(study=>'<li>'+e(study)+'</li>').join('')+'</ul></section>'
     + group('Información clínica',field('Motivo clínico',order.reason)+field('Diagnóstico presuntivo',order.diagnosis)+field('Dientes o región',order.region)+field('Arcada',order.arch)+field('Lateralidad',order.side)+field('Proyección o protocolo',order.protocol)+field('Estudio previo',order.prior))
-    + group('Centro radiológico y entrega',field('Centro destinatario',order.center)+field('Prioridad',order.priority)+field('Formato',order.format)+field('Entregar a',order.delivery || [clinicEmail, clinicPhone].filter(Boolean).join(' · '))+field('Indicaciones para el centro',order.notes))
+    + group('Centro radiológico y entrega',field('Centro destinatario',order.center)+field('Prioridad',order.priority)+field('Formato',order.format)+field('Entregar / enviar a',order.delivery || defaultDelivery)+field('Indicaciones para el centro',order.notes))
     + '<footer data-clinic-contact-strip="1"><div class="sig"><strong>'+e(order.doctor || 'Profesional solicitante')+'</strong>Firma del solicitante'+(order.license?' · Cédula '+e(order.license):'')+'</div>'+(headerContact?'<div style="text-align:right;font-size:11px;color:#334155">'+headerContact+'</div>':'')+'</footer></body></html>';
   w.document.write(html);
   w.document.close();
