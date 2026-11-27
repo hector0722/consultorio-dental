@@ -7842,6 +7842,94 @@ html.dark .lab-st-ready { color: #34d399; }
 }
 .inv-stepper button:hover { background: var(--blue); color: #fff; }
 
+/* Barra de filtros y acciones rápidas Studio (Bóveda Legal, Laboratorio e Inventario) */
+.studio-chip-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 5px;
+  border-radius: 13px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.rx-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 680;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .14s ease;
+}
+.rx-cat-chip:hover {
+  background: color-mix(in srgb, var(--card) 75%, transparent);
+  color: var(--ink);
+}
+.rx-cat-chip.active {
+  background: var(--card);
+  color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 28%, var(--border-med));
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .07);
+  font-weight: 780;
+}
+html.dark .rx-cat-chip.active {
+  background: color-mix(in srgb, var(--blue) 18%, var(--card));
+  color: #93c5fd;
+  border-color: color-mix(in srgb, var(--blue) 42%, transparent);
+}
+
+.vault-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 10px 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.vault-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border-med);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.vault-action-pill:hover {
+  transform: translateY(-1px);
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--border-med));
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
+}
+.vault-action-pill.is-primary {
+  background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 80%, #4f46e5));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--blue) 45%, transparent);
+}
+.vault-action-pill.is-primary:hover {
+  color: #fff;
+  filter: brightness(1.05);
+}
+
 /* ══ IMPRESIÓN LIMPIA ══ */
 @media print {
   *, *::before, *::after {
@@ -9122,11 +9210,11 @@ html.dark .lab-st-ready { color: #34d399; }
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="lab-filter-btns">
-            <button type="button" class="btn btn-primary btn-xs" onclick="setLabFilter('active',this)">Pendientes en curso</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('ready',this)">✅ Recibidos en clínica</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('delivered',this)">Entregados</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('all',this)">Todos</button>
+          <div class="studio-chip-bar" id="lab-filter-btns">
+            <button type="button" class="rx-cat-chip active" onclick="setLabFilter('active',this)">🔨 Pendientes en curso</button>
+            <button type="button" class="rx-cat-chip" onclick="setLabFilter('ready',this)">📦 Recibidos en clínica</button>
+            <button type="button" class="rx-cat-chip" onclick="setLabFilter('delivered',this)">✅ Entregados</button>
+            <button type="button" class="rx-cat-chip" onclick="setLabFilter('all',this)">Todos</button>
           </div>
           <input type="search" id="lab-search" placeholder="Buscar paciente, trabajo o laboratorio…" oninput="renderLabPage()" style="padding:7px 12px;border-radius:9px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.8rem;min-width:230px">
         </div>
@@ -9183,10 +9271,10 @@ html.dark .lab-st-ready { color: #34d399; }
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="inv-filter-btns">
-            <button type="button" class="btn btn-primary btn-xs" onclick="setInvFilter('all',this)">Todos</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="setInvFilter('low',this)">⚠️ Stock bajo</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="setInvFilter('exp',this)">⏳ Por caducar / caducados</button>
+          <div class="studio-chip-bar" id="inv-filter-btns">
+            <button type="button" class="rx-cat-chip active" onclick="setInvFilter('all',this)">Todos</button>
+            <button type="button" class="rx-cat-chip" onclick="setInvFilter('low',this)">⚠️ Stock bajo</button>
+            <button type="button" class="rx-cat-chip" onclick="setInvFilter('exp',this)">⏳ Por caducar / caducados</button>
           </div>
           <input type="search" id="inv-search" placeholder="Buscar insumo o categoría…" oninput="renderInventoryPage()" style="padding:7px 12px;border-radius:9px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.8rem;min-width:220px">
         </div>
@@ -9719,23 +9807,23 @@ html.dark .lab-st-ready { color: #34d399; }
 
       <!-- RESPALDO MÉDICO-LEGAL Y DOCUMENTOS DEL EXPEDIENTE -->
       <div class="card" id="patient-legal-vault-card" style="margin-top:14px;border:1px solid color-mix(in srgb,var(--blue) 24%,var(--border-med))">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span>🛡️ Respaldo médico-legal, firmas y recetas del expediente</span>
-            <span id="legal-vault-count" style="font-size:.68rem;font-weight:800;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--blue) 12%,var(--bg));color:var(--blue)">0 registros</span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button type="button" class="btn btn-primary btn-xs" onclick="openConsentForCurrentPatient()">✍️ Firmar consentimiento</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="openFreeRxForPatient(curId)">💊 Nueva receta</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="openIndicationsForCurrentPatient()">📄 Indicaciones</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="openJustificanteForPatient(curId)">🏥 Justificante</button>
-            <button type="button" class="btn btn-ghost btn-xs" onclick="openSignatureForHC()">✍️ Firmar H. Clínica</button>
+            <span id="legal-vault-count" style="font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--blue) 12%,var(--bg));color:var(--blue)">0 documentos</span>
           </div>
         </div>
-        <div style="font-size:.73rem;color:var(--ink-3);margin-bottom:10px;line-height:1.45">
-          Aquí se conserva automáticamente una copia inmutable de cada <strong>consentimiento firmado, receta médica, indicación postoperatoria, justificante, orden de radiografía y firma de historia clínica</strong> para protección legal tuya y del paciente.
+        <div style="font-size:.74rem;color:var(--ink-3);line-height:1.45">
+          Copia inmutable de cada <strong>consentimiento firmado, receta médica, indicación postoperatoria, justificante, orden de radiografía y firma de historia clínica</strong> para protección legal tuya y del paciente.
         </div>
-        <div id="legal-vault-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="vault-actions-row">
+          <button type="button" class="vault-action-pill is-primary" onclick="openConsentForCurrentPatient()">✍️ Firmar consentimiento</button>
+          <button type="button" class="vault-action-pill" onclick="openFreeRxForPatient(curId)">💊 Nueva receta</button>
+          <button type="button" class="vault-action-pill" onclick="openIndicationsForCurrentPatient()">📄 Indicaciones</button>
+          <button type="button" class="vault-action-pill" onclick="openJustificanteForPatient(curId)">🏥 Justificante</button>
+          <button type="button" class="vault-action-pill" onclick="openSignatureForHC()">🗂️ Firmar H. Clínica</button>
+        </div>
+        <div id="legal-vault-filters" class="studio-chip-bar" style="margin-bottom:12px">
           <button type="button" class="rx-cat-chip active" onclick="setLegalVaultFilter('all',this)">Todos</button>
           <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('signed',this)">✍️ Firmados</button>
           <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('ci',this)">📋 Consentimientos</button>
@@ -33071,7 +33159,7 @@ function renderLabPage() {
 
   var q = ((document.getElementById('lab-search') || {}).value || '').trim().toLowerCase();
   var filtered = all.filter(function(o) {
-    if (_labActiveFilter === 'pending' && o.status === 'delivered') return false;
+    if ((_labActiveFilter === 'pending' || _labActiveFilter === 'active') && o.status === 'delivered') return false;
     if (_labActiveFilter === 'ready' && o.status !== 'ready') return false;
     if (_labActiveFilter === 'delivered' && o.status !== 'delivered') return false;
     if (q) {
