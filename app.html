@@ -7363,6 +7363,249 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
   .stats-row { grid-template-columns: 1fr !important; }
 }
 
+/* ══ AGENDA MULTI-UNIDAD / MULTI-DOCTOR + RECETARIO LIBRE STUDIO ══ */
+.cal-multi-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--card));
+}
+.cal-multi-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.cal-multi-filter select {
+  height: 31px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border-med);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.cal-multi-hint {
+  margin-left: auto;
+  font-size: .69rem;
+  color: var(--ink-3);
+  font-weight: 560;
+}
+@media (max-width: 760px) {
+  .cal-multi-hint { display: none; }
+}
+.appt-unit-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  background: rgba(255, 255, 255, .22);
+  color: inherit;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.appt-day-card .appt-unit-pill,
+.afc-busy-chip .appt-unit-pill {
+  background: color-mix(in srgb, var(--blue) 14%, var(--bg));
+  color: var(--blue);
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, transparent);
+}
+.afc-availability.is-parallel {
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--border));
+  background: color-mix(in srgb, var(--blue) 9%, var(--card));
+  color: var(--blue);
+}
+.afc-res-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.afc-res-grid.single-col {
+  grid-template-columns: 1fr;
+}
+
+/* Recetario Médico Directo / Libre */
+.rx-free-studio {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border-med));
+  background:
+    radial-gradient(420px circle at 0% 0%, color-mix(in srgb, var(--blue) 9%, transparent), transparent 70%),
+    var(--card);
+  box-shadow: 0 12px 32px -18px rgba(15, 23, 42, .16);
+  overflow: hidden;
+}
+.rx-free-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.rx-free-head-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.rx-free-badge-ico {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 70%, #4f46e5));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--blue) 50%, transparent);
+}
+.rx-free-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, .95fr);
+  gap: 18px;
+  padding: 18px 20px 20px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .rx-free-body { grid-template-columns: 1fr; }
+}
+.rx-free-patient-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 82px 88px 132px;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+@media (max-width: 680px) {
+  .rx-free-patient-grid { grid-template-columns: 1fr 1fr; }
+}
+.rx-free-fg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rx-free-fg label {
+  font-size: .67rem;
+  font-weight: 760;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+}
+.rx-free-fg input,
+.rx-free-fg select,
+.rx-free-fg textarea {
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border-med);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: .83rem;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.rx-free-fg input:focus,
+.rx-free-fg select:focus,
+.rx-free-fg textarea:focus {
+  outline: none;
+  background: var(--card);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 15%, transparent);
+}
+.rx-free-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 6px 0 10px;
+}
+.rx-quick-chip {
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border-med);
+  background: var(--bg);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease, transform .15s ease;
+}
+.rx-quick-chip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--card));
+  transform: translateY(-1px);
+}
+.rx-pad-sheet {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #cbd5e1;
+  border-top: 4px solid #1e3a5f;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 10px 26px -14px rgba(15, 23, 42, .25);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: .76rem;
+  line-height: 1.5;
+}
+.rx-pad-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #1e3a5f;
+  margin-bottom: 10px;
+}
+.rx-pad-sheet-body {
+  min-height: 135px;
+  white-space: pre-wrap;
+  color: #0f172a;
+  font-size: .78rem;
+  line-height: 1.6;
+  padding: 6px 0;
+}
+.rx-pad-history {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.rx-pad-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 165px;
+  overflow-y: auto;
+  margin-top: 7px;
+}
+.rx-pad-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: .74rem;
+}
+
 /* ══ IMPRESIÓN LIMPIA ══ */
 @media print {
   *, *::before, *::after {
@@ -7482,6 +7725,14 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
         <strong style="display:block;color:var(--ink);margin-bottom:3px">⚡ Autoguardado en Ajustes y Marca Impecable</strong>
         <span style="color:var(--ink-2)">Tu teléfono, correo, dirección y cédula se guardan automáticamente al escribir en Ajustes, y tu logotipo luce limpio sin empalmarse en pantalla ni en impresiones.</span>
+      </div>
+      <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">🪑 Agenda Simultánea por Unidades y Doctores</strong>
+        <span style="color:var(--ink-2)">Agenda pacientes en el <b>mismo horario</b> asignando <b>Unidad 1, 2, 3 o 4</b> y distinto doctor, con columnas paralelas y filtros por sillón.</span>
+      </div>
+      <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">✍️ Recetario Médico Libre / Directo (Carta y Media Carta)</strong>
+        <span style="color:var(--ink-2)">En <b>Recetas</b> ahora puedes redactar libremente como en tu recetario físico, previsualizar en vivo, imprimir/descargar en PDF o enviar por WhatsApp.</span>
       </div>
     </div>
 
@@ -7846,6 +8097,23 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
                 <button class="cvt-btn" id="cvt-day" onclick="setCalView('day')">Día</button>
               </div>
             </div>
+            <div class="cal-multi-bar" aria-label="Filtros por unidad dental y doctor">
+              <label class="cal-multi-filter">🦷 Sillón / Unidad:
+                <select id="cal-filter-unit" onchange="setCalUnitFilter(this.value)">
+                  <option value="">Todas las unidades</option>
+                  <option value="Unidad 1">Unidad 1</option>
+                  <option value="Unidad 2">Unidad 2</option>
+                  <option value="Unidad 3">Unidad 3</option>
+                  <option value="Unidad 4">Unidad 4</option>
+                </select>
+              </label>
+              <label class="cal-multi-filter" id="cal-filter-doc-wrap" style="display:none">👨‍⚕️ Doctor:
+                <select id="cal-filter-doctor-sel" onchange="setCalDoctorSelectFilter(this.value)">
+                  <option value="">Todos los doctores</option>
+                </select>
+              </label>
+              <span class="cal-multi-hint">✓ Permite agendar pacientes a la misma hora en distinta unidad o distinto doctor</span>
+            </div>
             <!-- Month view -->
             <div id="cal-month-view">
               <div class="month-grid" id="month-dh-row"></div>
@@ -7911,6 +8179,23 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
               </div>
             </div>
           </div>
+          <div class="afc-res-grid single-col" id="appt-resource-grid">
+            <div class="afc-field" id="appt-doctor-field" style="display:none;margin-bottom:0">
+              <label>👨‍⚕️ Doctor que atiende</label>
+              <select id="appt-doctor-select" onchange="updateBlockedTimes()" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--bg);color:var(--ink)">
+              </select>
+            </div>
+            <div class="afc-field" style="margin-bottom:0">
+              <label>🦷 Unidad / Sillón</label>
+              <select id="appt-unit-select" onchange="updateBlockedTimes()" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--bg);color:var(--ink)">
+                <option value="Unidad 1">Unidad 1</option>
+                <option value="Unidad 2">Unidad 2</option>
+                <option value="Unidad 3">Unidad 3</option>
+                <option value="Unidad 4">Unidad 4</option>
+                <option value="">Sin especificar</option>
+              </select>
+            </div>
+          </div>
           <div class="afc-schedule-grid">
             <div class="afc-field afc-date-field"><label>Fecha</label><input type="date" id="appt-date"></div>
             <div class="afc-field"><label>Hora inicio</label><input type="time" id="appt-time" value="09:00"></div>
@@ -7923,11 +8208,6 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
             <summary>Agregar notas opcionales</summary>
             <div class="afc-field"><textarea id="appt-notes" rows="2" placeholder="Indicaciones o detalles de la cita…"></textarea></div>
           </details>
-          <div class="afc-field" id="appt-doctor-field" style="display:none">
-            <label>Doctor</label>
-            <select id="appt-doctor-select" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
-            </select>
-          </div>
           <button class="btn btn-primary afc-submit-btn" onclick="addAppt()">Agendar cita</button>
           </div>
           <div id="appt-day-panel" style="margin-top:14px;display:none">
@@ -8215,6 +8495,128 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
         <span id="rx-patient-selected" style="font-size:.8rem;font-weight:600;color:var(--blue)"></span>
         <button onclick="rxPatientClear()" style="background:none;border:none;color:var(--ink-4);cursor:pointer;font-size:.82rem;padding:4px 8px;border-radius:var(--r-sm)" title="Quitar selección">✕</button>
       </div>
+
+      <!-- ══ RECETARIO MÉDICO LIBRE / DIRECTO (COMO RECETARIO FÍSICO) ══ -->
+      <section class="rx-free-studio" id="rx-free-studio" aria-labelledby="rx-free-heading">
+        <div class="rx-free-head">
+          <div class="rx-free-head-title">
+            <div class="rx-free-badge-ico" aria-hidden="true">☤</div>
+            <div>
+              <h3 id="rx-free-heading" style="margin:0;font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:-.02em">✍️ Redactar receta médica libre (Recetario directo)</h3>
+              <div style="font-size:.75rem;color:var(--ink-3);margin-top:1px">Escribe libremente como en un recetario físico, previsualiza al instante e imprime o guarda en PDF (Carta o Media Carta).</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:.73rem;font-weight:700;color:var(--ink-2)">Formato:
+              <select id="rx-free-size" onchange="updateFreeRxPreview()" style="height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.75rem;font-weight:650">
+                <option value="half">🧾 Media Carta (Recetario clásico 14×21.5 cm)</option>
+                <option value="letter">📄 Tamaño Carta completa</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm" id="rx-free-toggle-btn" onclick="toggleFreeRxStudio()">Contraer</button>
+          </div>
+        </div>
+
+        <div class="rx-free-body" id="rx-free-body">
+          <!-- Columna izquierda: escritura directa -->
+          <div>
+            <div class="rx-free-patient-grid">
+              <div class="rx-free-fg">
+                <label>Nombre del paciente *</label>
+                <input type="text" id="rx-free-patient-name" placeholder="Selecciona arriba o escribe el nombre…" oninput="updateFreeRxPreview()">
+              </div>
+              <div class="rx-free-fg">
+                <label>Edad</label>
+                <input type="text" id="rx-free-age" placeholder="Ej. 28" oninput="updateFreeRxPreview()">
+              </div>
+              <div class="rx-free-fg">
+                <label>Peso (kg)</label>
+                <input type="text" id="rx-free-weight" placeholder="Ej. 68" oninput="updateFreeRxPreview()">
+              </div>
+              <div class="rx-free-fg">
+                <label>Fecha</label>
+                <input type="date" id="rx-free-date" onchange="updateFreeRxPreview()">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div class="rx-free-fg">
+                <label>Diagnóstico / Motivo (opcional)</label>
+                <input type="text" id="rx-free-diag" placeholder="Ej. Pulpitis irreversible OD 36 / Post-extracción" oninput="updateFreeRxPreview()">
+              </div>
+              <div class="rx-free-fg">
+                <label>Alergias reportadas (opcional)</label>
+                <input type="text" id="rx-free-allergies" placeholder="Ej. Negadas / Alergia a penicilina" oninput="updateFreeRxPreview()">
+              </div>
+            </div>
+
+            <div class="rx-free-fg">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                <label style="margin:0">☤ Rp. — Escribe aquí los medicamentos, dosis y horarios *</label>
+                <span style="font-size:.67rem;color:var(--ink-3)">Clic rápido para insertar línea base (opcional):</span>
+              </div>
+              <div class="rx-free-chips">
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Amoxicilina cápsulas 500 mg — Tomar 1 cápsula vía oral cada 8 horas por 7 días.')">+ Amoxicilina 500mg</button>
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Ibuprofeno tabletas 400 mg — Tomar 1 tableta vía oral cada 8 horas por 3 a 5 días en caso de dolor o inflamación.')">+ Ibuprofeno 400mg</button>
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Paracetamol tabletas 500 mg — Tomar 1 a 2 tabletas vía oral cada 8 horas por 3 días.')">+ Paracetamol 500mg</button>
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Ketorolaco tabletas 10 mg — Tomar 1 tableta vía oral cada 8 horas por máximo 3 días.')">+ Ketorolaco 10mg</button>
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Clindamicina cápsulas 300 mg — Tomar 1 cápsula vía oral cada 8 horas por 7 días.')">+ Clindamicina 300mg</button>
+                <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Clorhexidina colutorio 0.12% — Realizar enjuague de 15 ml durante 30 segundos cada 12 horas por 7 días.')">+ Clorhexidina 0.12%</button>
+              </div>
+              <textarea id="rx-free-body-text" rows="6" placeholder="1. Ibuprofeno 400 mg tabletas&#10;   Tomar 1 tableta vía oral cada 8 horas durante 4 días después de los alimentos.&#10;&#10;2. Amoxicilina 500 mg cápsulas&#10;   Tomar 1 cápsula vía oral cada 8 horas durante 7 días." oninput="updateFreeRxPreview()" style="line-height:1.6;resize:vertical"></textarea>
+            </div>
+
+            <div class="rx-free-fg" style="margin-top:10px">
+              <label>Indicaciones generales / Cuidados / Próxima cita (opcional)</label>
+              <textarea id="rx-free-notes" rows="2" placeholder="Ej. No suspender antibiótico antes de tiempo, evitar irritantes, acudir en caso de fiebre o inflamación severa." oninput="updateFreeRxPreview()"></textarea>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px">
+              <button type="button" class="btn btn-primary" onclick="emitFreePrescription(true)" style="padding:10px 18px;border-radius:10px;font-weight:750">🖨️ Imprimir / Descargar PDF</button>
+              <button type="button" class="btn btn-success" onclick="sendFreePrescriptionWhatsApp()" style="padding:10px 15px;border-radius:10px;font-weight:700">💬 Enviar por WhatsApp</button>
+              <button type="button" class="btn btn-ghost" onclick="emitFreePrescription(false)" style="padding:10px 14px;border-radius:10px">💾 Solo guardar en expediente</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="clearFreePrescription()" style="margin-left:auto">Limpiar</button>
+            </div>
+          </div>
+
+          <!-- Columna derecha: vista previa tipo recetario físico + historial -->
+          <div>
+            <div class="rx-pad-sheet" id="rx-free-preview-card">
+              <div class="rx-pad-sheet-head">
+                <div>
+                  <div style="font-weight:800;font-size:.86rem;color:#0f172a" id="rx-free-prev-clinic">Consultorio Dental</div>
+                  <div style="font-size:.69rem;color:#475569" id="rx-free-prev-doc">Doctor · Cédula</div>
+                  <div style="font-size:.66rem;color:#64748b" id="rx-free-prev-contact"></div>
+                </div>
+                <div style="text-align:right;font-size:.68rem;color:#334155">
+                  <strong style="display:block;color:#1e3a5f;letter-spacing:.05em">RECETA MÉDICA</strong>
+                  <span id="rx-free-prev-date">—</span>
+                </div>
+              </div>
+              <div style="padding:6px 9px;border-radius:7px;background:#f8fafc;border:1px solid #e2e8f0;margin-bottom:8px;font-size:.72rem;color:#1e293b" id="rx-free-prev-pat">
+                <strong>Paciente:</strong> —
+              </div>
+              <div style="font-weight:800;color:#1e3a5f;font-size:.76rem;letter-spacing:.03em">☤ Rp.</div>
+              <div class="rx-pad-sheet-body" id="rx-free-prev-rp">Escribe la prescripción a la izquierda para ver aquí tu receta lista para imprimir o guardar en PDF…</div>
+              <div id="rx-free-prev-ind" style="display:none;margin-top:8px;padding:7px 9px;border-radius:7px;background:#f8fafc;border-left:3px solid #1e3a5f;font-size:.71rem;color:#334155;white-space:pre-wrap"></div>
+              <div style="margin-top:18px;padding-top:8px;border-top:1px solid #cbd5e1;display:flex;justify-content:space-between;align-items:flex-end;font-size:.67rem;color:#475569">
+                <span id="rx-free-prev-sig">Firma del médico</span>
+                <span id="rx-free-prev-fmt" style="color:#64748b">Media Carta</span>
+              </div>
+            </div>
+
+            <div class="rx-pad-history">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <strong style="font-size:.75rem;color:var(--ink)">🗂️ Recetas libres guardadas del paciente</strong>
+                <span id="rx-free-history-count" style="font-size:.68rem;color:var(--ink-3)">—</span>
+              </div>
+              <div class="rx-pad-history-list" id="rx-free-history-list">
+                <div style="font-size:.73rem;color:var(--ink-3)">Selecciona un paciente arriba para ver o reimprimir sus recetas anteriores.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div class="rx-tools-grid">
         <section class="rx-tool-panel">
@@ -9803,6 +10205,13 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
         if (order && order.id) orders.set(order.id, order);
       });
       selected.radiologyOrders = Array.from(orders.values()).sort(function(a,b){return a.createdAt - b.createdAt;});
+    }
+    if (Array.isArray(remotePatient.customPrescriptions) || Array.isArray(localPatient.customPrescriptions)) {
+      var rxMap = new Map();
+      (remotePatient.customPrescriptions || []).concat(localPatient.customPrescriptions || []).forEach(function(rxItem) {
+        if (rxItem && rxItem.id) rxMap.set(rxItem.id, rxItem);
+      });
+      selected.customPrescriptions = Array.from(rxMap.values()).sort(function(a,b){return (a.createdAt||0) - (b.createdAt||0);});
     }
     if (remotePatient.toothBudgetDraft || localPatient.toothBudgetDraft)
       selected.toothBudgetDraft = mergeToothDrafts(remotePatient.toothBudgetDraft,localPatient.toothBudgetDraft,useLocal);
@@ -12121,6 +12530,44 @@ function renderCal() {
   renderUpcoming();
 }
 
+function _shortUnitBadge(unit) {
+  var u = String(unit || '').trim();
+  if (!u) return '';
+  var m = u.match(/unidad\s*(\d+)/i);
+  return m ? ('U' + m[1]) : u;
+}
+
+function _appointmentsHaveRealConflict(a, b) {
+  if (!a || !b) return false;
+  if (a.id !== undefined && b.id !== undefined && String(a.id) === String(b.id)) return false;
+  if (a.date !== b.date || a.status === 'cancelled' || b.status === 'cancelled') return false;
+  var startA = _calendarTimeMinutes(a.time);
+  var endA   = a.timeEnd ? _calendarTimeMinutes(a.timeEnd) : startA + 60;
+  var startB = _calendarTimeMinutes(b.time);
+  var endB   = b.timeEnd ? _calendarTimeMinutes(b.timeEnd) : startB + 60;
+  if (!(startA < endB && endA > startB)) return false;
+
+  var unitA = String(a.unit || '').trim();
+  var unitB = String(b.unit || '').trim();
+  var docA  = a.doctorId ? String(a.doctorId) : String(a.doctorName || '').trim().toLowerCase();
+  var docB  = b.doctorId ? String(b.doctorId) : String(b.doctorName || '').trim().toLowerCase();
+
+  // Si están en unidades distintas (ej. Unidad 1 y Unidad 2), pueden atenderse simultáneamente
+  if (unitA && unitB && unitA !== unitB) {
+    // Incluso si es distinto doctor es 100% paralelo; si es el mismo doctor en dos sillones también se permite
+    return false;
+  }
+  // Si la misma unidad física está ocupada a esa hora (ej. ambos en Unidad 1), sí chocan de sillón
+  if (unitA && unitB && unitA === unitB) {
+    // Si son distinto doctor pero eligieron el mismo sillón, avisar choque de unidad;
+    // EXCEPTO si ninguno especificó unidad o si tienen doctores distintos sin unidad asignada
+    return true;
+  }
+  // Si al menos uno no especificó unidad: permitir si son doctores distintos
+  if (docA && docB && docA !== docB) return false;
+  return true;
+}
+
 // ── MONTH VIEW ──
 function renderMonthView() {
   const dhRow = document.getElementById('month-dh-row');
@@ -12156,12 +12603,12 @@ function renderMonthView() {
       const p   = agendaIdx.patientsById[String(a.patientId)];
       const cls = a.status==='done'?'mc-done':a.status==='cancelled'?'mc-cancelled':'';
       var apptColor = appointmentDisplayColor(a);
-    // La combinación doctor + estado decide el color y se comparte con
-    // Google Calendar. En Mes, las pendientes conservan un fondo suave.
-    var mcStyle = `--appt-accent:${apptColor};--appt-status-color:${apptColor}`;
-    var docInitial = a.doctorName ? ' · ' + a.doctorName.split(' ').find(function(w){ return w.length > 2; } || '') : '';
-    var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
-    return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="calendarEventClick(event,'${String(a.id)}')" title="${p?p.name:a.proc||'Cita'} ${fmtTime(a.time)} ${a.doctorName||''}"><span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${shortName}</span></div>`;
+      var mcStyle = `--appt-accent:${apptColor};--appt-status-color:${apptColor}`;
+      var uTag = _shortUnitBadge(a.unit);
+      var uPill = uTag ? `<span class="appt-unit-pill">${escapeHTML(uTag)}</span>` : '';
+      var shortName = p ? p.name.split(' ')[0] : (a.calendarName||a.proc||'Cita');
+      var tipExtra = [a.unit, a.doctorName].filter(Boolean).join(' · ');
+      return `<div class="mc-appt ${cls}" style="${mcStyle}" onclick="calendarEventClick(event,'${String(a.id)}')" title="${escapeHTML((p?p.name:a.proc||'Cita') + ' ' + fmtTime(a.time) + (tipExtra?' · '+tipExtra:''))}">${uPill}<span class="mc-appt-time">${fmtTime(a.time)}</span><span class="mc-appt-name">${escapeHTML(shortName)}</span></div>`;
     }).join('');
     const more = dayAp.length > maxShow
       ? `<div class="mc-more" onclick="event.stopPropagation();showApptDayPanel('${ds}')">+${dayAp.length-maxShow} más</div>` : '';
@@ -12241,7 +12688,10 @@ function renderDayView() {
         + (duration < 45 ? ' dv-compact' : '');
       var apptColor = appointmentDisplayColor(a);
       var nameStr= p ? p.name : (a.calendarName || 'Paciente');
-      var procStr= a.proc ? '<div class="dv-appt-proc">' + a.proc + '</div>' : '';
+      var uTag   = _shortUnitBadge(a.unit);
+      var uPill  = uTag ? '<span class="appt-unit-pill">' + escapeHTML(uTag) + '</span>' : '';
+      var docTag = a.doctorName ? ' · ' + escapeHTML(a.doctorName.split(' ').slice(0,2).join(' ')) : '';
+      var procStr= (a.proc || docTag) ? '<div class="dv-appt-proc">' + escapeHTML(a.proc || '') + docTag + '</div>' : '';
       var lanePct = 100 / layout.laneCount;
       var laneLeft = layout.lane * lanePct;
       var laneStyle = ';right:auto;left:calc(' + laneLeft + '% + 6px);width:calc(' + lanePct + '% - 12px)';
@@ -12249,8 +12699,8 @@ function renderDayView() {
       var sid = String(a.id);
       return '<div class="dv-appt' + cls + '" style="--appt-status-color:' + apptColor + ';top:' + topPct + '%;height:calc(' + heightPct + '% - 4px)' + laneStyle + '" '
         + 'onclick="calendarEventClick(event,\'' + sid + '\')" data-appt-id="' + sid + '" data-ds="' + ds + '">'
-        + '<div class="dv-appt-time">' + timeRange + '</div>'
-        + '<div class="dv-appt-name">' + nameStr + '</div>'
+        + '<div class="dv-appt-time">' + uPill + timeRange + '</div>'
+        + '<div class="dv-appt-name">' + escapeHTML(nameStr) + '</div>'
         + procStr
         + '<span class="cal-resize-handle" title="Arrastra para cambiar la duración" aria-hidden="true"></span>'
         + '</div>';
@@ -12318,7 +12768,14 @@ function _layoutWeekAppointments(appts) {
     end = Math.min(1440, end);
     return { appt:appt, start:start, end:end, order:order, lane:0, laneCount:1 };
   }).sort(function(a, b) {
-    return a.start - b.start || b.end - a.end || a.order - b.order;
+    if (a.start !== b.start) return a.start - b.start;
+    var ua = String(a.appt.unit || 'zzzz');
+    var ub = String(b.appt.unit || 'zzzz');
+    if (ua !== ub) return ua.localeCompare(ub, 'es');
+    var da = String(a.appt.doctorName || '');
+    var dbName = String(b.appt.doctorName || '');
+    if (da !== dbName) return da.localeCompare(dbName, 'es');
+    return b.end - a.end || a.order - b.order;
   });
 
   var clusters = [];
@@ -12401,12 +12858,14 @@ function renderWeekView() {
         var laneStyle = 'right:auto;left:calc(' + laneLeft + '% + 2px);width:calc(' + lanePct + '% - 4px);';
         var patientName = p ? p.name.split(' ')[0] : (a.calendarName || a.proc || 'Cita');
         var doctorParts = String(a.doctorName || '').trim().split(/\s+/);
-        var doctorShort = doctorParts.length > 1 ? ' · ' + doctorParts[1] : '';
+        var doctorShort = doctorParts.length > 1 ? ' · ' + doctorParts[1] : (doctorParts[0] ? ' · ' + doctorParts[0] : '');
+        var uTagWc = _shortUnitBadge(a.unit);
+        var uPillWc = uTagWc ? `<span class="appt-unit-pill">${escapeHTML(uTagWc)}</span>` : '';
         var timeRange = fmtTime(a.time) + (a.timeEnd ? '–' + fmtTime(a.timeEnd) : '');
         var sid = String(a.id);
-      return `<div class="wc-appt${cls}" style="top:${top}%;height:calc(${height}% - 3px);${wcBg}${laneStyle}" onclick="calendarEventClick(event,'${sid}')" data-appt-id="${sid}" data-ds="${ds}" title="${timeRange} · ${p?p.name:(a.calendarName||'Cita')} · ${a.proc||''}">
-          <div class="wc-appt-name">${fmtTime(a.time)} ${patientName}${doctorShort}</div>
-          <div class="wc-appt-proc">${a.proc||''}</div>
+      return `<div class="wc-appt${cls}" style="top:${top}%;height:calc(${height}% - 3px);${wcBg}${laneStyle}" onclick="calendarEventClick(event,'${sid}')" data-appt-id="${sid}" data-ds="${ds}" title="${escapeHTML(timeRange + (a.unit?' · '+a.unit:'') + (a.doctorName?' · '+a.doctorName:'') + ' · ' + (p?p.name:(a.calendarName||'Cita')) + ' · ' + (a.proc||''))}">
+          <div class="wc-appt-name">${uPillWc}${fmtTime(a.time)} ${escapeHTML(patientName)}${escapeHTML(doctorShort)}</div>
+          <div class="wc-appt-proc">${escapeHTML(a.proc||'')}</div>
           <span class="cal-resize-handle" title="Arrastra para cambiar la duración" aria-hidden="true"></span>
         </div>`;
       }).join('');
@@ -12467,13 +12926,8 @@ function _calendarWeekDayIndex(ds) {
 }
 
 function _calendarConflictFor(appt) {
-  var start = _calendarTimeMinutes(appt.time);
-  var end = appt.timeEnd ? _calendarTimeMinutes(appt.timeEnd) : start + 60;
   return (db.appointments || []).some(function(other) {
-    if (String(other.id) === String(appt.id) || other.date !== appt.date || other.status === 'cancelled') return false;
-    var otherStart = _calendarTimeMinutes(other.time);
-    var otherEnd = other.timeEnd ? _calendarTimeMinutes(other.timeEnd) : otherStart + 60;
-    return start < otherEnd && end > otherStart;
+    return _appointmentsHaveRealConflict(appt, other);
   });
 }
 
@@ -12495,6 +12949,7 @@ function _calendarCommitPointer(state) {
   appt.date = state.nextDate;
   appt.time = _calendarMinutesToTime(state.nextStart);
   appt.timeEnd = _calendarMinutesToTime(state.mode === 'resize' ? state.nextEnd : state.nextStart + state.duration);
+  appt._updatedAt = Date.now();
   _dayAutoScrolledFor = '';
   saveDB();
   renderCal();
@@ -12643,10 +13098,16 @@ function addAppt() {
     apptDoc = docList.find(function(d){ return d.id === docId; });
   }
   if (!apptDoc && typeof _activeDoctor !== 'undefined' && _activeDoctor) apptDoc = _activeDoctor;
+  var unitSel = document.getElementById('appt-unit-select');
+  var apptUnit = unitSel ? String(unitSel.value || '').trim() : '';
+  var newId = Date.now();
+  while ((db.appointments || []).some(function(x){ return String(x.id) === String(newId); })) newId++;
   db.appointments.push({
-    id: Date.now(), patientId: Number(pid), date, time, timeEnd: timeEnd||'', proc, notes, status: 'pending',
+    id: newId, patientId: Number(pid), date, time, timeEnd: timeEnd||'', proc, notes, status: 'pending',
+    unit:       apptUnit,
     doctorId:   apptDoc ? apptDoc.id   : null,
-    doctorName: apptDoc ? apptDoc.name : ''
+    doctorName: apptDoc ? apptDoc.name : '',
+    _updatedAt: Date.now()
   });
   _dayAutoScrolledFor = '';
   saveDB();
@@ -12775,13 +13236,15 @@ function showApptDayPanel(dateStr) {
         + ' WhatsApp</button>';
     }
 
+    var uTagCard = _shortUnitBadge(a.unit);
+    var uBadgeCard = a.unit ? '<span class="appt-unit-pill">' + escapeHTML(a.unit) + '</span>' : '';
     return '<div class="appt-day-card" style="--appt-status-color:'+apptColor+'">'
       + '<div class="appt-day-card-head">'
       +   '<span class="appt-day-time">'+timeLabel+'</span>'
       +   '<div class="appt-day-info">'
       +     '<div class="appt-day-name">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
       +     '<div class="appt-day-proc">'+proc+'</div>'
-      +     '<div class="appt-day-meta"><span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
+      +     '<div class="appt-day-meta">' + uBadgeCard + '<span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
       +       (a.doctorName?'<span class="appt-day-doctor">👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' ')+'</span>':'')
       +     '</div>'
       +   '</div>'
@@ -16949,7 +17412,10 @@ var _ciInited = false;
 var _goPageOrig = goPage;
 goPage = function(id, el) {
   _goPageOrig(id, el);
-  if (id === 'rx-page') { renderRxGrid(); }
+  if (id === 'rx-page') {
+    renderRxGrid();
+    if (typeof initFreeRxStudio === 'function') initFreeRxStudio();
+  }
   if (id === 'ci-page') { renderCiGrid(); }
 };
 
@@ -21130,7 +21596,7 @@ function renderBdayList() {
 // AVISO DE ACTUALIZACIÓN — una vez por sesión o permanentemente si se elige
 // “No volver a mostrar” en este dispositivo.
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_11_27_studio_v6';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_11_27_studio_v6_2';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -24765,9 +25231,11 @@ function updateBlockedTimes() {
   var selectedDate = dateEl.value;
   if (!selectedDate) return;
 
-  // Citas existentes ese día
-  var dayAppts = (_agendaIndex().appointmentsByDate[selectedDate] || []).filter(function(a) {
-    return a.status !== 'cancelled';
+  // Citas existentes ese día (todas las de la clínica para evaluar unidades/doctores)
+  var dayAppts = (db.appointments || []).filter(function(a) {
+    return a && a.date === selectedDate && a.status !== 'cancelled';
+  }).sort(function(a, b) {
+    return String(a.time || '').localeCompare(String(b.time || ''));
   });
 
   // Panel compacto de disponibilidad bajo los campos de horario.
@@ -24782,7 +25250,32 @@ function updateBlockedTimes() {
 
   function appointmentLabel(a) {
     var p = db.patients.find(function(x){ return x.id == a.patientId; });
-    return p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Cita');
+    var base = p ? p.name.split(' ')[0] : (a.calendarName ? a.calendarName.split(' ')[0] : 'Cita');
+    var u = _shortUnitBadge(a.unit);
+    var docShort = a.doctorName ? a.doctorName.split(' ').slice(0,2).join(' ') : '';
+    return (u ? '[' + u + '] ' : '') + base + (docShort ? ' (' + docShort + ')' : '');
+  }
+
+  function currentDraftCandidate() {
+    var docSel = document.getElementById('appt-doctor-select');
+    var unitSel = document.getElementById('appt-unit-select');
+    var draftDoc = null;
+    if (docSel && docSel.value) {
+      var docId = parseInt(docSel.value, 10);
+      var docList = (typeof loadDoctors === 'function') ? loadDoctors() : [];
+      draftDoc = docList.find(function(d){ return d.id === docId; }) || null;
+    }
+    if (!draftDoc && typeof _activeDoctor !== 'undefined' && _activeDoctor) draftDoc = _activeDoctor;
+    var sStart = timeEl.value || '09:00';
+    var sEnd = (timeEndEl && timeEndEl.value) ? timeEndEl.value : oneHourAfter(sStart);
+    return {
+      date: selectedDate,
+      time: sStart,
+      timeEnd: sEnd,
+      unit: unitSel ? String(unitSel.value || '').trim() : '',
+      doctorId: draftDoc ? draftDoc.id : null,
+      doctorName: draftDoc ? draftDoc.name : ''
+    };
   }
 
   function renderDayOverview() {
@@ -24812,18 +25305,40 @@ function updateBlockedTimes() {
     var selectedStart = _calendarTimeMinutes(timeEl.value);
     var selectedEnd = timeEndEl && timeEndEl.value ? _calendarTimeMinutes(timeEndEl.value) : selectedStart + 60;
     if (selectedEnd <= selectedStart) selectedEnd = selectedStart + 60;
-    var conflicts = dayAppts.filter(function(a) {
+    var candidate = currentDraftCandidate();
+    var overlapping = dayAppts.filter(function(a) {
       var start = _calendarTimeMinutes(a.time);
       var end = a.timeEnd ? _calendarTimeMinutes(a.timeEnd) : start + 60;
       return selectedStart < end && selectedEnd > start;
     });
-    if (!conflicts.length) { renderDayOverview(); return; }
-    var conflictText = conflicts.map(function(a) {
+    if (!overlapping.length) { renderDayOverview(); return; }
+
+    var realConflicts = overlapping.filter(function(a) {
+      return _appointmentsHaveRealConflict(candidate, a);
+    });
+    var parallelAppts = overlapping.filter(function(a) {
+      return !_appointmentsHaveRealConflict(candidate, a);
+    });
+
+    if (!realConflicts.length && parallelAppts.length) {
+      timeEl.style.borderColor = '';
+      if (timeEndEl) timeEndEl.style.borderColor = '';
+      var parallelText = parallelAppts.map(function(a) {
+        var end = a.timeEnd || oneHourAfter(a.time);
+        return fmtTime(a.time) + '–' + fmtTime(end) + ' ' + appointmentLabel(a);
+      }).join(' · ');
+      indicator.className = 'afc-availability is-parallel';
+      indicator.innerHTML = '<div class="afc-conflict-title">✓ Disponible en ' + escapeHTML(candidate.unit || candidate.doctorName || 'otro sillón/doctor') + ' (cita simultánea)</div>'
+        + '<div class="afc-conflict-detail">En paralelo con: ' + escapeHTML(parallelText) + '</div>';
+      return;
+    }
+
+    var conflictText = realConflicts.map(function(a) {
       var end = a.timeEnd || oneHourAfter(a.time);
       return fmtTime(a.time) + '–' + fmtTime(end) + ' ' + appointmentLabel(a);
     }).join(' · ');
     indicator.className = 'afc-availability is-conflict';
-    indicator.innerHTML = '<div class="afc-conflict-title">Horario ocupado</div><div class="afc-conflict-detail">'
+    indicator.innerHTML = '<div class="afc-conflict-title">⚠️ Mismo sillón / doctor ocupado (cambia a otra Unidad o Doctor para agendar en paralelo)</div><div class="afc-conflict-detail">'
       + escapeHTML(conflictText) + '</div>';
     timeEl.style.borderColor = 'var(--red)';
     if (timeEndEl) timeEndEl.style.borderColor = 'var(--red)';
@@ -26243,6 +26758,7 @@ function rxPatientSelect(id, name) {
   if (dd)  dd.style.display = 'none';
   var patient = db.patients.find(function(p){ return String(p.id) === String(id); });
   renderRxPatientSafety(patient || null);
+  if (typeof syncFreeRxFromPatient === 'function') syncFreeRxFromPatient(patient || null);
 }
 
 function rxPatientClear() {
@@ -26256,6 +26772,368 @@ function rxPatientClear() {
   var result = document.getElementById('rx-ped-result');
   if (weightInput) weightInput.value = '';
   if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+  if (typeof syncFreeRxFromPatient === 'function') syncFreeRxFromPatient(null);
+}
+
+// ══════════════════════════════════════════════════════════
+// ★ RECETARIO MÉDICO LIBRE / DIRECTO (COMO RECETARIO FÍSICO)
+// ══════════════════════════════════════════════════════════
+function initFreeRxStudio() {
+  var dateEl = document.getElementById('rx-free-date');
+  if (dateEl && !dateEl.value) dateEl.value = todayStr();
+  updateFreeRxPreview();
+  var p = _rxPatientId ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); }) : null;
+  renderFreeRxHistory(p || null);
+}
+
+function toggleFreeRxStudio() {
+  var body = document.getElementById('rx-free-body');
+  var btn  = document.getElementById('rx-free-toggle-btn');
+  if (!body) return;
+  var hidden = body.style.display === 'none';
+  body.style.display = hidden ? '' : 'none';
+  if (btn) btn.textContent = hidden ? 'Contraer' : 'Expandir recetario';
+}
+
+function syncFreeRxFromPatient(patient) {
+  var nameEl = document.getElementById('rx-free-patient-name');
+  var ageEl  = document.getElementById('rx-free-age');
+  var wtEl   = document.getElementById('rx-free-weight');
+  var alrgEl = document.getElementById('rx-free-allergies');
+  var dateEl = document.getElementById('rx-free-date');
+  if (dateEl && !dateEl.value) dateEl.value = todayStr();
+  if (patient) {
+    if (nameEl) nameEl.value = patient.name || '';
+    var pAge = patient.dob ? calcAge(patient.dob) : (patient.age || '');
+    if (ageEl) ageEl.value = (pAge !== null && pAge !== undefined && pAge !== '—') ? String(pAge) : '';
+    if (wtEl)  wtEl.value  = patient.weightKg ? String(patient.weightKg) : '';
+    var hasAlrg = (patient.allergy === 'Sí' || patient.allergy === 'Si') ? (patient.allergyDetail || 'Sí (verificar expediente)') : (patient.allergyDetail || 'Negadas');
+    if (alrgEl) alrgEl.value = hasAlrg;
+  } else {
+    if (nameEl) nameEl.value = '';
+    if (ageEl)  ageEl.value  = '';
+    if (wtEl)   wtEl.value   = '';
+    if (alrgEl) alrgEl.value = '';
+  }
+  updateFreeRxPreview();
+  renderFreeRxHistory(patient || null);
+}
+
+function insertFreeRxSnippet(lineText) {
+  var box = document.getElementById('rx-free-body-text');
+  if (!box) return;
+  var cur = box.value.trim();
+  var linesCount = cur ? (cur.split(/\n\s*\n/).length + 1) : 1;
+  box.value = (cur ? cur + '\n\n' : '') + linesCount + '. ' + lineText;
+  box.focus();
+  updateFreeRxPreview();
+}
+
+function _readFreeRxDraft() {
+  function v(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+  var rawDate = v('rx-free-date') || todayStr();
+  var prettyDate = rawDate;
+  try {
+    var dObj = new Date(rawDate + 'T12:00');
+    if (!isNaN(dObj.getTime())) prettyDate = dObj.toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  } catch (e) {}
+  return {
+    patientId: _rxPatientId ? String(_rxPatientId) : '',
+    patientName: v('rx-free-patient-name'),
+    age: v('rx-free-age'),
+    weight: v('rx-free-weight'),
+    rawDate: rawDate,
+    date: prettyDate,
+    diagnosis: v('rx-free-diag'),
+    allergies: v('rx-free-allergies'),
+    rpText: v('rx-free-body-text'),
+    notes: v('rx-free-notes'),
+    format: v('rx-free-size') || 'half',
+    doctor: (typeof getActiveDoctorName === 'function' && getActiveDoctorName()) || cfg.name || 'Cirujano Dentista',
+    license: (typeof getActiveDoctorCedula === 'function' && getActiveDoctorCedula()) || cfg.cedula || '',
+    license2: (_activeDoctor && _activeDoctor.cedula2) || cfg.cedula2 || '',
+    specialty: (_activeDoctor && _activeDoctor.specialty) || cfg.sub || 'Cirujano Dentista',
+    institucion: cfg.institucion || '',
+    clinic: cfg.name || 'Consultorio Dental',
+    clinicPhone: (typeof getClinicPhone === 'function') ? getClinicPhone() : (cfg.telefono || cfg.phone || ''),
+    clinicEmail: (typeof getClinicEmail === 'function') ? getClinicEmail() : (cfg.correo || cfg.email || ''),
+    clinicAddress: (typeof getClinicAddress === 'function') ? getClinicAddress() : (cfg.direccion || cfg.address || '')
+  };
+}
+
+function updateFreeRxPreview() {
+  var d = _readFreeRxDraft();
+  var clEl = document.getElementById('rx-free-prev-clinic');
+  var dcEl = document.getElementById('rx-free-prev-doc');
+  var ctEl = document.getElementById('rx-free-prev-contact');
+  var dtEl = document.getElementById('rx-free-prev-date');
+  var ptEl = document.getElementById('rx-free-prev-pat');
+  var rpEl = document.getElementById('rx-free-prev-rp');
+  var inEl = document.getElementById('rx-free-prev-ind');
+  var sgEl = document.getElementById('rx-free-prev-sig');
+  var fmEl = document.getElementById('rx-free-prev-fmt');
+  if (clEl) clEl.textContent = d.clinic;
+  if (dcEl) dcEl.textContent = [d.doctor, d.specialty, d.license ? 'Céd. Prof. ' + d.license : ''].filter(Boolean).join(' · ');
+  if (ctEl) ctEl.textContent = [d.clinicPhone ? 'Tel: ' + d.clinicPhone : '', d.clinicEmail, d.clinicAddress].filter(Boolean).join(' · ');
+  if (dtEl) dtEl.textContent = d.date;
+  if (ptEl) {
+    var patMeta = [
+      '<strong>Paciente:</strong> ' + escapeHTML(d.patientName || '______________________'),
+      d.age ? '<strong>Edad:</strong> ' + escapeHTML(d.age) + (/^\d+$/.test(d.age) ? ' años' : '') : '',
+      d.weight ? '<strong>Peso:</strong> ' + escapeHTML(d.weight) + ' kg' : '',
+      d.allergies ? '<strong>Alergias:</strong> ' + escapeHTML(d.allergies) : '',
+      d.diagnosis ? '<strong>Dx:</strong> ' + escapeHTML(d.diagnosis) : ''
+    ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+    ptEl.innerHTML = patMeta;
+  }
+  if (rpEl) {
+    rpEl.textContent = d.rpText || 'Escribe la prescripción a la izquierda para ver aquí tu receta lista para imprimir o guardar en PDF…';
+    rpEl.style.color = d.rpText ? '#0f172a' : '#94a3b8';
+  }
+  if (inEl) {
+    if (d.notes) {
+      inEl.style.display = 'block';
+      inEl.textContent = 'Indicaciones: ' + d.notes;
+    } else {
+      inEl.style.display = 'none';
+      inEl.textContent = '';
+    }
+  }
+  if (sgEl) sgEl.textContent = d.doctor + (d.license ? ' · Céd. ' + d.license : '');
+  if (fmEl) fmEl.textContent = d.format === 'half' ? 'Formato Media Carta (14×21.5 cm)' : 'Formato Tamaño Carta';
+}
+
+function clearFreePrescription() {
+  ['rx-free-diag','rx-free-body-text','rx-free-notes'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  if (!_rxPatientId) {
+    ['rx-free-patient-name','rx-free-age','rx-free-weight','rx-free-allergies'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+  }
+  updateFreeRxPreview();
+}
+
+function renderFreeRxHistory(patient) {
+  var listEl  = document.getElementById('rx-free-history-list');
+  var countEl = document.getElementById('rx-free-history-count');
+  if (!listEl) return;
+  if (!patient) {
+    if (countEl) countEl.textContent = 'Sin paciente seleccionado';
+    listEl.innerHTML = '<div style="font-size:.73rem;color:var(--ink-3)">Selecciona un paciente en el buscador superior para guardar y consultar su historial de recetas.</div>';
+    return;
+  }
+  var items = (patient.customPrescriptions || []).slice().reverse();
+  if (countEl) countEl.textContent = items.length + ' receta' + (items.length === 1 ? '' : 's');
+  if (!items.length) {
+    listEl.innerHTML = '<div style="font-size:.73rem;color:var(--ink-3)">Sin recetas libres guardadas aún para ' + escapeHTML(patient.name) + '.</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(function(rec) {
+    var firstLine = String(rec.rpText || '').split('\n')[0].slice(0, 48);
+    return '<div class="rx-pad-history-item">'
+      + '<div style="min-width:0;flex:1">'
+      + '<strong style="display:block;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML((rec.folio || 'RX') + ' · ' + (rec.date || '')) + '</strong>'
+      + '<span style="color:var(--ink-3);font-size:.69rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(firstLine) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:5px;flex-shrink:0">'
+      + '<button type="button" class="btn btn-ghost btn-xs" onclick="loadFreeRxFromHistory(\'' + escapeHTML(String(patient.id)) + '\',\'' + escapeHTML(String(rec.id)) + '\')" title="Cargar al editor">✏️</button>'
+      + '<button type="button" class="btn btn-primary btn-xs" onclick="reprintFreeRxFromHistory(\'' + escapeHTML(String(patient.id)) + '\',\'' + escapeHTML(String(rec.id)) + '\')">🖨️ PDF</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+function loadFreeRxFromHistory(patId, recId) {
+  var p = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!p) return;
+  var rec = (p.customPrescriptions || []).find(function(r){ return String(r.id) === String(recId); });
+  if (!rec) return;
+  var map = {
+    'rx-free-patient-name': rec.patientName || p.name || '',
+    'rx-free-age': rec.age || '',
+    'rx-free-weight': rec.weight || '',
+    'rx-free-diag': rec.diagnosis || '',
+    'rx-free-allergies': rec.allergies || '',
+    'rx-free-body-text': rec.rpText || '',
+    'rx-free-notes': rec.notes || '',
+    'rx-free-size': rec.format || 'half'
+  };
+  Object.keys(map).forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = map[id];
+  });
+  if (rec.rawDate && document.getElementById('rx-free-date')) document.getElementById('rx-free-date').value = rec.rawDate;
+  updateFreeRxPreview();
+  showToast('✏️ Receta cargada en el editor', 'green');
+}
+
+function reprintFreeRxFromHistory(patId, recId) {
+  var p = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!p) return;
+  var rec = (p.customPrescriptions || []).find(function(r){ return String(r.id) === String(recId); });
+  if (rec) printCustomPrescription(rec);
+}
+
+function emitFreePrescription(shouldPrint) {
+  var d = _readFreeRxDraft();
+  if (!d.patientName) {
+    showToast('⚠️ Escribe o selecciona el nombre del paciente', 'orange');
+    var pn = document.getElementById('rx-free-patient-name'); if (pn) pn.focus();
+    return;
+  }
+  if (!d.rpText) {
+    showToast('⚠️ Escribe los medicamentos e indicaciones en el campo Rp.', 'orange');
+    var rp = document.getElementById('rx-free-body-text'); if (rp) rp.focus();
+    return;
+  }
+  var now = Date.now();
+  var uid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID().slice(0, 8).toUpperCase() : String(now).slice(-6);
+  var patient = _rxPatientId
+    ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); })
+    : (db.patients || []).find(function(x){ return String(x.name || '').trim().toLowerCase() === d.patientName.toLowerCase(); });
+
+  var rec = Object.assign({}, d, {
+    id: 'rxfree-' + now + '-' + uid,
+    folio: 'RX-' + new Date().getFullYear() + '-' + uid,
+    hcNumber: patient && patient.hcNumber ? patient.hcNumber : '',
+    createdAt: now
+  });
+
+  if (patient) {
+    if (!Array.isArray(patient.customPrescriptions)) patient.customPrescriptions = [];
+    patient.customPrescriptions.push(rec);
+    patient._updatedAt = now;
+    saveDB();
+    renderFreeRxHistory(patient);
+    if (curId && String(curId) === String(patient.id) && typeof renderPatientModulesBar === 'function') {
+      renderPatientModulesBar(patient);
+    }
+    if (!shouldPrint) showToast('✅ Receta guardada en el expediente de ' + patient.name, 'green');
+  } else if (!shouldPrint) {
+    showToast('ℹ️ Selecciona un paciente registrado arriba para guardarla en su expediente', 'orange');
+    return;
+  }
+
+  if (shouldPrint) {
+    printCustomPrescription(rec);
+  }
+}
+
+function printCustomPrescription(rec) {
+  var w = window.open('', '_blank');
+  if (!w) { showToast('Permite las ventanas emergentes para imprimir o descargar la receta.', 'red'); return; }
+  var e = escapeHTML;
+  var isHalf = rec.format === 'half';
+  var liveTel  = (typeof getClinicPhone === 'function') ? getClinicPhone() : (rec.clinicPhone || '');
+  var liveMail = (typeof getClinicEmail === 'function') ? getClinicEmail() : (rec.clinicEmail || '');
+  var liveAddr = (typeof getClinicAddress === 'function') ? getClinicAddress() : (rec.clinicAddress || '');
+  var logoHtml = _logoHTML(isHalf ? 42 : 52);
+
+  var doctorSubLine = [
+    rec.specialty || '',
+    rec.institucion ? 'Egresado de ' + rec.institucion : '',
+    rec.license ? 'Céd. Prof. ' + rec.license : '',
+    rec.license2 ? 'Céd. Esp. ' + rec.license2 : ''
+  ].filter(Boolean).map(e).join(' · ');
+
+  var contactLine = [
+    liveTel ? '📞 Tel / WhatsApp: ' + e(liveTel) : '',
+    liveMail ? '✉️ ' + e(liveMail) : '',
+    liveAddr ? '📍 ' + e(liveAddr) : ''
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  var patFields = [
+    '<div><strong>Paciente:</strong> ' + e(rec.patientName || '—') + '</div>',
+    rec.age ? '<div><strong>Edad:</strong> ' + e(rec.age) + (/^\d+$/.test(rec.age) ? ' años' : '') + '</div>' : '',
+    rec.weight ? '<div><strong>Peso:</strong> ' + e(rec.weight) + ' kg</div>' : '',
+    rec.hcNumber ? '<div><strong>Expediente:</strong> ' + e(rec.hcNumber) + '</div>' : '',
+    rec.allergies ? '<div><strong>Alergias:</strong> ' + e(rec.allergies) + '</div>' : '',
+    rec.diagnosis ? '<div style="grid-column:1/-1"><strong>Diagnóstico / Motivo:</strong> ' + e(rec.diagnosis) + '</div>' : ''
+  ].filter(Boolean).join('');
+
+  var pageCss = isHalf
+    ? '@page{size:140mm 216mm;margin:10mm} body{max-width:500px;font-size:12px;padding:12px 16px}'
+    : '@page{size:letter;margin:15mm} body{max-width:740px;font-size:13.5px;padding:24px 32px}';
+
+  var html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + e((rec.folio || 'Receta') + ' - ' + (rec.patientName || '')) + '</title><style>'
+    + '*{box-sizing:border-box;margin:0;padding:0}'
+    + 'body{margin:0 auto;font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#0f172a;line-height:1.55;background:#fff}'
+    + pageCss
+    + '.no-print-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;margin-bottom:16px;border-radius:10px;background:#f0f7ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a}'
+    + '.no-print-bar button{padding:7px 14px;border-radius:8px;border:0;background:#0071e3;color:#fff;font-weight:700;cursor:pointer;font-size:12px}'
+    + 'header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:11px;border-bottom:2.5px solid #1e3a5f;margin-bottom:12px}'
+    + '.brand{display:flex;align-items:center;gap:12px}'
+    + '.clinic-title{font-size:' + (isHalf ? '15px' : '18px') + ';font-weight:800;color:#0f172a;line-height:1.2}'
+    + '.doc-meta{font-size:' + (isHalf ? '10.5px' : '11.5px') + ';color:#334155;margin-top:2px}'
+    + '.contact-meta{font-size:' + (isHalf ? '10px' : '11px') + ';color:#475569;margin-top:3px}'
+    + '.folio-box{text-align:right;font-size:' + (isHalf ? '10.5px' : '11.5px') + ';color:#334155;white-space:nowrap}'
+    + '.folio-box strong{display:block;font-size:' + (isHalf ? '11.5px' : '13px') + ';color:#1e3a5f;letter-spacing:.05em}'
+    + '.pat-box{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;padding:9px 12px;border-radius:8px;background:#f8fafc;border:1px solid #cbd5e1;margin-bottom:14px;font-size:' + (isHalf ? '11px' : '12px') + '}'
+    + '.rp-header{font-size:' + (isHalf ? '14px' : '16px') + ';font-weight:800;color:#1e3a5f;margin-bottom:8px;letter-spacing:.03em}'
+    + '.rp-content{min-height:' + (isHalf ? '180px' : '270px') + ';white-space:pre-wrap;font-size:' + (isHalf ? '12px' : '13.5px') + ';line-height:1.7;color:#0f172a;padding:4px 2px}'
+    + '.ind-box{margin-top:14px;padding:9px 12px;border-radius:8px;background:#f8fafc;border-left:3.5px solid #1e3a5f;font-size:' + (isHalf ? '11px' : '12px') + ';white-space:pre-wrap;color:#1e293b;break-inside:avoid}'
+    + 'footer{margin-top:' + (isHalf ? '28px' : '44px') + ';padding-top:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;break-inside:avoid}'
+    + '.sig-line{border-top:1.5px solid #334155;min-width:210px;padding-top:5px;text-align:center;font-size:' + (isHalf ? '10.5px' : '11.5px') + ';color:#1e293b}'
+    + '@media print{.no-print-bar{display:none!important}body{padding:0}}'
+    + '</style></head><body>'
+    + '<div class="no-print-bar"><span>💡 En Destino puedes elegir tu impresora o <b>"Guardar como PDF"</b> para descargarla.</span><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>'
+    + '<header><div class="brand"><div data-print-logo-slot>' + logoHtml + '</div><div>'
+    + '<div class="clinic-title">' + e(rec.clinic || 'Consultorio Dental') + '</div>'
+    + '<div class="doc-meta"><strong>' + e(rec.doctor || '') + '</strong>' + (doctorSubLine ? ' · ' + doctorSubLine : '') + '</div>'
+    + (contactLine ? '<div class="contact-meta">' + contactLine + '</div>' : '')
+    + '</div></div>'
+    + '<div class="folio-box"><strong>RECETA MÉDICA</strong><div>' + e(rec.date || '') + '</div><div>' + e(rec.folio || '') + '</div></div></header>'
+    + '<section class="pat-box">' + patFields + '</section>'
+    + '<div class="rp-header">☤ Rp.</div>'
+    + '<div class="rp-content">' + e(rec.rpText || '') + '</div>'
+    + (rec.notes ? '<div class="ind-box"><strong>Indicaciones generales:</strong>\n' + e(rec.notes) + '</div>' : '')
+    + '<footer data-clinic-contact-strip="1"><div style="font-size:10px;color:#64748b">' + (contactLine || '') + '</div>'
+    + '<div class="sig-line"><strong>' + e(rec.doctor || '') + '</strong><br>' + e(rec.specialty || 'Cirujano Dentista') + (rec.license ? ' · Céd. ' + e(rec.license) : '') + '</div></footer>'
+    + '</body></html>';
+
+  w.document.write(html);
+  w.document.close();
+  _printWindow(w);
+}
+
+function sendFreePrescriptionWhatsApp() {
+  var d = _readFreeRxDraft();
+  if (!d.patientName || !d.rpText) {
+    showToast('⚠️ Completa el nombre del paciente y la prescripción (Rp.) primero', 'orange');
+    return;
+  }
+  var patient = _rxPatientId ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); }) : null;
+  var rawPhone = patient && patient.phone ? String(patient.phone).replace(/\D/g, '') : '';
+  var cc = String(cfg.countryCode || '52').replace(/\D/g, '') || '52';
+  var fullPhone = rawPhone ? (rawPhone.length === 10 ? cc + rawPhone : rawPhone) : '';
+
+  var msg = '🦷 *RECETA MÉDICA — ' + d.clinic + '*\n'
+    + '👨‍⚕️ ' + d.doctor + (d.license ? ' (Céd. ' + d.license + ')' : '') + '\n'
+    + '📅 Fecha: ' + d.date + '\n'
+    + '👤 Paciente: *' + d.patientName + '*\n\n'
+    + '☤ *PRESCRIPCIÓN (Rp.):*\n' + d.rpText
+    + (d.notes ? '\n\n📋 *Indicaciones:*\n' + d.notes : '')
+    + (d.clinicPhone ? '\n\n📞 Dudas o urgencias: ' + d.clinicPhone : '');
+
+  var url = fullPhone
+    ? 'https://wa.me/' + fullPhone + '?text=' + encodeURIComponent(msg)
+    : 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+function openFreeRxForPatient(patId) {
+  var p = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  var navEl = document.querySelector('[onclick*="rx-page"]');
+  goPage('rx-page', navEl);
+  if (p) {
+    rxPatientSelect(p.id, p.name);
+    var body = document.getElementById('rx-free-body');
+    if (body) body.style.display = '';
+    setTimeout(function() {
+      var rp = document.getElementById('rx-free-body-text');
+      if (rp) rp.focus();
+    }, 120);
+  }
 }
 
 
@@ -26660,16 +27538,31 @@ goPage = function(id, el) {
   }
 };
 
-// Aplicar filtro de doctor al renderizar citas
+// Aplicar filtro de doctor y unidad al renderizar citas
 var _origGetDayAppts = null;
-// Interceptar db.appointments para filtrar por doctor cuando aplica
+var _calUnitFilter = '';
+var _calDoctorIdFilter = '';
+
+function setCalUnitFilter(unitVal) {
+  _calUnitFilter = String(unitVal || '').trim();
+  renderCal();
+  if (_selectedCalDay) showApptDayPanel(_selectedCalDay);
+}
+
+function setCalDoctorSelectFilter(docIdVal) {
+  _calDoctorIdFilter = String(docIdVal || '').trim();
+  renderCal();
+  if (_selectedCalDay) showApptDayPanel(_selectedCalDay);
+}
+
+// Interceptar db.appointments para filtrar por doctor y/o unidad dental cuando aplica
 function _getFilteredAppts() {
   var appts = db.appointments || [];
-  if (!_calFilterDoctor || !_activeDoctor) return appts;
-  var docName = _activeDoctor.name;
   return appts.filter(function(a) {
-    // Filtrar por doctor si la cita tiene ese campo
-    return !a.doctorId || a.doctorId === _activeDoctor.id;
+    if (_calUnitFilter && String(a.unit || '') !== _calUnitFilter) return false;
+    if (_calDoctorIdFilter && String(a.doctorId || '') !== _calDoctorIdFilter) return false;
+    if (_calFilterDoctor && _activeDoctor && a.doctorId && a.doctorId !== _activeDoctor.id) return false;
+    return true;
   });
 }
 
@@ -26680,18 +27573,37 @@ function _getFilteredAppts() {
 
 // ── Poblar selector de doctor al abrir agenda ────────────
 function _updateDoctorApptSelector() {
-  var field  = document.getElementById('appt-doctor-field');
-  var select = document.getElementById('appt-doctor-select');
-  if (!field || !select) return;
+  var field   = document.getElementById('appt-doctor-field');
+  var select  = document.getElementById('appt-doctor-select');
+  var resGrid = document.getElementById('appt-resource-grid');
+  var calDocWrap = document.getElementById('cal-filter-doc-wrap');
+  var calDocSel  = document.getElementById('cal-filter-doctor-sel');
   var doctors = (typeof loadDoctors === 'function') ? loadDoctors() : [];
+
+  if (calDocWrap && calDocSel) {
+    if (doctors.length > 1) {
+      calDocWrap.style.display = 'inline-flex';
+      var prevFilter = calDocSel.value;
+      calDocSel.innerHTML = '<option value="">Todos los doctores</option>' + doctors.map(function(d) {
+        return '<option value="' + d.id + '"' + (String(d.id) === String(prevFilter) ? ' selected' : '') + '>' + escapeHTML(d.name) + '</option>';
+      }).join('');
+    } else {
+      calDocWrap.style.display = 'none';
+    }
+  }
+
+  if (!field || !select) return;
   if (doctors.length <= 1) {
     field.style.display = 'none';
+    if (resGrid) resGrid.classList.add('single-col');
     return;
   }
   field.style.display = 'block';
+  if (resGrid) resGrid.classList.remove('single-col');
+  var prevSelected = select.value;
   select.innerHTML = doctors.map(function(d) {
-    var isActive = _activeDoctor && _activeDoctor.id === d.id;
-    return '<option value="' + d.id + '"' + (isActive ? ' selected' : '') + '>' + d.name + '</option>';
+    var shouldSelect = prevSelected ? (String(d.id) === String(prevSelected)) : (_activeDoctor && _activeDoctor.id === d.id);
+    return '<option value="' + d.id + '"' + (shouldSelect ? ' selected' : '') + '>' + escapeHTML(d.name) + '</option>';
   }).join('');
 }
 
@@ -27055,17 +27967,22 @@ function openEditAppt(sid) {
   document.getElementById('edit-appt-time-end').value = a.timeEnd || '';
   document.getElementById('edit-appt-proc').value     = a.proc    || '';
   document.getElementById('edit-appt-notes').value    = a.notes   || '';
-  // Poblar selector de doctor
+  // Poblar selector de doctor y unidad
   var editDocField  = document.getElementById('edit-appt-doctor-field');
   var editDocSelect = document.getElementById('edit-appt-doctor');
+  var editUnitWrap  = document.getElementById('edit-appt-unit-wrap');
+  var editUnitSel   = document.getElementById('edit-appt-unit');
+  if (editUnitSel) editUnitSel.value = a.unit || '';
   var editDoctors   = (typeof loadDoctors === 'function') ? loadDoctors() : [];
   if (editDoctors.length > 1 && editDocField && editDocSelect) {
     editDocField.style.display = 'block';
+    if (editUnitWrap) editUnitWrap.style.gridColumn = 'span 1';
     editDocSelect.innerHTML = editDoctors.map(function(d) {
-      return '<option value="' + d.name + '"' + (d.name === a.doctorName ? ' selected' : '') + '>👨‍⚕️ ' + d.name + '</option>';
+      return '<option value="' + escapeHTML(d.name) + '"' + (d.name === a.doctorName ? ' selected' : '') + '>👨‍⚕️ ' + escapeHTML(d.name) + '</option>';
     }).join('');
   } else if (editDocField) {
     editDocField.style.display = 'none';
+    if (editUnitWrap) editUnitWrap.style.gridColumn = '1 / -1';
   }
   document.getElementById('edit-appt-overlay').style.display = 'flex';
 }
@@ -27088,13 +28005,16 @@ function saveEditAppt() {
   a.timeEnd = editEnd;
   a.proc    = document.getElementById('edit-appt-proc').value;
   a.notes   = document.getElementById('edit-appt-notes').value;
+  var editUnitSel = document.getElementById('edit-appt-unit');
+  if (editUnitSel) a.unit = String(editUnitSel.value || '').trim();
   var editDocSel = document.getElementById('edit-appt-doctor');
-  if (editDocSel && editDocSel.value) {
+  if (editDocSel && editDocSel.value && editDocSel.offsetParent !== null) {
     a.doctorName = editDocSel.value;
     var editDoctors = (typeof loadDoctors === 'function') ? loadDoctors() : [];
     var editDoc = editDoctors.find(function(d){ return d.name === editDocSel.value; });
     if (editDoc) a.doctorId = editDoc.id;
   }
+  a._updatedAt = Date.now();
   _dayAutoScrolledFor = '';
   saveDB();
   renderCal();
@@ -28006,6 +28926,7 @@ function renderPatientModulesBar(patient){
   var specialtyData=patient.specialtyModules||{},specialtyTotal=0;
   SPECIALTY_MODULES.forEach(function(m){specialtyTotal+=(specialtyData[m.id]||[]).length;});
   var integrated=[
+    {id:'recetas-libres',icon:'☤',label:'Recetas médicas',color:'#2563eb',pale:'#eff6ff',count:(patient.customPrescriptions||[]).length,action:'openFreeRxForPatient(curId)'},
     {id:'radiologia',icon:'🩻',label:'Órdenes de radiografías',color:'#086d80',pale:'#e5f5f7',count:(patient.radiologyOrders||[]).length,action:'openRadiologyOrders()'},
     {id:'odontograma',icon:'🦷',label:'Odontograma',color:'#0071e3',pale:'#eaf3ff',count:_patientModuleNumericCount(patient.odontogram),action:'openOdontogram()'},
     {id:'odontopediatria',icon:'🧒',label:'Odontopediatría',color:'#d97706',pale:'#fff7e8',count:_patientModuleNumericCount(patient.odontogramaPed),action:'openOdontogramPed()'},
@@ -29366,9 +30287,21 @@ window.addEventListener('resize', function() {
         <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Notas</label>
         <textarea id="edit-appt-notes" rows="2" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);resize:vertical"></textarea>
       </div>
-      <div id="edit-appt-doctor-field" style="display:none">
-        <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Doctor</label>
-        <select id="edit-appt-doctor" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)"></select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div id="edit-appt-doctor-field" style="display:none">
+          <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">Doctor</label>
+          <select id="edit-appt-doctor" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)"></select>
+        </div>
+        <div style="grid-column:span 1" id="edit-appt-unit-wrap">
+          <label style="font-size:.72rem;font-weight:700;color:var(--ink-3);display:block;margin-bottom:3px">🦷 Unidad / Sillón</label>
+          <select id="edit-appt-unit" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--bg);color:var(--ink)">
+            <option value="Unidad 1">Unidad 1</option>
+            <option value="Unidad 2">Unidad 2</option>
+            <option value="Unidad 3">Unidad 3</option>
+            <option value="Unidad 4">Unidad 4</option>
+            <option value="">Sin especificar</option>
+          </select>
+        </div>
       </div>
       <button class="btn btn-primary" onclick="saveEditAppt()" style="width:100%;justify-content:center;border-radius:var(--r-sm);margin-top:4px">💾 Guardar cambios</button>
     </div>
@@ -29446,6 +30379,8 @@ window.addEventListener('resize', function() {
           <div><h4>🏠 Pantalla de Inicio ejecutiva y renovación de sesión sin perder portada</h4><p>El tablero de Inicio ahora cuenta con portada panorámica mejorada, tarjetas ejecutivas alineadas, accesos directos a documentos clínicos, próximas citas y expedientes recientes, conservando tu foto de portada y logotipo al renovar la sesión de Google Drive.</p></div>
           <div><h4>🩻 Emitir órdenes de radiografías con PDF automático y datos de contacto</h4><p>Abre <strong>Radiografías</strong>, selecciona al paciente, marca los estudios y el motivo clínico y pulsa <strong>Emitir orden</strong>. Se abrirá automáticamente el documento listo para imprimir o guardar como PDF incluyendo el teléfono/WhatsApp y correo configurados en <strong>Ajustes</strong> (los cuales ahora se guardan automáticamente al escribir).</p></div>
           <div><h4>🦷 Del odontograma al presupuesto y plantillas editables</h4><p>En el odontograma adulto o pediátrico, selecciona una pieza y pulsa <strong>Planear tratamiento</strong> para enviarlo al plan y al presupuesto. Además, en <strong>Consentimientos</strong> e <strong>Indicaciones</strong> puedes pulsar <strong>Editar</strong> para personalizar tus textos tanto en impresiones como en envíos por WhatsApp.</p></div>
+          <div><h4>🪑 Agenda simultánea por Unidades (Sillón 1–4) y Doctores</h4><p>Al agendar o editar una cita puedes elegir la <strong>Unidad / Sillón</strong> y el <strong>Doctor</strong>. Si dos pacientes están en unidades distintas o con distinto doctor, el sistema permite agendarlos en el mismo horario mostrándolos en columnas paralelas y con filtros por sillón en la cabecera de la Agenda.</p></div>
+          <div><h4>✍️ Recetario Médico Libre / Directo (Carta y Media Carta)</h4><p>En la parte superior de <strong>Recetas</strong> (o pulsando <strong>☤ Recetas médicas</strong> dentro del expediente del paciente) puedes escribir la receta libremente como en un recetario físico, usar atajos rápidos, elegir formato <strong>Media Carta</strong> o <strong>Carta</strong>, imprimir/guardar en PDF o enviarla por WhatsApp, quedando guardada en el historial del paciente.</p></div>
           <div style="padding:12px 14px;border-radius:12px;background:var(--bg);border:1px solid var(--border)"><strong>💡 ¿Sugerencias o nuevas mejoras?</strong> Si deseas proponer alguna mejora o función para futuras actualizaciones, envía un correo a <a href="mailto:dracostahector@gmail.com" style="color:var(--blue);font-weight:700">dracostahector@gmail.com</a>.</div>
         </div>
       </section>
