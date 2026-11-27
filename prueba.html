@@ -849,18 +849,18 @@ html.dark .bdoc-note strong, body.user-theme-dark-card .bdoc-note strong {
 .adi-name{font-size:.81rem;font-weight:600;}
 .adi-proc{font-size:.71rem;color:var(--ink-3);}
 .adi-actions{display:flex;gap:4px;flex-shrink:0;}
-.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--appt-status-color,var(--blue));border-radius:12px;padding:9px 10px;margin-bottom:7px;color:var(--ink);transition:border-color .12s,box-shadow .12s,transform .12s;}
-.appt-day-card:hover{border-color:color-mix(in srgb,var(--appt-status-color,var(--blue)) 42%,var(--border));box-shadow:0 5px 14px rgba(0,0,0,.1);transform:translateY(-1px);}
-.appt-day-card-head{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center;gap:10px;}
-.appt-day-time{display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 7px;border-radius:9px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 13%,transparent);font-size:.68rem;font-weight:800;line-height:1.25;text-align:center;color:var(--appt-status-color,var(--blue));white-space:normal;}
+.appt-day-card{background:var(--bg);border:1px solid var(--border);border-left:3.5px solid var(--appt-status-color,var(--blue));border-radius:14px;padding:12px 13px;margin-bottom:9px;color:var(--ink);transition:border-color .15s,box-shadow .15s,transform .15s;}
+.appt-day-card:hover{border-color:color-mix(in srgb,var(--appt-status-color,var(--blue)) 42%,var(--border));box-shadow:0 6px 16px rgba(0,0,0,.08);transform:translateY(-1px);}
+.appt-day-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:7px;}
+.appt-day-time{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;background:color-mix(in srgb,var(--appt-status-color,var(--blue)) 13%,transparent);font-size:.72rem;font-weight:800;line-height:1.2;color:var(--appt-status-color,var(--blue));white-space:nowrap;}
 .appt-day-info{min-width:0;}
-.appt-day-name{font-size:.82rem;font-weight:780;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.appt-day-proc{font-size:.69rem;color:var(--ink-3);margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.appt-day-meta{display:flex;align-items:center;gap:5px;margin-top:4px;min-width:0;font-size:.64rem;color:var(--ink-3);}
-.appt-day-status{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;padding:2px 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);line-height:1.2;}
-.appt-day-doctor{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.appt-day-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
-.appt-day-actions .appt-action-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-height:32px;padding:0;border-radius:9px;font-size:.72rem;}
+.appt-day-name{font-size:.9rem;font-weight:800;color:var(--ink);line-height:1.28;letter-spacing:-.015em;word-break:break-word;}
+.appt-day-proc{font-size:.74rem;color:var(--ink-3);margin-top:3px;line-height:1.38;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.appt-day-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px;min-width:0;font-size:.69rem;color:var(--ink-2);}
+.appt-day-status{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;padding:3px 9px;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--ink-2);line-height:1.2;white-space:nowrap;}
+.appt-day-doctor{display:inline-flex;align-items:center;gap:4px;padding:2.5px 8px;border-radius:7px;background:var(--card);border:1px solid var(--border);font-weight:650;color:var(--ink-2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.appt-day-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:10px;padding-top:9px;border-top:1px solid var(--border);}
+.appt-day-actions .appt-action-btn{display:inline-flex;align-items:center;justify-content:center;width:33px;height:33px;min-height:33px;padding:0;border-radius:9px;font-size:.74rem;}
 /* ━━━━ PAYMENTS ━━━━ */
 .pay-item{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);margin-bottom:5px;}
 .pay-date{font-size:.71rem;color:var(--ink-3);min-width:72px;}
@@ -7405,21 +7405,29 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
 .appt-unit-pill {
   display: inline-flex;
   align-items: center;
+  gap: 3px;
   padding: 1px 6px;
   border-radius: 5px;
   font-size: .6rem;
   font-weight: 800;
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   background: rgba(255, 255, 255, .22);
   color: inherit;
   margin-right: 4px;
   vertical-align: middle;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .appt-day-card .appt-unit-pill,
 .afc-busy-chip .appt-unit-pill {
-  background: color-mix(in srgb, var(--blue) 14%, var(--bg));
+  padding: 2.5px 8px;
+  border-radius: 7px;
+  font-size: .68rem;
+  font-weight: 750;
+  margin-right: 0;
+  background: color-mix(in srgb, var(--blue) 13%, var(--card));
   color: var(--blue);
-  border: 1px solid color-mix(in srgb, var(--blue) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, transparent);
 }
 .afc-availability.is-parallel {
   border-color: color-mix(in srgb, var(--blue) 42%, var(--border));
@@ -13833,18 +13841,26 @@ function showApptDayPanel(dateStr) {
         + ' WhatsApp</button>';
     }
 
-    var uTagCard = _shortUnitBadge(a.unit);
-    var uBadgeCard = a.unit ? '<span class="appt-unit-pill">' + escapeHTML(a.unit) + '</span>' : '';
+    var rawProc = (a.proc && String(a.proc).trim() !== String(nombre || '').trim()) ? String(a.proc).trim() : '';
+    var procParts = [rawProc, a.notes ? String(a.notes).trim() : ''].filter(Boolean);
+    var procHtml = procParts.length ? '<div class="appt-day-proc">' + escapeHTML(procParts.join(' · ')) + '</div>' : '';
+    var uBadgeCard = a.unit ? '<span class="appt-unit-pill">🪑 ' + escapeHTML(a.unit) + '</span>' : '';
+    var docBadgeCard = a.doctorName ? '<span class="appt-day-doctor">👨‍⚕️ ' + escapeHTML(a.doctorName) + '</span>' : '';
+    var metaRowHtml = (uBadgeCard || docBadgeCard) ? '<div class="appt-day-meta">' + uBadgeCard + docBadgeCard + '</div>' : '';
+    var displayPatName = escapeHTML(nombre || a.calendarName || a.proc || 'Sin paciente');
+    var nameHtml = p
+      ? '<div class="appt-day-name" style="cursor:pointer" onclick="showDetail(' + p.id + ')" title="Abrir expediente">' + displayPatName + '</div>'
+      : '<div class="appt-day-name">' + displayPatName + '</div>';
+
     return '<div class="appt-day-card" style="--appt-status-color:'+apptColor+'">'
-      + '<div class="appt-day-card-head">'
-      +   '<span class="appt-day-time">'+timeLabel+'</span>'
-      +   '<div class="appt-day-info">'
-      +     '<div class="appt-day-name">'+(nombre||a.calendarName||a.proc||'Sin paciente')+'</div>'
-      +     '<div class="appt-day-proc">'+proc+'</div>'
-      +     '<div class="appt-day-meta">' + uBadgeCard + '<span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
-      +       (a.doctorName?'<span class="appt-day-doctor">👨‍⚕️ '+a.doctorName.split(' ').slice(0,2).join(' ')+'</span>':'')
-      +     '</div>'
-      +   '</div>'
+      + '<div class="appt-day-top">'
+      +   '<span class="appt-day-time">🕐 '+timeLabel+'</span>'
+      +   '<span class="appt-day-status">'+statusIcon+' '+statusText+'</span>'
+      + '</div>'
+      + '<div class="appt-day-info">'
+      +   nameHtml
+      +   procHtml
+      +   metaRowHtml
       + '</div>'
       + '<div class="appt-day-actions">'+waBtnHtml+doneBtnHtml+cancelBtnHtml+editBtnHtml+delBtnHtml+'</div>'
       + '</div>';
