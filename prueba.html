@@ -8804,9 +8804,10 @@ html.dark .lab-st-ready { color: #34d399; }
             </div>
 
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px">
-              <button type="button" class="btn btn-primary" onclick="emitFreePrescription(true)" style="padding:10px 18px;border-radius:10px;font-weight:750">🖨️ Imprimir / Descargar PDF</button>
+              <button type="button" class="btn btn-primary" onclick="emitFreePrescription(true)" style="padding:10px 18px;border-radius:10px;font-weight:750">🖨️ Imprimir / PDF</button>
+              <button type="button" class="btn btn-ghost" onclick="openSignatureForFreeRx()" style="padding:10px 15px;border-radius:10px;font-weight:750;border-color:color-mix(in srgb,var(--blue) 40%,var(--border-med));color:var(--blue)">✍️ Firmar recibido y PDF</button>
               <button type="button" class="btn btn-success" onclick="sendFreePrescriptionWhatsApp()" style="padding:10px 15px;border-radius:10px;font-weight:700">💬 Enviar por WhatsApp</button>
-              <button type="button" class="btn btn-ghost" onclick="emitFreePrescription(false)" style="padding:10px 14px;border-radius:10px">💾 Solo guardar en expediente</button>
+              <button type="button" class="btn btn-ghost" onclick="emitFreePrescription(false)" style="padding:10px 14px;border-radius:10px">💾 Guardar en expediente</button>
               <button type="button" class="btn btn-ghost btn-sm" onclick="clearFreePrescription()" style="margin-left:auto">Limpiar</button>
             </div>
           </div>
@@ -9187,6 +9188,18 @@ html.dark .lab-st-ready { color: #34d399; }
 
     <!-- INDICACIONES POSTOPERATORIAS PAGE -->
     <div id="ind-page" class="page">
+      <div class="card" style="margin-bottom:14px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px">
+          <span style="font-size:1.2rem">📄</span>
+          <div style="flex:1">
+            <div style="font-size:.73rem;font-weight:750;color:var(--ink)">Vincular indicaciones al expediente del paciente</div>
+            <div style="font-size:.69rem;color:var(--ink-3)">Al firmar, imprimir o enviar por WhatsApp quedará respaldado automáticamente en su expediente clínico.</div>
+          </div>
+        </div>
+        <select id="ind-patient-select" style="min-width:240px;max-width:100%;padding:8px 12px;border:1px solid var(--border-med);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.82rem">
+          <option value="">— Formato general (sin paciente) —</option>
+        </select>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="ind-filter-row">
         <button class="btn btn-primary btn-sm ind-cat-btn" data-cat="all"         onclick="indFilter('all',this)">Todas</button>
         <button class="btn btn-ghost  btn-sm ind-cat-btn" data-cat="extraccion"   onclick="indFilter('extraccion',this)">Extracción</button>
@@ -9693,6 +9706,38 @@ html.dark .lab-st-ready { color: #34d399; }
         <div class="card-title">💰 Presupuestos generados</div>
         <div id="patient-budget-history" style="font-size:.8rem;color:var(--ink-3)">
           Selecciona un paciente para ver sus presupuestos.
+        </div>
+      </div>
+
+      <!-- RESPALDO MÉDICO-LEGAL Y DOCUMENTOS DEL EXPEDIENTE -->
+      <div class="card" id="patient-legal-vault-card" style="margin-top:14px;border:1px solid color-mix(in srgb,var(--blue) 24%,var(--border-med))">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span>🛡️ Respaldo médico-legal, firmas y recetas del expediente</span>
+            <span id="legal-vault-count" style="font-size:.68rem;font-weight:800;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--blue) 12%,var(--bg));color:var(--blue)">0 registros</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" class="btn btn-primary btn-xs" onclick="openConsentForCurrentPatient()">✍️ Firmar consentimiento</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="openFreeRxForPatient(curId)">💊 Nueva receta</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="openIndicationsForCurrentPatient()">📄 Indicaciones</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="openJustificanteForPatient(curId)">🏥 Justificante</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="openSignatureForHC()">✍️ Firmar H. Clínica</button>
+          </div>
+        </div>
+        <div style="font-size:.73rem;color:var(--ink-3);margin-bottom:10px;line-height:1.45">
+          Aquí se conserva automáticamente una copia inmutable de cada <strong>consentimiento firmado, receta médica, indicación postoperatoria, justificante, orden de radiografía y firma de historia clínica</strong> para protección legal tuya y del paciente.
+        </div>
+        <div id="legal-vault-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="rx-cat-chip active" onclick="setLegalVaultFilter('all',this)">Todos</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('signed',this)">✍️ Firmados</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('ci',this)">📋 Consentimientos</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('rx',this)">💊 Recetas</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('ind',this)">📄 Indicaciones</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('just',this)">🏥 Justificantes</button>
+          <button type="button" class="rx-cat-chip" onclick="setLegalVaultFilter('rad',this)">🩻 Radiografías</button>
+        </div>
+        <div id="patient-legal-vault" style="font-size:.8rem;color:var(--ink-3)">
+          Selecciona un paciente para ver su respaldo documental.
         </div>
       </div>
     </div>
@@ -10700,16 +10745,35 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
     if (Array.isArray(remotePatient.customPrescriptions) || Array.isArray(localPatient.customPrescriptions)) {
       var rxMap = new Map();
       (remotePatient.customPrescriptions || []).concat(localPatient.customPrescriptions || []).forEach(function(rxItem) {
-        if (rxItem && rxItem.id) rxMap.set(rxItem.id, rxItem);
+        if (!rxItem || !rxItem.id) return;
+        var prev = rxMap.get(rxItem.id);
+        if (!prev || (rxItem._updatedAt || rxItem.createdAt || 0) >= (prev._updatedAt || prev.createdAt || 0)) {
+          rxMap.set(rxItem.id, rxItem);
+        }
       });
       selected.customPrescriptions = Array.from(rxMap.values()).sort(function(a,b){return (a.createdAt||0) - (b.createdAt||0);});
     }
     if (Array.isArray(remotePatient.signedConsents) || Array.isArray(localPatient.signedConsents)) {
       var sigMap = new Map();
       (remotePatient.signedConsents || []).concat(localPatient.signedConsents || []).forEach(function(sc) {
-        if (sc && sc.id) sigMap.set(sc.id, sc);
+        if (!sc || !sc.id) return;
+        var prev = sigMap.get(sc.id);
+        if (!prev || (sc._updatedAt || sc.signedAt || 0) >= (prev._updatedAt || prev.signedAt || 0)) {
+          sigMap.set(sc.id, sc);
+        }
       });
       selected.signedConsents = Array.from(sigMap.values()).sort(function(a,b){return (a.signedAt||0) - (b.signedAt||0);});
+    }
+    if (Array.isArray(remotePatient.deliveredIndications) || Array.isArray(localPatient.deliveredIndications)) {
+      var indMap = new Map();
+      (remotePatient.deliveredIndications || []).concat(localPatient.deliveredIndications || []).forEach(function(di) {
+        if (!di || !di.id) return;
+        var prev = indMap.get(di.id);
+        if (!prev || (di._updatedAt || di.createdAt || 0) >= (prev._updatedAt || prev.createdAt || 0)) {
+          indMap.set(di.id, di);
+        }
+      });
+      selected.deliveredIndications = Array.from(indMap.values()).sort(function(a,b){return (a.createdAt||0) - (b.createdAt||0);});
     }
     if (Array.isArray(remotePatient.medicalCertificates) || Array.isArray(localPatient.medicalCertificates)) {
       var certMap = new Map();
@@ -10881,6 +10945,7 @@ function goPage(id, el) {
   }
   if (id === 'rad-page') refreshRadiologyPage(fromPatient ? String(curId) : '');
   if (id === 'ci-page' && typeof initCIPage === 'function') initCIPage(fromPatient ? String(curId) : '');
+  if (id === 'ind-page' && typeof initIndPage === 'function') initIndPage(fromPatient ? String(curId) : '');
   if (id === 'just-page' && typeof initJustificantesPage === 'function') initJustificantesPage(fromPatient ? String(curId) : '');
   if (id === 'lab-page' && typeof initLabPage === 'function') initLabPage(fromPatient ? String(curId) : '');
   if (id === 'inv-page' && typeof renderInventoryPage === 'function') renderInventoryPage();
@@ -12160,6 +12225,7 @@ function refreshPatientPlanning(patient) {
   renderTxp(patient);
   renderPayments(patient);
   renderPatientBudgetInDetail(patient.id);
+  if (typeof renderPatientLegalVault === 'function') renderPatientLegalVault(patient.id);
 }
 function draftTreatmentTotal(lines) {
   return lines.reduce((total,[,line]) => total + Number(line.price || 0) * Number(line.qty || 1),0);
@@ -15149,6 +15215,7 @@ function renderDetail(id) {
   renderPayments(p);
   renderTxp(p);
   renderPatientBudgetInDetail(p.id);
+  if (typeof renderPatientLegalVault === 'function') renderPatientLegalVault(p.id);
   populateTxpSelect();
   if (typeof renderPatientModulesBar === 'function') renderPatientModulesBar(p);
 }
@@ -17369,6 +17436,9 @@ function printHistoriaClinica(sigOverride) {
     // CAMPOS PERSONALIZADOS
     + customPrintHTML
 
+    // RESPALDO MÉDICO-LEGAL EN EXPEDIENTE
+    + (typeof buildLegalVaultPrintSectionHTML === 'function' ? buildLegalVaultPrintSectionHTML(p) : '')
+
     // FIRMAS
     + (function(){
         var hcSig = sigOverride || p.hcSignature || null;
@@ -17400,7 +17470,7 @@ function printHistoriaClinica(sigOverride) {
 }
 
 function ciPrint(id, patientId, sigData) {
-  var ci = _getCI(id);
+  var ci = (sigData && sigData.snapshot) ? sigData.snapshot : _getCI(id);
   if (!ci) return;
   if (!patientId) {
     var selEl = document.getElementById('ci-patient-select');
@@ -17409,6 +17479,10 @@ function ciPrint(id, patientId, sigData) {
   // Get patient data if provided
   var pat = null;
   if (patientId) pat = db.patients.find(function(x){ return x.id == patientId; });
+  // Si se imprime en blanco con un paciente seleccionado, registrar también constancia de emisión si no venía de historial
+  if (pat && !sigData && typeof recordUnsignedConsentPrint === 'function') {
+    sigData = recordUnsignedConsentPrint(pat, ci);
+  }
   // Clinic data
   var cn   = cfg.name        || 'Dr. ___________________________';
   var csub = cfg.sub         || 'Cirujano Dentista';
@@ -17475,8 +17549,8 @@ function ciPrint(id, patientId, sigData) {
     +       (ssa ? '<div class="clinic-data">Registro SSA/COFEPRIS: '+ssa+'</div>' : '')
     +     '</div>'
     +     '<div style="text-align:right;font-size:9.5px;line-height:1.7">'
-    +       '<strong>Fecha:</strong> '+today+'<br>'
-    +       '<strong>Folio:</strong> CI-'+Date.now().toString().slice(-6)+'<br>'
+    +       '<strong>Fecha:</strong> '+((sigData&&sigData.signedDate)||today)+'<br>'
+    +       '<strong>Folio:</strong> '+((sigData&&sigData.folio)||('CI-'+Date.now().toString().slice(-6)))+'<br>'
     +       '<strong>Exp.:</strong> #'+patId
     +     '</div>'
     +   '</div>'
@@ -19061,24 +19135,38 @@ function renderIndGrid() {
       + '<div class="ind-body">'+seccionesHtml+'</div>'
       + '<div class="ind-footer">'
       +   '<div class="ind-actions-row">'
-      +     '<button class="ind-print-btn" onclick="indPrint(\''+ind.id+'\')">🖨️ Imprimir</button>'
-      +     '<button class="ind-edit-btn" onclick="editInd(\''+ind.id+'\')">✏️ Editar</button>'
+      +     '<button class="ind-print-btn" onclick="openSignatureForInd(\''+ind.id+'\')">✍️ Firmar e imprimir</button>'
+      +     '<button class="ind-edit-btn" onclick="indPrint(\''+ind.id+'\')" title="Imprimir formato directo">🖨️</button>'
+      +     '<button class="ind-edit-btn" onclick="editInd(\''+ind.id+'\')" title="Editar plantilla">✏️</button>'
       +   '</div>'
       +   '<button class="ind-wa-btn" onclick="indWA(\''+ind.id+'\')">💬 Enviar por WhatsApp</button>'
       + '</div>'
       + '</div>';
   }).join('');
+  if (typeof refreshIndPatientBar === 'function') refreshIndPatientBar();
 }
 
 // ── Imprimir indicaciones ────────────────────────────────────
-function indPrint(id) {
-  var ind = _getInd(id);
+function indPrint(id, patientId, sigData) {
+  var ind = (sigData && sigData.snapshot) ? sigData.snapshot : _getInd(id);
   if (!ind) return;
-  var clinicName = (typeof cfg !== 'undefined') ? cfg.name  : 'Consultorio Dental';
+  if (!patientId) {
+    var sel = document.getElementById('ind-patient-select');
+    if (sel && sel.value) patientId = sel.value;
+  }
+  var pat = patientId ? (db.patients || []).find(function(x){ return String(x.id) === String(patientId); }) : null;
+  if (pat && !sigData && typeof recordDeliveredIndication === 'function') {
+    sigData = recordDeliveredIndication(pat, ind, 'Impreso', null);
+  }
+  var clinicName = (sigData && sigData.doctorName) || ((typeof cfg !== 'undefined') ? cfg.name : 'Consultorio Dental');
   var clinicSub  = (typeof cfg !== 'undefined') ? cfg.sub   : '';
-  var clinicCity = (typeof cfg !== 'undefined') ? cfg.city  : '';
-  var clinicLogo = (typeof cfg !== 'undefined') ? cfg.logo  : '🦷';
-  var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  var clinicCity = (typeof cfg !== 'undefined') ? (cfg.telefono ? cfg.telefono + (cfg.city ? ' · ' + cfg.city : '') : cfg.city) : '';
+  var clinicLogo = (typeof _logoHTML === 'function') ? _logoHTML(40) : ((typeof cfg !== 'undefined') ? cfg.logo : '🦷');
+  var today = (sigData && sigData.signedDate) || new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  var patNameStr = pat ? escapeHTML(pat.name) : ((sigData && sigData.patientName) ? escapeHTML(sigData.patientName) : '_________________________');
+  var patSigHtml = (sigData && sigData.svgPath)
+    ? '<div style="height:44px;display:flex;align-items:flex-end;justify-content:center"><svg viewBox="0 0 520 170" style="height:42px;width:auto;max-width:190px;display:block"><path d="'+String(sigData.svgPath).replace(/"/g,'')+'" fill="none" stroke="#0b132b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div style="font-size:10px;color:#111;font-weight:700">'+escapeHTML(sigData.signerName || (pat?pat.name:''))+'</div>'
+    : '<div style="margin-top:36px">___________________________________</div>';
 
   var seccionesHtml = ind.secciones.map(function(sec){
     var items = sec.items.map(function(it){ return '<li>'+escapeHTML(it)+'</li>'; }).join('');
@@ -19120,15 +19208,15 @@ function indPrint(id) {
     + '</div>'
     + '<div class="title-box"><h1>'+escapeHTML(ind.title)+'</h1><p>'+ind.subtitle+'</p></div>'
     + '<div class="patient-row">'
-    +   '<div class="pf">Paciente<strong>_________________________</strong></div>'
-    +   '<div class="pf">Fecha del procedimiento<strong>_________________________</strong></div>'
+    +   '<div class="pf">Paciente<strong>'+patNameStr+'</strong></div>'
+    +   '<div class="pf">Fecha del procedimiento<strong>'+today+'</strong></div>'
     +   '<div class="pf">Doctor<strong>'+clinicName+'</strong></div>'
     + '</div>'
     + seccionesHtml
     + warnHtml
     + '<div class="sign-area">'
-    +   '<div class="sign-box">Firma del paciente / Enterado<div style="margin-top:36px">___________________________________</div></div>'
-    +   '<div class="sign-box">Teléfono del consultorio<div style="margin-top:10px;font-size:.82rem;font-weight:700;color:#0071e3">'+clinicCity+'</div></div>'
+    +   '<div class="sign-box">Firma del paciente / Enterado de indicaciones'+patSigHtml+'</div>'
+    +   '<div class="sign-box">Contacto del consultorio<div style="margin-top:10px;font-size:.82rem;font-weight:700;color:#0071e3">'+(clinicCity || '—')+'</div></div>'
     + '</div>'
     + '<div class="footer"><span>'+clinicName+' · '+clinicSub+'</span><span>'+escapeHTML(ind.title)+' · '+today+'</span></div>'
     + '<\/body><\/html>';
@@ -19143,6 +19231,12 @@ function indPrint(id) {
 function indWA(id) {
   var ind = _getInd(id);
   if (!ind) return;
+  var sel = document.getElementById('ind-patient-select');
+  var patId = sel && sel.value ? sel.value : '';
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  if (pat && typeof recordDeliveredIndication === 'function') {
+    recordDeliveredIndication(pat, ind, 'WhatsApp', null);
+  }
   var clinicName = (typeof cfg !== 'undefined') ? cfg.name : 'el consultorio';
   var nl = '\n';
   var msg = 'Hola! Te comparto las indicaciones de *'+ind.title+'*:' + nl + nl;
@@ -26294,7 +26388,7 @@ function closeRxPrepare() {
   _rxPrepareIdx = -1;
 }
 
-function confirmRxPrint() {
+function confirmRxPrint(withSignature) {
   if (_rxPrepareIdx < 0) return;
   var selected = Array.prototype.slice.call(document.querySelectorAll('.rx-prepare-check:checked'))
     .map(function(input){ return Number(input.value); });
@@ -26304,15 +26398,29 @@ function confirmRxPrint() {
   }
   var idx = _rxPrepareIdx;
   closeRxPrepare();
-  printRx(idx, selected);
+  if (withSignature && typeof openSignatureForVademecumRx === 'function') {
+    openSignatureForVademecumRx(idx, selected);
+    return;
+  }
+  printRx(idx, selected, null);
 }
 
-function printRx(idx, selectedDrugIndexes) {
+function printRx(idx, selectedDrugIndexes, sigData) {
   var rx = _getRx(idx);
   var drugsSource = rx.drugs || rx.meds || [];
   if (Array.isArray(selectedDrugIndexes)) {
     drugsSource = drugsSource.filter(function(_, drugIndex){ return selectedDrugIndexes.indexOf(drugIndex) !== -1; });
   }
+  var rxPatientIdToUse = _rxPatientId;
+  var rxPatient = db.patients.find(function(x){ return x.id == rxPatientIdToUse; });
+  var savedRec = null;
+  if (rxPatient && typeof recordVademecumPrescriptionInVault === 'function') {
+    savedRec = recordVademecumPrescriptionInVault(rxPatient, rx, drugsSource, sigData || null);
+  }
+  var folioTxt = (savedRec && savedRec.folio) ? savedRec.folio : ('RX-' + Date.now().toString().slice(-6));
+  var patSigHtml = (sigData && sigData.svgPath)
+    ? '<div class="sig"><div style="height:38px;display:flex;align-items:flex-end;justify-content:center"><svg viewBox="0 0 520 170" style="height:36px;width:auto;max-width:170px;display:block"><path d="'+String(sigData.svgPath).replace(/"/g,'')+'" fill="none" stroke="#0b132b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><strong>' + rxEsc(sigData.signerName || (rxPatient?rxPatient.name:'')) + '</strong><br>Recibí receta e indicaciones</div>'
+    : '<div class="sig"><div style="margin-bottom:30px"></div>Firma del paciente<br>Recibí conforme</div>';
   var drugsHTML = drugsSource.map(function(d) {
     return '<tr>'
       + '<td style="padding:8px 6px;border-bottom:1px solid #eee;font-weight:600">' + rxEsc(d.name||'') + '</td>'
@@ -26330,10 +26438,6 @@ function printRx(idx, selectedDrugIndexes) {
   var fecha = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
   var logoHtml = _logoHTML(50);
 
-  // Usar exclusivamente el paciente seleccionado en el recetario. Esto evita
-  // imprimir por accidente el último expediente abierto en otra sección.
-  var rxPatientIdToUse = _rxPatientId;
-  var rxPatient = db.patients.find(function(x){ return x.id == rxPatientIdToUse; });
   var rxPatientAge = rxPatient && rxPatient.dob ? calcAge(rxPatient.dob) : null;
   var patientBlock = rxPatient
     ? '<div style="margin-bottom:16px;padding:10px 14px;background:#f8f9fa;border-radius:6px;border-left:3px solid #333">'
@@ -26364,7 +26468,7 @@ function printRx(idx, selectedDrugIndexes) {
     + '<div style="text-align:right;font-size:11px;color:#666">'
     + '<div style="font-size:13px;font-weight:700;margin-bottom:4px">RECETA MÉDICA</div>'
     + '<div>Fecha: '+fecha+'</div>'
-    + '<div>Folio: RX-'+Date.now().toString().slice(-6)+'</div>'
+    + '<div>Folio: '+folioTxt+'</div>'
     + '</div></div>'
     + patientBlock
     + '<div style="font-size:14px;font-weight:700;margin-bottom:14px;text-align:center;letter-spacing:.03em">☤ ' + rxEsc(rx.title) + '</div>'
@@ -26373,9 +26477,9 @@ function printRx(idx, selectedDrugIndexes) {
     + indsHTML
     + '<div class="sig-box">'
     + '<div class="sig"><div style="margin-bottom:30px"></div>' + (cfg.name||'Dr.') + '<br>'
-    + (cfg.specialty||'Cirujano Dentista') + '<br>'
+    + (cfg.specialty||cfg.sub||'Cirujano Dentista') + '<br>'
     + (cfg.cedula ? 'Céd. Prof. '+cfg.cedula : '') + '</div>'
-    + '<div class="sig"><div style="margin-bottom:30px"></div>Firma del paciente<br>Recibí conforme</div>'
+    + patSigHtml
     + '</div>'
     + '</body></html>';
 
@@ -27654,7 +27758,10 @@ function printCustomPrescription(rec) {
     + '<div class="rp-header">☤ Rp.</div>'
     + '<div class="rp-content">' + e(rec.rpText || '') + '</div>'
     + (rec.notes ? '<div class="ind-box"><strong>Indicaciones generales:</strong>\n' + e(rec.notes) + '</div>' : '')
-    + '<footer data-clinic-contact-strip="1"><div style="font-size:10px;color:#64748b">' + (contactLine || '') + '</div>'
+    + '<footer data-clinic-contact-strip="1" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap"><div style="font-size:10px;color:#64748b;flex:1;min-width:180px">' + (contactLine || '') + '</div>'
+    + ((rec.sigData && rec.sigData.svgPath)
+        ? '<div class="sig-line" style="min-width:170px"><div style="height:36px;display:flex;align-items:flex-end;justify-content:center"><svg viewBox="0 0 520 170" style="height:34px;width:auto;max-width:155px;display:block"><path d="' + String(rec.sigData.svgPath).replace(/"/g, '') + '" fill="none" stroke="#0b132b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><strong>' + e(rec.sigData.signerName || rec.patientName || '') + '</strong><br>Recibí receta e indicaciones</div>'
+        : '')
     + '<div class="sig-line"><strong>' + e(rec.doctor || '') + '</strong><br>' + e(rec.specialty || 'Cirujano Dentista') + (rec.license ? ' · Céd. ' + e(rec.license) : '') + '</div></footer>'
     + '</body></html>';
 
@@ -27669,7 +27776,26 @@ function sendFreePrescriptionWhatsApp() {
     showToast('⚠️ Completa el nombre del paciente y la prescripción (Rp.) primero', 'orange');
     return;
   }
-  var patient = _rxPatientId ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); }) : null;
+  var patient = _rxPatientId ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); }) : (db.patients || []).find(function(x){ return String(x.name || '').trim().toLowerCase() === d.patientName.toLowerCase(); });
+  if (patient) {
+    if (!Array.isArray(patient.customPrescriptions)) patient.customPrescriptions = [];
+    var recentSame = patient.customPrescriptions.some(function(r){ return r.rpText === d.rpText && (Date.now() - (r.createdAt || 0)) < 120000; });
+    if (!recentSame) {
+      var nowWa = Date.now();
+      var uidWa = String(nowWa).slice(-6);
+      patient.customPrescriptions.push(Object.assign({}, d, {
+        id: 'rxfree-' + nowWa + '-' + uidWa,
+        folio: 'RX-' + new Date().getFullYear() + '-' + uidWa,
+        hcNumber: patient.hcNumber || '',
+        deliveryChannel: 'WhatsApp',
+        createdAt: nowWa,
+        _updatedAt: nowWa
+      }));
+      patient._updatedAt = nowWa;
+      saveDB();
+      if (typeof renderFreeRxHistory === 'function') renderFreeRxHistory(patient);
+    }
+  }
   var rawPhone = patient && patient.phone ? String(patient.phone).replace(/\D/g, '') : '';
   var cc = String(cfg.countryCode || '52').replace(/\D/g, '') || '52';
   var fullPhone = rawPhone ? (rawPhone.length === 10 ? cc + rawPhone : rawPhone) : '';
@@ -30859,8 +30985,9 @@ window.addEventListener('resize', function() {
     </div>
     <div style="padding:9px 11px;border-radius:9px;background:var(--orange-bg);border:1px solid rgba(255,149,0,.25);font-size:.7rem;line-height:1.45;color:var(--ink-2);margin-bottom:12px">Selecciona únicamente los medicamentos indicados para este paciente. Las opciones de una tarjeta pueden ser alternativas y no deben imprimirse todas automáticamente.</div>
     <div id="rx-prepare-list" style="display:flex;flex-direction:column;gap:8px"></div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-primary" onclick="confirmRxPrint()" style="flex:1;justify-content:center;border-radius:var(--r-sm)">🖨️ Imprimir selección</button>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="confirmRxPrint(false)" style="flex:1;justify-content:center;border-radius:var(--r-sm)">🖨️ Imprimir y guardar en expediente</button>
+      <button class="btn btn-ghost" onclick="confirmRxPrint(true)" style="flex:1;justify-content:center;border-radius:var(--r-sm);border-color:color-mix(in srgb,var(--blue) 40%,var(--border-med));color:var(--blue)">✍️ Firmar recibido e imprimir</button>
       <button class="btn btn-ghost" onclick="closeRxPrepare()" style="border-radius:var(--r-sm)">Cancelar</button>
     </div>
   </div>
@@ -32211,11 +32338,18 @@ function closeSignaturePad() {
 function skipSignatureAndPrint() {
   var patId = document.getElementById('sig-patient-sel') ? document.getElementById('sig-patient-sel').value : '';
   var ciId = _sigCiId;
+  var mode = _sigMode;
   closeSignaturePad();
-  if (_sigMode === 'ci' && ciId) {
+  if (mode === 'ci' && ciId) {
     ciPrint(ciId, patId, null);
-  } else if (_sigMode === 'hc') {
+  } else if (mode === 'hc') {
     printHistoriaClinica(null);
+  } else if (mode === 'ind' && ciId) {
+    indPrint(ciId, patId, null);
+  } else if (mode === 'rx-free') {
+    emitFreePrescription(true);
+  } else if (mode === 'rx-vad' && _sigPendingVadRx) {
+    printRx(_sigPendingVadRx.idx, _sigPendingVadRx.selected, null);
   }
 }
 
@@ -32225,18 +32359,31 @@ function confirmSignatureAndPrint() {
     showToast('✍️ Dibuja primero la firma en el recuadro blanco (o usa Imprimir en blanco)', 'red');
     return;
   }
-  var patId = document.getElementById('sig-patient-sel') ? document.getElementById('sig-patient-sel').value : '';
+  var patSelEl = document.getElementById('sig-patient-sel');
+  var patId = patSelEl ? patSelEl.value : '';
   var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+
+  if (!pat && (db.patients || []).length > 0 && _sigMode !== 'hc') {
+    if (!confirm('⚠️ No seleccionaste ningún paciente en "Paciente vinculado", por lo que esta firma solo se imprimirá pero NO quedará respaldada en un expediente.\n\n¿Deseas continuar sin vincular expediente? (Pulsa Cancelar para elegir al paciente arriba).')) {
+      if (patSelEl) patSelEl.focus();
+      return;
+    }
+  }
+
   var signerName = (document.getElementById('sig-signer-name').value || '').trim() || (pat ? pat.name : '');
   var repName = (document.getElementById('sig-rep-name').value || '').trim();
   var now = Date.now();
   var signedDate = new Date(now).toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  var docName = (_activeDoctor && _activeDoctor.name) || cfg.name || '';
+  var docCed = (_activeDoctor && _activeDoctor.cedula) || cfg.cedula || '';
 
   var sigPayload = {
     id: 'sig_' + now + '_' + Math.random().toString(36).slice(2, 6),
     svgPath: svgPath,
     signerName: signerName,
     repName: repName,
+    doctorName: docName,
+    cedula: docCed,
     signedAt: now,
     signedDate: signedDate,
     _updatedAt: now
@@ -32247,30 +32394,74 @@ function confirmSignatureAndPrint() {
       pat.hcSignature = sigPayload;
       pat._updatedAt = now;
       saveDB();
-      showToast('✅ Firma guardada en la Historia Clínica', 'green');
+      if (typeof renderPatientLegalVault === 'function' && String(curId) === String(pat.id)) renderPatientLegalVault(pat.id);
+      showToast('✅ Firma guardada en la Historia Clínica de ' + pat.name, 'green');
     }
     closeSignaturePad();
     printHistoriaClinica(sigPayload);
     return;
   }
 
+  // Firmar un documento ya existente en el expediente (retroactivo / en sillón)
+  if (_sigMode === 'sign-existing' && _sigExistingTarget && pat) {
+    _applySignatureToExistingDoc(pat, _sigExistingTarget, sigPayload);
+    closeSignaturePad();
+    return;
+  }
+
+  if (_sigMode === 'ind') {
+    var indObj = typeof _getInd === 'function' ? _getInd(_sigCiId) : null;
+    var indId = _sigCiId;
+    var indRec = sigPayload;
+    if (pat && indObj) {
+      indRec = recordDeliveredIndication(pat, indObj, 'Firmado en pantalla', sigPayload);
+      showToast('✅ Indicaciones firmadas y respaldadas en el expediente de ' + pat.name, 'green');
+    }
+    closeSignaturePad();
+    indPrint(indId, patId, indRec);
+    return;
+  }
+
+  if (_sigMode === 'rx-free') {
+    closeSignaturePad();
+    _emitFreePrescriptionWithSignature(pat, sigPayload);
+    return;
+  }
+
+  if (_sigMode === 'rx-vad' && _sigPendingVadRx) {
+    var vIdx = _sigPendingVadRx.idx;
+    var vSel = _sigPendingVadRx.selected;
+    _sigPendingVadRx = null;
+    closeSignaturePad();
+    if (pat) _rxPatientId = pat.id;
+    printRx(vIdx, vSel, sigPayload);
+    if (pat) showToast('✅ Receta firmada y respaldada en el expediente de ' + pat.name, 'green');
+    return;
+  }
+
   var ci = typeof _getCI === 'function' ? _getCI(_sigCiId) : null;
   var ciId = _sigCiId;
+  var folioCI = 'CI-' + String(now).slice(-6);
+  var fullConsentRecord = Object.assign({
+    folio: folioCI,
+    ciId: ci ? ci.id : ciId,
+    ciTitle: ci ? ci.title : 'Consentimiento Informado',
+    snapshot: ci ? JSON.parse(JSON.stringify(ci)) : null
+  }, sigPayload);
+
   if (pat && ci) {
     if (!Array.isArray(pat.signedConsents)) pat.signedConsents = [];
-    pat.signedConsents.push(Object.assign({
-      ciId: ci.id,
-      ciTitle: ci.title
-    }, sigPayload));
+    pat.signedConsents.push(fullConsentRecord);
     pat._updatedAt = now;
     saveDB();
     var ciSel = document.getElementById('ci-patient-select');
     if (ciSel) ciSel.value = String(pat.id);
     renderCISignedHistory();
-    showToast('✅ Consentimiento firmado y guardado en el expediente de ' + pat.name, 'green');
+    if (typeof renderPatientLegalVault === 'function' && String(curId) === String(pat.id)) renderPatientLegalVault(pat.id);
+    showToast('✅ Consentimiento firmado y respaldado en el expediente de ' + pat.name, 'green');
   }
   closeSignaturePad();
-  ciPrint(ciId, patId, sigPayload);
+  ciPrint(ciId, patId, fullConsentRecord);
 }
 
 function reprintSignedConsent(patId, sigId) {
@@ -33340,6 +33531,623 @@ function exportBeforeAfterImage() {
   } catch (err) {
     showToast('No se pudo generar la descarga de esta foto', 'red');
   }
+}
+
+// ── 9. BÓVEDA MÉDICO-LEGAL EN EL EXPEDIENTE DEL PACIENTE ─────────────────
+var _sigPendingVadRx = null;
+var _sigExistingTarget = null;
+var _legalVaultFilter = 'all';
+
+function initIndPage(preferredPatientId) {
+  _populatePatientSelectEl('ind-patient-select', preferredPatientId, '— Formato general (sin paciente) —');
+}
+
+function refreshIndPatientBar() {
+  var sel = document.getElementById('ind-patient-select');
+  if (sel && sel.options.length <= 1 && db && Array.isArray(db.patients) && db.patients.length) {
+    _populatePatientSelectEl('ind-patient-select', sel.value, '— Formato general (sin paciente) —');
+  }
+}
+
+function openConsentForCurrentPatient() {
+  if (!curId) return;
+  // Selector rápido de consentimiento sin perder el vínculo con el paciente actual
+  var existing = document.getElementById('quick-ci-picker-overlay');
+  if (!existing) {
+    existing = document.createElement('div');
+    existing.id = 'quick-ci-picker-overlay';
+    existing.style.cssText = 'display:none;position:fixed;inset:0;z-index:9550;background:rgba(8,12,22,.68);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px';
+    existing.onclick = function(ev){ if (ev.target === existing) existing.style.display = 'none'; };
+    document.body.appendChild(existing);
+  }
+  var pat = (db.patients || []).find(function(x){ return x.id == curId; });
+  var list = (typeof CI_DB !== 'undefined' && Array.isArray(CI_DB)) ? CI_DB : [];
+  existing.innerHTML = '<div style="width:min(560px,96vw);max-height:86vh;overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--border-med);border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.45)">'
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">'
+    +   '<div><div style="font-size:.66rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue)">Expediente de ' + escapeHTML(pat ? pat.name : '') + '</div>'
+    +   '<h3 style="margin:2px 0 0;font-size:1.05rem;font-weight:800">📋 Elegir Consentimiento Informado para firmar</h3></div>'
+    +   '<button type="button" onclick="document.getElementById(\'quick-ci-picker-overlay\').style.display=\'none\'" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--ink-3);cursor:pointer">✕</button>'
+    + '</div>'
+    + '<div style="display:grid;gap:7px;margin-bottom:14px">'
+    + list.map(function(base) {
+        var ci = typeof _getCI === 'function' ? _getCI(base.id) : base;
+        return '<button type="button" onclick="launchConsentSignatureFromExpediente(\'' + ci.id + '\')" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 13px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--ink);cursor:pointer;font:inherit">'
+          + '<span style="font-size:1.25rem;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:' + (ci.iconBg || '#eff6ff') + ';flex-shrink:0">' + (ci.icon || '📋') + '</span>'
+          + '<span style="flex:1;min-width:0"><strong style="display:block;font-size:.83rem">' + escapeHTML(ci.title) + '</strong><span style="font-size:.7rem;color:var(--ink-3)">' + escapeHTML(ci.subtitle || '') + '</span></span>'
+          + '<span style="font-size:.73rem;font-weight:750;color:var(--blue);white-space:nowrap">✍️ Firmar →</span>'
+          + '</button>';
+      }).join('')
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'
+    +   '<span style="font-size:.7rem;color:var(--ink-3)">Quedará guardado con copia íntegra y firma en este expediente.</span>'
+    +   '<button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById(\'quick-ci-picker-overlay\').style.display=\'none\';goPage(\'ci-page\',document.querySelector(\'[onclick*=ci-page]\'));initCIPage(\'' + String(curId) + '\')">Ver y editar plantillas</button>'
+    + '</div></div>';
+  existing.style.display = 'flex';
+}
+
+function launchConsentSignatureFromExpediente(ciId) {
+  var pk = document.getElementById('quick-ci-picker-overlay');
+  if (pk) pk.style.display = 'none';
+  var ciSel = document.getElementById('ci-patient-select');
+  if (ciSel && curId) {
+    _populatePatientSelectEl('ci-patient-select', String(curId), '— Formato general (sin paciente) —');
+  }
+  openSignatureForCI(ciId);
+  if (curId) {
+    var sigSel = document.getElementById('sig-patient-sel');
+    if (sigSel) {
+      sigSel.value = String(curId);
+      onSigPatientModalChange(String(curId));
+    }
+  }
+}
+
+function openIndicationsForCurrentPatient() {
+  if (!curId) return;
+  goPage('ind-page', document.querySelector('[onclick*="ind-page"]'));
+  initIndPage(String(curId));
+}
+
+function openSignatureForInd(indId) {
+  var ind = typeof _getInd === 'function' ? _getInd(indId) : null;
+  if (!ind) return;
+  _sigMode = 'ind';
+  _sigCiId = indId;
+  var pageSel = document.getElementById('ind-patient-select');
+  var patId = (pageSel && pageSel.value) ? pageSel.value : (document.getElementById('detail-page').classList.contains('active') ? String(curId || '') : '');
+  _populatePatientSelectEl('sig-patient-sel', patId, '— Seleccionar paciente —');
+  document.getElementById('sig-patient-sel').disabled = false;
+
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  document.getElementById('sig-pad-title').textContent = '✍️ Enterado de Indicaciones — ' + (ind.title || '');
+  document.getElementById('sig-pad-sub').textContent = 'El paciente firma de recibido y enterado de los cuidados postoperatorios. Quedará respaldado en su expediente.';
+  document.getElementById('sig-signer-name').value = pat ? (pat.repLegal || pat.name || '') : '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = '';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function openSignatureForFreeRx() {
+  if (typeof _readFreeRxDraft !== 'function') return;
+  var d = _readFreeRxDraft();
+  if (!d.patientName) {
+    showToast('⚠️ Escribe o selecciona primero el nombre del paciente', 'orange');
+    return;
+  }
+  if (!d.rpText) {
+    showToast('⚠️ Escribe los medicamentos e indicaciones en el campo Rp.', 'orange');
+    return;
+  }
+  _sigMode = 'rx-free';
+  _sigCiId = '';
+  var patId = _rxPatientId ? String(_rxPatientId) : '';
+  if (!patId) {
+    var matched = (db.patients || []).find(function(x){ return String(x.name || '').trim().toLowerCase() === d.patientName.toLowerCase(); });
+    if (matched) patId = String(matched.id);
+  }
+  _populatePatientSelectEl('sig-patient-sel', patId, '— Seleccionar paciente —');
+  document.getElementById('sig-patient-sel').disabled = false;
+  document.getElementById('sig-pad-title').textContent = '✍️ Recibí Receta Médica e Indicaciones';
+  document.getElementById('sig-pad-sub').textContent = 'La receta completa junto con la firma del paciente se guardará en su expediente y se abrirá para imprimir / PDF.';
+  document.getElementById('sig-signer-name').value = d.patientName || '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = '';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function _emitFreePrescriptionWithSignature(pat, sigPayload) {
+  var d = _readFreeRxDraft();
+  var now = Date.now();
+  var uid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID().slice(0, 8).toUpperCase() : String(now).slice(-6);
+  var targetPat = pat || (_rxPatientId ? (db.patients || []).find(function(x){ return String(x.id) === String(_rxPatientId); }) : null);
+  var rec = Object.assign({}, d, {
+    id: 'rxfree-' + now + '-' + uid,
+    folio: 'RX-' + new Date().getFullYear() + '-' + uid,
+    hcNumber: targetPat && targetPat.hcNumber ? targetPat.hcNumber : '',
+    sigData: sigPayload,
+    createdAt: now,
+    _updatedAt: now
+  });
+  if (targetPat) {
+    if (!Array.isArray(targetPat.customPrescriptions)) targetPat.customPrescriptions = [];
+    targetPat.customPrescriptions.push(rec);
+    targetPat._updatedAt = now;
+    saveDB();
+    if (typeof renderFreeRxHistory === 'function') renderFreeRxHistory(targetPat);
+    if (curId && String(curId) === String(targetPat.id)) {
+      if (typeof renderPatientModulesBar === 'function') renderPatientModulesBar(targetPat);
+      renderPatientLegalVault(targetPat.id);
+    }
+    showToast('✅ Receta firmada y respaldada en el expediente de ' + targetPat.name, 'green');
+  }
+  printCustomPrescription(rec);
+}
+
+function openSignatureForVademecumRx(idx, selectedIndexes) {
+  _sigMode = 'rx-vad';
+  _sigPendingVadRx = { idx: idx, selected: selectedIndexes };
+  var patId = _rxPatientId ? String(_rxPatientId) : '';
+  _populatePatientSelectEl('sig-patient-sel', patId, '— Seleccionar paciente —');
+  document.getElementById('sig-patient-sel').disabled = false;
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var rx = typeof _getRx === 'function' ? _getRx(idx) : null;
+  document.getElementById('sig-pad-title').textContent = '✍️ Recibí Receta — ' + (rx ? rx.title : 'Vademécum');
+  document.getElementById('sig-pad-sub').textContent = 'El paciente firma de recibido conforme. La receta y su firma quedarán respaldadas en su expediente.';
+  document.getElementById('sig-signer-name').value = pat ? (pat.repLegal || pat.name || '') : '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = '';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function recordVademecumPrescriptionInVault(patient, rx, selectedDrugs, sigData) {
+  if (!patient || !rx) return null;
+  var now = Date.now();
+  var uid = String(now).slice(-6);
+  var folio = 'RX-' + new Date().getFullYear() + '-' + uid;
+  var rpLines = (selectedDrugs || []).map(function(d, idx) {
+    return (idx + 1) + '. ' + (d.name || '') + ' — ' + (d.dose || d.posologia || '') + ((d.note || d.notas) ? ' (' + (d.note || d.notas) + ')' : '');
+  }).join('\n');
+  var indLines = (rx.indicaciones || []).map(function(i){ return '• ' + i; }).join('\n');
+  var docInfo = typeof _getPrescriptionDoctorInfo === 'function' ? _getPrescriptionDoctorInfo() : {};
+
+  var rec = {
+    id: 'rxvad-' + now + '-' + uid,
+    kind: 'vademecum',
+    vademecumTitle: rx.title || 'Receta médica',
+    folio: folio,
+    date: new Date(now).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }),
+    clinic: cfg.name || 'Consultorio Dental',
+    doctor: docInfo.doctorName || cfg.name || 'Cirujano Dentista',
+    specialty: docInfo.specialty || cfg.sub || 'Cirujano Dentista',
+    license: docInfo.cedula || cfg.cedula || '',
+    license2: docInfo.cedula2 || cfg.cedula2 || '',
+    institucion: docInfo.institucion || cfg.institucion || '',
+    clinicPhone: (typeof getClinicPhone === 'function' ? getClinicPhone() : cfg.telefono) || '',
+    clinicEmail: (typeof getClinicEmail === 'function' ? getClinicEmail() : cfg.correo) || '',
+    clinicAddress: (typeof getClinicAddress === 'function' ? getClinicAddress() : cfg.direccion) || '',
+    patientId: String(patient.id),
+    patientName: patient.name || '',
+    age: (patient.dob && typeof calcAge === 'function') ? String(calcAge(patient.dob) || '') : '',
+    weight: patient.weightKg ? String(patient.weightKg) : '',
+    allergies: patient.allergies || '',
+    hcNumber: patient.hcNumber || '',
+    diagnosis: rx.title || '',
+    rpText: rpLines,
+    notes: indLines,
+    drugsSnapshot: JSON.parse(JSON.stringify(selectedDrugs || [])),
+    indicacionesSnapshot: JSON.parse(JSON.stringify(rx.indicaciones || [])),
+    format: 'letter',
+    sigData: sigData || null,
+    createdAt: now,
+    _updatedAt: now
+  };
+  if (!Array.isArray(patient.customPrescriptions)) patient.customPrescriptions = [];
+  patient.customPrescriptions.push(rec);
+  patient._updatedAt = now;
+  saveDB();
+  if (typeof renderFreeRxHistory === 'function') renderFreeRxHistory(patient);
+  if (curId && String(curId) === String(patient.id)) {
+    if (typeof renderPatientModulesBar === 'function') renderPatientModulesBar(patient);
+    renderPatientLegalVault(patient.id);
+  }
+  return rec;
+}
+
+function recordUnsignedConsentPrint(pat, ci) {
+  if (!pat || !ci) return null;
+  var now = Date.now();
+  var folio = 'CI-' + String(now).slice(-6);
+  var signedDate = new Date(now).toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  var rec = {
+    id: 'ci_print_' + now + '_' + Math.random().toString(36).slice(2, 5),
+    folio: folio,
+    ciId: ci.id,
+    ciTitle: ci.title,
+    snapshot: JSON.parse(JSON.stringify(ci)),
+    svgPath: '',
+    signerName: pat.repLegal || pat.name || '',
+    repName: '',
+    paperPrint: true,
+    doctorName: (_activeDoctor && _activeDoctor.name) || cfg.name || '',
+    cedula: (_activeDoctor && _activeDoctor.cedula) || cfg.cedula || '',
+    signedAt: now,
+    signedDate: signedDate,
+    _updatedAt: now
+  };
+  if (!Array.isArray(pat.signedConsents)) pat.signedConsents = [];
+  pat.signedConsents.push(rec);
+  pat._updatedAt = now;
+  saveDB();
+  if (typeof renderCISignedHistory === 'function') renderCISignedHistory();
+  if (curId && String(curId) === String(pat.id)) renderPatientLegalVault(pat.id);
+  return rec;
+}
+
+function recordDeliveredIndication(pat, ind, channel, sigPayload) {
+  if (!pat || !ind) return null;
+  var now = Date.now();
+  var folio = 'IND-' + String(now).slice(-6);
+  var dateStr = new Date(now).toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  var rec = {
+    id: 'ind_' + now + '_' + Math.random().toString(36).slice(2, 5),
+    folio: folio,
+    indId: ind.id,
+    title: ind.title,
+    channel: channel || 'Impreso',
+    patientName: pat.name || '',
+    doctorName: (_activeDoctor && _activeDoctor.name) || cfg.name || '',
+    cedula: (_activeDoctor && _activeDoctor.cedula) || cfg.cedula || '',
+    snapshot: JSON.parse(JSON.stringify(ind)),
+    svgPath: sigPayload ? sigPayload.svgPath : '',
+    signerName: sigPayload ? sigPayload.signerName : '',
+    signedDate: sigPayload ? sigPayload.signedDate : dateStr,
+    createdAt: now,
+    _updatedAt: now
+  };
+  if (!Array.isArray(pat.deliveredIndications)) pat.deliveredIndications = [];
+  pat.deliveredIndications.push(rec);
+  pat._updatedAt = now;
+  saveDB();
+  if (curId && String(curId) === String(pat.id)) renderPatientLegalVault(pat.id);
+  return rec;
+}
+
+function setLegalVaultFilter(f, btnEl) {
+  _legalVaultFilter = f;
+  var row = document.getElementById('legal-vault-filters');
+  if (row) {
+    row.querySelectorAll('.rx-cat-chip').forEach(function(b){ b.classList.remove('active'); });
+  }
+  if (btnEl) btnEl.classList.add('active');
+  if (curId) renderPatientLegalVault(curId);
+}
+
+function _collectPatientVaultEntries(p) {
+  var entries = [];
+  if (!p) return entries;
+
+  // 1. Firma de Historia Clínica
+  if (p.hcSignature && p.hcSignature.svgPath) {
+    entries.push({
+      type: 'hc',
+      id: p.hcSignature.id || 'hc_sig',
+      ts: p.hcSignature.signedAt || p.hcSignature._updatedAt || 0,
+      icon: '🗂️',
+      badge: 'Historia Clínica NOM-004',
+      badgeColor: '#0f766e',
+      folio: p.hcNumber || ('HC-' + String(p.id).slice(-4)),
+      date: p.hcSignature.signedDate || '',
+      title: 'Historia Clínica General firmada por el paciente',
+      summary: 'Firmante: ' + (p.hcSignature.signerName || p.name || '') + (p.hcSignature.doctorName ? ' · Atendió: ' + p.hcSignature.doctorName : ''),
+      svgPath: p.hcSignature.svgPath,
+      signerName: p.hcSignature.signerName || p.name || '',
+      canSignLater: false
+    });
+  }
+
+  // 2. Consentimientos Informados (firmados en pantalla o emitidos para firma en papel)
+  (p.signedConsents || []).forEach(function(sc) {
+    var hasSig = !!(sc.svgPath);
+    entries.push({
+      type: 'ci',
+      id: sc.id,
+      ts: sc.signedAt || sc._updatedAt || 0,
+      icon: '📋',
+      badge: hasSig ? 'Consentimiento Firmado' : 'Consentimiento Impreso (Papel)',
+      badgeColor: hasSig ? '#1d4ed8' : '#64748b',
+      folio: sc.folio || 'CI',
+      date: sc.signedDate || '',
+      title: sc.ciTitle || 'Consentimiento Informado',
+      summary: (hasSig ? 'Firmó en pantalla: ' + (sc.signerName || p.name) : 'Impreso para firma autógrafa en expediente físico')
+        + (sc.repName ? ' · Testigo: ' + sc.repName : '')
+        + (sc.doctorName ? ' · Dr(a): ' + sc.doctorName : ''),
+      svgPath: sc.svgPath || '',
+      signerName: sc.signerName || p.name || '',
+      canSignLater: !hasSig
+    });
+  });
+
+  // 3. Recetas Médicas (Vademécum + Recetario Libre + WhatsApp)
+  (p.customPrescriptions || []).forEach(function(rx) {
+    var sig = rx.sigData && rx.sigData.svgPath ? rx.sigData : null;
+    entries.push({
+      type: 'rx',
+      id: rx.id,
+      ts: rx.createdAt || rx._updatedAt || 0,
+      icon: '💊',
+      badge: rx.kind === 'vademecum' ? 'Receta Vademécum' : (rx.deliveryChannel === 'WhatsApp' ? 'Receta (WhatsApp)' : 'Receta Médica'),
+      badgeColor: '#2563eb',
+      folio: rx.folio || 'RX',
+      date: rx.date || '',
+      title: rx.vademecumTitle || rx.diagnosis || 'Prescripción médica odontológica',
+      summary: String(rx.rpText || '').slice(0, 190) + (String(rx.rpText || '').length > 190 ? '…' : ''),
+      doctorLine: (rx.doctor || '') + (rx.license ? ' (Céd. ' + rx.license + ')' : ''),
+      svgPath: sig ? sig.svgPath : '',
+      signerName: sig ? (sig.signerName || p.name) : '',
+      canSignLater: !sig
+    });
+  });
+
+  // 4. Indicaciones Postoperatorias entregadas
+  (p.deliveredIndications || []).forEach(function(di) {
+    var hasSig = !!(di.svgPath);
+    entries.push({
+      type: 'ind',
+      id: di.id,
+      ts: di.createdAt || di._updatedAt || 0,
+      icon: '📄',
+      badge: 'Indicaciones (' + (di.channel || 'Entregadas') + ')',
+      badgeColor: '#059669',
+      folio: di.folio || 'IND',
+      date: di.signedDate || '',
+      title: di.title || 'Indicaciones postoperatorias',
+      summary: hasSig ? ('Paciente firmó de enterado: ' + (di.signerName || p.name)) : ('Entregadas vía ' + (di.channel || 'impresión') + ' a ' + (di.patientName || p.name)),
+      svgPath: di.svgPath || '',
+      signerName: di.signerName || p.name || '',
+      canSignLater: !hasSig
+    });
+  });
+
+  // 5. Justificantes / Constancias médicas
+  (p.medicalCertificates || []).forEach(function(mc) {
+    entries.push({
+      type: 'just',
+      id: mc.id,
+      ts: mc.createdAt || 0,
+      icon: '🏥',
+      badge: 'Constancia / Justificante',
+      badgeColor: '#0d9488',
+      folio: mc.folio || 'JM',
+      date: mc.date || '',
+      title: mc.reason || 'Constancia de asistencia dental',
+      summary: 'Horario: ' + (mc.timeIn || '') + '–' + (mc.timeOut || '') + ' · Reposo: ' + (mc.rest || 'Sin reposo adicional') + ' · Dirigido a: ' + (mc.directedTo || 'A quien corresponda'),
+      svgPath: '',
+      signerName: '',
+      canSignLater: false
+    });
+  });
+
+  // 6. Órdenes de Radiografía
+  (p.radiologyOrders || []).forEach(function(ro) {
+    var studies = Array.isArray(ro.studies) ? ro.studies.join(', ') : (ro.studySummary || 'Estudio radiográfico');
+    entries.push({
+      type: 'rad',
+      id: ro.id,
+      ts: ro.createdAt || 0,
+      icon: '🩻',
+      badge: 'Orden Radiológica',
+      badgeColor: '#086d80',
+      folio: ro.folio || 'RAD',
+      date: ro.date || '',
+      title: studies,
+      summary: (ro.reason ? 'Motivo: ' + ro.reason : '') + (ro.priority ? ' · Prioridad: ' + ro.priority : ''),
+      svgPath: '',
+      signerName: '',
+      canSignLater: false
+    });
+  });
+
+  return entries.sort(function(a, b){ return (b.ts || 0) - (a.ts || 0); });
+}
+
+function renderPatientLegalVault(patientId) {
+  var box = document.getElementById('patient-legal-vault');
+  var countEl = document.getElementById('legal-vault-count');
+  if (!box) return;
+  var p = (db.patients || []).find(function(x){ return String(x.id) === String(patientId); });
+  if (!p) return;
+
+  var allEntries = _collectPatientVaultEntries(p);
+  var signedTotal = allEntries.filter(function(e){ return !!e.svgPath; }).length;
+  if (countEl) {
+    countEl.textContent = allEntries.length + (allEntries.length === 1 ? ' documento' : ' documentos') + (signedTotal ? ' · ' + signedTotal + ' con firma' : '');
+  }
+
+  var filtered = allEntries.filter(function(e) {
+    if (_legalVaultFilter === 'all') return true;
+    if (_legalVaultFilter === 'signed') return !!e.svgPath;
+    return e.type === _legalVaultFilter;
+  });
+
+  if (!filtered.length) {
+    box.innerHTML = '<div style="padding:16px 14px;border-radius:12px;background:var(--bg);border:1px dashed var(--border-med);text-align:center;color:var(--ink-3);font-size:.79rem">'
+      + (allEntries.length
+          ? 'No hay documentos en este filtro.'
+          : 'Aún no hay consentimientos firmados, recetas ni constancias registradas en este expediente. Usa los botones de arriba para emitir y respaldar el primero.')
+      + '</div>';
+    return;
+  }
+
+  box.innerHTML = filtered.map(function(item) {
+    var sigPreview = item.svgPath
+      ? '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:6px 10px;border-radius:9px;background:#ffffff;border:1px solid #cbd5e1;width:fit-content;max-width:100%">'
+          + '<svg viewBox="0 0 520 170" style="height:28px;width:auto;max-width:130px;display:block;flex-shrink:0"><path d="' + String(item.svgPath).replace(/"/g, '') + '" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          + '<div style="font-size:.67rem;line-height:1.3;color:#334155"><strong style="color:#059669;display:block">✓ Firmado en pantalla</strong>' + escapeHTML(item.signerName || '') + '</div>'
+        + '</div>'
+      : '';
+
+    return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
+      +   '<div style="flex:1;min-width:220px">'
+      +     '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px">'
+      +       '<span style="font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,' + item.badgeColor + ' 13%,var(--card));color:' + item.badgeColor + '">' + item.icon + ' ' + escapeHTML(item.badge) + '</span>'
+      +       '<span style="font-size:.7rem;font-weight:700;color:var(--ink-3)">Folio: ' + escapeHTML(item.folio) + '</span>'
+      +       (item.date ? '<span style="font-size:.69rem;color:var(--ink-3)">· ' + escapeHTML(item.date) + '</span>' : '')
+      +     '</div>'
+      +     '<div style="font-size:.84rem;font-weight:800;color:var(--ink);margin-bottom:3px">' + escapeHTML(item.title) + '</div>'
+      +     (item.summary ? '<div style="font-size:.75rem;color:var(--ink-2);white-space:pre-line;line-height:1.45">' + escapeHTML(item.summary) + '</div>' : '')
+      +     (item.doctorLine ? '<div style="font-size:.68rem;color:var(--ink-3);margin-top:3px">👨‍⚕️ ' + escapeHTML(item.doctorLine) + '</div>' : '')
+      +     sigPreview
+      +   '</div>'
+      +   '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0">'
+      +     (item.canSignLater ? '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--blue);border-color:color-mix(in srgb,var(--blue) 35%,var(--border-med))" onclick="signExistingVaultDoc(\'' + p.id + '\',\'' + item.type + '\',\'' + item.id + '\')">✍️ Recabar firma</button>' : '')
+      +     '<button type="button" class="btn btn-ghost btn-xs" onclick="reprintVaultDoc(\'' + p.id + '\',\'' + item.type + '\',\'' + item.id + '\')">🖨️ Ver / PDF</button>'
+      +     (item.type !== 'hc' ? '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--ink-4)" onclick="deleteVaultDoc(\'' + p.id + '\',\'' + item.type + '\',\'' + item.id + '\')" title="Eliminar del respaldo">✕</button>' : '')
+      +   '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function signExistingVaultDoc(patId, docType, docId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat) return;
+  _sigMode = 'sign-existing';
+  _sigExistingTarget = { docType: docType, docId: docId };
+  _populatePatientSelectEl('sig-patient-sel', String(pat.id), '— Paciente —');
+  document.getElementById('sig-patient-sel').disabled = true;
+
+  var labels = { ci:'Consentimiento Informado', rx:'Recibí Receta Médica', ind:'Enterado de Indicaciones' };
+  document.getElementById('sig-pad-title').textContent = '✍️ Firmar ' + (labels[docType] || 'documento') + ' — ' + (pat.name || '');
+  document.getElementById('sig-pad-sub').textContent = 'La firma quedará vinculada permanentemente a este folio dentro del expediente del paciente.';
+  document.getElementById('sig-signer-name').value = pat.repLegal || pat.name || '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = 'none';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function _applySignatureToExistingDoc(pat, target, sigPayload) {
+  var now = Date.now();
+  if (target.docType === 'ci' && Array.isArray(pat.signedConsents)) {
+    var sc = pat.signedConsents.find(function(x){ return String(x.id) === String(target.docId); });
+    if (sc) {
+      sc.svgPath = sigPayload.svgPath;
+      sc.signerName = sigPayload.signerName;
+      sc.repName = sigPayload.repName;
+      sc.signedDate = sigPayload.signedDate;
+      sc.signedAt = now;
+      sc.paperPrint = false;
+      sc._updatedAt = now;
+      pat._updatedAt = now;
+      saveDB();
+      renderPatientLegalVault(pat.id);
+      showToast('✅ Firma agregada al consentimiento y guardada en el expediente', 'green');
+      ciPrint(sc.ciId, pat.id, sc);
+    }
+  } else if (target.docType === 'rx' && Array.isArray(pat.customPrescriptions)) {
+    var rx = pat.customPrescriptions.find(function(x){ return String(x.id) === String(target.docId); });
+    if (rx) {
+      rx.sigData = sigPayload;
+      rx._updatedAt = now;
+      pat._updatedAt = now;
+      saveDB();
+      renderPatientLegalVault(pat.id);
+      showToast('✅ Firma de recibido guardada en la receta del expediente', 'green');
+      printCustomPrescription(rx);
+    }
+  } else if (target.docType === 'ind' && Array.isArray(pat.deliveredIndications)) {
+    var di = pat.deliveredIndications.find(function(x){ return String(x.id) === String(target.docId); });
+    if (di) {
+      di.svgPath = sigPayload.svgPath;
+      di.signerName = sigPayload.signerName;
+      di.signedDate = sigPayload.signedDate;
+      di.channel = 'Firmado en pantalla';
+      di._updatedAt = now;
+      pat._updatedAt = now;
+      saveDB();
+      renderPatientLegalVault(pat.id);
+      showToast('✅ Firma de enterado guardada en las indicaciones del expediente', 'green');
+      indPrint(di.indId, pat.id, di);
+    }
+  }
+  _sigExistingTarget = null;
+}
+
+function reprintVaultDoc(patId, docType, docId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat) return;
+  if (docType === 'hc') {
+    var prevCur = curId;
+    curId = pat.id;
+    printHistoriaClinica(pat.hcSignature || null);
+    curId = prevCur;
+  } else if (docType === 'ci') {
+    reprintSignedConsent(pat.id, docId);
+  } else if (docType === 'rx') {
+    var rx = (pat.customPrescriptions || []).find(function(x){ return String(x.id) === String(docId); });
+    if (rx) printCustomPrescription(rx);
+  } else if (docType === 'ind') {
+    var di = (pat.deliveredIndications || []).find(function(x){ return String(x.id) === String(docId); });
+    if (di) indPrint(di.indId, pat.id, di);
+  } else if (docType === 'just') {
+    reprintJustificante(pat.id, docId);
+  } else if (docType === 'rad' && typeof printSavedRadiologyOrder === 'function') {
+    printSavedRadiologyOrder(pat.id, docId);
+  } else if (docType === 'rad') {
+    var ro = (pat.radiologyOrders || []).find(function(x){ return String(x.id) === String(docId); });
+    if (ro && typeof printRadiologyOrderDocument === 'function') printRadiologyOrderDocument(ro, pat);
+  }
+}
+
+function deleteVaultDoc(patId, docType, docId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat) return;
+  if (!confirm('¿Eliminar este registro documental del expediente del paciente?')) return;
+  var now = Date.now();
+  if (docType === 'ci' && Array.isArray(pat.signedConsents)) {
+    pat.signedConsents = pat.signedConsents.filter(function(x){ return String(x.id) !== String(docId); });
+  } else if (docType === 'rx' && Array.isArray(pat.customPrescriptions)) {
+    pat.customPrescriptions = pat.customPrescriptions.filter(function(x){ return String(x.id) !== String(docId); });
+  } else if (docType === 'ind' && Array.isArray(pat.deliveredIndications)) {
+    pat.deliveredIndications = pat.deliveredIndications.filter(function(x){ return String(x.id) !== String(docId); });
+  } else if (docType === 'just' && Array.isArray(pat.medicalCertificates)) {
+    pat.medicalCertificates = pat.medicalCertificates.filter(function(x){ return String(x.id) !== String(docId); });
+  } else if (docType === 'rad' && Array.isArray(pat.radiologyOrders)) {
+    pat.radiologyOrders = pat.radiologyOrders.filter(function(x){ return String(x.id) !== String(docId); });
+  }
+  pat._updatedAt = now;
+  saveDB();
+  renderPatientLegalVault(pat.id);
+  if (typeof renderPatientModulesBar === 'function') renderPatientModulesBar(pat);
+}
+
+function buildLegalVaultPrintSectionHTML(p) {
+  var entries = _collectPatientVaultEntries(p).filter(function(e){ return e.type !== 'hc'; });
+  if (!entries.length) return '';
+  var rows = entries.map(function(e) {
+    var sigCell = e.svgPath
+      ? '<svg viewBox="0 0 520 170" style="height:22px;width:auto;max-width:95px;display:block"><path d="' + String(e.svgPath).replace(/"/g, '') + '" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-size:7.5px">' + escapeHTML(e.signerName || '') + '</span>'
+      : '<span style="font-size:8px;color:#666">' + escapeHTML(e.badge) + '</span>';
+    return '<tr>'
+      + '<td style="font-size:8.5px;white-space:nowrap">' + escapeHTML(e.folio) + '<br>' + escapeHTML(e.date) + '</td>'
+      + '<td style="font-size:8.5px"><strong>' + escapeHTML(e.title) + '</strong><br>' + escapeHTML(e.summary || '') + '</td>'
+      + '<td style="font-size:8.5px;text-align:center">' + sigCell + '</td>'
+      + '</tr>';
+  }).join('');
+  return '<h2>XII. Respaldo documental, recetas y consentimientos firmados</h2>'
+    + '<table><tr><th style="background:#f0f0f0;font-size:9px;width:20%">Folio / Fecha</th><th style="background:#f0f0f0;font-size:9px">Documento y detalle clínico</th><th style="background:#f0f0f0;font-size:9px;width:22%">Constancia / Firma</th></tr>'
+    + rows + '</table>';
 }
 </script>
 </body>
