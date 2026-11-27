@@ -7606,6 +7606,234 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
   font-size: .74rem;
 }
 
+/* ══ SUITE CLÍNICA v7.0: FIRMA DIGITAL, LABORATORIO, JUSTIFICANTES, INVENTARIO, MENSUALIDADES, DICTADO Y ANTES/DESPUÉS ══ */
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .55); }
+  50% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+}
+.voice-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-med);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: .71rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.voice-mic-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--card));
+}
+.voice-mic-btn.is-listening {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  animation: micPulse 1.4s infinite;
+}
+
+/* Alertas operativas en Inicio (Laboratorio + Inventario) */
+.dash-ops-alerts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dash-ops-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 15px;
+  border-radius: 13px;
+  border: 1px solid rgba(245, 158, 11, .35);
+  background: color-mix(in srgb, #f59e0b 10%, var(--card));
+  color: var(--ink);
+  font-size: .79rem;
+  cursor: pointer;
+  transition: transform .18s var(--ease-spring), box-shadow .18s ease;
+}
+.dash-ops-alert:hover { transform: translateY(-1px); }
+.dash-ops-alert.is-urgent {
+  border-color: rgba(239, 68, 68, .38);
+  background: color-mix(in srgb, #ef4444 10%, var(--card));
+}
+
+/* Modal Firma Digital Táctil / Mouse */
+#sig-pad-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9600;
+  background: rgba(8, 12, 22, .72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#sig-pad-overlay.open { display: flex; }
+.sig-pad-box {
+  width: min(560px, 96vw);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--border-med);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, .45);
+}
+.sig-canvas-wrap {
+  position: relative;
+  border: 2px dashed color-mix(in srgb, var(--blue) 42%, var(--border-med));
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+  touch-action: none;
+  margin: 12px 0;
+}
+#sig-canvas {
+  display: block;
+  width: 100%;
+  height: 170px;
+  cursor: crosshair;
+  touch-action: none;
+}
+.sig-baseline {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 34px;
+  border-bottom: 1px solid #cbd5e1;
+  pointer-events: none;
+  font-size: .65rem;
+  color: #94a3b8;
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+/* Barra de exportación Antes / Después con marca */
+.compare-export-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, .82);
+  border: 1px solid rgba(255, 255, 255, .16);
+  backdrop-filter: blur(14px);
+  z-index: 5;
+}
+.compare-export-bar input,
+.compare-export-bar select {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font: inherit;
+  font-size: .76rem;
+}
+.compare-export-bar input::placeholder { color: rgba(255, 255, 255, .6); }
+.compare-export-bar select option { background: #0f172a; color: #fff; }
+
+/* Planes de Mensualidades Recurrentes en Pagos */
+.inst-plan-box {
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border-med));
+  background: color-mix(in srgb, var(--blue) 6%, var(--bg));
+}
+.inst-progress-track {
+  height: 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--ink) 10%, var(--card));
+  overflow: hidden;
+  margin: 8px 0;
+}
+.inst-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--blue), #10b981);
+  transition: width .35s var(--ease-expo);
+}
+
+/* Laboratorio Dental & Inventario */
+.studio-mod-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-med);
+  border-left: 4px solid var(--blue);
+  background:
+    radial-gradient(360px circle at 0% 0%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 72%),
+    var(--card);
+}
+.studio-mod-hero h2 {
+  margin: 0;
+  font-size: 1.32rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: var(--ink);
+}
+.studio-mod-hero p {
+  margin: 3px 0 0;
+  font-size: .79rem;
+  color: var(--ink-3);
+}
+.lab-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: .69rem;
+  font-weight: 750;
+}
+.lab-st-sent { background: rgba(59, 130, 246, .14); color: #2563eb; }
+.lab-st-tryin { background: rgba(245, 158, 11, .16); color: #d97706; }
+.lab-st-ready { background: rgba(16, 185, 129, .16); color: #059669; }
+.lab-st-delivered { background: rgba(100, 116, 139, .16); color: var(--ink-3); }
+html.dark .lab-st-sent { color: #60a5fa; }
+html.dark .lab-st-tryin { color: #fbbf24; }
+html.dark .lab-st-ready { color: #34d399; }
+
+.inv-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border-med);
+  border-radius: 9px;
+  padding: 2px 4px;
+}
+.inv-stepper button {
+  width: 25px;
+  height: 25px;
+  border-radius: 6px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+.inv-stepper button:hover { background: var(--blue); color: #fff; }
+
 /* ══ IMPRESIÓN LIMPIA ══ */
 @media print {
   *, *::before, *::after {
@@ -7693,46 +7921,38 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
       <div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
           <span style="font-size:.65rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)">Gran actualización</span>
-          <span style="font-size:.62rem;font-weight:800;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:999px">EDICIÓN STUDIO · NOV 2026</span>
+          <span style="font-size:.62rem;font-weight:800;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:999px">EDICIÓN STUDIO v7 · NOV 2026</span>
         </div>
-        <h2 id="update-notice-title" style="font-size:1.38rem;line-height:1.2;margin:0;color:var(--ink);letter-spacing:-.025em">Nueva interfaz Studio y mejoras clínicas completas</h2>
+        <h2 id="update-notice-title" style="font-size:1.38rem;line-height:1.2;margin:0;color:var(--ink);letter-spacing:-.025em">Nueva suite clínica Studio v7: más rápida, completa e inteligente</h2>
       </div>
     </div>
 
-    <p style="font-size:.86rem;color:var(--ink-2);line-height:1.55;margin:0 0 16px">Rediseñamos de punta a punta la experiencia visual, velocidad y comodidad del sistema en computadora y celular, manteniendo intactos todos tus expedientes en Google Drive:</p>
+    <p style="font-size:.86rem;color:var(--ink-2);line-height:1.55;margin:0 0 16px">Rediseñamos toda la experiencia visual en computadora y celular e integramos nuevas herramientas operativas y clínicas sincronizadas con tu Google Drive:</p>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:10px;margin-bottom:16px">
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🎨 10 Temas, 6 Tipografías y Estilo por Dispositivo</strong>
-        <span style="color:var(--ink-2)">Personaliza colores, letra y acabados desde el botón <b>🎨 Estilo</b>. Tu tema en la compu y en el celular ahora son independientes para que uno nunca cambie al otro.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">✍️ Firma Digital Táctil en Consentimientos y Expediente</strong>
+        <span style="color:var(--ink-2)">Tus pacientes pueden firmar en pantalla (celular, iPad o mouse) sus <b>Consentimientos Informados</b> e <b>Historia Clínica</b>, quedando guardados en su expediente y listos en PDF.</span>
       </div>
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🧭 Nueva Barra Lateral SVG + Buscador Ctrl+K</strong>
-        <span style="color:var(--ink-2)">Dock lateral con íconos vectoriales, modo contraído compacto con tooltips, menú móvil completo y buscador rápido <b>Ctrl + K</b> para abrir pacientes o módulos al instante.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">🧪 Control de Laboratorio Dental + 📦 Inventario</strong>
+        <span style="color:var(--ink-2)">Rastrea coronas, guardas y prótesis con alertas automáticas en Inicio si el paciente tiene cita y el trabajo no ha llegado, más control de insumos por agotarse o caducar.</span>
       </div>
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🏠 Pantalla de Inicio Ejecutiva y Sesión Fluida</strong>
-        <span style="color:var(--ink-2)">Portada panorámica (que se mantiene visible al renovar la sesión de 60 min sin recargar), tarjetas de métricas alineadas, accesos directos, próximas citas y expedientes recientes.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">🏥 Justificantes Médicos + ✍️ Recetario Libre</strong>
+        <span style="color:var(--ink-2)">Genera constancias oficiales de asistencia/reposo con tu cédula y redacta libremente en tu <b>Recetario Médico Directo</b> (Media Carta o Carta) para PDF o WhatsApp.</span>
       </div>
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🩻 Órdenes de Radiografías con PDF Automático</strong>
-        <span style="color:var(--ink-2)">Al emitir una orden se abre lista para imprimir/PDF con folio y los datos de contacto (teléfono/WhatsApp y correo) de tu consultorio para recibir ahí los estudios.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">💳 Planes de Mensualidades + 📸 Antes/Después con Marca</strong>
+        <span style="color:var(--ink-2)">Controla mensualidades de ortodoncia/rehabilitación con cobro en 1 clic, y descarga comparativas <b>Antes y Después</b> listas para Instagram/WhatsApp con tu logo y nombre.</span>
       </div>
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🦷 Del Odontograma al Presupuesto y Plantillas</strong>
-        <span style="color:var(--ink-2)">Envía tratamientos por pieza FDI directo al presupuesto y edita libremente tus <b>Consentimientos</b> e <b>Indicaciones</b> para imprimir o mandar por WhatsApp.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">🪑 Agenda Multi-Unidad + 🎙️ Dictado Clínico por Voz</strong>
+        <span style="color:var(--ink-2)">Agenda pacientes en el <b>mismo horario</b> en distintas unidades (1 a 4) y doctores, y dicta por micrófono tus notas de evolución, controles, recetas y justificantes.</span>
       </div>
       <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">⚡ Autoguardado en Ajustes y Marca Impecable</strong>
-        <span style="color:var(--ink-2)">Tu teléfono, correo, dirección y cédula se guardan automáticamente al escribir en Ajustes, y tu logotipo luce limpio sin empalmarse en pantalla ni en impresiones.</span>
-      </div>
-      <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">🪑 Agenda Simultánea por Unidades y Doctores</strong>
-        <span style="color:var(--ink-2)">Agenda pacientes en el <b>mismo horario</b> asignando <b>Unidad 1, 2, 3 o 4</b> y distinto doctor, con columnas paralelas y filtros por sillón.</span>
-      </div>
-      <div style="padding:12px 14px;border-radius:13px;background:var(--bg);border:1px solid var(--border);font-size:.8rem;line-height:1.5">
-        <strong style="display:block;color:var(--ink);margin-bottom:3px">✍️ Recetario Médico Libre / Directo (Carta y Media Carta)</strong>
-        <span style="color:var(--ink-2)">En <b>Recetas</b> ahora puedes redactar libremente como en tu recetario físico, previsualizar en vivo, imprimir/descargar en PDF o enviar por WhatsApp.</span>
+        <strong style="display:block;color:var(--ink);margin-bottom:3px">🎨 10 Temas Independientes, Barra SVG y Autoguardado</strong>
+        <span style="color:var(--ink-2)">Tema independiente entre compu y celular, buscador <b>Ctrl+K</b>, portada estable al renovar sesión y autoguardado de tus datos en radiografías y documentos.</span>
       </div>
     </div>
 
@@ -7830,7 +8050,16 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
     <div class="nav-item" data-tip="Indicaciones" onclick="goPage('ind-page',this)">
       <div class="nav-icon"><svg viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></div><span class="nav-lbl">Indicaciones</span>
     </div>
+    <div class="nav-item" id="just-nav" data-tip="Justificantes médicos" onclick="goPage('just-page',this)">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg></div><span class="nav-lbl">Justificantes</span>
+    </div>
     <div class="sb-section">Gestión y caja</div>
+    <div class="nav-item" id="lab-nav" data-tip="Laboratorio dental" onclick="goPage('lab-page',this)">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.72 18.55A2 2 0 0 0 6.46 21.5h11.08a2 2 0 0 0 1.74-2.95L14 9.31V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg></div><span class="nav-lbl">Laboratorio</span>
+    </div>
+    <div class="nav-item" id="inv-nav" data-tip="Inventario e insumos" onclick="goPage('inv-page',this)">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></div><span class="nav-lbl">Inventario</span>
+    </div>
     <div class="nav-item" data-tip="Confirmaciones" onclick="goPage('confirm-page',this)">
       <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="m9 12 2 2 4-4"/></svg></div><span class="nav-lbl">Confirmaciones</span>
     </div>
@@ -7996,31 +8225,34 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
         <div class="stat-card" onclick="goPage('confirm-page',document.querySelector('[onclick*=confirm-page]'))"><div class="stat-icon">✅</div><div class="stat-label">Completadas hoy</div><div class="stat-value" id="dash-done" style="color:#248a3d">0</div><div class="stat-meta">Atenciones cerradas</div><span class="stat-go">↗</span></div>
       </div>
 
+      <!-- ALERTAS OPERATIVAS DE LABORATORIO E INVENTARIO -->
+      <div id="dash-ops-alerts" class="dash-ops-alerts" style="display:none"></div>
+
       <!-- HUB DE HERRAMIENTAS CLÍNICAS DIRECTAS -->
       <div class="dash-quick-hub" aria-label="Herramientas clínicas directas">
         <button type="button" class="dash-hub-tile" onclick="goPage('rx-page',document.querySelector('[onclick*=rx-page]'))">
           <span class="dash-hub-ico">💊</span>
-          <span class="dash-hub-copy"><strong>Recetas</strong><span>Vademécum e impresión</span></span>
+          <span class="dash-hub-copy"><strong>Recetas</strong><span>Recetario libre y vademécum</span></span>
         </button>
         <button type="button" class="dash-hub-tile" onclick="goPage('rad-page',document.getElementById('rad-nav'))">
           <span class="dash-hub-ico">🩻</span>
           <span class="dash-hub-copy"><strong>Orden RX</strong><span>Estudios con folio</span></span>
         </button>
         <button type="button" class="dash-hub-tile" onclick="goPage('ci-page',document.querySelector('[onclick*=ci-page]'))">
-          <span class="dash-hub-ico">📋</span>
-          <span class="dash-hub-copy"><strong>Consentimientos</strong><span>Formatos legales</span></span>
+          <span class="dash-hub-ico">✍️</span>
+          <span class="dash-hub-copy"><strong>Consentimientos</strong><span>Con firma digital</span></span>
         </button>
-        <button type="button" class="dash-hub-tile" onclick="goPage('ind-page',document.querySelector('[onclick*=ind-page]'))">
-          <span class="dash-hub-ico">📄</span>
-          <span class="dash-hub-copy"><strong>Indicaciones</strong><span>Postoperatorio y WA</span></span>
+        <button type="button" class="dash-hub-tile" onclick="goPage('just-page',document.getElementById('just-nav'))">
+          <span class="dash-hub-ico">🏥</span>
+          <span class="dash-hub-copy"><strong>Justificantes</strong><span>Constancia de asistencia</span></span>
         </button>
-        <button type="button" class="dash-hub-tile" onclick="goPage('receipts-page',document.querySelector('[onclick*=receipts-page]'))">
-          <span class="dash-hub-ico">🧾</span>
-          <span class="dash-hub-copy"><strong>Recibos</strong><span>Comprobantes y corte</span></span>
+        <button type="button" class="dash-hub-tile" onclick="goPage('lab-page',document.getElementById('lab-nav'))">
+          <span class="dash-hub-ico">🧪</span>
+          <span class="dash-hub-copy"><strong>Laboratorio</strong><span>Prótesis y guardas</span></span>
         </button>
-        <button type="button" class="dash-hub-tile" onclick="goPage('caja-page',document.querySelector('[onclick*=caja-page]'))">
-          <span class="dash-hub-ico">🏦</span>
-          <span class="dash-hub-copy"><strong>Caja diaria</strong><span>Ingresos y egresos</span></span>
+        <button type="button" class="dash-hub-tile" onclick="goPage('inv-page',document.getElementById('inv-nav'))">
+          <span class="dash-hub-ico">📦</span>
+          <span class="dash-hub-copy"><strong>Inventario</strong><span>Stock y caducidades</span></span>
         </button>
       </div>
 
@@ -8553,7 +8785,7 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
             <div class="rx-free-fg">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
                 <label style="margin:0">☤ Rp. — Escribe aquí los medicamentos, dosis y horarios *</label>
-                <span style="font-size:.67rem;color:var(--ink-3)">Clic rápido para insertar línea base (opcional):</span>
+                <button type="button" class="voice-mic-btn" onclick="toggleVoiceDictation('rx-free-body-text', this)">🎤 Dictar Rp.</button>
               </div>
               <div class="rx-free-chips">
                 <button type="button" class="rx-quick-chip" onclick="insertFreeRxSnippet('Amoxicilina cápsulas 500 mg — Tomar 1 cápsula vía oral cada 8 horas por 7 días.')">+ Amoxicilina 500mg</button>
@@ -8683,6 +8915,22 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
 
     <!-- CONSENTIMIENTOS INFORMADOS PAGE -->
     <div id="ci-page" class="page">
+      <div class="studio-mod-hero">
+        <div>
+          <h2>✍️ Consentimientos Informados con Firma Digital</h2>
+          <p>Selecciona un paciente para llenar automáticamente sus datos y firmar en pantalla táctil o mouse (NOM-004-SSA3-2012).</p>
+        </div>
+        <div style="min-width:280px;flex:0 1 360px">
+          <label style="font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);display:block;margin-bottom:4px">👤 Paciente para consentimiento</label>
+          <select id="ci-patient-select" onchange="setCiSelectedPatient(this.value)" style="width:100%;height:38px;padding:0 11px;border-radius:10px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.83rem;font-weight:600">
+            <option value="">Imprimir en blanco (sin paciente seleccionado)</option>
+          </select>
+        </div>
+      </div>
+      <div id="ci-signed-history-box" class="card" style="display:none;margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:8px">🗂️ Consentimientos firmados digitalmente de este paciente</div>
+        <div id="ci-signed-history-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="ci-filter-row">
         <button class="btn btn-primary btn-sm ci-cat-btn" data-cat="all" onclick="ciFilter('all',this)">Todos</button>
         <button class="btn btn-ghost btn-sm ci-cat-btn" data-cat="extraccion" onclick="ciFilter('extraccion',this)">Extracción</button>
@@ -8697,6 +8945,244 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
         <button class="btn btn-ghost btn-sm ci-cat-btn" data-cat="anestesia" onclick="ciFilter('anestesia',this)">Anestesia</button>
       </div>
       <div id="ci-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px"></div>
+    </div>
+
+    <!-- JUSTIFICANTES MÉDICOS / CONSTANCIAS DE ASISTENCIA PAGE -->
+    <div id="just-page" class="page">
+      <div class="studio-mod-hero">
+        <div>
+          <h2>🏥 Justificantes Médicos y Constancias de Asistencia</h2>
+          <p>Emite constancias clínicas oficiales para escuela o trabajo con hora de atención, días de reposo, cédula y logotipo.</p>
+        </div>
+        <div style="min-width:270px;flex:0 1 350px">
+          <label style="font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);display:block;margin-bottom:4px">👤 Seleccionar paciente (opcional)</label>
+          <select id="just-patient-select" onchange="selectJustificantePatient(this.value)" style="width:100%;height:38px;padding:0 11px;border-radius:10px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.83rem;font-weight:600">
+            <option value="">Escribir paciente manualmente…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="rx-free-body" style="padding:0">
+        <div class="card">
+          <div class="card-title">Datos de la constancia / justificante</div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.6fr) 90px 140px;gap:8px;margin-bottom:10px">
+            <div class="rx-free-fg"><label>Nombre del paciente *</label><input type="text" id="just-name" placeholder="Nombre completo del paciente" oninput="updateJustPreview()"></div>
+            <div class="rx-free-fg"><label>Edad</label><input type="text" id="just-age" placeholder="Ej. 24" oninput="updateJustPreview()"></div>
+            <div class="rx-free-fg"><label>Fecha de atención</label><input type="date" id="just-date" onchange="updateJustPreview()"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;margin-bottom:10px">
+            <div class="rx-free-fg"><label>Hora entrada</label><input type="time" id="just-time-in" value="10:00" oninput="updateJustPreview()"></div>
+            <div class="rx-free-fg"><label>Hora salida</label><input type="time" id="just-time-out" value="11:00" oninput="updateJustPreview()"></div>
+            <div class="rx-free-fg"><label>Dirigido a</label><input type="text" id="just-to" value="A QUIEN CORRESPONDA" oninput="updateJustPreview()"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div class="rx-free-fg">
+              <label>Reposo médico indicado</label>
+              <select id="just-rest" onchange="updateJustPreview()">
+                <option value="Sin reposo adicional (constancia de asistencia a consulta)">Solo constancia de asistencia (sin días de reposo)</option>
+                <option value="Reposo relativo por el resto del día de hoy">Resto del día de hoy</option>
+                <option value="24 horas (1 día) de reposo relativo">24 horas (1 día) de reposo</option>
+                <option value="48 horas (2 días) de reposo relativo">48 horas (2 días) de reposo</option>
+                <option value="72 horas (3 días) de reposo postoperatorio">72 horas (3 días) de reposo</option>
+                <option value="5 días de reposo y cuidados postquirúrgicos">5 días de reposo</option>
+              </select>
+            </div>
+            <div class="rx-free-fg">
+              <label>Motivo / Procedimiento</label>
+              <input type="text" id="just-reason" value="Atención y procedimiento odontológico clínico" oninput="updateJustPreview()">
+            </div>
+          </div>
+          <div class="rx-free-fg">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label style="margin:0">Observaciones o cuidados para escuela / trabajo (opcional)</label>
+              <button type="button" class="voice-mic-btn" onclick="toggleVoiceDictation('just-notes', this)">🎤 Dictar</button>
+            </div>
+            <textarea id="just-notes" rows="3" placeholder="Ej. Se recomienda evitar esfuerzo físico intenso, exposición al sol y actividades deportivas durante el periodo señalado." oninput="updateJustPreview()"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+            <button type="button" class="btn btn-primary" onclick="emitJustificante(true)" style="padding:10px 18px;border-radius:10px;font-weight:750">🖨️ Imprimir / Descargar PDF</button>
+            <button type="button" class="btn btn-ghost" onclick="emitJustificante(false)">💾 Guardar en expediente</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="rx-pad-sheet">
+            <div class="rx-pad-sheet-head">
+              <div>
+                <div style="font-weight:800;font-size:.86rem;color:#0f172a" id="just-prev-clinic">Consultorio Dental</div>
+                <div style="font-size:.69rem;color:#475569" id="just-prev-doc">Doctor · Cédula</div>
+              </div>
+              <div style="text-align:right;font-size:.68rem;color:#334155">
+                <strong style="display:block;color:#1e3a5f">CONSTANCIA MÉDICA</strong>
+                <span id="just-prev-date">—</span>
+              </div>
+            </div>
+            <div style="font-weight:800;font-size:.76rem;color:#0f172a;margin:8px 0" id="just-prev-to">A QUIEN CORRESPONDA:</div>
+            <div class="rx-pad-sheet-body" id="just-prev-body" style="min-height:140px;font-size:.77rem"></div>
+            <div style="margin-top:18px;padding-top:8px;border-top:1px solid #cbd5e1;text-align:center;font-size:.68rem;color:#334155" id="just-prev-sig"></div>
+          </div>
+          <div class="rx-pad-history">
+            <strong style="font-size:.75rem;color:var(--ink)">🗂️ Constancias emitidas al paciente</strong>
+            <div class="rx-pad-history-list" id="just-history-list"><div style="font-size:.73rem;color:var(--ink-3)">Selecciona un paciente registrado para ver sus constancias previas.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LABORATORIO DENTAL PAGE -->
+    <div id="lab-page" class="page">
+      <div class="studio-mod-hero">
+        <div>
+          <h2>🧪 Control de Órdenes de Laboratorio Dental</h2>
+          <p>Lleva el seguimiento exacto de coronas, carillas, guardas, retenedores y prótesis para que todo esté listo antes de la cita del paciente.</p>
+        </div>
+      </div>
+
+      <div class="stats-row" id="lab-kpis"></div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">＋ Registrar orden a laboratorio</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;align-items:end">
+          <div class="rx-free-fg">
+            <label>Paciente *</label>
+            <select id="lab-patient-sel"><option value="">Seleccionar paciente…</option></select>
+          </div>
+          <div class="rx-free-fg">
+            <label>Trabajo / Prótesis *</label>
+            <input type="text" id="lab-work" list="lab-work-presets" placeholder="Ej. Corona Zirconia">
+            <datalist id="lab-work-presets">
+              <option value="Corona de Zirconia">
+              <option value="Corona Metal-Porcelana">
+              <option value="Carilla Disilicato E.max">
+              <option value="Incrustación Inlay/Onlay">
+              <option value="Guarda Oclusal Rígido">
+              <option value="Retenedores Termoformados">
+              <option value="Retenedor Hawley / Fijo">
+              <option value="Prótesis Removible">
+              <option value="Prótesis Total">
+              <option value="Alineadores Transparentes">
+              <option value="Modelo de Estudio / Encerado">
+            </datalist>
+          </div>
+          <div class="rx-free-fg">
+            <label>Piezas FDI / Arcada</label>
+            <input type="text" id="lab-teeth" placeholder="Ej. OD 11, 21 / Sup.">
+          </div>
+          <div class="rx-free-fg">
+            <label>Color / Tono</label>
+            <input type="text" id="lab-shade" placeholder="Ej. A2, B1, BL2">
+          </div>
+          <div class="rx-free-fg">
+            <label>Laboratorio *</label>
+            <input type="text" id="lab-vendor" placeholder="Nombre del laboratorio">
+          </div>
+          <div class="rx-free-fg">
+            <label>Tel. WhatsApp Lab (opc.)</label>
+            <input type="tel" id="lab-phone" placeholder="Ej. 614 123 4567">
+          </div>
+          <div class="rx-free-fg">
+            <label>Costo Lab ($)</label>
+            <input type="number" id="lab-cost" min="0" step="1" placeholder="0">
+          </div>
+          <div class="rx-free-fg">
+            <label>Fecha envío</label>
+            <input type="date" id="lab-date-sent">
+          </div>
+          <div class="rx-free-fg">
+            <label>Fecha promesa entrega *</label>
+            <input type="date" id="lab-date-due">
+          </div>
+          <div class="rx-free-fg">
+            <label>Estado inicial</label>
+            <select id="lab-status">
+              <option value="sent">📤 Enviado a lab</option>
+              <option value="tryin">🦷 En prueba (metal/bizcocho)</option>
+              <option value="ready">✅ Recibido en clínica</option>
+              <option value="delivered">🎉 Entregado al paciente</option>
+            </select>
+          </div>
+          <div class="rx-free-fg" style="grid-column:span 2">
+            <label>Especificaciones / Notas al técnico</label>
+            <input type="text" id="lab-notes" placeholder="Ej. Contacto oclusal ligero, anatomía natural, sellado marginal…">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px">
+          <button type="button" class="btn btn-primary" onclick="addLabOrder()">＋ Guardar orden de laboratorio</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="lab-filter-btns">
+            <button type="button" class="btn btn-primary btn-xs" onclick="setLabFilter('active',this)">Pendientes en curso</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('ready',this)">✅ Recibidos en clínica</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('delivered',this)">Entregados</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="setLabFilter('all',this)">Todos</button>
+          </div>
+          <input type="search" id="lab-search" placeholder="Buscar paciente, trabajo o laboratorio…" oninput="renderLabPage()" style="padding:7px 12px;border-radius:9px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.8rem;min-width:230px">
+        </div>
+        <div id="lab-orders-list"></div>
+      </div>
+    </div>
+
+    <!-- INVENTARIO DENTAL PAGE -->
+    <div id="inv-page" class="page">
+      <div class="studio-mod-hero">
+        <div>
+          <h2>📦 Inventario Dental con Alertas de Stock y Caducidad</h2>
+          <p>Control ágil de materiales e insumos críticos. Ajusta existencias con un clic y recibe alertas antes de quedarte sin material.</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="seedDefaultInventory()">✨ Cargar insumos dentales base</button>
+      </div>
+
+      <div class="stats-row" id="inv-kpis"></div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">＋ Agregar insumo o material</div>
+        <div style="display:grid;grid-template-columns:minmax(180px,1.5fr) 140px 100px 115px 105px 145px auto;gap:8px;align-items:end">
+          <div class="rx-free-fg"><label>Material / Insumo *</label><input type="text" id="inv-name" placeholder="Ej. Lidocaína 2% con epinefrina"></div>
+          <div class="rx-free-fg">
+            <label>Categoría</label>
+            <select id="inv-cat">
+              <option value="Anestesia">Anestesia</option>
+              <option value="Desechables">Desechables / Barrera</option>
+              <option value="Operatoria">Operatoria / Resinas</option>
+              <option value="Endodoncia">Endodoncia</option>
+              <option value="Ortodoncia">Ortodoncia</option>
+              <option value="Cirugía">Cirugía / Sutura</option>
+              <option value="Impresión">Impresión / Yesos</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+          <div class="rx-free-fg"><label>Existencia *</label><input type="number" id="inv-qty" min="0" value="5"></div>
+          <div class="rx-free-fg">
+            <label>Unidad</label>
+            <select id="inv-unit">
+              <option value="cajas">cajas</option>
+              <option value="piezas">piezas</option>
+              <option value="cartuchos">cartuchos</option>
+              <option value="jeringas">jeringas</option>
+              <option value="paquetes">paquetes</option>
+              <option value="frascos">frascos</option>
+            </select>
+          </div>
+          <div class="rx-free-fg"><label>Mínimo alerta</label><input type="number" id="inv-min" min="0" value="2"></div>
+          <div class="rx-free-fg"><label>Caducidad (opc.)</label><input type="date" id="inv-exp"></div>
+          <button type="button" class="btn btn-primary" onclick="addInventoryItem()" style="height:38px">＋ Agregar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="inv-filter-btns">
+            <button type="button" class="btn btn-primary btn-xs" onclick="setInvFilter('all',this)">Todos</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="setInvFilter('low',this)">⚠️ Stock bajo</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="setInvFilter('exp',this)">⏳ Por caducar / caducados</button>
+          </div>
+          <input type="search" id="inv-search" placeholder="Buscar insumo o categoría…" oninput="renderInventoryPage()" style="padding:7px 12px;border-radius:9px;border:1px solid var(--border-med);background:var(--bg);color:var(--ink);font:inherit;font-size:.8rem;min-width:220px">
+        </div>
+        <div id="inv-list-wrap"></div>
+      </div>
     </div>
 
     <!-- INDICACIONES POSTOPERATORIAS PAGE -->
@@ -9014,6 +9500,7 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
           <button class="btn btn-primary btn-sm" onclick="goToPatientBudget()">💰 Presupuesto</button>
           <button class="btn btn-success btn-sm" onclick="openWA()">💬 WhatsApp</button>
           <button class="btn btn-ghost btn-sm" onclick="openAviso()">🔒 Aviso priv.</button>
+          <button class="btn btn-ghost btn-sm" onclick="openSignatureForHC()">✍️ Firmar expediente</button>
           <button class="btn btn-ghost btn-sm" onclick="printHistoriaClinica()">🖨️ Imprimir expediente</button>
           <button class="btn btn-ghost btn-sm" onclick="openPhotoModule()">📸 Fotos</button>
           <button class="btn btn-ghost btn-sm" onclick="editCurrent()">✏️ Editar</button>
@@ -9068,12 +9555,15 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
         </div>
         <!-- MOTIVO DE CONSULTA -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
             <span>📋 Motivo de consulta</span>
-            <button onclick="saveNotes()" id="notes-save-btn"
-              style="background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);padding:4px 12px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit">
-              💾 Guardar
-            </button>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button type="button" class="voice-mic-btn" onclick="toggleVoiceDictation('notes-ta', this)">🎤 Dictar</button>
+              <button onclick="saveNotes()" id="notes-save-btn"
+                style="background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);padding:4px 12px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit">
+                💾 Guardar
+              </button>
+            </div>
           </div>
           <textarea id="notes-ta" rows="3"
             style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.84rem;background:var(--bg);resize:vertical;margin-top:6px"
@@ -9140,7 +9630,7 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
         <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px;border:1px solid var(--border)">
           <div class="fgrid" style="margin-bottom:10px">
             <div class="fg"><label>Fecha</label><input type="date" id="oc-date"></div>
-            <div class="fg full"><label>Observaciones y ajustes</label>
+            <div class="fg full"><label style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Observaciones y ajustes</span><button type="button" class="voice-mic-btn" onclick="toggleVoiceDictation('oc-notes', this)">🎤 Dictar</button></label>
               <textarea id="oc-notes" rows="2" style="width:100%;padding:7px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;background:var(--card)"></textarea>
             </div>
           </div>
@@ -9174,6 +9664,7 @@ tbody tr:hover { background-color: color-mix(in srgb, var(--blue) 6%, var(--bg))
             <span id="pay-badge"></span>
           </div>
           <div style="font-size:.7rem;color:var(--ink-3);margin:-5px 0 10px;line-height:1.45">Los abonos reducen el saldo del paciente y también se registran en Caja.</div>
+          <div id="installment-plan-container"></div>
           <div id="pay-list" style="max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
           <div id="pay-summary-box"></div>
           <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">
@@ -10213,6 +10704,42 @@ function mergeDentalDatabases(remoteData, localData, preferLocal) {
       });
       selected.customPrescriptions = Array.from(rxMap.values()).sort(function(a,b){return (a.createdAt||0) - (b.createdAt||0);});
     }
+    if (Array.isArray(remotePatient.signedConsents) || Array.isArray(localPatient.signedConsents)) {
+      var sigMap = new Map();
+      (remotePatient.signedConsents || []).concat(localPatient.signedConsents || []).forEach(function(sc) {
+        if (sc && sc.id) sigMap.set(sc.id, sc);
+      });
+      selected.signedConsents = Array.from(sigMap.values()).sort(function(a,b){return (a.signedAt||0) - (b.signedAt||0);});
+    }
+    if (Array.isArray(remotePatient.medicalCertificates) || Array.isArray(localPatient.medicalCertificates)) {
+      var certMap = new Map();
+      (remotePatient.medicalCertificates || []).concat(localPatient.medicalCertificates || []).forEach(function(mc) {
+        if (mc && mc.id) certMap.set(mc.id, mc);
+      });
+      selected.medicalCertificates = Array.from(certMap.values()).sort(function(a,b){return (a.createdAt||0) - (b.createdAt||0);});
+    }
+    if (remotePatient.installmentPlan || localPatient.installmentPlan) {
+      var rPlan = remotePatient.installmentPlan;
+      var lPlan = localPatient.installmentPlan;
+      if (!rPlan) selected.installmentPlan = JSON.parse(JSON.stringify(lPlan));
+      else if (!lPlan) selected.installmentPlan = JSON.parse(JSON.stringify(rPlan));
+      else {
+        var rPAt = parseInt(rPlan._updatedAt || '0', 10) || 0;
+        var lPAt = parseInt(lPlan._updatedAt || '0', 10) || 0;
+        selected.installmentPlan = JSON.parse(JSON.stringify(lPAt >= rPAt ? lPlan : rPlan));
+      }
+    }
+    if (remotePatient.hcSignature || localPatient.hcSignature) {
+      var rSig = remotePatient.hcSignature;
+      var lSig = localPatient.hcSignature;
+      if (!rSig) selected.hcSignature = JSON.parse(JSON.stringify(lSig));
+      else if (!lSig) selected.hcSignature = JSON.parse(JSON.stringify(rSig));
+      else {
+        var rSAt = parseInt(rSig._updatedAt || '0', 10) || 0;
+        var lSAt = parseInt(lSig._updatedAt || '0', 10) || 0;
+        selected.hcSignature = JSON.parse(JSON.stringify(lSAt >= rSAt ? lSig : rSig));
+      }
+    }
     if (remotePatient.toothBudgetDraft || localPatient.toothBudgetDraft)
       selected.toothBudgetDraft = mergeToothDrafts(remotePatient.toothBudgetDraft,localPatient.toothBudgetDraft,useLocal);
     var budgetMerge = mergePatientBudgets(remotePatient, localPatient, useLocal);
@@ -10338,7 +10865,7 @@ function goPage(id, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
-  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','receipts-page':'Recibos y cortes','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rad-page':'Órdenes de radiografías','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
+  const map = { 'dash-page':'Inicio','list-page':'Pacientes','agenda-page':'Agenda','budget-page':'Presupuestos','receipts-page':'Recibos y cortes','stats-page':'Estadísticas','search-page':'Búsqueda clínica','rad-page':'Órdenes de radiografías','rx-page':'Recetas médicas','ci-page':'Consentimientos informados','just-page':'Justificantes y constancias','lab-page':'Laboratorio dental','inv-page':'Inventario dental','ind-page':'Indicaciones postoperatorias','confirm-page':'Confirmación de citas','recall-page':'Recordatorios — Pacientes inactivos','reporte-page':'Reportes de ingresos','caja-page':'Caja — Ingresos y egresos' };
   document.getElementById('topbar-title').textContent = map[id] || '';
   document.getElementById('btn-add').style.display = id === 'list-page' ? '' : 'none';
   closeMobileNav();
@@ -10353,6 +10880,10 @@ function goPage(id, el) {
     else if (typeof renderList === 'function') renderList(db.patients || []);
   }
   if (id === 'rad-page') refreshRadiologyPage(fromPatient ? String(curId) : '');
+  if (id === 'ci-page' && typeof initCIPage === 'function') initCIPage(fromPatient ? String(curId) : '');
+  if (id === 'just-page' && typeof initJustificantesPage === 'function') initJustificantesPage(fromPatient ? String(curId) : '');
+  if (id === 'lab-page' && typeof initLabPage === 'function') initLabPage(fromPatient ? String(curId) : '');
+  if (id === 'inv-page' && typeof renderInventoryPage === 'function') renderInventoryPage();
   if (id === 'stats-page') buildStats();
   if (id === 'budget-page') {
     resetBudgetWorkspace();
@@ -13595,8 +14126,9 @@ function renderDashboard() {
     }
   }
 
-  // Cumpleaños
+  // Cumpleaños y alertas operativas (Laboratorio / Inventario)
   if (typeof renderBdayList === 'function') renderBdayList();
+  if (typeof renderDashOpsAlerts === 'function') renderDashOpsAlerts();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -13610,6 +14142,7 @@ function renderPayments(p) {
   const dateInput = document.getElementById('pay-date');
   if (dateInput && !dateInput.value) dateInput.value = todayStr();
   updateNewPaymentMethodState();
+  if (typeof renderInstallmentPlan === 'function') renderInstallmentPlan(p);
   if (!list) return;
   if (!pays.length) { list.innerHTML = '<p style="font-size:.8rem;color:var(--ink-3)">Sin movimientos registrados.</p>'; }
   else {
@@ -16610,15 +17143,17 @@ function renderCiGrid() {
       +   '<ul>'+postHtml+'</ul>'
       + '</div>'
       + '<div class="ci-actions">'
-      +   '<button class="ci-print-btn" onclick="ciPrint(\''+ci.id+'\')">🖨️ Imprimir</button>'
-      +   '<button class="ci-edit-btn" onclick="editCI(\''+ci.id+'\')">✏️ Editar</button>'
+      +   '<button class="ci-print-btn" onclick="openSignatureForCI(\''+ci.id+'\')">✍️ Firmar e imprimir</button>'
+      +   '<button class="ci-edit-btn" onclick="ciPrint(\''+ci.id+'\')" title="Imprimir formato en blanco para firma en papel">🖨️ En blanco</button>'
+      +   '<button class="ci-edit-btn" onclick="editCI(\''+ci.id+'\')">✏️</button>'
       + '</div>'
       + '</div>';
   }).join('');
+  if (typeof refreshCIPatientBar === 'function') refreshCIPatientBar();
 }
 
 // ── Impresión del consentimiento ────────────────────────────
-function printHistoriaClinica() {
+function printHistoriaClinica(sigOverride) {
   var p = db.patients.find(function(x){ return x.id == curId; });
   if (!p) return;
   var cn   = cfg.name        || 'Dr. ___________________________';
@@ -16835,14 +17370,22 @@ function printHistoriaClinica() {
     + customPrintHTML
 
     // FIRMAS
-    + '<div class="sign-grid">'
-    +   '<div class="sign-box"><div class="sign-line"></div>'
-    +     '<div style="font-size:9.5px"><strong>'+p.name+'</strong><br>Paciente / Representante legal<br>Firma</div>'
-    +   '</div>'
-    +   '<div class="sign-box"><div class="sign-line"></div>'
-    +     '<div style="font-size:9.5px"><strong>'+cn+'</strong><br>Cédula Prof.: '+ced+'<br>Firma y sello</div>'
-    +   '</div>'
-    + '</div>'
+    + (function(){
+        var hcSig = sigOverride || p.hcSignature || null;
+        var sigSvg = (hcSig && hcSig.svgPath)
+          ? '<div style="height:46px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #000;margin-bottom:4px"><svg viewBox="0 0 520 170" style="height:44px;width:auto;max-width:100%;display:block"><path d="'+String(hcSig.svgPath).replace(/"/g,'')+'" fill="none" stroke="#0b132b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+          : '<div class="sign-line"></div>';
+        var signerLbl = (hcSig && hcSig.signerName) ? escapeHTML(hcSig.signerName) : escapeHTML(p.name);
+        var signedMeta = (hcSig && hcSig.signedDate) ? '<div style="font-size:8px;color:#555;margin-top:2px">Firmado digitalmente: '+escapeHTML(hcSig.signedDate)+'</div>' : '';
+        return '<div class="sign-grid">'
+          + '<div class="sign-box">' + sigSvg
+          +   '<div style="font-size:9.5px"><strong>'+signerLbl+'</strong><br>Paciente / Representante legal<br>Firma'+signedMeta+'</div>'
+          + '</div>'
+          + '<div class="sign-box"><div class="sign-line"></div>'
+          +   '<div style="font-size:9.5px"><strong>'+cn+'</strong><br>Cédula Prof.: '+ced+'<br>Firma y sello</div>'
+          + '</div>'
+          + '</div>';
+      })()
 
     + '<div class="footer">'
     +   '<span>'+cn+' · Cédula: '+ced+' · '+ccity+'</span>'
@@ -16856,9 +17399,13 @@ function printHistoriaClinica() {
   _printWindow(w);
 }
 
-function ciPrint(id, patientId) {
+function ciPrint(id, patientId, sigData) {
   var ci = _getCI(id);
   if (!ci) return;
+  if (!patientId) {
+    var selEl = document.getElementById('ci-patient-select');
+    if (selEl && selEl.value) patientId = selEl.value;
+  }
   // Get patient data if provided
   var pat = null;
   if (patientId) pat = db.patients.find(function(x){ return x.id == patientId; });
@@ -16993,23 +17540,35 @@ function ciPrint(id, patientId) {
     + '</div>'
 
     // ── FIRMAS ──
-    + '<table style="width:100%;border-collapse:collapse;margin-top:18px">'
-    +   '<tr>'
-    +     '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
-    +       '<div style="height:50px;border-bottom:1px solid #000;display:flex;align-items:flex-end;justify-content:flex-start;padding-bottom:2px">'
-    +         '<div style="width:36px;height:36px;border:1px dashed #999;border-radius:3px;font-size:8px;color:#999;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1">Huella digital</div>'
-    +       '</div>'
-    +       '<div style="font-size:9px;margin-top:4px"><strong>Paciente / Representante legal</strong><br>Nombre: _____________________<br>Firma y huella digital (pulgar derecho)</div>'
-    +     '</td>'
-    +     '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
-    +       '<div style="height:50px;border-bottom:1px solid #000"></div>'
-    +       '<div style="font-size:9px;margin-top:4px"><strong>'+cn+'</strong><br>Cédula Prof.: '+ced+(ced2?' / Esp.: '+ced2:'')+'<br>Firma y sello oficial</div>'
-    +     '</td>'
-    +     '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
-    +       '<div style="height:50px;border-bottom:1px solid #000"></div>'
-    +       '<div style="font-size:9px;margin-top:4px"><strong>Testigo 1</strong><br>Nombre: _____________________<br>Parentesco/relación: _____________</div>'
-    +     '</td>'
-    +   '</tr>'
+    + (function(){
+        var hasSig = sigData && sigData.svgPath;
+        var patBoxTop = hasSig
+          ? '<div style="height:50px;border-bottom:1px solid #000;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:2px;gap:6px">'
+              + '<div style="width:36px;height:36px;border:1px dashed #999;border-radius:3px;font-size:8px;color:#999;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;flex-shrink:0">Huella digital</div>'
+              + '<svg viewBox="0 0 520 170" style="height:46px;width:auto;max-width:170px;display:block;margin:0 auto"><path d="'+String(sigData.svgPath).replace(/"/g,'')+'" fill="none" stroke="#0b132b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+            + '</div>'
+          : '<div style="height:50px;border-bottom:1px solid #000;display:flex;align-items:flex-end;justify-content:flex-start;padding-bottom:2px">'
+              + '<div style="width:36px;height:36px;border:1px dashed #999;border-radius:3px;font-size:8px;color:#999;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1">Huella digital</div>'
+            + '</div>';
+        var signerNameTxt = (sigData && sigData.signerName) ? escapeHTML(sigData.signerName) : (pat ? escapeHTML(pat.name) : '_____________________');
+        var witnessTxt = (sigData && sigData.repName) ? escapeHTML(sigData.repName) : '_____________________';
+        var sigStamp = (sigData && sigData.signedDate) ? '<br><span style="font-size:7.5px;color:#444">Firmado en pantalla: '+escapeHTML(sigData.signedDate)+'</span>' : '';
+        return '<table style="width:100%;border-collapse:collapse;margin-top:18px">'
+          + '<tr>'
+          +   '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
+          +     patBoxTop
+          +     '<div style="font-size:9px;margin-top:4px"><strong>Paciente / Representante legal</strong><br>Nombre: '+signerNameTxt+'<br>Firma y huella digital (pulgar derecho)'+sigStamp+'</div>'
+          +   '</td>'
+          +   '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
+          +     '<div style="height:50px;border-bottom:1px solid #000"></div>'
+          +     '<div style="font-size:9px;margin-top:4px"><strong>'+cn+'</strong><br>Cédula Prof.: '+ced+(ced2?' / Esp.: '+ced2:'')+'<br>Firma y sello oficial</div>'
+          +   '</td>'
+          +   '<td style="width:33%;padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom">'
+          +     '<div style="height:50px;border-bottom:1px solid #000"></div>'
+          +     '<div style="font-size:9px;margin-top:4px"><strong>Testigo 1</strong><br>Nombre: '+witnessTxt+'<br>Parentesco/relación: _____________</div>'
+          +   '</td>'
+          + '</tr>';
+      })()'
     +   '<tr>'
     +     '<td style="padding:6px;text-align:center;border:1px solid #ccc;vertical-align:bottom" colspan="1">'
     +       '<div style="height:50px;border-bottom:1px solid #000"></div>'
@@ -17524,6 +18083,8 @@ function buildCompleteBackup() {
     waTemplates: appStorage.getItem('dental_wa_custom_tpls_v1') || null,
     waTemplatesUpdatedAt: appStorage.getItem('dental_wa_custom_tpls_updated_at_v1') || null,
     quickNotes: appStorage.getItem('dental_quick_notes_v1') || null,
+    labOrders: appStorage.getItem('dental_lab_orders_v1') || null,
+    inventory: appStorage.getItem('dental_inventory_v1') || null,
     patientTombstones: typeof loadPatientTombstones === 'function' ? loadPatientTombstones() : {}
   };
 }
@@ -17848,6 +18409,8 @@ function importData(input) {
       }
       if (importedWa) appStorage.setItem('dental_wa_custom_tpls_v1', typeof importedWa === 'string' ? importedWa : JSON.stringify(importedWa));
       if (importedWaUpdatedAt) appStorage.setItem('dental_wa_custom_tpls_updated_at_v1', String(importedWaUpdatedAt));
+      if (backup.labOrders) appStorage.setItem('dental_lab_orders_v1', typeof backup.labOrders === 'string' ? backup.labOrders : JSON.stringify(backup.labOrders));
+      if (backup.inventory) appStorage.setItem('dental_inventory_v1', typeof backup.inventory === 'string' ? backup.inventory : JSON.stringify(backup.inventory));
       if (importedNotes) appStorage.setItem('dental_quick_notes_v1', typeof importedNotes === 'string' ? importedNotes : JSON.stringify(importedNotes));
       // Las marcas de pacientes eliminados pertenecen al respaldo. Conservar
       // las del navegador anterior podía volver a borrar pacientes importados.
@@ -21596,7 +22159,7 @@ function renderBdayList() {
 // AVISO DE ACTUALIZACIÓN — una vez por sesión o permanentemente si se elige
 // “No volver a mostrar” en este dispositivo.
 // ══════════════════════════════════════════════════════════
-var UPDATE_NOTICE_VERSION = 'dental_update_2026_11_27_studio_v6_2';
+var UPDATE_NOTICE_VERSION = 'dental_update_2026_11_27_studio_v7';
 var _updateNoticeScheduled = false;
 var _updateNoticeShownThisSession = false;
 var _updateNoticeAcknowledged = false;
@@ -21857,7 +22420,7 @@ var GD = (function() {
     'dental_doctor_rates_v1','dental_doctor_rates_updated_at',
     'dental_doctors_v1','dental_doctors_updated_at','dental_active_doctor_v1',
     'dental_wa_custom_tpls_v1','dental_wa_custom_tpls_updated_at_v1','dental_quick_notes_v1',
-    'dental_rx_edits_v1'
+    'dental_rx_edits_v1','dental_lab_orders_v1','dental_inventory_v1'
   ];
 
   function _accountId(user) {
@@ -23821,6 +24384,10 @@ var GD = (function() {
     if (activeId === 'caja-page' && typeof cajaRender === 'function') cajaRender();
     if (activeId === 'rad-page') refreshRadiologyPage(document.getElementById('rad-select').value, true);
     if (activeId === 'rx-page' && typeof renderRxGrid === 'function') renderRxGrid();
+    if (activeId === 'ci-page' && typeof initCIPage === 'function') initCIPage();
+    if (activeId === 'just-page' && typeof initJustificantesPage === 'function') initJustificantesPage();
+    if (activeId === 'lab-page' && typeof renderLabPage === 'function') renderLabPage();
+    if (activeId === 'inv-page' && typeof renderInventoryPage === 'function') renderInventoryPage();
     if (activeId === 'budget-page') {
       updateBudgetToothLines(db.patients.find(p=>p.id==_budgetPatId));
       if (typeof buildCatalogUI === 'function') buildCatalogUI();
@@ -28927,6 +29494,8 @@ function renderPatientModulesBar(patient){
   SPECIALTY_MODULES.forEach(function(m){specialtyTotal+=(specialtyData[m.id]||[]).length;});
   var integrated=[
     {id:'recetas-libres',icon:'☤',label:'Recetas médicas',color:'#2563eb',pale:'#eff6ff',count:(patient.customPrescriptions||[]).length,action:'openFreeRxForPatient(curId)'},
+    {id:'justificantes',icon:'🏥',label:'Justificantes',color:'#0d9488',pale:'#f0fdfa',count:(patient.medicalCertificates||[]).length,action:'openJustificanteForPatient(curId)'},
+    {id:'laboratorio',icon:'🧪',label:'Laboratorio',color:'#7c3aed',pale:'#f5f3ff',count:(typeof countPatientLabOrders==='function'?countPatientLabOrders(patient.id):0),action:'openLabForPatient(curId)'},
     {id:'radiologia',icon:'🩻',label:'Órdenes de radiografías',color:'#086d80',pale:'#e5f5f7',count:(patient.radiologyOrders||[]).length,action:'openRadiologyOrders()'},
     {id:'odontograma',icon:'🦷',label:'Odontograma',color:'#0071e3',pale:'#eaf3ff',count:_patientModuleNumericCount(patient.odontogram),action:'openOdontogram()'},
     {id:'odontopediatria',icon:'🧒',label:'Odontopediatría',color:'#d97706',pale:'#fff7e8',count:_patientModuleNumericCount(patient.odontogramaPed),action:'openOdontogramPed()'},
@@ -29355,7 +29924,10 @@ window.addEventListener('resize', function() {
         </div>
       </div>
       <div style="margin-bottom:10px">
-        <label style="font-size:.75rem;font-weight:600;color:var(--ink-3);display:block;margin-bottom:4px">Procedimiento / Nota de evolución</label>
+        <label style="font-size:.75rem;font-weight:600;color:var(--ink-3);display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+          <span>Procedimiento / Nota de evolución</span>
+          <button type="button" class="voice-mic-btn" onclick="toggleVoiceDictation('sv-nota', this)">🎤 Dictar nota</button>
+        </label>
         <div id="quick-notes-container" style="display:none"></div>
         <textarea id="sv-nota" rows="3" placeholder="Descripción del procedimiento, hallazgos, indicaciones dadas…" style="width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);font-family:inherit;font-size:.82rem;background:var(--card)"></textarea>
       </div>
@@ -30174,6 +30746,58 @@ window.addEventListener('resize', function() {
     <div class="compare-handle" id="compare-handle"></div>
   </div>
   <div class="compare-labels"><span>⬅ Antes</span><span>Después ➡</span></div>
+  <div class="compare-export-bar">
+    <input type="text" id="compare-export-title" placeholder="Título opcional (ej. Diseño de sonrisa · Ortodoncia)">
+    <select id="compare-export-layout" aria-label="Formato de imagen">
+      <option value="horizontal">🖼️ Postal Horizontal (1600×900)</option>
+      <option value="vertical">📱 Historia / Reel (1080×1350)</option>
+    </select>
+    <button type="button" class="btn btn-primary btn-sm" onclick="exportBeforeAfterImage()" style="border-radius:99px">⬇️ Descargar con mi marca</button>
+  </div>
+</div>
+
+<!-- ══ FIRMA DIGITAL TÁCTIL / MOUSE (CONSENTIMIENTOS E HISTORIA CLÍNICA) ══ -->
+<div id="sig-pad-overlay" onclick="if(event.target===this)closeSignaturePad()">
+  <div class="sig-pad-box">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:.66rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);margin-bottom:3px">Firma Electrónica en Pantalla</div>
+        <h3 id="sig-pad-title" style="font-size:1.05rem;font-weight:800;color:var(--ink);margin:0">Firmar documento</h3>
+        <div id="sig-pad-sub" style="font-size:.76rem;color:var(--ink-3);margin-top:2px">El paciente puede firmar con el dedo, Apple Pencil o mouse.</div>
+      </div>
+      <button type="button" onclick="closeSignaturePad()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--ink-3);cursor:pointer;font-size:.95rem">✕</button>
+    </div>
+
+    <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px">
+      <div class="fg">
+        <label>Paciente vinculado (opcional)</label>
+        <select id="sig-patient-sel" onchange="onSigPatientModalChange(this.value)">
+          <option value="">— Sin vincular a expediente —</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Nombre de quien firma (Paciente o Tutor)</label>
+        <input type="text" id="sig-signer-name" placeholder="Nombre completo de quien firma">
+      </div>
+      <div class="fg">
+        <label>Testigo 1 (opcional)</label>
+        <input type="text" id="sig-rep-name" placeholder="Nombre del testigo (opcional)">
+      </div>
+    </div>
+
+    <div class="sig-canvas-wrap">
+      <canvas id="sig-canvas" width="520" height="170"></canvas>
+      <div class="sig-baseline">Firma sobre esta línea con dedo, lápiz óptico o mouse</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="clearSignaturePad()">🧹 Borrar trazo</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-ghost btn-sm" id="sig-skip-btn" onclick="skipSignatureAndPrint()">🖨️ Imprimir en blanco</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmSignatureAndPrint()">✅ Guardar firma e Imprimir / PDF</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: clasificación masiva de fotos -->
@@ -31022,7 +31646,10 @@ function printRadiologyOrder(order) {
       { ico: '🧾', title: 'Recibos y cortes', sub: 'Finanzas', page: 'receipts-page' },
       { ico: '💊', title: 'Recetas médicas', sub: 'Vademécum e impresión', page: 'rx-page' },
       { ico: '🩻', title: 'Órdenes de radiografías', sub: 'Estudios de imagen', page: 'rad-page' },
-      { ico: '📋', title: 'Consentimientos informados', sub: 'Documentos legales', page: 'ci-page' },
+      { ico: '📋', title: 'Consentimientos informados y firma digital', sub: 'Documentos legales', page: 'ci-page' },
+      { ico: '🏥', title: 'Justificantes médicos y constancias', sub: 'Asistencia y reposo', page: 'just-page' },
+      { ico: '🧪', title: 'Laboratorio dental — Órdenes y entregas', sub: 'Prótesis, guardas y alineadores', page: 'lab-page' },
+      { ico: '📦', title: 'Inventario dental y caducidades', sub: 'Control de insumos y alertas', page: 'inv-page' },
       { ico: '📄', title: 'Indicaciones postoperatorias', sub: 'Envío por WhatsApp / impresión', page: 'ind-page' },
       { ico: '📊', title: 'Estadísticas clínicas', sub: 'Análisis de pacientes', page: 'stats-page' },
       { ico: '🔍', title: 'Búsqueda clínica avanzada', sub: 'Filtros médicos', page: 'search-page' },
@@ -31246,6 +31873,1474 @@ function printRadiologyOrder(order) {
     /* Never interfere with clinical runtime */
   }
 })();
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   ★ STUDIO v7 — CLINICAL & OPERATIONAL SUITE
+   1. Dictado por Voz Clínico (Web Speech API es-MX)
+   2. Firma Digital Vectorial en Consentimientos e Historia Clínica (SVG)
+   3. Planes de Mensualidades / Pagos Recurrentes
+   4. Justificantes Médicos y Constancias de Asistencia
+   5. Control de Órdenes de Laboratorio Dental + Alertas en Inicio
+   6. Mini Inventario Dental Inteligente + Alertas de Stock y Caducidad
+   7. Exportador de Comparativas Antes / Después con Marca del Consultorio
+   ══════════════════════════════════════════════════════════════════════════ */
+
+// ── 1. DICTADO POR VOZ CLÍNICO ───────────────────────────────────────────
+var _voiceRecInstance = null;
+var _voiceActiveBtn = null;
+var _voiceTargetId = '';
+
+function _stopActiveVoiceDictation() {
+  if (_voiceRecInstance) {
+    try { _voiceRecInstance.onend = null; _voiceRecInstance.stop(); } catch (e) {}
+    _voiceRecInstance = null;
+  }
+  if (_voiceActiveBtn) {
+    _voiceActiveBtn.classList.remove('is-listening');
+    if (_voiceActiveBtn.dataset.origLabel) {
+      _voiceActiveBtn.innerHTML = _voiceActiveBtn.dataset.origLabel;
+    }
+    _voiceActiveBtn = null;
+  }
+  _voiceTargetId = '';
+}
+
+function toggleVoiceDictation(targetId, btnEl) {
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    showToast('🎙️ Tu navegador no soporta dictado por voz (usa Chrome, Edge o Safari)', 'red');
+    return;
+  }
+  if (_voiceRecInstance && _voiceTargetId === targetId) {
+    _stopActiveVoiceDictation();
+    showToast('✓ Dictado finalizado', 'green');
+    return;
+  }
+  _stopActiveVoiceDictation();
+
+  var target = document.getElementById(targetId);
+  if (!target) return;
+
+  try {
+    var rec = new SpeechRec();
+    rec.lang = 'es-MX';
+    rec.continuous = true;
+    rec.interimResults = false;
+
+    if (btnEl) {
+      if (!btnEl.dataset.origLabel) btnEl.dataset.origLabel = btnEl.innerHTML;
+      btnEl.classList.add('is-listening');
+      btnEl.innerHTML = '🔴 Escuchando… (toca para parar)';
+    }
+    _voiceRecInstance = rec;
+    _voiceActiveBtn = btnEl || null;
+    _voiceTargetId = targetId;
+
+    rec.onresult = function(ev) {
+      var chunk = '';
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        if (ev.results[i].isFinal) {
+          chunk += ev.results[i][0].transcript + ' ';
+        }
+      }
+      chunk = chunk.trim();
+      if (!chunk) return;
+      var cur = target.value || '';
+      var sep = (!cur || /[\s\n]$/.test(cur)) ? '' : ' ';
+      // Capitalize first letter if starting a fresh paragraph/sentence
+      if (!cur || /[.!?\n]\s*$/.test(cur)) {
+        chunk = chunk.charAt(0).toUpperCase() + chunk.slice(1);
+      }
+      target.value = cur + sep + chunk;
+      try { target.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+    };
+
+    rec.onerror = function(ev) {
+      var err = ev && ev.error ? ev.error : '';
+      _stopActiveVoiceDictation();
+      if (err === 'not-allowed' || err === 'service-not-allowed') {
+        showToast('🎙️ Permiso de micrófono bloqueado en el navegador', 'red');
+      } else if (err && err !== 'aborted' && err !== 'no-speech') {
+        showToast('🎙️ No se pudo continuar con el dictado (' + err + ')', 'red');
+      }
+    };
+
+    rec.onend = function() {
+      _stopActiveVoiceDictation();
+    };
+
+    rec.start();
+    target.focus();
+    showToast('🎙️ Habla ahora… se escribirá automáticamente', 'green');
+  } catch (err) {
+    _stopActiveVoiceDictation();
+    showToast('🎙️ No se pudo iniciar el micrófono', 'red');
+  }
+}
+
+// ── 2. FIRMA DIGITAL VECTORIAL (CONSENTIMIENTOS E HISTORIA CLÍNICA) ──────
+var _sigPadCtx = null;
+var _sigStrokes = [];
+var _sigCurrentStroke = null;
+var _sigIsDrawing = false;
+var _sigMode = 'ci'; // 'ci' | 'hc'
+var _sigCiId = '';
+var _sigBound = false;
+
+function _ensureSigCanvasBound() {
+  var canvas = document.getElementById('sig-canvas');
+  if (!canvas) return null;
+  if (!_sigPadCtx) _sigPadCtx = canvas.getContext('2d');
+  if (_sigBound) return canvas;
+  _sigBound = true;
+
+  function getPt(e) {
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / (rect.width || 1);
+    var scaleY = canvas.height / (rect.height || 1);
+    var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    return {
+      x: Math.round((clientX - rect.left) * scaleX * 10) / 10,
+      y: Math.round((clientY - rect.top) * scaleY * 10) / 10
+    };
+  }
+
+  canvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    if (canvas.setPointerCapture && e.pointerId !== undefined) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    _sigIsDrawing = true;
+    var pt = getPt(e);
+    _sigCurrentStroke = [pt];
+    _sigStrokes.push(_sigCurrentStroke);
+    _redrawSigCanvas();
+  });
+
+  canvas.addEventListener('pointermove', function(e) {
+    if (!_sigIsDrawing || !_sigCurrentStroke) return;
+    e.preventDefault();
+    var pt = getPt(e);
+    var prev = _sigCurrentStroke[_sigCurrentStroke.length - 1];
+    var dx = pt.x - prev.x, dy = pt.y - prev.y;
+    if (dx * dx + dy * dy < 2.2) return; // decimate micro-jitter for compact vector storage
+    _sigCurrentStroke.push(pt);
+    _redrawSigCanvas();
+  });
+
+  function finishStroke() {
+    _sigIsDrawing = false;
+    _sigCurrentStroke = null;
+  }
+  canvas.addEventListener('pointerup', finishStroke);
+  canvas.addEventListener('pointercancel', finishStroke);
+  return canvas;
+}
+
+function _redrawSigCanvas() {
+  var canvas = document.getElementById('sig-canvas');
+  if (!canvas || !_sigPadCtx) return;
+  _sigPadCtx.clearRect(0, 0, canvas.width, canvas.height);
+  _sigPadCtx.strokeStyle = '#0f172a';
+  _sigPadCtx.lineWidth = 2.6;
+  _sigPadCtx.lineCap = 'round';
+  _sigPadCtx.lineJoin = 'round';
+  _sigStrokes.forEach(function(stroke) {
+    if (!stroke || !stroke.length) return;
+    _sigPadCtx.beginPath();
+    _sigPadCtx.moveTo(stroke[0].x, stroke[0].y);
+    if (stroke.length === 1) {
+      _sigPadCtx.lineTo(stroke[0].x + 0.5, stroke[0].y + 0.5);
+    } else {
+      for (var i = 1; i < stroke.length; i++) {
+        _sigPadCtx.lineTo(stroke[i].x, stroke[i].y);
+      }
+    }
+    _sigPadCtx.stroke();
+  });
+}
+
+function _sigStrokesToSvgPath() {
+  var parts = [];
+  _sigStrokes.forEach(function(stroke) {
+    if (!stroke || !stroke.length) return;
+    parts.push('M' + stroke[0].x + ',' + stroke[0].y);
+    if (stroke.length === 1) {
+      parts.push('L' + (stroke[0].x + 0.5) + ',' + (stroke[0].y + 0.5));
+    } else {
+      for (var i = 1; i < stroke.length; i++) {
+        parts.push('L' + stroke[i].x + ',' + stroke[i].y);
+      }
+    }
+  });
+  return parts.join(' ');
+}
+
+function clearSignaturePad() {
+  _sigStrokes = [];
+  _sigCurrentStroke = null;
+  _sigIsDrawing = false;
+  _ensureSigCanvasBound();
+  _redrawSigCanvas();
+}
+
+function _populatePatientSelectEl(selId, preferredId, emptyLabel) {
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  var curVal = preferredId !== undefined && preferredId !== null && preferredId !== '' ? String(preferredId) : sel.value;
+  var pts = (db && Array.isArray(db.patients) ? db.patients.slice() : []).sort(function(a, b) {
+    return String(a.name || '').localeCompare(String(b.name || ''), 'es');
+  });
+  sel.innerHTML = '<option value="">' + (emptyLabel || '— Seleccionar paciente —') + '</option>'
+    + pts.map(function(p) {
+        return '<option value="' + p.id + '">' + escapeHTML(p.name || 'Paciente') + (p.phone ? ' · ' + escapeHTML(p.phone) : '') + '</option>';
+      }).join('');
+  if (curVal && pts.some(function(p){ return String(p.id) === String(curVal); })) {
+    sel.value = String(curVal);
+  }
+}
+
+function initCIPage(preferredPatientId) {
+  _populatePatientSelectEl('ci-patient-select', preferredPatientId, '— Formato general (sin paciente) —');
+  renderCISignedHistory();
+}
+
+function refreshCIPatientBar() {
+  var sel = document.getElementById('ci-patient-select');
+  if (sel && sel.options.length <= 1 && db && Array.isArray(db.patients) && db.patients.length) {
+    _populatePatientSelectEl('ci-patient-select', sel.value, '— Formato general (sin paciente) —');
+  }
+  renderCISignedHistory();
+}
+
+function renderCISignedHistory() {
+  var sel = document.getElementById('ci-patient-select');
+  var box = document.getElementById('ci-signed-history-box');
+  var listEl = document.getElementById('ci-signed-history-list');
+  if (!box || !listEl) return;
+  var patId = sel ? sel.value : '';
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var items = [];
+  if (pat) {
+    items = (pat.signedConsents || []).slice().reverse().map(function(sc){
+      return { patId: pat.id, patName: pat.name, sc: sc };
+    });
+  } else {
+    (db.patients || []).forEach(function(p) {
+      (p.signedConsents || []).forEach(function(sc) {
+        items.push({ patId: p.id, patName: p.name, sc: sc });
+      });
+    });
+    items.sort(function(a, b){ return (b.sc.signedAt || 0) - (a.sc.signedAt || 0); }).splice(8);
+  }
+  if (!items.length) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = '';
+  listEl.innerHTML = items.map(function(row) {
+    var sc = row.sc;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);font-size:.75rem">'
+      + '<span>✍️</span>'
+      + '<div style="min-width:0">'
+      +   '<strong style="color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px">' + escapeHTML(sc.ciTitle || 'Consentimiento') + '</strong>'
+      +   '<span style="color:var(--ink-3);font-size:.68rem">' + escapeHTML(row.patName || '') + ' · ' + escapeHTML(sc.signedDate || '') + '</span>'
+      + '</div>'
+      + '<button type="button" class="btn btn-ghost btn-xs" onclick="reprintSignedConsent(\'' + row.patId + '\',\'' + sc.id + '\')">🖨️ PDF</button>'
+      + '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="deleteSignedConsent(\'' + row.patId + '\',\'' + sc.id + '\')" title="Eliminar registro">✕</button>'
+      + '</div>';
+  }).join('');
+}
+
+function onSigPatientModalChange(patId) {
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var signerInp = document.getElementById('sig-signer-name');
+  if (pat && signerInp) {
+    signerInp.value = pat.repLegal || pat.name || '';
+  }
+}
+
+function openSignatureForCI(ciId) {
+  var ci = typeof _getCI === 'function' ? _getCI(ciId) : null;
+  if (!ci) return;
+  _sigMode = 'ci';
+  _sigCiId = ciId;
+  var pagePatSel = document.getElementById('ci-patient-select');
+  var patId = (pagePatSel && pagePatSel.value) ? pagePatSel.value : (document.getElementById('detail-page').classList.contains('active') ? String(curId || '') : '');
+  _populatePatientSelectEl('sig-patient-sel', patId, '— Sin vincular a expediente —');
+  document.getElementById('sig-patient-sel').disabled = false;
+
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  document.getElementById('sig-pad-title').textContent = '✍️ ' + (ci.title || 'Consentimiento informado');
+  document.getElementById('sig-pad-sub').textContent = 'Pide al paciente o tutor que firme en el recuadro para incrustar su firma en el documento oficial.';
+  document.getElementById('sig-signer-name').value = pat ? (pat.repLegal || pat.name || '') : '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = '';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function openSignatureForHC() {
+  var pat = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (!pat) { showToast('Abre primero el expediente del paciente', 'red'); return; }
+  _sigMode = 'hc';
+  _sigCiId = '';
+  _populatePatientSelectEl('sig-patient-sel', String(pat.id), '— Paciente —');
+  document.getElementById('sig-patient-sel').disabled = true;
+
+  document.getElementById('sig-pad-title').textContent = '✍️ Firmar Historia Clínica — ' + (pat.name || '');
+  document.getElementById('sig-pad-sub').textContent = 'La firma quedará guardada en el expediente del paciente y aparecerá al imprimir su Historia Clínica.';
+  document.getElementById('sig-signer-name').value = (pat.hcSignature && pat.hcSignature.signerName) || pat.repLegal || pat.name || '';
+  document.getElementById('sig-rep-name').value = '';
+  document.getElementById('sig-skip-btn').style.display = 'none';
+
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.add('open');
+  clearSignaturePad();
+}
+
+function closeSignaturePad() {
+  var ov = document.getElementById('sig-pad-overlay');
+  if (ov) ov.classList.remove('open');
+}
+
+function skipSignatureAndPrint() {
+  var patId = document.getElementById('sig-patient-sel') ? document.getElementById('sig-patient-sel').value : '';
+  var ciId = _sigCiId;
+  closeSignaturePad();
+  if (_sigMode === 'ci' && ciId) {
+    ciPrint(ciId, patId, null);
+  } else if (_sigMode === 'hc') {
+    printHistoriaClinica(null);
+  }
+}
+
+function confirmSignatureAndPrint() {
+  var svgPath = _sigStrokesToSvgPath();
+  if (!svgPath || _sigStrokes.length === 0) {
+    showToast('✍️ Dibuja primero la firma en el recuadro blanco (o usa Imprimir en blanco)', 'red');
+    return;
+  }
+  var patId = document.getElementById('sig-patient-sel') ? document.getElementById('sig-patient-sel').value : '';
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var signerName = (document.getElementById('sig-signer-name').value || '').trim() || (pat ? pat.name : '');
+  var repName = (document.getElementById('sig-rep-name').value || '').trim();
+  var now = Date.now();
+  var signedDate = new Date(now).toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  var sigPayload = {
+    id: 'sig_' + now + '_' + Math.random().toString(36).slice(2, 6),
+    svgPath: svgPath,
+    signerName: signerName,
+    repName: repName,
+    signedAt: now,
+    signedDate: signedDate,
+    _updatedAt: now
+  };
+
+  if (_sigMode === 'hc') {
+    if (pat) {
+      pat.hcSignature = sigPayload;
+      pat._updatedAt = now;
+      saveDB();
+      showToast('✅ Firma guardada en la Historia Clínica', 'green');
+    }
+    closeSignaturePad();
+    printHistoriaClinica(sigPayload);
+    return;
+  }
+
+  var ci = typeof _getCI === 'function' ? _getCI(_sigCiId) : null;
+  var ciId = _sigCiId;
+  if (pat && ci) {
+    if (!Array.isArray(pat.signedConsents)) pat.signedConsents = [];
+    pat.signedConsents.push(Object.assign({
+      ciId: ci.id,
+      ciTitle: ci.title
+    }, sigPayload));
+    pat._updatedAt = now;
+    saveDB();
+    var ciSel = document.getElementById('ci-patient-select');
+    if (ciSel) ciSel.value = String(pat.id);
+    renderCISignedHistory();
+    showToast('✅ Consentimiento firmado y guardado en el expediente de ' + pat.name, 'green');
+  }
+  closeSignaturePad();
+  ciPrint(ciId, patId, sigPayload);
+}
+
+function reprintSignedConsent(patId, sigId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat || !Array.isArray(pat.signedConsents)) return;
+  var sc = pat.signedConsents.find(function(x){ return String(x.id) === String(sigId); });
+  if (!sc) return;
+  ciPrint(sc.ciId, pat.id, sc);
+}
+
+function deleteSignedConsent(patId, sigId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat || !Array.isArray(pat.signedConsents)) return;
+  if (!confirm('¿Eliminar este consentimiento firmado del historial del paciente?')) return;
+  pat.signedConsents = pat.signedConsents.filter(function(x){ return String(x.id) !== String(sigId); });
+  pat._updatedAt = Date.now();
+  saveDB();
+  renderCISignedHistory();
+  showToast('Registro eliminado', 'green');
+}
+
+// ── 3. PLANES DE MENSUALIDADES / PAGOS RECURRENTES ───────────────────────
+var _instEditorOpenFor = null;
+
+function renderInstallmentPlan(p) {
+  var box = document.getElementById('installment-plan-container');
+  if (!box || !p) return;
+  var plan = p.installmentPlan && p.installmentPlan.active ? p.installmentPlan : null;
+
+  if (_instEditorOpenFor === p.id) {
+    var defConcept = plan ? plan.concept : 'Mensualidad de Ortodoncia';
+    var defTotal = plan ? plan.totalCount : 18;
+    var defPaid = plan ? plan.paidCount : 0;
+    var defAmt = plan ? plan.monthlyAmount : '';
+    var defDay = plan ? plan.dueDay : 15;
+    box.innerHTML = '<div class="inst-plan-box">'
+      + '<div style="font-size:.76rem;font-weight:800;color:var(--ink);margin-bottom:8px">💳 Configurar plan de mensualidades</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px">'
+      +   '<input type="text" id="inst-concept" value="' + escapeHTML(defConcept) + '" placeholder="Concepto (ej. Ortodoncia)" style="grid-column:1/-1;padding:6px 9px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.78rem;background:var(--card);color:var(--ink)">'
+      +   '<div><label style="font-size:.65rem;color:var(--ink-3);display:block;margin-bottom:2px">Total de meses</label><input type="number" id="inst-total" min="1" max="120" value="' + defTotal + '" style="width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.78rem;background:var(--card);color:var(--ink)"></div>'
+      +   '<div><label style="font-size:.65rem;color:var(--ink-3);display:block;margin-bottom:2px">Monto mensual ($)</label><input type="number" id="inst-amount" min="1" step="0.01" value="' + defAmt + '" placeholder="Ej. 800" style="width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.78rem;background:var(--card);color:var(--ink)"></div>'
+      +   '<div><label style="font-size:.65rem;color:var(--ink-3);display:block;margin-bottom:2px">Ya pagadas</label><input type="number" id="inst-paid" min="0" max="120" value="' + defPaid + '" style="width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.78rem;background:var(--card);color:var(--ink)"></div>'
+      +   '<div><label style="font-size:.65rem;color:var(--ink-3);display:block;margin-bottom:2px">Día de corte (1-31)</label><input type="number" id="inst-day" min="1" max="31" value="' + defDay + '" style="width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.78rem;background:var(--card);color:var(--ink)"></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">'
+      +   (plan ? '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--red);margin-right:auto" onclick="deleteInstallmentPlan()">Eliminar plan</button>' : '')
+      +   '<button type="button" class="btn btn-ghost btn-xs" onclick="cancelInstallmentEditor()">Cancelar</button>'
+      +   '<button type="button" class="btn btn-primary btn-xs" onclick="saveInstallmentPlan()">💾 Guardar plan</button>'
+      + '</div>'
+      + '</div>';
+    return;
+  }
+
+  if (!plan) {
+    box.innerHTML = '<div style="margin-bottom:9px">'
+      + '<button type="button" class="btn btn-ghost btn-xs" style="width:100%;justify-content:center;border-style:dashed" onclick="openInstallmentPlanEditor()">💳 ＋ Activar plan de mensualidades (Ortodoncia / Rehabilitación)</button>'
+      + '</div>';
+    return;
+  }
+
+  var total = Math.max(1, parseInt(plan.totalCount || 1, 10));
+  var paid = Math.min(total, Math.max(0, parseInt(plan.paidCount || 0, 10)));
+  var pct = Math.round((paid / total) * 100);
+  var nextNum = paid + 1;
+  var done = paid >= total;
+
+  box.innerHTML = '<div class="inst-plan-box">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+    +   '<div>'
+    +     '<div style="font-size:.78rem;font-weight:800;color:var(--ink)">💳 ' + escapeHTML(plan.concept || 'Plan de mensualidades') + '</div>'
+    +     '<div style="font-size:.7rem;color:var(--ink-3)">Mensualidad <strong>' + paid + ' de ' + total + '</strong> · ' + fmt$(plan.monthlyAmount || 0) + '/mes' + (plan.dueDay ? ' · Corte día ' + plan.dueDay : '') + '</div>'
+    +   '</div>'
+    +   '<button type="button" class="btn btn-ghost btn-xs" onclick="openInstallmentPlanEditor()" title="Editar plan">✏️</button>'
+    + '</div>'
+    + '<div class="inst-progress-track"><div class="inst-progress-fill" style="width:' + pct + '%"></div></div>'
+    + (done
+        ? '<div style="font-size:.73rem;font-weight:750;color:var(--green,#16a34a)">🎉 ¡Plan liquidado al 100%! (' + total + '/' + total + ' mensualidades)</div>'
+        : '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">'
+            + '<select id="inst-quick-method" style="padding:5px 8px;border:1px solid var(--border-med);border-radius:8px;font:inherit;font-size:.73rem;background:var(--card);color:var(--ink)">'
+            +   '<option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option>'
+            + '</select>'
+            + '<button type="button" class="btn btn-primary btn-xs" style="flex:1;justify-content:center" onclick="collectNextInstallment()">＋ Cobrar mensualidad #' + nextNum + ' (' + fmt$(plan.monthlyAmount || 0) + ')</button>'
+          + '</div>')
+    + '</div>';
+}
+
+function openInstallmentPlanEditor() {
+  var p = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (!p) return;
+  _instEditorOpenFor = p.id;
+  renderInstallmentPlan(p);
+}
+
+function cancelInstallmentEditor() {
+  _instEditorOpenFor = null;
+  var p = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (p) renderInstallmentPlan(p);
+}
+
+function saveInstallmentPlan() {
+  var p = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (!p) return;
+  var concept = (document.getElementById('inst-concept').value || '').trim() || 'Mensualidad de Ortodoncia';
+  var total = parseInt(document.getElementById('inst-total').value || '0', 10);
+  var amount = parseFloat(document.getElementById('inst-amount').value || '0');
+  var paid = parseInt(document.getElementById('inst-paid').value || '0', 10) || 0;
+  var dueDay = parseInt(document.getElementById('inst-day').value || '15', 10) || 15;
+  if (!total || total < 1 || !amount || amount <= 0) {
+    showToast('Ingresa el total de mensualidades y el monto mensual', 'red');
+    return;
+  }
+  p.installmentPlan = {
+    active: true,
+    concept: concept,
+    totalCount: total,
+    paidCount: Math.max(0, Math.min(total, paid)),
+    monthlyAmount: amount,
+    dueDay: Math.max(1, Math.min(31, dueDay)),
+    _updatedAt: Date.now()
+  };
+  p._updatedAt = Date.now();
+  _instEditorOpenFor = null;
+  saveDB();
+  renderInstallmentPlan(p);
+  showToast('✅ Plan de mensualidades guardado', 'green');
+}
+
+function deleteInstallmentPlan() {
+  var p = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (!p) return;
+  if (!confirm('¿Desactivar el plan de mensualidades de este paciente? (Los abonos ya cobrados se conservan).')) return;
+  p.installmentPlan = { active: false, _updatedAt: Date.now() };
+  p._updatedAt = Date.now();
+  _instEditorOpenFor = null;
+  saveDB();
+  renderInstallmentPlan(p);
+  showToast('Plan desactivado', 'green');
+}
+
+function collectNextInstallment() {
+  var p = (db.patients || []).find(function(x){ return x.id == curId; });
+  if (!p || !p.installmentPlan || !p.installmentPlan.active) return;
+  var plan = p.installmentPlan;
+  var nextNum = (parseInt(plan.paidCount || 0, 10) || 0) + 1;
+  var total = parseInt(plan.totalCount || 1, 10) || 1;
+  var amount = Number(plan.monthlyAmount || 0);
+  if (amount <= 0) return;
+
+  var methodEl = document.getElementById('inst-quick-method');
+  var method = methodEl ? methodEl.value : 'Efectivo';
+  var desc = (plan.concept || 'Mensualidad') + ' (' + nextNum + '/' + total + ')';
+  var now = Date.now();
+  var payObj = {
+    id: now,
+    date: todayStr(),
+    desc: desc,
+    amount: amount,
+    type: 'in',
+    method: method,
+    receiptItems: [{ desc: desc, amount: amount }],
+    _updatedAt: now
+  };
+  if (!Array.isArray(p.payments)) p.payments = [];
+  p.payments.push(payObj);
+  plan.paidCount = Math.min(total, nextNum);
+  plan._updatedAt = now;
+  p._updatedAt = now;
+
+  if (typeof syncPaymentToCaja === 'function') syncPaymentToCaja(p, payObj);
+  saveDB();
+  renderPayments(p);
+  renderDashboard();
+  if (typeof cajaRender === 'function' && document.getElementById('caja-list')) cajaRender();
+  showToast('✅ Cobrada ' + desc + ' · Registrada en Caja', 'green');
+}
+
+// ── 4. JUSTIFICANTES MÉDICOS / CONSTANCIAS DE ASISTENCIA ─────────────────
+function initJustificantesPage(preferredPatientId) {
+  _populatePatientSelectEl('just-patient-select', preferredPatientId, '— Seleccionar paciente del expediente —');
+  var dateEl = document.getElementById('just-date');
+  if (dateEl && !dateEl.value) dateEl.value = todayStr();
+  if (preferredPatientId) {
+    selectJustificantePatient(preferredPatientId);
+  } else {
+    updateJustPreview();
+    renderJustHistory();
+  }
+}
+
+function openJustificanteForPatient(patId) {
+  var navEl = document.getElementById('just-nav');
+  goPage('just-page', navEl);
+  initJustificantesPage(String(patId || ''));
+}
+
+function selectJustificantePatient(patId) {
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  if (pat) {
+    var nameEl = document.getElementById('just-name');
+    var ageEl = document.getElementById('just-age');
+    if (nameEl) nameEl.value = pat.name || '';
+    if (ageEl) {
+      var a = typeof calcAge === 'function' ? calcAge(pat.dob) : '';
+      ageEl.value = a ? (a + ' años') : '';
+    }
+  }
+  updateJustPreview();
+  renderJustHistory();
+}
+
+function _buildJustDataFromForm() {
+  var docInfo = typeof _getPrescriptionDoctorInfo === 'function' ? _getPrescriptionDoctorInfo() : {
+    doctorName: cfg.name || 'Cirujano Dentista',
+    specialty: cfg.sub || 'Odontología General',
+    cedula: cfg.cedula || '',
+    cedula2: cfg.cedula2 || '',
+    institucion: cfg.institucion || '',
+    address: cfg.direccion || '',
+    city: cfg.city || '',
+    phone: cfg.telefono || '',
+    email: cfg.correo || ''
+  };
+  var patSel = document.getElementById('just-patient-select');
+  var patId = patSel ? patSel.value : '';
+  return {
+    patientId: patId,
+    patientName: ((document.getElementById('just-name') || {}).value || '').trim() || '___________________________',
+    age: ((document.getElementById('just-age') || {}).value || '').trim(),
+    date: ((document.getElementById('just-date') || {}).value || '') || todayStr(),
+    timeIn: ((document.getElementById('just-time-in') || {}).value || '10:00'),
+    timeOut: ((document.getElementById('just-time-out') || {}).value || '11:00'),
+    directedTo: ((document.getElementById('just-to') || {}).value || '').trim() || 'A QUIEN CORRESPONDA',
+    rest: ((document.getElementById('just-rest') || {}).value || 'Sin reposo adicional (solo constancia de asistencia)'),
+    reason: ((document.getElementById('just-reason') || {}).value || '').trim() || 'Atención y procedimiento odontológico',
+    notes: ((document.getElementById('just-notes') || {}).value || '').trim(),
+    doc: docInfo
+  };
+}
+
+function updateJustPreview() {
+  var d = _buildJustDataFromForm();
+  var headEl = document.getElementById('just-prev-header');
+  var bodyEl = document.getElementById('just-prev-body');
+  var footEl = document.getElementById('just-prev-footer');
+  if (!headEl || !bodyEl || !footEl) return;
+
+  var fDate = d.date;
+  try {
+    fDate = new Date(d.date + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  } catch (e) {}
+
+  headEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+    + '<div><div style="font-size:1rem;font-weight:800;color:#0f172a">' + escapeHTML(d.doc.doctorName) + '</div>'
+    + '<div style="font-size:.76rem;color:#0369a1;font-weight:700">' + escapeHTML(d.doc.specialty) + '</div>'
+    + '<div style="font-size:.69rem;color:#475569">Céd. Prof.: ' + escapeHTML(d.doc.cedula || '—') + (d.doc.cedula2 ? ' · Céd. Esp.: ' + escapeHTML(d.doc.cedula2) : '') + '</div></div>'
+    + '<div style="text-align:right;font-size:.72rem;color:#475569"><strong>CONSTANCIA MÉDICA</strong><br>' + escapeHTML(fDate) + '</div>'
+    + '</div>';
+
+  bodyEl.innerHTML = '<p style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">' + escapeHTML(d.directedTo) + '<br><span style="font-size:.74rem;font-weight:700;color:#475569">P R E S E N T E .—</span></p>'
+    + '<p style="margin-bottom:10px;text-align:justify">Por medio de la presente el/la que suscribe, <strong>' + escapeHTML(d.doc.doctorName) + '</strong>, legalmente autorizado(a) para ejercer la profesión con Cédula Profesional <strong>' + escapeHTML(d.doc.cedula || 'en trámite') + '</strong>, hace constar que el/la paciente <strong>' + escapeHTML(d.patientName) + '</strong>' + (d.age ? ' (' + escapeHTML(d.age) + ')' : '') + ' acudió a consulta odontológica en este consultorio el día <strong>' + escapeHTML(fDate) + '</strong> en un horario de <strong>' + escapeHTML(d.timeIn) + '</strong> a <strong>' + escapeHTML(d.timeOut) + ' hrs</strong>.</p>'
+    + '<p style="margin-bottom:10px"><strong>Motivo / Atención realizada:</strong> ' + escapeHTML(d.reason) + '.</p>'
+    + '<p style="margin-bottom:10px"><strong>Indicación médica de reposo:</strong> ' + escapeHTML(d.rest) + '.</p>'
+    + (d.notes ? '<p style="margin-bottom:10px"><strong>Observaciones e indicaciones:</strong> ' + escapeHTML(d.notes) + '</p>' : '')
+    + '<p style="margin-top:14px;font-size:.79rem;color:#334155">Se extiende la presente constancia a petición del interesado(a) para los fines laborales, escolares o legales que a su derecho convengan.</p>';
+
+  var contactLine = [d.doc.address, d.doc.city, d.doc.phone ? 'Tel. ' + d.doc.phone : '', d.doc.email].filter(Boolean).join(' · ');
+  footEl.innerHTML = '<div style="text-align:center;margin-bottom:10px"><div style="width:210px;border-top:1.5px solid #0f172a;margin:24px auto 5px"></div>'
+    + '<strong style="font-size:.82rem;color:#0f172a">' + escapeHTML(d.doc.doctorName) + '</strong><br>'
+    + '<span style="font-size:.7rem;color:#475569">Céd. Prof. ' + escapeHTML(d.doc.cedula || '—') + '</span></div>'
+    + (contactLine ? '<div style="text-align:center;font-size:.68rem;color:#64748b">' + escapeHTML(contactLine) + '</div>' : '');
+}
+
+function emitJustificante(actionMode) {
+  var d = _buildJustDataFromForm();
+  if (!d.patientName || d.patientName.indexOf('___') !== -1) {
+    showToast('Escribe o selecciona el nombre del paciente', 'red');
+    return;
+  }
+  var now = Date.now();
+  var folio = 'JM-' + String(now).slice(-6);
+  var record = {
+    id: 'just_' + now,
+    folio: folio,
+    createdAt: now,
+    patientName: d.patientName,
+    age: d.age,
+    date: d.date,
+    timeIn: d.timeIn,
+    timeOut: d.timeOut,
+    directedTo: d.directedTo,
+    rest: d.rest,
+    reason: d.reason,
+    notes: d.notes,
+    doctorName: d.doc.doctorName,
+    specialty: d.doc.specialty,
+    cedula: d.doc.cedula,
+    cedula2: d.doc.cedula2,
+    address: d.doc.address,
+    city: d.doc.city,
+    phone: d.doc.phone,
+    email: d.doc.email
+  };
+
+  if (d.patientId) {
+    var pat = (db.patients || []).find(function(x){ return String(x.id) === String(d.patientId); });
+    if (pat) {
+      if (!Array.isArray(pat.medicalCertificates)) pat.medicalCertificates = [];
+      pat.medicalCertificates.push(record);
+      pat._updatedAt = now;
+      saveDB();
+      renderJustHistory();
+    }
+  }
+
+  if (actionMode === 'wa') {
+    sendJustificanteWA(record, d.patientId);
+    return;
+  }
+  printJustificanteDoc(record);
+}
+
+function printJustificanteDoc(rec) {
+  var fDate = rec.date || todayStr();
+  try {
+    fDate = new Date((rec.date || todayStr()) + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  } catch (e) {}
+  var contactLine = [rec.address || cfg.direccion, rec.city || cfg.city, (rec.phone || cfg.telefono) ? 'Tel. ' + (rec.phone || cfg.telefono) : '', rec.email || cfg.correo].filter(Boolean).join(' · ');
+
+  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    + '<title>Constancia Médica — ' + escapeHTML(rec.patientName || '') + '</title>'
+    + '<style>'
+    + '*{box-sizing:border-box;margin:0;padding:0}'
+    + 'body{font-family:Georgia,"Times New Roman",serif;color:#0f172a;padding:38px 48px;line-height:1.7;background:#fff;font-size:13px}'
+    + '.hdr{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:2.5px solid #0f172a;margin-bottom:26px}'
+    + '.hdr-left{display:flex;align-items:center;gap:14px}'
+    + '.doc-name{font-size:17px;font-weight:bold;color:#0f172a}'
+    + '.doc-spec{font-size:12px;color:#0369a1;font-weight:bold}'
+    + '.doc-meta{font-size:10.5px;color:#475569;margin-top:2px}'
+    + '.badge{text-align:right;font-family:Arial,sans-serif;font-size:10.5px;color:#334155;line-height:1.5}'
+    + '.title-banner{text-align:center;font-family:Arial,sans-serif;font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:#f8fafc;border:1px solid #cbd5e1;padding:9px;border-radius:6px;margin-bottom:24px}'
+    + 'p{margin-bottom:14px;text-align:justify}'
+    + '.box{background:#f8fafc;border-left:3.5px solid #0284c7;padding:12px 16px;margin:18px 0;font-family:Arial,sans-serif;font-size:12px;line-height:1.6}'
+    + '.sig{margin-top:58px;text-align:center;font-family:Arial,sans-serif}'
+    + '.sig-line{width:250px;border-top:1.5px solid #0f172a;margin:0 auto 6px}'
+    + '.ftr{margin-top:42px;padding-top:10px;border-top:1px solid #cbd5e1;text-align:center;font-family:Arial,sans-serif;font-size:10px;color:#64748b}'
+    + '@media print{body{padding:20px 28px}@page{size:letter;margin:1.4cm}}'
+    + '</style></head><body>'
+    + '<div class="hdr"><div class="hdr-left"><div data-print-logo-slot>' + (typeof _logoHTML === 'function' ? _logoHTML(56) : '') + '</div>'
+    + '<div><div class="doc-name">' + escapeHTML(rec.doctorName || cfg.name || '') + '</div>'
+    + '<div class="doc-spec">' + escapeHTML(rec.specialty || cfg.sub || '') + '</div>'
+    + '<div class="doc-meta">Cédula Profesional: ' + escapeHTML(rec.cedula || cfg.cedula || '—') + (rec.cedula2 ? ' · Céd. Esp.: ' + escapeHTML(rec.cedula2) : '') + '</div></div></div>'
+    + '<div class="badge"><strong>FOLIO: ' + escapeHTML(rec.folio || 'JM-001') + '</strong><br>Fecha: ' + escapeHTML(fDate) + '</div></div>'
+    + '<div class="title-banner">Constancia de Asistencia / Justificante Médico Odontológico</div>'
+    + '<p style="font-weight:bold;text-transform:uppercase">' + escapeHTML(rec.directedTo || 'A QUIEN CORRESPONDA') + '<br>P R E S E N T E .—</p>'
+    + '<p>El/La que suscribe, <strong>' + escapeHTML(rec.doctorName || cfg.name || '') + '</strong>, legalmente autorizado(a) para ejercer la profesión odontológica con Cédula Profesional <strong>' + escapeHTML(rec.cedula || cfg.cedula || '—') + '</strong>, hace constar por este conducto que el/la paciente <strong>' + escapeHTML(rec.patientName || '') + '</strong>' + (rec.age ? ' (' + escapeHTML(rec.age) + ')' : '') + ' asistió a consulta y atención clínica en este consultorio el día <strong>' + escapeHTML(fDate) + '</strong>, permaneciendo en un horario de <strong>' + escapeHTML(rec.timeIn || '') + '</strong> a <strong>' + escapeHTML(rec.timeOut || '') + ' horas</strong>.</p>'
+    + '<div class="box">'
+    +   '<div><strong>Motivo / Procedimiento clínico:</strong> ' + escapeHTML(rec.reason || '') + '</div>'
+    +   '<div style="margin-top:4px"><strong>Indicación médica de reposo:</strong> ' + escapeHTML(rec.rest || '') + '</div>'
+    +   (rec.notes ? '<div style="margin-top:4px"><strong>Observaciones:</strong> ' + escapeHTML(rec.notes) + '</div>' : '')
+    + '</div>'
+    + '<p>Se extiende la presente constancia médica a solicitud del paciente o su representante legal para los fines escolares, laborales o administrativos que estime pertinentes.</p>'
+    + '<div class="sig"><div class="sig-line"></div><strong>' + escapeHTML(rec.doctorName || cfg.name || '') + '</strong><br><span style="font-size:11px;color:#475569">' + escapeHTML(rec.specialty || cfg.sub || '') + ' · Céd. Prof. ' + escapeHTML(rec.cedula || cfg.cedula || '—') + '</span><br><span style="font-size:10px;color:#64748b">Firma y sello del facultativo</span></div>'
+    + '<div class="ftr">' + escapeHTML(contactLine || (cfg.city || '')) + '</div>'
+    + '</body></html>';
+
+  var w = window.open('', '_blank');
+  if (!w) { showToast('Permite ventanas emergentes para imprimir', 'red'); return; }
+  w.document.write(html);
+  w.document.close();
+  if (typeof _printWindow === 'function') _printWindow(w);
+  else w.print();
+}
+
+function sendJustificanteWA(rec, patId) {
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var phone = pat && pat.phone ? String(pat.phone).replace(/\D/g, '') : '';
+  if (phone && phone.length === 10) phone = '52' + phone;
+  var msg = '🏥 *CONSTANCIA DE ASISTENCIA DENTAL*\n'
+    + '*' + (rec.doctorName || cfg.name || 'Consultorio Dental') + '*\n'
+    + (rec.cedula ? 'Céd. Prof.: ' + rec.cedula + '\n' : '')
+    + '────────────────────\n'
+    + '👤 *Paciente:* ' + rec.patientName + '\n'
+    + '📅 *Fecha:* ' + rec.date + ' (' + rec.timeIn + ' a ' + rec.timeOut + ' hrs)\n'
+    + '🦷 *Atención:* ' + rec.reason + '\n'
+    + '🛌 *Reposo indicado:* ' + rec.rest + '\n'
+    + (rec.notes ? '📝 *Notas:* ' + rec.notes + '\n' : '')
+    + '────────────────────\n'
+    + 'Folio: ' + rec.folio + (rec.phone ? ' · Tel. ' + rec.phone : '');
+  var url = 'https://wa.me/' + (phone || '') + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank', 'noopener');
+}
+
+function renderJustHistory() {
+  var listEl = document.getElementById('just-history-list');
+  if (!listEl) return;
+  var patSel = document.getElementById('just-patient-select');
+  var patId = patSel ? patSel.value : '';
+  var rows = [];
+  if (patId) {
+    var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+    if (pat && Array.isArray(pat.medicalCertificates)) {
+      rows = pat.medicalCertificates.slice().reverse().map(function(c){ return { patId: pat.id, cert: c }; });
+    }
+  } else {
+    (db.patients || []).forEach(function(p) {
+      (p.medicalCertificates || []).forEach(function(c) {
+        rows.push({ patId: p.id, cert: c });
+      });
+    });
+    rows.sort(function(a, b){ return (b.cert.createdAt || 0) - (a.cert.createdAt || 0); }).splice(10);
+  }
+  if (!rows.length) {
+    listEl.innerHTML = '<div style="font-size:.77rem;color:var(--ink-3)">Aún no hay constancias guardadas' + (patId ? ' para este paciente.' : '.') + '</div>';
+    return;
+  }
+  listEl.innerHTML = rows.map(function(r) {
+    var c = r.cert;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--border);margin-bottom:6px;font-size:.76rem">'
+      + '<div style="min-width:0"><strong style="color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(c.patientName || '') + ' · ' + escapeHTML(c.reason || '') + '</strong>'
+      + '<span style="color:var(--ink-3);font-size:.69rem">' + escapeHTML(c.date || '') + ' · ' + escapeHTML(c.rest || '') + '</span></div>'
+      + '<div style="display:flex;gap:5px;flex-shrink:0">'
+      +   '<button type="button" class="btn btn-ghost btn-xs" onclick="reprintJustificante(\'' + r.patId + '\',\'' + c.id + '\')">🖨️ PDF</button>'
+      +   '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="deleteJustificante(\'' + r.patId + '\',\'' + c.id + '\')">✕</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+function reprintJustificante(patId, certId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat || !Array.isArray(pat.medicalCertificates)) return;
+  var c = pat.medicalCertificates.find(function(x){ return String(x.id) === String(certId); });
+  if (c) printJustificanteDoc(c);
+}
+
+function deleteJustificante(patId, certId) {
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (!pat || !Array.isArray(pat.medicalCertificates)) return;
+  if (!confirm('¿Eliminar esta constancia del expediente?')) return;
+  pat.medicalCertificates = pat.medicalCertificates.filter(function(x){ return String(x.id) !== String(certId); });
+  pat._updatedAt = Date.now();
+  saveDB();
+  renderJustHistory();
+}
+
+// ── 5. CONTROL DE ÓRDENES DE LABORATORIO DENTAL ──────────────────────────
+var LAB_STORAGE_KEY = 'dental_lab_orders_v1';
+var _labActiveFilter = 'pending';
+
+function loadLabOrders() {
+  try {
+    var raw = appStorage.getItem(LAB_STORAGE_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function saveLabOrders(list) {
+  appStorage.setItem(LAB_STORAGE_KEY, JSON.stringify(list || []));
+  if (typeof renderDashOpsAlerts === 'function') renderDashOpsAlerts();
+}
+
+function countPatientLabOrders(patId) {
+  if (!patId) return 0;
+  return loadLabOrders().filter(function(o){ return String(o.patientId) === String(patId); }).length;
+}
+
+function initLabPage(preferredPatientId) {
+  _populatePatientSelectEl('lab-patient-sel', preferredPatientId, '— Seleccionar paciente —');
+  var sEl = document.getElementById('lab-date-sent');
+  var dEl = document.getElementById('lab-date-due');
+  if (sEl && !sEl.value) sEl.value = todayStr();
+  if (dEl && !dEl.value) {
+    var plus7 = new Date(Date.now() + 7 * 86400000);
+    dEl.value = plus7.toISOString().slice(0, 10);
+  }
+  renderLabPage();
+}
+
+function openLabForPatient(patId) {
+  var navEl = document.getElementById('lab-nav');
+  goPage('lab-page', navEl);
+  initLabPage(String(patId || ''));
+  var searchEl = document.getElementById('lab-search');
+  var pat = (db.patients || []).find(function(x){ return String(x.id) === String(patId); });
+  if (searchEl && pat) searchEl.value = pat.name || '';
+  _labActiveFilter = 'all';
+  renderLabPage();
+}
+
+function setLabFilter(f, btnEl) {
+  _labActiveFilter = f;
+  if (btnEl && btnEl.parentElement) {
+    btnEl.parentElement.querySelectorAll('.rx-cat-chip').forEach(function(b){ b.classList.remove('active'); });
+    btnEl.classList.add('active');
+  }
+  renderLabPage();
+}
+
+function addLabOrder() {
+  var patId = (document.getElementById('lab-patient-sel').value || '').trim();
+  var pat = patId ? (db.patients || []).find(function(x){ return String(x.id) === String(patId); }) : null;
+  var work = (document.getElementById('lab-work').value || '').trim();
+  var teeth = (document.getElementById('lab-teeth').value || '').trim();
+  var shade = (document.getElementById('lab-shade').value || '').trim();
+  var vendor = (document.getElementById('lab-vendor').value || '').trim();
+  var phone = (document.getElementById('lab-phone').value || '').trim();
+  var cost = parseFloat(document.getElementById('lab-cost').value || '0') || 0;
+  var dateSent = document.getElementById('lab-date-sent').value || todayStr();
+  var dateDue = document.getElementById('lab-date-due').value || '';
+  var status = document.getElementById('lab-status').value || 'sent';
+  var notes = (document.getElementById('lab-notes').value || '').trim();
+
+  if (!work) {
+    showToast('Escribe el trabajo protésico u ortodóncico solicitado', 'red');
+    return;
+  }
+  var list = loadLabOrders();
+  var now = Date.now();
+  list.unshift({
+    id: 'lab_' + now + '_' + Math.random().toString(36).slice(2, 5),
+    patientId: pat ? pat.id : '',
+    patientName: pat ? pat.name : 'Paciente general',
+    work: work,
+    teeth: teeth,
+    shade: shade,
+    vendor: vendor || 'Laboratorio dental',
+    phone: phone,
+    cost: cost,
+    dateSent: dateSent,
+    dateDue: dateDue,
+    status: status,
+    notes: notes,
+    doctorName: (_activeDoctor && _activeDoctor.name) || cfg.name || '',
+    createdAt: now,
+    _updatedAt: now
+  });
+  saveLabOrders(list);
+
+  document.getElementById('lab-work').value = '';
+  document.getElementById('lab-teeth').value = '';
+  document.getElementById('lab-shade').value = '';
+  document.getElementById('lab-cost').value = '';
+  document.getElementById('lab-notes').value = '';
+  renderLabPage();
+  showToast('🧪 Orden de laboratorio registrada', 'green');
+}
+
+function updateLabOrderStatus(orderId, newStatus) {
+  var list = loadLabOrders();
+  var item = list.find(function(x){ return String(x.id) === String(orderId); });
+  if (!item) return;
+  item.status = newStatus;
+  item._updatedAt = Date.now();
+  saveLabOrders(list);
+  renderLabPage();
+  showToast('✓ Estado de laboratorio actualizado', 'green');
+}
+
+function deleteLabOrder(orderId) {
+  if (!confirm('¿Eliminar esta orden de laboratorio?')) return;
+  var list = loadLabOrders().filter(function(x){ return String(x.id) !== String(orderId); });
+  saveLabOrders(list);
+  renderLabPage();
+}
+
+function _patientUpcomingAppt(patId) {
+  if (!patId || !db || !Array.isArray(db.appointments)) return null;
+  var today = todayStr();
+  var matches = db.appointments.filter(function(a) {
+    return a && String(a.patientId) === String(patId) && a.date >= today && a.status !== 'cancelled';
+  }).sort(function(a, b){ return String(a.date + (a.time||'')).localeCompare(String(b.date + (b.time||''))); });
+  return matches[0] || null;
+}
+
+function renderLabPage() {
+  var listEl = document.getElementById('lab-orders-list');
+  var kpiEl = document.getElementById('lab-kpis');
+  if (!listEl) return;
+  var all = loadLabOrders();
+  var today = todayStr();
+
+  var activeSent = all.filter(function(o){ return o.status === 'sent' || o.status === 'tryin'; }).length;
+  var readyInClinic = all.filter(function(o){ return o.status === 'ready'; }).length;
+  var overdue = all.filter(function(o){ return (o.status === 'sent' || o.status === 'tryin') && o.dateDue && o.dateDue < today; }).length;
+
+  if (kpiEl) {
+    kpiEl.innerHTML = '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:750;background:#eff6ff;color:#1d4ed8">🔨 En proceso: ' + activeSent + '</span>'
+      + '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:750;background:#dcfce7;color:#15803d">📦 Listos en clínica: ' + readyInClinic + '</span>'
+      + (overdue ? '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:800;background:#fee2e2;color:#b91c1c">⚠️ Atrasados: ' + overdue + '</span>' : '');
+  }
+
+  var q = ((document.getElementById('lab-search') || {}).value || '').trim().toLowerCase();
+  var filtered = all.filter(function(o) {
+    if (_labActiveFilter === 'pending' && o.status === 'delivered') return false;
+    if (_labActiveFilter === 'ready' && o.status !== 'ready') return false;
+    if (_labActiveFilter === 'delivered' && o.status !== 'delivered') return false;
+    if (q) {
+      var hay = [o.patientName, o.work, o.vendor, o.teeth, o.shade, o.notes].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="empty" style="padding:28px 14px"><div class="empty-icon">🧪</div><p>No hay órdenes de laboratorio en esta vista.</p></div>';
+    return;
+  }
+
+  var statusCls = { sent:'lab-st-sent', tryin:'lab-st-tryin', ready:'lab-st-ready', delivered:'lab-st-delivered' };
+  listEl.innerHTML = filtered.map(function(o) {
+    var isLate = (o.status === 'sent' || o.status === 'tryin') && o.dateDue && o.dateDue < today;
+    var nextAppt = (o.status === 'sent' || o.status === 'tryin') ? _patientUpcomingAppt(o.patientId) : null;
+    var apptWarn = nextAppt && o.dateDue && nextAppt.date <= o.dateDue
+      ? '<div style="margin-top:5px;font-size:.71rem;font-weight:750;color:#b45309">⚠️ Cita agendada el ' + escapeHTML(nextAppt.date) + (nextAppt.time ? ' (' + escapeHTML(nextAppt.time) + ')' : '') + ' y aún no está en clínica</div>'
+      : (nextAppt ? '<div style="margin-top:4px;font-size:.7rem;color:var(--blue)">📅 Próxima cita: ' + escapeHTML(nextAppt.date) + '</div>' : '');
+
+    return '<div style="padding:13px 15px;border-radius:14px;background:var(--bg);border:1px solid ' + (isLate ? 'color-mix(in srgb,#ef4444 45%,var(--border))' : 'var(--border)') + ';margin-bottom:9px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:230px">'
+      +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">'
+      +     '<strong style="font-size:.88rem;color:var(--ink)">' + escapeHTML(o.work) + '</strong>'
+      +     (o.teeth ? '<span style="font-size:.7rem;font-weight:750;padding:2px 7px;border-radius:6px;background:var(--card);border:1px solid var(--border)">🦷 ' + escapeHTML(o.teeth) + '</span>' : '')
+      +     (o.shade ? '<span style="font-size:.7rem;font-weight:750;padding:2px 7px;border-radius:6px;background:var(--card);border:1px solid var(--border)">🎨 ' + escapeHTML(o.shade) + '</span>' : '')
+      +     (isLate ? '<span style="font-size:.68rem;font-weight:800;color:#b91c1c;background:#fee2e2;padding:2px 8px;border-radius:99px">⏰ Entrega vencida</span>' : '')
+      +   '</div>'
+      +   '<div style="font-size:.78rem;color:var(--ink-2)">👤 <strong>' + escapeHTML(o.patientName) + '</strong> · 🏭 ' + escapeHTML(o.vendor || 'Laboratorio') + (o.cost ? ' · Costo lab: <strong>' + fmt$(o.cost) + '</strong>' : '') + '</div>'
+      +   '<div style="font-size:.71rem;color:var(--ink-3);margin-top:3px">Enviado: ' + escapeHTML(o.dateSent || '—') + (o.dateDue ? ' · Promesa entrega: <strong>' + escapeHTML(o.dateDue) + '</strong>' : '') + '</div>'
+      +   (o.notes ? '<div style="font-size:.73rem;color:var(--ink-2);margin-top:4px;font-style:italic">“' + escapeHTML(o.notes) + '”</div>' : '')
+      +   apptWarn
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+      +   '<select class="lab-status-pill ' + (statusCls[o.status] || 'lab-st-sent') + '" style="border:none;cursor:pointer;font-family:inherit" onchange="updateLabOrderStatus(\'' + o.id + '\', this.value)">'
+      +     '<option value="sent"' + (o.status==='sent'?' selected':'') + '>📤 Enviado a lab</option>'
+      +     '<option value="tryin"' + (o.status==='tryin'?' selected':'') + '>🦷 En prueba</option>'
+      +     '<option value="ready"' + (o.status==='ready'?' selected':'') + '>📦 Recibido en clínica</option>'
+      +     '<option value="delivered"' + (o.status==='delivered'?' selected':'') + '>✅ Entregado</option>'
+      +   '</select>'
+      +   '<button type="button" class="btn btn-ghost btn-xs" onclick="sendLabOrderWA(\'' + o.id + '\')" title="WhatsApp al laboratorio">💬 Lab</button>'
+      +   '<button type="button" class="btn btn-ghost btn-xs" onclick="printLabOrder(\'' + o.id + '\')" title="Imprimir orden de trabajo">🖨️</button>'
+      +   '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="deleteLabOrder(\'' + o.id + '\')" title="Eliminar">✕</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+function sendLabOrderWA(orderId) {
+  var o = loadLabOrders().find(function(x){ return String(x.id) === String(orderId); });
+  if (!o) return;
+  var phone = String(o.phone || '').replace(/\D/g, '');
+  if (phone && phone.length === 10) phone = '52' + phone;
+  var msg = '🧪 *ORDEN DE LABORATORIO DENTAL*\n'
+    + '*' + (o.doctorName || cfg.name || 'Consultorio Dental') + '*\n'
+    + '────────────────────\n'
+    + '👤 *Paciente:* ' + o.patientName + '\n'
+    + '🦷 *Trabajo:* ' + o.work + '\n'
+    + (o.teeth ? '🔢 *Piezas FDI:* ' + o.teeth + '\n' : '')
+    + (o.shade ? '🎨 *Color / Tono:* ' + o.shade + '\n' : '')
+    + (o.dateDue ? '📅 *Fecha requerida:* ' + o.dateDue + '\n' : '')
+    + (o.notes ? '📝 *Especificaciones:* ' + o.notes + '\n' : '')
+    + '────────────────────\n'
+    + (cfg.telefono ? 'Tel. Consultorio: ' + cfg.telefono : '');
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+}
+
+function printLabOrder(orderId) {
+  var o = loadLabOrders().find(function(x){ return String(x.id) === String(orderId); });
+  if (!o) return;
+  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Orden de Laboratorio — ' + escapeHTML(o.patientName) + '</title>'
+    + '<style>body{font-family:Arial,sans-serif;padding:28px 36px;color:#0f172a;font-size:12.5px;line-height:1.55}'
+    + '.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:18px}'
+    + 'table{width:100%;border-collapse:collapse;margin-bottom:16px}td{border:1px solid #cbd5e1;padding:8px 10px}.lbl{background:#f8fafc;font-weight:bold;width:30%}'
+    + '@media print{@page{size:letter;margin:1.2cm}}</style></head><body>'
+    + '<div class="hdr"><div style="display:flex;align-items:center;gap:12px"><div data-print-logo-slot>' + (typeof _logoHTML === 'function' ? _logoHTML(48) : '') + '</div>'
+    + '<div><strong style="font-size:15px">' + escapeHTML(o.doctorName || cfg.name || '') + '</strong><br><span style="font-size:11px;color:#475569">' + escapeHTML(cfg.telefono || '') + (cfg.correo ? ' · ' + escapeHTML(cfg.correo) : '') + '</span></div></div>'
+    + '<div style="text-align:right"><strong>ORDEN DE LABORATORIO</strong><br><span style="font-size:11px">Enviado: ' + escapeHTML(o.dateSent || '') + '</span></div></div>'
+    + '<table>'
+    + '<tr><td class="lbl">Laboratorio destino</td><td>' + escapeHTML(o.vendor || '—') + (o.phone ? ' (' + escapeHTML(o.phone) + ')' : '') + '</td></tr>'
+    + '<tr><td class="lbl">Paciente</td><td>' + escapeHTML(o.patientName) + '</td></tr>'
+    + '<tr><td class="lbl">Trabajo solicitado</td><td><strong>' + escapeHTML(o.work) + '</strong></td></tr>'
+    + '<tr><td class="lbl">Piezas dentales (FDI)</td><td>' + escapeHTML(o.teeth || '—') + '</td></tr>'
+    + '<tr><td class="lbl">Color / Tono</td><td>' + escapeHTML(o.shade || '—') + '</td></tr>'
+    + '<tr><td class="lbl">Fecha promesa de entrega</td><td><strong>' + escapeHTML(o.dateDue || '—') + '</strong></td></tr>'
+    + '<tr><td class="lbl">Indicaciones y diseño</td><td>' + escapeHTML(o.notes || 'Sin especificaciones adicionales.') + '</td></tr>'
+    + '</table>'
+    + '<div style="margin-top:46px;text-align:center"><div style="width:220px;border-top:1px solid #0f172a;margin:0 auto 5px"></div>Firma del Doctor Solicitante</div>'
+    + '</body></html>';
+  var w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+  if (typeof _printWindow === 'function') _printWindow(w);
+  else w.print();
+}
+
+// ── 6. MINI INVENTARIO DENTAL CON ALERTAS DE STOCK Y CADUCIDAD ───────────
+var INV_STORAGE_KEY = 'dental_inventory_v1';
+var _invActiveFilter = 'all';
+
+function loadInventory() {
+  try {
+    var raw = appStorage.getItem(INV_STORAGE_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function saveInventory(list) {
+  appStorage.setItem(INV_STORAGE_KEY, JSON.stringify(list || []));
+  if (typeof renderDashOpsAlerts === 'function') renderDashOpsAlerts();
+}
+
+function seedDefaultInventory() {
+  var current = loadInventory();
+  if (current.length && !confirm('Ya tienes insumos registrados. ¿Deseas agregar los insumos dentales básicos faltantes a tu lista?')) return;
+  var defaults = [
+    { name:'Lidocaína 2% con epinefrina (cartuchos)', cat:'Anestesia', qty:2, unit:'cajas', minQty:1 },
+    { name:'Articaína 4% con epinefrina', cat:'Anestesia', qty:1, unit:'cajas', minQty:1 },
+    { name:'Agujas cortas calibre 30G', cat:'Anestesia', qty:2, unit:'cajas', minQty:1 },
+    { name:'Guantes de nitrilo medianos', cat:'Desechables y Bioseguridad', qty:4, unit:'cajas', minQty:2 },
+    { name:'Cubrebocas tricapa / KN95', cat:'Desechables y Bioseguridad', qty:3, unit:'cajas', minQty:1 },
+    { name:'Eyectores de saliva', cat:'Desechables y Bioseguridad', qty:3, unit:'paquetes', minQty:1 },
+    { name:'Campos y baberos desechables', cat:'Desechables y Bioseguridad', qty:2, unit:'paquetes', minQty:1 },
+    { name:'Resina compuesta tono A2', cat:'Operatoria y Resinas', qty:3, unit:'jeringas', minQty:1 },
+    { name:'Ácido grabador fosfórico 37%', cat:'Operatoria y Resinas', qty:4, unit:'jeringas', minQty:2 },
+    { name:'Adhesivo universal dental', cat:'Operatoria y Resinas', qty:2, unit:'frascos', minQty:1 },
+    { name:'Alginato cromático', cat:'Prótesis e Impresión', qty:3, unit:'bolsas', minQty:1 },
+    { name:'Sutura ácido poliglicólico / seda 3-0', cat:'Cirugía', qty:12, unit:'sobres', minQty:5 }
+  ];
+  var existingNames = new Set(current.map(function(x){ return String(x.name || '').toLowerCase(); }));
+  var now = Date.now();
+  defaults.forEach(function(d, idx) {
+    if (!existingNames.has(d.name.toLowerCase())) {
+      current.push({
+        id: 'inv_' + now + '_' + idx,
+        name: d.name,
+        cat: d.cat,
+        qty: d.qty,
+        unit: d.unit,
+        minQty: d.minQty,
+        expDate: '',
+        _updatedAt: now
+      });
+    }
+  });
+  saveInventory(current);
+  renderInventoryPage();
+  showToast('📦 Insumos base cargados', 'green');
+}
+
+function addInventoryItem() {
+  var name = (document.getElementById('inv-name').value || '').trim();
+  var cat = document.getElementById('inv-cat').value || 'General';
+  var qty = parseFloat(document.getElementById('inv-qty').value || '0') || 0;
+  var unit = document.getElementById('inv-unit').value || 'piezas';
+  var minQty = parseFloat(document.getElementById('inv-min').value || '0') || 0;
+  var expDate = document.getElementById('inv-exp').value || '';
+
+  if (!name) {
+    showToast('Escribe el nombre del insumo o material', 'red');
+    return;
+  }
+  var list = loadInventory();
+  list.unshift({
+    id: 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+    name: name,
+    cat: cat,
+    qty: qty,
+    unit: unit,
+    minQty: minQty,
+    expDate: expDate,
+    _updatedAt: Date.now()
+  });
+  saveInventory(list);
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-exp').value = '';
+  renderInventoryPage();
+  showToast('📦 Insumo agregado al inventario', 'green');
+}
+
+function stepInventoryQty(itemId, delta) {
+  var list = loadInventory();
+  var it = list.find(function(x){ return String(x.id) === String(itemId); });
+  if (!it) return;
+  it.qty = Math.max(0, Math.round((Number(it.qty || 0) + delta) * 100) / 100);
+  it._updatedAt = Date.now();
+  saveInventory(list);
+  renderInventoryPage();
+}
+
+function deleteInventoryItem(itemId) {
+  if (!confirm('¿Eliminar este insumo del inventario?')) return;
+  saveInventory(loadInventory().filter(function(x){ return String(x.id) !== String(itemId); }));
+  renderInventoryPage();
+}
+
+function setInvFilter(f, btnEl) {
+  _invActiveFilter = f;
+  if (btnEl && btnEl.parentElement) {
+    btnEl.parentElement.querySelectorAll('.rx-cat-chip').forEach(function(b){ b.classList.remove('active'); });
+    btnEl.classList.add('active');
+  }
+  renderInventoryPage();
+}
+
+function _invDaysToExpire(expDate) {
+  if (!expDate) return null;
+  var diff = new Date(expDate + 'T12:00:00').getTime() - new Date(todayStr() + 'T12:00:00').getTime();
+  return Math.round(diff / 86400000);
+}
+
+function renderInventoryPage() {
+  var wrap = document.getElementById('inv-list-wrap');
+  var kpiEl = document.getElementById('inv-kpis');
+  if (!wrap) return;
+  var all = loadInventory();
+
+  var lowCount = all.filter(function(x){ return Number(x.qty || 0) <= Number(x.minQty || 0); }).length;
+  var expCount = all.filter(function(x){ var d = _invDaysToExpire(x.expDate); return d !== null && d <= 30; }).length;
+
+  if (kpiEl) {
+    kpiEl.innerHTML = '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:750;background:var(--bg);border:1px solid var(--border);color:var(--ink)">📦 Total insumos: ' + all.length + '</span>'
+      + '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:750;background:' + (lowCount ? '#fee2e2;color:#b91c1c' : '#dcfce7;color:#15803d') + '">⚠️ Stock bajo: ' + lowCount + '</span>'
+      + (expCount ? '<span style="padding:5px 10px;border-radius:99px;font-size:.73rem;font-weight:750;background:#fef3c7;color:#b45309">⏳ Por caducar (≤30d): ' + expCount + '</span>' : '');
+  }
+
+  var q = ((document.getElementById('inv-search') || {}).value || '').trim().toLowerCase();
+  var filtered = all.filter(function(x) {
+    var isLow = Number(x.qty || 0) <= Number(x.minQty || 0);
+    var dExp = _invDaysToExpire(x.expDate);
+    var isExp = dExp !== null && dExp <= 30;
+    if (_invActiveFilter === 'low' && !isLow) return false;
+    if (_invActiveFilter === 'exp' && !isExp) return false;
+    if (q && (String(x.name || '') + ' ' + String(x.cat || '')).toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="empty" style="padding:28px 14px"><div class="empty-icon">📦</div><p>'
+      + (all.length ? 'Ningún insumo coincide con este filtro.' : 'Tu inventario está vacío. Usa “✨ Cargar insumos dentales base” arriba para empezar en 1 clic.')
+      + '</p></div>';
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(function(it) {
+    var isLow = Number(it.qty || 0) <= Number(it.minQty || 0);
+    var dExp = _invDaysToExpire(it.expDate);
+    var expBadge = '';
+    if (dExp !== null) {
+      if (dExp < 0) expBadge = '<span style="font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:99px;background:#fee2e2;color:#b91c1c">❌ Caducado (' + escapeHTML(it.expDate) + ')</span>';
+      else if (dExp <= 30) expBadge = '<span style="font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#b45309">⏳ Caduca en ' + dExp + 'd (' + escapeHTML(it.expDate) + ')</span>';
+      else expBadge = '<span style="font-size:.68rem;color:var(--ink-3)">Cad: ' + escapeHTML(it.expDate) + '</span>';
+    }
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:13px;background:var(--bg);border:1px solid ' + (isLow ? 'color-mix(in srgb,#ef4444 42%,var(--border))' : 'var(--border)') + ';margin-bottom:8px;flex-wrap:wrap">'
+      + '<div style="min-width:200px;flex:1">'
+      +   '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">'
+      +     '<strong style="font-size:.85rem;color:var(--ink)">' + escapeHTML(it.name) + '</strong>'
+      +     '<span style="font-size:.67rem;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--ink-3)">' + escapeHTML(it.cat || 'General') + '</span>'
+      +     (isLow ? '<span style="font-size:.67rem;font-weight:800;padding:2px 8px;border-radius:99px;background:#fee2e2;color:#b91c1c">⚠️ Reponer pronto</span>' : '')
+      +     expBadge
+      +   '</div>'
+      +   '<div style="font-size:.7rem;color:var(--ink-3);margin-top:2px">Mínimo sugerido: ' + it.minQty + ' ' + escapeHTML(it.unit || '') + '</div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      +   '<div class="inv-stepper">'
+      +     '<button type="button" onclick="stepInventoryQty(\'' + it.id + '\', -1)">−</button>'
+      +     '<span style="color:' + (isLow ? 'var(--red,#dc2626)' : 'var(--ink)') + '">' + it.qty + ' <small style="font-weight:600;color:var(--ink-3)">' + escapeHTML(it.unit || '') + '</small></span>'
+      +     '<button type="button" onclick="stepInventoryQty(\'' + it.id + '\', 1)">＋</button>'
+      +   '</div>'
+      +   '<button type="button" class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="deleteInventoryItem(\'' + it.id + '\')" title="Eliminar insumo">✕</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── 7. ALERTAS OPERATIVAS EN PANTALLA DE INICIO ──────────────────────────
+function renderDashOpsAlerts() {
+  var box = document.getElementById('dash-ops-alerts');
+  if (!box) return;
+  var cards = [];
+  var today = todayStr();
+  var tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+
+  // Alertas de Laboratorio Dental
+  var labs = loadLabOrders();
+  var urgentLabs = labs.filter(function(o) {
+    if (o.status !== 'sent' && o.status !== 'tryin') return false;
+    if (o.dateDue && o.dateDue <= today) return true;
+    var appt = _patientUpcomingAppt(o.patientId);
+    return !!(appt && (appt.date === today || appt.date === tomorrow));
+  });
+  if (urgentLabs.length) {
+    var names = urgentLabs.slice(0, 2).map(function(o){ return o.patientName + ' (' + o.work + ')'; }).join(', ');
+    cards.push('<div class="dash-ops-alert is-warn" onclick="goPage(\'lab-page\',document.getElementById(\'lab-nav\'))">'
+      + '<span class="doa-ico">🧪</span>'
+      + '<div><strong>' + urgentLabs.length + (urgentLabs.length === 1 ? ' orden de laboratorio pendiente' : ' órdenes de laboratorio urgentes') + '</strong>'
+      + '<span>' + escapeHTML(names) + (urgentLabs.length > 2 ? '…' : '') + ' — Revisa entrega antes de su cita →</span></div></div>');
+  }
+
+  // Alertas de Inventario
+  var inv = loadInventory();
+  var lowInv = inv.filter(function(x){ return Number(x.qty || 0) <= Number(x.minQty || 0); });
+  var expInv = inv.filter(function(x){ var d = _invDaysToExpire(x.expDate); return d !== null && d <= 30; });
+  if (lowInv.length || expInv.length) {
+    var parts = [];
+    if (lowInv.length) parts.push(lowInv.length + ' con stock bajo');
+    if (expInv.length) parts.push(expInv.length + ' por caducar');
+    cards.push('<div class="dash-ops-alert" onclick="goPage(\'inv-page\',document.getElementById(\'inv-nav\'))">'
+      + '<span class="doa-ico">📦</span>'
+      + '<div><strong>Alerta de inventario: ' + parts.join(' · ') + '</strong>'
+      + '<span>' + escapeHTML((lowInv[0] || expInv[0]).name) + ((lowInv.length + expInv.length) > 1 ? ' y más insumos requieren revisión →' : ' requiere revisión →') + '</span></div></div>');
+  }
+
+  if (!cards.length) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+  } else {
+    box.style.display = 'grid';
+    box.innerHTML = cards.join('');
+  }
+}
+
+// ── 8. EXPORTADOR ANTES / DESPUÉS CON MARCA DEL CONSULTORIO ──────────────
+function _drawImageCoverRounded(ctx, img, x, y, w, h, r) {
+  ctx.save();
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+  else ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  var iw = img.naturalWidth || img.width || 1;
+  var ih = img.naturalHeight || img.height || 1;
+  var scale = Math.max(w / iw, h / ih);
+  var sw = iw * scale;
+  var sh = ih * scale;
+  var sx = x + (w - sw) / 2;
+  var sy = y + (h - sh) / 2;
+  ctx.drawImage(img, sx, sy, sw, sh);
+  ctx.restore();
+}
+
+function _drawBadgePill(ctx, text, x, y, bgColor) {
+  ctx.save();
+  ctx.font = '800 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  var tw = ctx.measureText(text).width;
+  var pw = tw + 34, ph = 42;
+  ctx.fillStyle = bgColor || 'rgba(15,23,42,0.82)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, pw, ph, 21);
+  else ctx.rect(x, y, pw, ph);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x + 17, y + ph / 2 + 1);
+  ctx.restore();
+}
+
+function exportBeforeAfterImage() {
+  var beforeImg = document.getElementById('compare-before-img');
+  var afterImg = document.getElementById('compare-after-img');
+  if (!beforeImg || !afterImg || !beforeImg.complete || !afterImg.complete || !beforeImg.naturalWidth || !afterImg.naturalWidth) {
+    showToast('Espera un instante a que terminen de cargar ambas fotografías', 'red');
+    return;
+  }
+  var layout = (document.getElementById('compare-export-layout') || {}).value || 'horizontal';
+  var customTitle = ((document.getElementById('compare-export-title') || {}).value || '').trim();
+  var docName = (_activeDoctor && _activeDoctor.name) || cfg.name || 'Consultorio Dental';
+  var docSub = (_activeDoctor && _activeDoctor.specialty) || cfg.sub || 'Odontología Estética y Rehabilitación';
+  var contact = [cfg.telefono ? '📞 ' + cfg.telefono : '', cfg.city || ''].filter(Boolean).join('  ·  ');
+
+  var canvas = document.createElement('canvas');
+  var W = layout === 'vertical' ? 1080 : 1600;
+  var H = layout === 'vertical' ? 1350 : 900;
+  canvas.width = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Studio dark luxury gradient background
+  var grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#0b1120');
+  grad.addColorStop(1, '#172554');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  var pad = 44;
+  var topH = customTitle ? 104 : 44;
+  var footH = 128;
+
+  if (customTitle) {
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '800 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(customTitle, pad, 56);
+  }
+
+  if (layout === 'vertical') {
+    var availH = H - topH - footH - 24;
+    var boxH = Math.floor(availH / 2);
+    var boxW = W - pad * 2;
+    _drawImageCoverRounded(ctx, beforeImg, pad, topH, boxW, boxH, 26);
+    _drawBadgePill(ctx, 'ANTES', pad + 20, topH + 20, 'rgba(15,23,42,0.82)');
+
+    var y2 = topH + boxH + 24;
+    _drawImageCoverRounded(ctx, afterImg, pad, y2, boxW, boxH, 26);
+    _drawBadgePill(ctx, 'DESPUÉS', pad + 20, y2 + 20, 'rgba(37,99,235,0.92)');
+  } else {
+    var availW = W - pad * 2 - 24;
+    var colW = Math.floor(availW / 2);
+    var colH = H - topH - footH;
+    _drawImageCoverRounded(ctx, beforeImg, pad, topH, colW, colH, 26);
+    _drawBadgePill(ctx, 'ANTES', pad + 20, topH + 20, 'rgba(15,23,42,0.82)');
+
+    var x2 = pad + colW + 24;
+    _drawImageCoverRounded(ctx, afterImg, x2, topH, colW, colH, 26);
+    _drawBadgePill(ctx, 'DESPUÉS', x2 + 20, topH + 20, 'rgba(37,99,235,0.92)');
+  }
+
+  // Brand footer
+  var fy = H - footH + 22;
+  var textX = pad;
+  var logoEl = document.getElementById('sb-logo-img');
+  var hasReadyLogo = logoEl && logoEl.complete && logoEl.naturalWidth > 0 && cfg.logoImageUrl;
+  if (hasReadyLogo) {
+    try {
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(pad, fy, 74, 74, 16);
+      else ctx.rect(pad, fy, 74, 74);
+      ctx.fill();
+      var lw = logoEl.naturalWidth, lh = logoEl.naturalHeight;
+      var ls = Math.min(62 / lw, 62 / lh);
+      ctx.drawImage(logoEl, pad + (74 - lw * ls) / 2, fy + (74 - lh * ls) / 2, lw * ls, lh * ls);
+      ctx.restore();
+      textX = pad + 92;
+    } catch (e) {}
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.textBaseline = 'top';
+  ctx.fillText(docName, textX, fy + 8);
+
+  ctx.fillStyle = '#93c5fd';
+  ctx.font = '600 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.fillText(docSub, textX, fy + 44);
+
+  if (contact) {
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '600 19px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(contact, W - pad, fy + 28);
+    ctx.textAlign = 'left';
+  }
+
+  try {
+    canvas.toBlob(function(blob) {
+      if (!blob) { showToast('No se pudo exportar la imagen', 'red'); return; }
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var pat = (db.patients || []).find(function(x){ return x.id == curId; });
+      var slug = pat && pat.name ? pat.name.toLowerCase().replace(/[^a-z0-9]+/g, '_') : 'caso_clinico';
+      a.href = url;
+      a.download = 'antes_despues_' + slug + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+      showToast('📸 Imagen Antes/Después descargada con tu marca', 'green');
+    }, 'image/png');
+  } catch (err) {
+    showToast('No se pudo generar la descarga de esta foto', 'red');
+  }
+}
 </script>
 </body>
 </html>
